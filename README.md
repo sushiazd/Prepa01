@@ -1,13 +1,19 @@
-# QCM maths · mise en ligne
+# Révisions CC · mise en ligne
 
-Le site tient en 4 fichiers :
+Le site regroupe plusieurs outils de révision :
 
 | Fichier | Rôle |
 |---|---|
-| `index.html` | le site complet (QCM, import de PDF, catalogue, comptes, groupes) |
-| `config.js` | l'adresse de ta base Supabase (à remplir, étape 4) |
+| `index.html` | la page d'accueil, avec un lien vers chaque outil |
+| `maths/index.html` | le QCM de maths (QCM, import de PDF, catalogue, comptes, groupes) |
+| `elec/index.html` | l'entraînement au CC1 d'électronique (cours, démos, exos générés, annales, sujets blancs) |
+| `config.js` | l'adresse de ta base Supabase (à remplir, étape 4), utilisée par le QCM de maths |
 | `supabase.sql` | la base de données et ses règles de sécurité (étape 2) |
 | `README.md` | ce guide |
+
+Adresses une fois en ligne : `…/MathPrac/` (accueil), `…/MathPrac/maths/` et `…/MathPrac/elec/`.
+
+La partie élec n'utilise pas Supabase : la progression (stats, copies, planning) reste dans le navigateur de chaque appareil.
 
 Compte environ 30 minutes la première fois. Tout est gratuit.
 
@@ -47,7 +53,7 @@ Le service d'e-mails gratuit de Supabase n'envoie que quelques e-mails par heure
 ## 5. Mettre le site en ligne (GitHub Pages)
 
 1. Sur **github.com** → *New repository* → nom `qcm-maths`, **Public**, *Create repository*.
-2. *uploading an existing file* → glisse `index.html`, `config.js`, `supabase.sql`, `README.md` → *Commit changes*.
+2. *uploading an existing file* → glisse `index.html`, `config.js`, `supabase.sql`, `README.md` **et les dossiers `maths` et `elec`** → *Commit changes*.
 3. **Settings → Pages** → *Source* : *Deploy from a branch* → branche `main`, dossier `/ (root)` → *Save*.
 4. Après 1 à 2 minutes, le site est à l'adresse **`https://TON-PSEUDO.github.io/qcm-maths/`** (affichée en haut de la page *Pages*).
 
@@ -73,7 +79,15 @@ Supabase → **Authentication → URL Configuration** → *Site URL* = l'adresse
 
 ## Mettre à jour le site
 
-Remplace `index.html` dans le dépôt GitHub (*Add file → Upload files*). Ne touche pas à `config.js`. Les données des comptes ne sont pas affectées.
+Dans le dépôt GitHub (*Add file → Upload files*), glisse le ou les fichiers modifiés en gardant leur dossier : `maths/index.html` pour le QCM, `elec/index.html` pour l'élec, `index.html` pour l'accueil. Ne touche pas à `config.js`. Les données des comptes ne sont pas affectées.
+
+### Passage à la version « plusieurs outils »
+
+Le QCM était à la racine du dépôt ; il est maintenant dans `maths/`. Pour migrer :
+
+1. Envoie le nouveau `index.html` (l'accueil), puis les dossiers `maths` et `elec` entiers. GitHub crée les dossiers automatiquement.
+2. Supabase → **Authentication → URL Configuration** → *Site URL* : ajoute `maths/` à la fin de l'adresse (ex. `https://TON-PSEUDO.github.io/MathPrac/maths/`).
+3. Les comptes, groupes et la progression enregistrée dans le navigateur sont conservés, car le site reste sur le même domaine. L'ancien lien `…/MathPrac/` mène maintenant à l'accueil, d'où on clique sur « QCM de maths ».
 
 ## Limites connues
 

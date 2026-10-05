@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CC1 Élec · Entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
+  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
+  --rule:#e4e0d6; --rule-strong:#cdc8bb;
+  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc; --pen-line:#bccaf5;
+  --red:#bf2f2a; --red-soft:#fbeceb;
+  --good:#11773a; --good-soft:#e5f3e9;
+  --warn:#9a5b00; --warn-soft:#fcf2da;
+  --flag:#d4700a; --flag-soft:#fdf0e1;
+  --good-fill:#0ca30c; --warn-fill:#fab219; --bad-fill:#d03b3b; --empty-fill:#c3c2b7;
+  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
+  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --hand:"Caveat","Segoe Print","Bradley Hand",cursive;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+    --rule:#2e2d2a; --rule-strong:#45433e;
+    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340; --pen-line:#34437a;
+    --red:#ff7b72; --red-soft:#3a1f1c;
+    --good:#52c774; --good-soft:#14291b;
+    --warn:#f0b64d; --warn-soft:#32270f;
+    --flag:#ff9d42; --flag-soft:#382512;
+    --empty-fill:#57564f;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+  --rule:#2e2d2a; --rule-strong:#45433e;
+  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340; --pen-line:#34437a;
+  --red:#ff7b72; --red-soft:#3a1f1c;
+  --good:#52c774; --good-soft:#14291b;
+  --warn:#f0b64d; --warn-soft:#32270f;
+  --flag:#ff9d42; --flag-soft:#382512;
+  --empty-fill:#57564f;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+[hidden]{display:none !important}
+button{font:inherit;color:inherit}
+h1,h2,h3,h4,p{margin:0}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+.katex{font-size:1.07em}
+.katex-display{margin:.7em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+
+/* ---------- Barre du haut (même charte que le QCM maths) ---------- */
+.topbar{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;height:64px;padding:0 24px;background:color-mix(in srgb,var(--paper) 88%,transparent);-webkit-backdrop-filter:saturate(1.3) blur(10px);backdrop-filter:saturate(1.3) blur(10px);border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:center;gap:12px;min-width:0;color:inherit;text-decoration:none}
+.brand-mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:600 19px/1 var(--serif)}
+.brand strong{display:block;font:600 15px/1.2 var(--sans);letter-spacing:-.01em;white-space:nowrap}
+.brand small{display:block;color:var(--muted);font-size:12.5px;white-space:nowrap}
+.topnav{grid-column:2;display:flex;gap:4px;align-items:center;justify-content:center;min-width:0}
+.tab{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:1px solid transparent;background:transparent;font:500 14px/1 var(--sans);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.tab:hover{background:var(--sheet-2);color:var(--ink)}
+.tab[aria-current="page"]{background:var(--ink);color:var(--paper)}
+.clock{grid-column:2;display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.clock-label{font:600 10.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.clock-time{font:700 25px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.topbar.warn .clock-time{color:var(--warn)}
+.topbar.danger .clock-time{color:var(--red)}
+.top-actions{grid-column:3;display:flex;justify-content:flex-end;align-items:center;gap:10px}
+.time-bar{position:absolute;left:0;right:0;bottom:-1px;height:3px}
+.time-bar span{display:block;height:100%;width:100%;background:var(--pen);transition:width .25s linear}
+.topbar.warn .time-bar span{background:var(--warn)}
+.topbar.danger .time-bar span{background:var(--red)}
+body[data-view="exam"] .topnav{display:none}
+
+/* ---------- Boutons, cartes ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:500 14px/1 var(--sans);cursor:pointer;white-space:nowrap;text-decoration:none;transition:background .15s,border-color .15s,color .15s}
+.btn:hover{background:var(--sheet-2);border-color:var(--muted)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn svg{width:16px;height:16px;flex:none}
+.btn-primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn-primary:hover{background:var(--pen-hover);border-color:var(--pen-hover)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn-ghost:hover{background:var(--sheet-2);border-color:var(--rule)}
+.btn-lg{min-height:50px;padding:0 26px;font-size:16px;border-radius:12px}
+.btn-sm{min-height:34px;padding:0 12px;font-size:13.5px}
+.icon-btn{width:40px;padding:0}
+.btn .short{display:none}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:28px 32px;min-width:0}
+.card h2{font:600 22px/1.2 var(--serif)}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+.sub{font-size:14px;color:var(--ink-2);margin-top:4px;max-width:620px}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--pen);margin-bottom:12px}
+.fine{font-size:13px;color:var(--muted)}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:680px}
+.hub{max-width:1040px;margin:36px auto 96px;padding:0 24px;display:grid;gap:24px}
+.hub>*{min-width:0}
+.hub-head h1{font:600 clamp(30px,4.6vw,44px)/1.06 var(--serif);letter-spacing:-.02em}
+.meta-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.meta-chip{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);font-size:13px;color:var(--ink-2)}
+.banner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 20px;border-radius:14px;border:1px solid color-mix(in srgb,var(--flag) 40%,transparent);background:var(--flag-soft)}
+.banner p{font-size:14.5px;color:var(--ink-2)}
+.banner .spacer{flex:1}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{height:38px;padding:0 14px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);font:500 14px/1 var(--sans);color:var(--ink-2);cursor:pointer}
+.seg button:hover{border-color:var(--ink-2);color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.row .spacer{flex:1}
+.lbl-s{font:600 11.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+input[type="text"],input[type="date"]{font:15px/1.3 var(--sans);color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:40px;max-width:100%}
+input:focus-visible{outline:2px solid var(--pen);outline-offset:1px}
+code{font:13.5px ui-monospace,Menlo,Consolas,monospace;background:var(--sheet-2);padding:1px 5px;border-radius:5px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font:600 12.5px/1 var(--sans);white-space:nowrap}
+.pill.st-good{background:var(--good-soft);color:var(--good)}
+.pill.st-part{background:var(--warn-soft);color:var(--warn)}
+.pill.st-bad{background:var(--red-soft);color:var(--red)}
+.pill.st-empty{background:var(--sheet-2);color:var(--ink-2);border:1px solid var(--rule)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;max-width:min(560px,calc(100vw - 32px));padding:12px 18px;border-radius:12px;background:var(--ink);color:var(--paper);font-size:14px;box-shadow:0 12px 30px -10px rgba(0,0,0,.45)}
+
+/* ---------- Accueil ---------- */
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tile{border:1px solid var(--rule);border-radius:12px;padding:16px;background:var(--sheet-2);min-width:0;display:grid;gap:8px;align-content:start}
+.tile-label{font:600 12px/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--pen)}
+.tile h3{font:600 17px/1.25 var(--serif)}
+.tile p{font-size:13.5px;color:var(--ink-2)}
+.tile .btn{justify-self:start;margin-top:4px}
+.bar{position:relative;height:10px;border-radius:999px;background:var(--sheet);border:1px solid var(--rule);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:999px;background:var(--good-fill)}
+.bar.mid>i{background:var(--warn-fill)} .bar.low>i{background:var(--bad-fill)}
+.count{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.count b{font:700 clamp(44px,7vw,64px)/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.count span{font-size:15px;color:var(--ink-2)}
+.plan{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.plan li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--rule)}
+.plan li:first-child{border-top:0}
+.plan input{width:19px;height:19px;accent-color:var(--good);margin-top:2px;flex:none}
+.plan .d{font:700 12.5px/1.4 var(--sans);color:var(--pen);min-width:44px;font-variant-numeric:tabular-nums}
+.plan .t{font-size:14.5px;color:var(--ink-2)}
+.plan li.done .t{text-decoration:line-through;color:var(--muted)}
+.plan li.today .d{color:var(--flag)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+
+/* ---------- Cours ---------- */
+.th-card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.th-card>summary{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:18px 22px;cursor:pointer;list-style:none}
+.th-card>summary::-webkit-details-marker{display:none}
+.th-card>summary::before{content:"";width:9px;height:9px;border-right:2px solid var(--ink-2);border-bottom:2px solid var(--ink-2);transform:rotate(-45deg);transition:transform .15s;flex:none}
+.th-card[open]>summary::before{transform:rotate(45deg)}
+.th-card>summary h3{font:600 18px/1.3 var(--serif);flex:1;min-width:200px}
+.th-card>summary .sm{font-size:12.5px;color:var(--ink-2)}
+.th-body{padding:6px 26px 26px;border-top:1px solid var(--rule);font:16.5px/1.65 var(--serif)}
+.th-body p{margin-top:12px}
+.th-body ul,.th-body ol{margin:10px 0 0;padding-left:22px}
+.th-body li+li{margin-top:5px}
+.th-body h4{font:700 11.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:22px}
+.box{margin-top:14px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
+.box.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.box.red{background:var(--red-soft);border-color:color-mix(in srgb,var(--red) 30%,transparent)}
+.box.pen{background:var(--pen-soft);border-color:var(--pen-line)}
+.box h5{font:700 11.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;margin:0 0 8px}
+.box.warn h5{color:var(--warn)} .box.red h5{color:var(--red)} .box.pen h5{color:var(--pen)}
+.tag-off{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);color:var(--muted);font:600 11.5px/1 var(--sans)}
+.tag-hot{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--red-soft);color:var(--red);font:600 11.5px/1 var(--sans)}
+
+/* ---------- Schémas ---------- */
+.ckt{display:block;width:100%;max-width:540px;height:auto;margin:14px auto 6px;overflow:visible}
+.ckt.sm{max-width:420px}
+.ckt .w{stroke:var(--ink);stroke-width:1.7;fill:none;stroke-linecap:round}
+.ckt .rb{fill:var(--sheet);stroke:var(--ink);stroke-width:1.7}
+.ckt .dotc{fill:var(--ink)}
+.ckt .termc{fill:var(--sheet);stroke:var(--ink);stroke-width:1.7}
+.ckt text{fill:var(--ink);font:500 15px var(--serif)}
+.ckt text.lblA{font:700 15px var(--sans)}
+.ckt .ci{stroke:var(--red);stroke-width:1.7;fill:none}
+.ckt .cu{stroke:var(--pen);stroke-width:1.7;fill:none}
+.ckt .fillc.ci{fill:var(--red)} .ckt .fillc.cu{fill:var(--pen)}
+.ckt text.ci{fill:var(--red);stroke:none;font-weight:600}
+.ckt text.cu{fill:var(--pen);stroke:none;font-weight:600}
+.ckt text.mu{fill:var(--muted);font:600 13px var(--sans)}
+
+/* ---------- Exercices ---------- */
+.exo{display:grid;gap:2px}
+.exo-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.exo-head h2{font:600 22px/1.2 var(--serif)}
+.exo-head .pts{font:500 14px var(--sans);color:var(--muted)}
+.exo-head .score{margin-left:auto;font:600 26px/1 var(--hand);color:var(--red);transform:rotate(-4deg)}
+.qb{padding:18px 0 6px;border-top:1px solid var(--rule)}
+.qb:first-of-type{border-top:0}
+.qb-text{font:17px/1.6 var(--serif)}
+.qb-text b.n{font:700 15px var(--sans);margin-right:4px}
+.paper{margin-top:10px;padding:9px 13px;border-radius:9px;background:var(--sheet-2);border:1px dashed var(--rule-strong);font-size:13.5px;color:var(--ink-2)}
+.items{display:grid;gap:12px;margin-top:12px}
+.it{display:grid;grid-template-columns:minmax(64px,auto) minmax(0,1fr);gap:4px 12px;align-items:center}
+.it-lab{font-size:16px;white-space:nowrap;text-align:right}
+.it-in{display:flex;align-items:center;gap:8px;min-width:0}
+.ans-in{flex:1;min-width:0;width:100%;font:15px/1.3 ui-monospace,Menlo,Consolas,monospace !important}
+.unit{font:600 14px var(--sans);color:var(--ink-2)}
+.prev,.fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.prev:empty,.fb:empty{display:none}
+.prev .err{color:var(--muted);font-style:italic}
+.fb{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.my{font:14px ui-monospace,Menlo,Consolas,monospace;padding:6px 10px;border-radius:8px;background:var(--sheet-2);border:1px solid var(--rule);overflow-x:auto}
+.qb-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+details.corr-d{margin-top:10px}
+details.corr-d>summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen);padding:7px 0;list-style:none;display:inline-flex;align-items:center;gap:6px}
+details.corr-d>summary::-webkit-details-marker{display:none}
+details.corr-d>summary::before{content:"▸";font-size:12px;transition:transform .15s}
+details.corr-d[open]>summary::before{transform:rotate(90deg)}
+.expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.65 var(--serif);overflow-x:auto}
+.expl p+p,.expl p+div,.expl div+p{margin-top:8px}
+.expl ul,.expl ol{margin:6px 0;padding-left:20px}
+.expl .res{display:inline-block;padding:2px 8px;border:1.5px solid var(--good);border-radius:6px}
+.self-list{display:grid;gap:8px;margin-top:12px}
+.self-it{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:var(--ink-2);cursor:pointer}
+.self-it input{width:18px;height:18px;accent-color:var(--good);margin-top:2px;flex:none}
+.self-it .p{margin-left:auto;font:600 13.5px var(--sans);color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:10px}
+.self-h{font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--good);margin-top:14px}
+.help{font-size:14px;color:var(--ink-2)}
+.help code{font-size:13px}
+.stat-line{font-size:14px;color:var(--ink-2)}
+.stat-line b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ---------- Démos ---------- */
+.demo-grid{display:grid;gap:16px}
+.demo{display:grid;gap:12px}
+.demo h3{font:600 20px/1.25 var(--serif)}
+.demo .stmt{font:17px/1.6 var(--serif);color:var(--ink-2)}
+.demo-panel{margin-top:6px;padding-top:16px;border-top:1px solid var(--rule)}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:st}
+.steps li{counter-increment:st;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;font:16.5px/1.6 var(--serif);overflow-x:auto}
+.steps li::before{content:counter(st);display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--pen-soft);color:var(--pen);font:700 13px/1 var(--sans);margin-top:2px}
+.og-pool{display:grid;gap:8px;margin-top:12px}
+.og-card{text-align:left;padding:10px 14px;border-radius:10px;border:1.5px solid var(--rule-strong);background:var(--sheet);font:16px/1.55 var(--serif);cursor:pointer;overflow-x:auto}
+.og-card:hover{border-color:var(--pen)}
+.og-card.wrong{animation:shake .35s;border-color:var(--red);background:var(--red-soft)}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.formula{margin-top:4px;padding:12px 16px;border-radius:12px;border:1.5px solid var(--good);background:var(--good-soft);overflow-x:auto}
+
+/* ---------- Sujets & résultats ---------- */
+.ann-grid{display:grid;gap:16px}
+.ann-card>summary .chips{display:flex;gap:6px;flex-wrap:wrap}
+.hist{width:100%;border-collapse:collapse;font-size:14px}
+.hist th{text-align:left;font:600 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--rule)}
+.hist td{padding:10px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
+.hist tbody tr{cursor:pointer}
+.hist tbody tr:hover{background:var(--sheet-2)}
+.table-wrap{overflow-x:auto}
+.hero{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr);gap:32px;align-items:center}
+.grade{display:flex;align-items:baseline;gap:6px}
+.grade-value{font:700 clamp(64px,9vw,96px)/.95 var(--sans);letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.grade-max{font:600 28px/1 var(--sans);color:var(--muted)}
+.grade-sub{font-size:14.5px;color:var(--ink-2);margin-top:10px}
+.rtiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rtile{border:1px solid var(--rule);border-radius:12px;padding:12px 14px;background:var(--sheet-2)}
+.rtile .l{font-size:12.5px;color:var(--ink-2)}
+.rtile .v{font:650 24px/1.1 var(--sans);margin-top:6px;font-variant-numeric:tabular-nums}
+.rtile .v small{font-size:14px;color:var(--muted);font-weight:500}
+.exam-head{display:grid;gap:10px}
+.exam-foot{display:flex;justify-content:center;padding:10px 0 30px}
+
+/* ---------- Responsive ---------- */
+@media (max-width:980px){ .tiles{grid-template-columns:repeat(2,minmax(0,1fr))} .hero{grid-template-columns:1fr;gap:22px} }
+@media (max-width:900px){
+  .topbar{grid-template-columns:auto 1fr auto;height:auto;min-height:60px;padding:8px 16px;row-gap:6px}
+  body:not([data-view="exam"]) .topnav{grid-column:1/-1;grid-row:2;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .two{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  .topbar{padding:8px 16px;gap:10px}
+  .brand small,.clock-label{display:none}
+  body[data-view="exam"] .brand strong{display:none}
+  .clock-time{font-size:22px}
+  .btn .long{display:none} .btn .short{display:inline}
+  .hub{padding:0 16px;margin-top:22px;gap:18px}
+  .card{padding:22px 18px}
+  .th-body{padding:4px 16px 20px}
+  .tiles{grid-template-columns:1fr}
+  input[type="text"],input[type="date"]{font-size:16px}
+  .ans-in{font-size:16px !important}
+}
+@media (max-width:520px){
+  .it{grid-template-columns:minmax(0,1fr)}
+  .it-lab{text-align:left}
+  .prev,.fb{grid-column:1}
+  .rtiles{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){ *,*::before,*::after{transition:none !important;animation:none !important} }
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.topbar{top:env(safe-area-inset-top,0px)}
+@supports not (background:color-mix(in srgb,red 50%,blue)){ .topbar{background:var(--paper)} }
+@media print{ .topbar{display:none} body{background:#fff} .card{box-shadow:none;break-inside:avoid} }
+</style>
+</head>
+<body data-view="home">
+
+<header class="topbar" id="topbar">
+  <a class="brand" href="../" title="Retour à l'accueil des révisions">
+    <span class="brand-mark" aria-hidden="true">Ω</span>
+    <div><strong>CC1 Électronique</strong><small>Cours · démos · exos · annales</small></div>
+  </a>
+  <nav class="topnav" id="topnav" aria-label="Navigation principale">
+    <button type="button" class="tab" data-tab="home">Accueil</button>
+    <button type="button" class="tab" data-tab="cours">Cours</button>
+    <button type="button" class="tab" data-tab="demos">Démos</button>
+    <button type="button" class="tab" data-tab="exos">Exos</button>
+    <button type="button" class="tab" data-tab="annales">Annales</button>
+    <button type="button" class="tab" data-tab="blanc">Sujet blanc</button>
+  </nav>
+  <div class="clock" id="clock" hidden>
+    <span class="clock-label">Temps restant</span>
+    <span class="clock-time" id="clockTime">1:00:00</span>
+  </div>
+  <div class="top-actions">
+    <button type="button" class="btn" id="pauseBtn" hidden title="Pause"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><span class="long">Pause</span></button>
+    <button type="button" class="btn icon-btn" id="themeBtn" aria-label="Thème"></button>
+    <button type="button" class="btn btn-primary" id="submitBtn" hidden><span class="long">Rendre la copie</span><span class="short">Rendre</span></button>
+  </div>
+  <div class="time-bar" id="timeBar" hidden><span id="timeBarFill"></span></div>
+</header>
+
+<main>
+<!-- ================= ACCUEIL ================= -->
+<section class="hub" id="v-home" hidden>
+  <div class="hub-head">
+    <p class="eyebrow">Contrôle continu n°1 · 60 min · sans document</p>
+    <h1>Atomiser le CC1 d'élec</h1>
+    <p class="lede">Depuis 2021 le sujet a toujours la même forme : une démonstration du cours, une résistance équivalente, un circuit à deux générateurs et un circuit avec une charge \(R_L\). Ici tu t'entraînes sur exactement ça.</p>
+  </div>
+  <div id="resumeBanner"></div>
+  <section class="card">
+    <div class="card-head"><div><h2>Le sujet, exercice par exercice</h2><p class="sub">La barre indique ton taux de réussite sur les exercices faits ici (entraînement + sujets blancs).</p></div></div>
+    <div class="tiles" id="homeTiles"></div>
+  </section>
+  <div class="two">
+    <section class="card">
+      <div class="card-head"><div><h2>Compte à rebours</h2><p class="sub">Indique la date du CC pour caler le planning.</p></div></div>
+      <div class="row"><input type="date" id="ccDate" aria-label="Date du CC"><span class="fine">enregistrée sur ce téléphone / ordinateur</span></div>
+      <div class="count" id="countBox" style="margin-top:18px"></div>
+      <div id="lastNotes" style="margin-top:18px"></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><div><h2>Planning sur 12 jours</h2><p class="sub">≈ 40 min par jour. Coche au fur et à mesure.</p></div></div>
+      <ul class="plan" id="planList"></ul>
+    </section>
+  </div>
+</section>
+
+<!-- ================= COURS ================= -->
+<section class="hub" id="v-cours" hidden>
+  <div class="hub-head">
+    <p class="eyebrow">Séquence 1 du CM · tout ce qui sert au CC1</p>
+    <h1>Le cours utile</h1>
+    <p class="lede">Les fiches marquées « tombe au CC » servent dans tous les sujets depuis 2021. Le reste est là pour la culture et les CC suivants.</p>
+  </div>
+  <div id="coursBody" style="display:grid;gap:14px">
+
+  <details class="th-card" open>
+    <summary><h3>1. Conventions de fléchage</h3><span class="tag-hot">tombe au CC (Ex 3 Q1)</span></summary>
+    <div class="th-body">
+      <div id="convFig"></div>
+      <ul>
+        <li><b>Récepteur</b> (résistance, bobine, condensateur) : la flèche de tension est <b>opposée</b> à la flèche de courant. C'est dans ce sens que \(U = R\,I\).</li>
+        <li><b>Générateur</b> : flèche de tension et flèche de courant dans le <b>même sens</b>. La flèche de tension d'un générateur pointe vers sa borne \(+\).</li>
+        <li>Tu choisis librement le sens des courants. Si un courant sort négatif, il circule dans l'autre sens : ce n'est pas une erreur, garde ton signe jusqu'au bout.</li>
+        <li>Une tension \(U_{AB} = V_A - V_B\) se représente par une flèche qui pointe vers \(A\).</li>
+      </ul>
+      <div class="box warn"><h5>Coquille dans ton CM</h5>Au § 1.1.3 (dipôles passifs), il est écrit « sens contraire pour un dipôle <i>actif</i> ». Il faut lire « pour un dipôle <b>passif</b> ».</div>
+    </div>
+  </details>
+
+  <details class="th-card">
+    <summary><h3>2. Lois de Kirchhoff et loi d'Ohm</h3><span class="tag-hot">tombe au CC (Ex 3 Q2)</span></summary>
+    <div class="th-body">
+      <p><b>Vocabulaire.</b> Une <b>branche</b> est un ensemble de dipôles traversés par le même courant. Un <b>nœud</b> relie au moins trois branches. Une <b>maille</b> est une boucle fermée de branches.</p>
+      <h4>Loi des nœuds</h4>
+      <p>La somme des courants qui entrent dans un nœud est égale à la somme de ceux qui en sortent : \(\sum I_{\text{entrants}} = \sum I_{\text{sortants}}\).</p>
+      <h4>Loi des mailles</h4>
+      <p>Choisis un sens de parcours. Les tensions fléchées dans ce sens comptent en \(+\), celles fléchées à contre-sens en \(-\), et la somme vaut 0.</p>
+      <div class="box pen"><h5>Méthode sans se tromper de signe</h5>Écris d'abord, pour chaque branche, « potentiel du haut = potentiel du bas + ce qu'on gagne en montant ». Une maille, c'est « monter par une branche et redescendre par une autre ». Avec 3 branches, tu écris 2 mailles indépendantes. La troisième est la différence des deux autres et n'apporte rien de plus.</div>
+      <h4>Loi d'Ohm (convention récepteur)</h4>
+      <p>\(U = R\,I\). Dans les corrigés du prof, elle est appliquée directement sur le schéma (« \(U_1 = R\,I_1\) » écrit à côté de la flèche).</p>
+    </div>
+  </details>
+
+  <details class="th-card">
+    <summary><h3>3. Associations de résistances</h3><span class="tag-hot">tombe au CC (Ex 2)</span></summary>
+    <div class="th-body">
+      <ul>
+        <li><b>Série</b> (même courant) : \(R_{eq} = R_1 + R_2 + \dots\)</li>
+        <li><b>Parallèle</b> (même tension) : \(\dfrac{1}{R_{eq}} = \dfrac{1}{R_1} + \dfrac{1}{R_2} + \dots\) (ce sont les admittances qui s'additionnent).</li>
+        <li>Deux résistances en parallèle : \(R_{eq} = \dfrac{R_1 R_2}{R_1 + R_2}\) (produit sur somme).</li>
+        <li>\(n\) résistances identiques \(R\) en parallèle : \(R/n\). Exemples : \(4R \parallel 4R = 2R\) et \(3R \parallel 3R \parallel 3R = R\). Le prof adore ces simplifications.</li>
+      </ul>
+      <div class="box pen"><h5>Méthode pour l'Ex 2</h5>Pars toujours du bout <b>opposé</b> à A et B, puis remonte vers A et B en alternant « série » et « parallèle ». Fais un petit schéma à chaque étape et écris la phrase « X et Y en série / en parallèle ». C'est ce que le corrigé attend (« en expliquant »).</div>
+      <div class="box warn"><h5>Pièges classiques</h5><ul>
+        <li>Une résistance au bout du montage reliée à la ligne du bas par un simple fil compte comme une branche verticale (annales 2022 et 2025).</li>
+        <li>Une résistance branchée en parallèle d'un fil est court-circuitée : on l'enlève.</li>
+        <li>Une résistance dont une borne n'est reliée à rien n'est traversée par aucun courant : on l'enlève aussi.</li>
+      </ul></div>
+    </div>
+  </details>
+
+  <details class="th-card">
+    <summary><h3>4. Ponts diviseurs de tension et de courant</h3><span class="tag-hot">tombe au CC (Ex 1, Ex 4)</span></summary>
+    <div class="th-body">
+      <h4>Pont diviseur de tension</h4>
+      <p>Pour des résistances <b>en série</b> (même courant) soumises à une tension \(U\) : \[U_k = \frac{R_k}{\sum_{i=1}^{N} R_i}\,U \qquad\text{deux résistances : } U_1 = \frac{R_1}{R_1+R_2}\,U\]</p>
+      <h4>Pont diviseur de courant</h4>
+      <p>Pour des résistances <b>en parallèle</b> (même tension) traversées au total par \(I\) : \[I_k = \frac{1/R_k}{\sum_{i=1}^{N} 1/R_i}\,I \qquad\text{deux résistances : } I_1 = \frac{R_2}{R_1+R_2}\,I\]</p>
+      <div class="box red"><h5>Attention</h5>Pour le courant avec deux résistances, c'est l'<b>autre</b> résistance qui se retrouve au numérateur. Et le pont diviseur de tension ne marche que si aucun courant ne part entre les résistances : s'il y a une charge branchée au milieu, regroupe-la d'abord avec la résistance concernée (\(R_{eq}\)), puis applique le pont.</div>
+    </div>
+  </details>
+
+  <details class="th-card">
+    <summary><h3>5. Théorème de Millman</h3><span class="tag-hot">tombe au CC (Ex 1, Ex 3 Q5, Ex 4)</span></summary>
+    <div class="th-body">
+      <p>On l'utilise pour trouver le potentiel d'un nœud \(A\) relié par des résistances \(R_k\) à des points de potentiels \(V_k\) : \[V_A = \frac{\sum_k V_k / R_k}{\sum_k 1/R_k}\]</p>
+      <ul>
+        <li>Place le <b>0 V</b> (masse) sur la ligne du bas et dessine-le sur le schéma : la question le demande explicitement.</li>
+        <li>Branche « générateur \(E\) + résistance \(R\) », \(+\) côté \(A\) : le terme vaut \(\dfrac{E}{R}\). Si le générateur est retourné (\(+\) vers le bas) : \(-\dfrac{E}{R}\).</li>
+        <li>Branche sans générateur reliée au 0 V : le terme vaut \(\dfrac{0}{R}\). Écris quand même le \(0\) (le prof le fait), mais n'oublie pas \(\dfrac{1}{R}\) au dénominateur.</li>
+        <li>Ensuite, la loi d'Ohm sur la branche voulue donne le courant : \(R\,I = E - V_A\) (courant vers \(A\)) ou \(R\,I = V_A - 0\) (courant de \(A\) vers la masse).</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="th-card">
+    <summary><h3>6. Générateur de Thévenin</h3><span class="tag-off">au programme, jamais au CC1</span></summary>
+    <div class="th-body">
+      <p>On remplace une partie d'un circuit par un générateur \(E_{th}\) en série avec \(R_{th}\) :</p>
+      <ul>
+        <li>\(R_{th}\) : la résistance vue des bornes quand les sources sont <b>éteintes</b> (source de tension remplacée par un fil, source de courant par un circuit ouvert) ;</li>
+        <li>\(E_{th}\) : la tension à vide entre les bornes.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="th-card">
+    <summary><h3>7. Applications numériques et vérifications</h3><span class="tag-hot">tombe au CC (Q « AN »)</span></summary>
+    <div class="th-body">
+      <ul>
+        <li>Des volts divisés par des kilo-ohms donnent des milliampères : \(\dfrac{8\ \text{V}}{4 \times 1\ \text{k}\Omega} = 2\ \text{mA}\).</li>
+        <li>Vérifie l'homogénéité : un courant a la forme \(\dfrac{E}{R}\) fois un nombre, une tension la forme \(E\) fois un nombre (sans \(R\)).</li>
+        <li>Vérifie la loi des nœuds sur tes valeurs numériques : par exemple \(2 + 1 = 3\) mA.</li>
+        <li>Ne termine jamais par un résultat sans unité. Encadre le résultat final.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="th-card">
+    <summary><h3>8. Séquences 2 et 3 : sinusoïdal, puissance, RC, RLC</h3><span class="tag-off">jamais tombé au CC1</span></summary>
+    <div class="th-body">
+      <ul>
+        <li>Valeur moyenne \(\langle s\rangle = \frac{1}{T}\int_0^T s(t)\,dt\). Pour un sinus de moyenne nulle \(s(t) = S_M\cos(\omega t + \varphi)\), la valeur efficace vaut \(S_{\text{eff}} = S_M/\sqrt{2}\), avec \(\omega = 2\pi f = 2\pi/T\).</li>
+        <li>Impédances : \(Z_R = R\), \(Z_L = L\omega\), \(Z_C = \dfrac{1}{C\omega}\). En continu, une bobine se comporte comme un fil et un condensateur comme un circuit ouvert.</li>
+        <li>Puissance en continu : \(P = UI = RI^2 = U^2/R\). Elle est nulle dans \(L\) et \(C\).</li>
+        <li>Circuit RC : \(RC\,\dfrac{du}{dt} + u = e\). Charge : \(u(t) = E\left(1 - e^{-(t-t_0)/\tau}\right)\). Décharge : \(u(t) = E\,e^{-(t-t_1)/\tau}\), avec \(\tau = RC\).</li>
+      </ul>
+    </div>
+  </details>
+  </div>
+</section>
+
+<!-- ================= DÉMOS ================= -->
+<section class="hub" id="v-demos" hidden>
+  <div class="hub-head">
+    <p class="eyebrow">Exercice 1 · 4 points · à savoir par cœur</p>
+    <h1>Les démonstrations</h1>
+    <p class="lede">Le sujet demande toujours « Donner et démontrer » l'une de ces formules, pour N branches ou pour 4. Récite-la sur papier, puis vérifie ici ou entraîne-toi à remettre les étapes dans l'ordre.</p>
+  </div>
+  <div class="demo-grid" id="demoGrid"></div>
+</section>
+
+<!-- ================= EXOS ================= -->
+<section class="hub" id="v-exos" hidden>
+  <div class="hub-head">
+    <p class="eyebrow">Générateur d'exercices · réponses vérifiées automatiquement</p>
+    <h1>S'entraîner exercice par exercice</h1>
+    <p class="lede">Chaque exercice est généré au hasard sur le modèle des annales. Les réponses littérales sont comparées à la bonne formule, quelle que soit la façon dont tu l'écris.</p>
+  </div>
+  <section class="card">
+    <div class="row" style="gap:18px;align-items:flex-end">
+      <div style="display:grid;gap:8px"><span class="lbl-s">Exercice</span><div class="seg" id="exType"></div></div>
+      <div style="display:grid;gap:8px"><span class="lbl-s">Niveau</span><div class="seg" id="exLevel"></div></div>
+      <div class="spacer"></div>
+      <button type="button" class="btn btn-primary" id="exNew">Nouvel exercice</button>
+    </div>
+    <p class="stat-line" id="exStats" style="margin-top:14px"></p>
+    <details class="corr-d" style="margin-top:6px"><summary>Comment écrire mes réponses ?</summary>
+      <div class="expl help">
+        <p>Tape les formules comme sur une calculatrice : <code>3E/(4R)</code>, <code>E1/(4R) + E2/(8R)</code>, <code>(2E1-E2)/(5R)</code>, <code>3(R+RL)E/(11R+5RL)</code>, <code>10R/3</code>.</p>
+        <p>\(R_L\) s'écrit <code>RL</code>, \(E_1\) s'écrit <code>E1</code> et \(U_L\) s'écrit <code>UL</code>. La multiplication peut être sous-entendue, et elle passe avant la division : <code>E/2R</code> se lit \(\frac{E}{2R}\). Pour une écriture ambiguë comme <code>2/7E</code>, les deux lectures sont essayées. L'aperçu sous la case te montre comment ta formule a été comprise. Dans le doute, mets des parenthèses.</p>
+        <p>Pour les valeurs numériques, tu peux écrire <code>2,5</code> (dans l'unité affichée), <code>2.5 mA</code> ou <code>0,0025 A</code>.</p>
+      </div>
+    </details>
+  </section>
+  <div id="exHost"></div>
+</section>
+
+<!-- ================= ANNALES ================= -->
+<section class="hub" id="v-annales" hidden>
+  <div class="hub-head">
+    <p class="eyebrow">CC1 de 2021 à 2025 · schémas redessinés</p>
+    <h1>Les annales corrigées</h1>
+    <p class="lede">Les 5 vrais sujets, avec les questions mot pour mot et une correction détaillée qui suit la méthode des corrigés du prof. Tu peux aussi les refaire en conditions réelles (60 min, notés).</p>
+  </div>
+  <div class="ann-grid" id="annGrid"></div>
+</section>
+
+<!-- ================= SUJET BLANC ================= -->
+<section class="hub" id="v-blanc" hidden>
+  <div class="hub-head">
+    <p class="eyebrow">Conditions réelles · 60 minutes · noté sur 20</p>
+    <h1>Sujets blancs</h1>
+    <p class="lede">Un sujet complet au format exact du CC, avec un nouveau tirage à chaque fois. Les calculs sont notés automatiquement. Pour le schéma, les équations et la démonstration, tu t'auto-corriges avec le corrigé une fois la copie rendue.</p>
+  </div>
+  <div id="blancBanner"></div>
+  <section class="card">
+    <div class="card-head"><div><h2>Nouveau sujet blanc</h2><p class="sub">Ex 1 : une démo tirée au sort. Ex 2 : un réseau de résistances. Ex 3 : deux générateurs, Kirchhoff puis Millman. Ex 4 : un circuit avec une charge \(R_L\).</p></div></div>
+    <div class="row">
+      <div class="seg" id="blancLevel"></div>
+      <div class="spacer"></div>
+      <button type="button" class="btn btn-primary btn-lg" id="blancStart">Commencer (60 min)</button>
+    </div>
+    <p class="fine" style="margin-top:12px">Prévois une feuille et un crayon, sans calculatrice ni document. Tu peux mettre en pause, mais le vrai CC ne le permettra pas.</p>
+  </section>
+  <section class="card">
+    <div class="card-head"><div><h2>Mes copies</h2><p class="sub">Clique sur une ligne pour revoir la correction et ajuster ton auto-correction.</p></div></div>
+    <div id="histBox"></div>
+  </section>
+</section>
+
+<!-- ================= ÉPREUVE EN COURS ================= -->
+<section class="hub" id="v-exam" hidden></section>
+
+<!-- ================= RÉSULTATS ================= -->
+<section class="hub" id="v-res" hidden></section>
+</main>
+
+<script>
+'use strict';
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const memStore = {};
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? (k in memStore ? memStore[k] : d) : JSON.parse(v); } catch (e) { return k in memStore ? memStore[k] : d; } },
+  set(k, v) { memStore[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stockage indisponible */ } },
+  del(k) { delete memStore[k]; try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
+};
+const K = { theme: 'qcm-maths-theme', stats: 'elec.stats.v1', hist: 'elec.hist.v1', exam: 'elec.exam.v1', plan: 'elec.plan.v1', date: 'elec.ccdate.v1' };
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const wpick = W => { const tot = W.reduce((s, w) => s + w[1], 0); let r = Math.random() * tot; for (const w of W) { r -= w[1]; if (r <= 0) return w[0]; } return W[0][0]; };
+function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
+function mathIn(el) {
+  if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false });
+}
+function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+function fmtN(x, tex) {
+  if (Math.abs(x) < 1e-12) x = 0;
+  let s = String(+x.toPrecision(4));
+  if (s.includes('e')) s = x.toFixed(6);
+  return s.replace('.', tex ? '{,}' : ',');
+}
+const fmtOhm = R => R >= 1000 ? fmtN(R / 1000) + ' kΩ' : R + ' Ω';
+const texOhm = R => R >= 1000 ? fmtN(R / 1000, true) + '\\ \\text{k}\\Omega' : R + '\\ \\Omega';
+const fmtPts = x => (Math.round(x * 100) / 100).toString().replace('.', ',');
+const fmtClock = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 3600) + ':' + String(Math.floor(s % 3600 / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+
+/* =====================================================================
+   FRACTIONS EXACTES
+   ===================================================================== */
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
+const lcm = (a, b) => a / gcd(a, b) * b;
+class Fr {
+  constructor(n, d = 1) { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); this.n = n / g; this.d = d / g; }
+  add(o) { o = fr(o); return new Fr(this.n * o.d + o.n * this.d, this.d * o.d); }
+  sub(o) { o = fr(o); return new Fr(this.n * o.d - o.n * this.d, this.d * o.d); }
+  mul(o) { o = fr(o); return new Fr(this.n * o.n, this.d * o.d); }
+  div(o) { o = fr(o); return new Fr(this.n * o.d, this.d * o.n); }
+  inv() { return new Fr(this.d, this.n); }
+  get z() { return this.n === 0; }
+  val() { return this.n / this.d; }
+}
+const F = (n, d = 1) => new Fr(n, d);
+const fr = x => x instanceof Fr ? x : Array.isArray(x) ? F(x[0], x[1]) : F(x);
+const frJ = f => f.d === 1 ? f.n : [f.n, f.d];
+
+// a·R en TeX (« 2R », « \frac{R}{2} ») et en texte (« 2R », « R/2 »)
+function cR(f, sym = 'R') { f = fr(f); const n = Math.abs(f.n); const num = (n === 1 ? '' : n) + sym; return (f.n < 0 ? '-' : '') + (f.d === 1 ? num : `\\frac{${num}}{${f.d}}`); }
+function lblR(f) { f = fr(f); return f.d === 1 ? (f.n === 1 ? '' : f.n) + 'R' : (f.n === 1 ? '' : f.n) + 'R/' + f.d; }
+// coefficient × symbole, sans signe
+function absFX(f, X) { const n = Math.abs(f.n); const num = (n === 1 ? '' : n) + X; return f.d === 1 ? num : `\\frac{${num}}{${f.d}}`; }
+function sgFX(f, X, first) { return (f.n < 0 ? (first ? '-' : ' - ') : (first ? '' : ' + ')) + absFX(f, X); }
+
+/* Combinaisons linéaires de sources {E1: Fr, E2: Fr} */
+const VTEX = { E: 'E', E1: 'E_1', E2: 'E_2', R: 'R', RL: 'R_L', U: 'U', UL: 'U_L', I1: 'I_1', I3: 'I_3' };
+const LORD = ['E', 'E1', 'E2'];
+const lin = {
+  add(a, b) { const r = Object.assign({}, a); for (const k in b) r[k] = (r[k] || F(0)).add(b[k]); return lin.clean(r); },
+  scale(a, f) { const r = {}; for (const k in a) r[k] = a[k].mul(f); return lin.clean(r); },
+  clean(a) { const r = {}; for (const k in a) if (!a[k].z) r[k] = a[k]; return r; },
+  ev(a, v) { let s = 0; for (const k in a) s += a[k].val() * v[k]; return s; },
+  keys: a => LORD.filter(k => k in a)
+};
+// somme de termes séparés : \frac{E_1}{R} - \frac{E_2}{2R}
+function texLin(a, perR) {
+  const ks = lin.keys(a); if (!ks.length) return '0';
+  return ks.map((k, i) => { const c = a[k], n = Math.abs(c.n); const num = (n === 1 ? '' : n) + VTEX[k]; const den = (c.d === 1 ? '' : c.d) + (perR ? 'R' : '');
+    return (c.n < 0 ? (i ? ' - ' : '-') : (i ? ' + ' : '')) + (den ? `\\frac{${num}}{${den}}` : num); }).join('');
+}
+// même chose sur un seul dénominateur : \frac{2E_1 - E_2}{5R}
+function linParts(a) {
+  const ks = lin.keys(a); const D = ks.reduce((m, k) => lcm(m, a[k].d), 1);
+  let t = ks.map(k => ({ k, n: a[k].n * D / a[k].d }));
+  const neg = t.length > 0 && t.every(x => x.n < 0); if (neg) t = t.map(x => ({ k: x.k, n: -x.n }));
+  t.sort((x, y) => (y.n > 0) - (x.n > 0));
+  return { D, t, neg };
+}
+function texLinC(a, perR) {
+  const ks = lin.keys(a); if (!ks.length) return '0';
+  if (ks.length === 1) return texLin(a, perR);
+  const { D, t, neg } = linParts(a);
+  const num = t.map((x, i) => { const n = Math.abs(x.n); return (x.n < 0 ? (i ? ' - ' : '-') : (i ? ' + ' : '')) + (n === 1 ? '' : n) + VTEX[x.k]; }).join('');
+  const den = (D === 1 ? '' : D) + (perR ? 'R' : '');
+  return (neg ? '-' : '') + (den ? `\\frac{${num}}{${den}}` : num);
+}
+// application numérique de la forme combinée
+function texLinNum(a, Ev, Rohm, perR) {
+  const ks = lin.keys(a); if (!ks.length) return '0';
+  const { D, t, neg } = linParts(a);
+  const num = t.map((x, i) => { const n = Math.abs(x.n); return (x.n < 0 ? (i ? ' - ' : '-') : (i ? ' + ' : '')) + (n === 1 ? '' : n + ' \\times ') + Ev[x.k]; }).join('');
+  const den = perR ? (D === 1 ? '' : D + ' \\times ') + texOhm(Rohm) : (D === 1 ? '' : String(D));
+  return (neg ? '-' : '') + (den ? `\\frac{${num}}{${den}}` : num);
+}
+
+/* =====================================================================
+   LECTURE DES RÉPONSES (formules et valeurs numériques)
+   ===================================================================== */
+const PVARS = ['RL', 'UL', 'E1', 'E2', 'I1', 'I3', 'E', 'R', 'U'];
+// std = false : la multiplication sous-entendue passe avant la division (E/2R = E/(2R))
+// std = true  : priorités de calculatrice (2/7E = (2/7)E)
+function parseExpr(src, std) {
+  let s = String(src).replace(/[−–—]/g, '-').replace(/[×·∙]/g, '*').replace(/÷/g, '/').replace(/,/g, '.')
+    .replace(/\\cdot|\\times/g, '*').replace(/\s+/g, '').replace(/_\{([^}]*)\}/g, '$1').replace(/_/g, '').replace(/[\[{]/g, '(').replace(/[\]}]/g, ')').toUpperCase();
+  if (!s) return { err: '' };
+  const toks = []; let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (/[0-9.]/.test(ch)) { let j = i; while (j < s.length && /[0-9.]/.test(s[j])) j++; const t = s.slice(i, j); if (t === '.' || (t.match(/\./g) || []).length > 1) return { err: 'nombre mal écrit : ' + t }; toks.push({ t: 'num', v: parseFloat(t), s: t }); i = j; continue; }
+    if (/[A-Z]/.test(ch)) { const m = PVARS.find(v => s.startsWith(v, i)); if (!m) return { err: 'lettre inconnue : ' + ch }; toks.push({ t: 'var', n: m }); i += m.length; continue; }
+    if ('+-*/^()'.includes(ch)) { toks.push({ t: ch }); i++; continue; }
+    return { err: 'caractère non reconnu : ' + ch };
+  }
+  let p = 0; const vars = new Set();
+  const peek = () => toks[p];
+  const isAtomStart = k => k && (k.t === 'num' || k.t === 'var' || k.t === '(');
+  function expr() { let a = term(); while (peek() && (peek().t === '+' || peek().t === '-')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: term() }; } return a; }
+  function term() {
+    let a = jux();
+    for (;;) {
+      if (peek() && (peek().t === '*' || peek().t === '/')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: jux() }; }
+      else if (std && isAtomStart(peek())) a = { t: 'bin', op: 'j', a, b: power() };
+      else return a;
+    }
+  }
+  function jux() { let a = unary(); while (!std && isAtomStart(peek())) a = { t: 'bin', op: 'j', a, b: power() }; return a; }
+  function unary() { const k = peek(); if (k && k.t === '-') { p++; return { t: 'neg', a: unary() }; } if (k && k.t === '+') { p++; return unary(); } return power(); }
+  function power() { let a = atom(); if (peek() && peek().t === '^') { p++; a = { t: 'bin', op: '^', a, b: unary() }; } return a; }
+  function atom() {
+    const k = toks[p++]; if (!k) throw 'formule incomplète';
+    if (k.t === 'num') return { t: 'num', v: k.v, s: k.s };
+    if (k.t === 'var') { vars.add(k.n); return { t: 'var', n: k.n }; }
+    if (k.t === '(') { const e = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; return e; }
+    throw 'symbole « ' + k.t + ' » mal placé';
+  }
+  try { const ast = expr(); if (p < toks.length) throw 'symbole « ' + toks[p].t + ' » mal placé'; return { ast, vars }; }
+  catch (e) { return { err: String(e) }; }
+}
+function evAst(n, v) {
+  switch (n.t) {
+    case 'num': return n.v;
+    case 'var': return v[n.n];
+    case 'neg': return -evAst(n.a, v);
+    default: { const a = evAst(n.a, v), b = evAst(n.b, v);
+      return n.op === '+' ? a + b : n.op === '-' ? a - b : n.op === '/' ? a / b : n.op === '^' ? Math.pow(a, b) : a * b; }
+  }
+}
+function astTex(n) {
+  const isSum = x => x.t === 'neg' || (x.t === 'bin' && (x.op === '+' || x.op === '-'));
+  const wrap = x => isSum(x) ? '\\left(' + astTex(x) + '\\right)' : astTex(x);
+  switch (n.t) {
+    case 'num': return n.s.replace('.', '{,}');
+    case 'var': return VTEX[n.n] || n.n;
+    case 'neg': return '-' + wrap(n.a);
+    default:
+      if (n.op === '/') return '\\frac{' + astTex(n.a) + '}{' + astTex(n.b) + '}';
+      if (n.op === '+') return astTex(n.a) + ' + ' + astTex(n.b);
+      if (n.op === '-') return astTex(n.a) + ' - ' + wrap(n.b);
+      if (n.op === '^') return '{' + wrap(n.a) + '}^{' + astTex(n.b) + '}';
+      { const A = n.a.t === 'neg' ? astTex(n.a) : wrap(n.a), B = wrap(n.b);
+        return A + (n.op === '*' || /^[0-9]/.test(B) ? ' \\times ' : /[0-9}]$/.test(A) && n.a.t === 'num' ? '' : '\\,') + B; }
+  }
+}
+const SAMPLE = { R: [0.6, 3.1], RL: [0.5, 3.4], E: [1.2, 9.6], E1: [1.2, 9.6], E2: [1.4, 8.8], U: [0.7, 6], UL: [0.7, 6], I1: [0.3, 4], I3: [0.3, 4] };
+function listVars(vs) { const t = vs.map(v => '\\(' + VTEX[v] + '\\)'); return t.length > 1 ? t.slice(0, -1).join(', ') + ' et ' + t[t.length - 1] : t[0]; }
+function checkExpr(input, it) {
+  const a = checkExpr1(parseExpr(input), it);
+  if (a.st === 'ok' || a.st === 'empty' || a.st === 'err') return a;
+  const b = checkExpr1(parseExpr(input, true), it);   // autre lecture possible de « 2/7E »
+  return b.st === 'ok' ? b : a;
+}
+function checkExpr1(P, it) {
+  if (P.err !== undefined) return { st: P.err === '' ? 'empty' : 'err', msg: P.err };
+  const bad = [...P.vars].filter(v => !it.vars.includes(v));
+  if (bad.length) return { st: 'bad', msg: 'Ta réponse doit s\'exprimer seulement avec ' + listVars(it.vars) + '.' };
+  let ok = true, opp = true;
+  for (let t = 0; t < 7; t++) {
+    const v = {}; it.vars.forEach(k => { const r = SAMPLE[k]; v[k] = r[0] + Math.random() * (r[1] - r[0]); });
+    const r = it.ref(v), u = evAst(P.ast, v);
+    if (!isFinite(u)) { ok = opp = false; break; }
+    const tol = 1e-7 * Math.max(1, Math.abs(r));
+    if (Math.abs(u - r) > tol) ok = false;
+    if (Math.abs(u + r) > tol || Math.abs(r) < 1e-9) opp = false;
+  }
+  return { st: ok ? 'ok' : opp ? 'sign' : 'bad' };
+}
+function parseQty(input, unit) {
+  const s = String(input).replace(/[−–]/g, '-').replace(/,/g, '.').replace(/\s+/g, '').replace(/Ω|ohms?/gi, '');
+  if (!s) return { err: '' };
+  const m = s.match(/^([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)(?:[*x×]10\^?([-+]?\d+))?([a-zA-Zµμ]*)$/);
+  if (!m) return { err: 'écris un nombre, éventuellement suivi de son unité (ex : 2,5 ' + unit + ')' };
+  let v = parseFloat(m[1]); if (m[2]) v *= Math.pow(10, +m[2]);
+  const pre = { '': 1, m: 1e-3, 'µ': 1e-6, 'μ': 1e-6, u: 1e-6, k: 1e3 };
+  const base = unit.slice(-1), uPre = pre[unit.slice(0, -1)];
+  const suf = m[3]; if (!suf) return { v };
+  let p = suf.slice(-1).toUpperCase() === base ? suf.slice(0, -1) : suf;
+  if (!(p in pre)) return { err: 'unité attendue : ' + unit };
+  return { v: v * pre[p] / uPre };
+}
+function checkNum(input, it) {
+  const q = parseQty(input, it.unit);
+  if (q.err !== undefined) return { st: q.err === '' ? 'empty' : 'err', msg: q.err };
+  const r = it.val, tol = Math.max(0.011 * Math.abs(r), 1e-9);
+  if (Math.abs(q.v - r) <= tol) return { st: 'ok' };
+  if (Math.abs(q.v + r) <= tol && Math.abs(r) > 1e-9) return { st: 'sign' };
+  return { st: 'bad' };
+}
+const checkItem = (it, ans) => it.type === 'num' ? checkNum(ans || '', it) : checkExpr(ans || '', it);
+
+/* =====================================================================
+   SCHÉMAS (SVG)
+   ===================================================================== */
+const S = {
+  line: (x1, y1, x2, y2, c = 'w') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"/>`,
+  res(x1, y1, x2, y2) {
+    const L = 44, T = 16, dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy), ux = dx / len, uy = dy / len, mx = (x1 + x2) / 2, my = (y1 + y2) / 2, a = Math.atan2(dy, dx) * 180 / Math.PI;
+    let g = ''; if (len > L + .5) g += S.line(x1, y1, mx - ux * L / 2, my - uy * L / 2) + S.line(mx + ux * L / 2, my + uy * L / 2, x2, y2);
+    return g + `<rect x="${-L / 2}" y="${-T / 2}" width="${L}" height="${T}" class="rb" transform="translate(${mx} ${my}) rotate(${a})"/>`;
+  },
+  src(x, cy, up) {
+    const py = up ? cy - 6 : cy + 6, my = up ? cy + 7 : cy - 7;
+    return `<circle cx="${x}" cy="${cy}" r="15" class="rb"/>` + S.line(x - 4, py, x + 4, py) + S.line(x, py - 4, x, py + 4) + S.line(x - 4, my, x + 4, my);
+  },
+  arrow(x1, y1, x2, y2, c) {
+    const a = Math.atan2(y2 - y1, x2 - x1), h = 8, w = 4.5, bx = x2 - h * Math.cos(a), by = y2 - h * Math.sin(a);
+    const p = `${x2},${y2} ${bx - w * Math.sin(a)},${by + w * Math.cos(a)} ${bx + w * Math.sin(a)},${by - w * Math.cos(a)}`;
+    return `<line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" class="${c}"/><polygon points="${p}" class="${c} fillc"/>`;
+  },
+  tri(x, y, dir, c) {
+    const a = typeof dir === 'number' ? dir : { u: -Math.PI / 2, d: Math.PI / 2, r: 0, l: Math.PI }[dir], s = 6.5;
+    const ca = Math.cos(a), sa = Math.sin(a);
+    const pts = [[x + s * ca, y + s * sa], [x - .8 * s * ca - s * sa, y - .8 * s * sa + s * ca], [x - .8 * s * ca + s * sa, y - .8 * s * sa - s * ca]];
+    return `<polygon points="${pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" class="${c} fillc"/>`;
+  },
+  dot: (x, y) => `<circle cx="${x}" cy="${y}" r="3.3" class="dotc"/>`,
+  term: (x, y) => `<circle cx="${x}" cy="${y}" r="4.5" class="termc"/>`,
+  gnd(x, y) { return S.line(x, y, x, y + 12) + S.line(x - 11, y + 12, x + 11, y + 12) + S.line(x - 7, y + 16.5, x + 7, y + 16.5) + S.line(x - 3, y + 21, x + 3, y + 21); },
+  t(x, y, s, an = 'middle', c = '') {
+    let out = '', i = 0, buf = '', afterSub = false;
+    const flush = () => { if (buf) { out += `<tspan${afterSub ? ' dy="-4"' : ''}>${esc(buf)}</tspan>`; afterSub = false; buf = ''; } };
+    while (i < s.length) {
+      if (s[i] === '_') { flush(); let z; if (s[i + 1] === '{') { const j = s.indexOf('}', i); z = s.slice(i + 2, j); i = j + 1; } else { z = s[i + 1]; i += 2; }
+        out += `<tspan dy="4" font-size="11">${esc(z)}</tspan>`; afterSub = true; continue; }
+      buf += s[i++];
+    }
+    flush();
+    return `<text x="${x}" y="${y}" text-anchor="${an}"${c ? ` class="${c}"` : ''}>${out}</text>`;
+  },
+  svg: (w, h, body, label, cls = '') => `<svg class="ckt ${cls}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label || 'Schéma électrique')}">${body}</svg>`
+};
+const isUp = el => !(el.up === false || el.up === 0);
+
+/* Circuit à trois branches verticales reliées en haut (nœud A) et en bas */
+function drawTri(sp, o = {}) {
+  const X = [70, 235, 400], yT = 52, yB = 218, W = 490, H = o.gnd ? 262 : 240;
+  const top = sp.top || [null, null];
+  let g = '';
+  for (let i = 0; i < 2; i++) {
+    if (top[i]) { const mx = (X[i] + X[i + 1]) / 2; g += S.res(X[i], yT, X[i + 1], yT) + S.t(mx, yT + 27, lblR(top[i])); }
+    else g += S.line(X[i], yT, X[i + 1], yT);
+  }
+  g += S.line(X[0], yB, X[2], yB);
+  const info = sp.cols.map((col, c) => {
+    const x = X[c], els = col.els || [];
+    const cs = els.length === 1 ? [135] : els.length === 2 ? [104, 172] : [92, 135, 180];
+    let y = yT; const placed = [];
+    els.forEach((el, i) => {
+      const cy = cs[i], h = el.k === 'E' ? 15 : 22;
+      g += S.line(x, y, x, cy - h);
+      if (el.k === 'R') g += S.res(x, cy - h, x, cy + h) + S.t(x - 14, cy + 5, el.lab || lblR(el.v), 'end');
+      else g += S.src(x, cy, isUp(el)) + S.t(x - 22, cy + 5, el.n, 'end');
+      if (el.u) g += S.arrow(x + 24, cy + h, x + 24, cy - h, 'cu') + S.t(x + 30, cy + 5, el.u, 'start', 'cu');
+      placed.push({ el, cy, h }); y = cy + h;
+    });
+    g += S.line(x, y, x, yB);
+    return { x, placed };
+  });
+  g += S.dot(X[1], yT) + S.dot(X[1], yB);
+  if (sp.A !== false) g += S.t(X[1], yT - 12, sp.A || 'A', 'middle', 'lblA');
+  if (o.gnd) g += S.gnd(X[1], yB) + S.t(X[1] + 16, yB + 21, '0 V', 'start', 'ci');
+  if (o.annot) sp.cols.forEach((col, c) => {
+    const cur = col.cur; if (!cur || (o.only && !o.only.includes(c))) return;
+    const { x, placed } = info[c], up = !!cur.toA;
+    const firstTop = placed.length ? placed[0].cy - placed[0].h : yB;
+    const ty = placed.length ? (yT + firstTop) / 2 + 1 : (yT + yB) / 2;
+    g += S.tri(x, ty, up ? 'u' : 'd', 'ci') + S.t(c === 0 ? x - 11 : x + 11, ty + 5, cur.n, c === 0 ? 'end' : 'start', 'ci');
+    if (o.annot !== 'full') return;
+    placed.forEach(p => {
+      if (p.el.u) return;
+      if (p.el.k === 'R') {
+        g += up ? S.arrow(x + 24, p.cy - p.h, x + 24, p.cy + p.h, 'cu') : S.arrow(x + 24, p.cy + p.h, x + 24, p.cy - p.h, 'cu');
+        g += S.t(x + 30, p.cy + 5, (p.el.lab || lblR(p.el.v)) + ' ' + cur.n, 'start', 'cu');
+      } else {
+        g += isUp(p.el) ? S.arrow(x + 24, p.cy + p.h, x + 24, p.cy - p.h, 'cu') : S.arrow(x + 24, p.cy - p.h, x + 24, p.cy + p.h, 'cu');
+        g += S.t(x + 30, p.cy + 5, p.el.n, 'start', 'cu');
+      }
+    });
+    const seg = c === 0 ? top[0] : c === 2 ? top[1] : null;
+    if (seg) {
+      const mx = c === 0 ? (X[0] + X[1]) / 2 : (X[1] + X[2]) / 2, curRight = (c === 0) === up;
+      g += curRight ? S.arrow(mx + 22, yT - 15, mx - 22, yT - 15, 'cu') : S.arrow(mx - 22, yT - 15, mx + 22, yT - 15, 'cu');
+      g += S.t(mx, yT - 23, lblR(seg) + ' ' + cur.n, 'middle', 'cu');
+    }
+  });
+  return S.svg(W, H, g, o.label || 'Circuit à trois branches', o.cls || '');
+}
+
+/* Réseau en échelle pour la résistance équivalente (Ex 2) */
+function drawLadder(L) {
+  const yT = 48, yB = 198, x0 = 34; let x = x0, g = '', prev = 'start';
+  const shunts = [];
+  g += S.term(x0, yT) + S.term(x0, yB) + S.t(x0 - 12, yT + 5, 'A', 'end', 'lblA') + S.t(x0 - 12, yB + 5, 'B', 'end', 'lblA');
+  L.forEach(sec => {
+    if (sec.s) sec.s.forEach(v => { g += S.res(x, yT, x + 84, yT) + S.t(x + 42, yT - 14, lblR(v)); x += 84; prev = 's'; });
+    else sec.p.forEach(br => {
+      const nx = x + (prev === 'start' ? 44 : prev === 's' ? 32 : 64);
+      g += S.line(x, yT, nx, yT); x = nx;
+      const cs = br.length === 1 ? [123] : br.length === 2 ? [95, 151] : [84, 123, 162];
+      let y = yT;
+      br.forEach((v, i) => { const h = br.length === 3 ? 17 : 22; g += S.line(x, y, x, cs[i] - h) + S.res(x, cs[i] - h, x, cs[i] + h) + S.t(x - 13, cs[i] + 5, lblR(v), 'end'); y = cs[i] + h; });
+      g += S.line(x, y, x, yB); shunts.push(x); prev = 'p';
+    });
+  });
+  if (L[L.length - 1].s) g += S.line(x, yT, x, yB);
+  g += S.line(x0, yB, x, yB);
+  shunts.forEach(sx => { if (sx !== x) g += S.dot(sx, yT) + S.dot(sx, yB); });
+  return S.svg(x + 30, 232, g, 'Réseau de résistances entre A et B');
+}
+
+/* Schémas des démonstrations */
+function drawDemo(kind) {
+  let g = '';
+  if (kind === 'dt') {
+    const y = 70;
+    g += S.line(30, y, 80, y) + S.res(80, y, 140, y) + S.line(140, y, 158, y) + S.t(176, y + 5, '···') + S.line(194, y, 210, y)
+      + S.res(210, y, 270, y) + S.line(270, y, 288, y) + S.t(306, y + 5, '···') + S.line(324, y, 340, y) + S.res(340, y, 400, y) + S.line(400, y, 450, y);
+    g += S.term(30, y) + S.term(450, y) + S.t(110, y - 16, 'R_1') + S.t(240, y + 30, 'R_k') + S.t(370, y - 16, 'R_N');
+    g += S.tri(55, y, 'r', 'ci') + S.t(55, y - 12, 'I', 'middle', 'ci');
+    g += S.arrow(262, y - 26, 218, y - 26, 'cu') + S.t(240, y - 34, 'U_k', 'middle', 'cu');
+    g += S.arrow(444, y + 52, 36, y + 52, 'cu') + S.t(240, y + 72, 'U', 'middle', 'cu');
+    return S.svg(480, 150, g, 'Résistances en série');
+  }
+  if (kind === 'dc' || kind === 'dc4') {
+    const xs = kind === 'dc' ? [140, 260, 400] : [130, 220, 310, 400], labs = kind === 'dc' ? ['R_1', 'R_k', 'R_N'] : ['R_1', 'R_2', 'R_3', 'R_4'];
+    const cl = kind === 'dc' ? ['I_1', 'I_k', 'I_N'] : ['I_1', 'I_2', 'I_3', 'I_4'];
+    g += S.line(30, 40, 400, 40) + S.line(30, 190, 400, 190) + S.term(30, 40) + S.term(30, 190);
+    xs.forEach((x, i) => { g += S.line(x, 40, x, 93) + S.res(x, 93, x, 137) + S.line(x, 137, x, 190) + S.t(x - 13, 120, labs[i], 'end') + S.tri(x, 66, 'd', 'ci') + S.t(x + 10, 71, cl[i], 'start', 'ci'); if (i < xs.length - 1) g += S.dot(x, 40) + S.dot(x, 190); });
+    if (kind === 'dc') { g += S.t(200, 120, '···') + S.t(330, 120, '···'); }
+    g += S.tri(70, 40, 'r', 'ci') + S.t(70, 28, 'I', 'middle', 'ci');
+    g += S.arrow(440, 186, 440, 44, 'cu') + S.t(450, 120, 'U', 'start', 'cu');
+    return S.svg(480, 215, g, 'Résistances en parallèle');
+  }
+  // Millman : étoile autour de A
+  const A = [240, 132];
+  const ends = kind === 'mi4' ? [[70, 132, 'V_1', 'R_1', 'I_1'], [240, 22, 'V_2', 'R_2', 'I_2'], [410, 132, 'V_3', 'R_3', 'I_3'], [240, 242, 'V_4', 'R_4', 'I_4']]
+    : [[70, 40, 'V_1', 'R_1', 'I_1'], [410, 40, 'V_k', 'R_k', 'I_k'], [240, 250, 'V_N', 'R_N', 'I_N']];
+  ends.forEach(([x, y, v, r, i]) => {
+    g += S.res(x, y, A[0], A[1]) + S.term(x, y);
+    const dx = A[0] - x, dy = A[1] - y, len = Math.hypot(dx, dy), ux = dx / len, uy = dy / len, nx = -uy, ny = ux;
+    const mx = (x + A[0]) / 2, my = (y + A[1]) / 2;
+    const lx = x + ux * len * .2, ly = y + uy * len * .2;
+    g += S.t(mx + nx * 22, my + ny * 22 + 5, r) + S.t(x + (x < A[0] ? -10 : x > A[0] ? 10 : 14), y + (y < A[1] ? -8 : y > A[1] ? 20 : 5), v, x < A[0] ? 'end' : 'start');
+    g += S.tri(lx, ly, Math.atan2(dy, dx), 'ci') + S.t(lx - nx * 16, ly - ny * 16 + 5, i, 'middle', 'ci');
+  });
+  if (kind !== 'mi4') g += S.t(240, 50, '···', 'middle', 'mu');
+  g += S.dot(A[0], A[1]) + S.t(A[0] + 12, A[1] - 8, 'A', 'start', 'lblA');
+  return S.svg(480, 272, g, 'Théorème de Millman');
+}
+
+function drawConventions() {
+  let g = '';
+  g += S.line(20, 70, 70, 70) + S.res(70, 70, 150, 70) + S.line(150, 70, 200, 70) + S.tri(45, 70, 'r', 'ci') + S.t(45, 58, 'I', 'middle', 'ci');
+  g += S.arrow(132, 40, 88, 40, 'cu') + S.t(110, 31, 'U = R I', 'middle', 'cu') + S.t(110, 112, 'Récepteur : flèches opposées', 'middle', 'mu');
+  g += S.line(330, 20, 330, 55) + S.src(330, 70, true) + S.line(330, 85, 330, 100) + S.tri(330, 34, 'u', 'ci') + S.t(342, 39, 'I', 'start', 'ci');
+  g += S.arrow(360, 86, 360, 54, 'cu') + S.t(370, 75, 'E', 'start', 'cu') + S.t(330, 112, 'Générateur : même sens', 'middle', 'mu');
+  return S.svg(460, 125, g, 'Conventions récepteur et générateur', 'sm');
+}
+
+/* =====================================================================
+   EXERCICE 2 : RÉSISTANCE ÉQUIVALENTE
+   ===================================================================== */
+function normLadder(L) { return L.map(sec => sec.s ? { s: sec.s.map(fr) } : { p: sec.p.map(b => b.map(fr)) }); }
+const sumFr = a => a.reduce((s, v) => s.add(v), F(0));
+const plusTex = a => a.map(v => cR(v)).join(' + ');
+function reqLadder(Lraw) {
+  const L = normLadder(Lraw); let acc = null; const steps = []; let maxDen = 1;
+  for (let i = L.length - 1; i >= 0; i--) {
+    const sec = L[i];
+    if (sec.s) {
+      const s = sumFr(sec.s);
+      if (acc === null) {
+        steps.push(sec.s.length > 1
+          ? `Au bout du montage, ${sec.s.map(v => '\\(' + cR(v) + '\\)').join(' et ')} sont en série et reliées à la ligne du bas par un fil : c'est une branche verticale de \\(${plusTex(sec.s)} = ${cR(s)}\\).`
+          : `Au bout du montage, \\(${cR(s)}\\) est reliée à la ligne du bas par un simple fil : elle joue le rôle d'une branche verticale de \\(${cR(s)}\\).`);
+        acc = s;
+      } else {
+        const n = acc.add(s);
+        steps.push(`${sec.s.length > 1 ? sec.s.map(v => '\\(' + cR(v) + '\\)').join(' et ') : '\\(' + cR(s) + '\\)'} en série avec \\(${cR(acc)}\\) : \\(R_{eq} = ${plusTex(sec.s)} + ${cR(acc)} = ${cR(n)}\\).`);
+        acc = n;
+      }
+    } else {
+      const items = [];
+      sec.p.forEach(b => { const s = sumFr(b); if (b.length > 1) steps.push(`Dans une même branche, \\(${plusTex(b)}\\) sont en série : \\(${cR(s)}\\).`); items.push(s); });
+      if (acc !== null) items.unshift(acc);
+      if (items.length === 1) { acc = items[0]; steps.push(`On part du bout du montage : la dernière branche verticale vaut \\(${cR(acc)}\\).`); continue; }
+      const inv = items.reduce((s, v) => s.add(v.inv()), F(0)), n = inv.inv();
+      maxDen = Math.max(maxDen, n.d);
+      const allEq = items.every(v => v.n === items[0].n && v.d === items[0].d);
+      steps.push(`\\(${items.map(v => cR(v)).join(' \\parallel ')}\\) en parallèle : \\(\\dfrac{1}{R_{eq}} = ${items.map(v => '\\dfrac{1}{' + cR(v) + '}').join(' + ')} = \\dfrac{${inv.n}}{${inv.d === 1 ? '' : inv.d}R}\\), donc \\(R_{eq} = ${cR(n)}\\)${allEq ? ` (${items.length} résistances identiques : on divise par ${items.length})` : ''}.`);
+      acc = n;
+    }
+  }
+  return { val: acc, steps, maxDen };
+}
+function buildEx2(sp, title = 'Exercice 2') {
+  const r = reqLadder(sp.L), v = r.val;
+  const corr = `<p>On réduit le montage en partant du bout opposé à A et B :</p><ol>${r.steps.map(s => '<li>' + s + '</li>').join('')}</ol><p>Conclusion : \\(R_{AB} = ${cR(v)}\\).</p>`;
+  return {
+    key: 'ex2', title, pts: 4, fig: drawLadder(sp.L),
+    blocks: [{ n: '', html: 'Déterminer la résistance équivalente vue entre A et B en expliquant.', corr,
+      items: [
+        { type: 'expr', label: 'R_{AB} =', vars: ['R'], ref: x => v.val() * x.R, sol: cR(v), pts: 3 },
+        { type: 'self', label: 'Chaque regroupement est justifié (« … en série », « … en parallèle »), avec un petit schéma intermédiaire', pts: 1 }
+      ] }]
+  };
+}
+function genEx2(level) {
+  const W = level === 'facile' ? [[1, 4], [2, 4], [4, 3]]
+    : level === 'cc' ? [[1, 4], [2, 4], [3, 2], [4, 3], [[1, 2], 1]]
+    : [[1, 3], [2, 3], [3, 2], [4, 2], [6, 1], [[1, 2], 1], [[3, 2], 1]];
+  const pv = () => wpick(W);
+  let best = null;
+  for (let t = 0; t < 4000; t++) {
+    const L = [];
+    const stages = level === 'facile' ? 2 : level === 'cc' ? 2 + rnd(2) : 3 + rnd(2);
+    if (level !== 'facile' && Math.random() < .2) L.push({ p: [[pv()]] });
+    for (let i = 0; i < stages; i++) {
+      L.push({ s: Array.from({ length: level !== 'facile' && Math.random() < .3 ? 2 : 1 }, pv) });
+      const nb = level === 'facile' ? 1 : level === 'cc' ? (Math.random() < .25 ? 2 + rnd(2) : 1) : 1 + rnd(3);
+      L.push({ p: Array.from({ length: nb }, () => level === 'costaud' && Math.random() < .2 ? [pv(), pv()] : [pv()]) });
+    }
+    if (Math.random() < .35) L.push({ s: [pv()] });
+    const r = reqLadder(L), v = r.val;
+    const lim = level === 'facile' ? 2 : level === 'cc' ? 4 : 6;
+    if (v.d <= lim && v.val() <= 14 && r.maxDen <= lim) return { L };
+    if (!best) best = { L };
+  }
+  return best;
+}
+
+/* =====================================================================
+   EXERCICE 3 : DEUX GÉNÉRATEURS, KIRCHHOFF PUIS MILLMAN
+   ===================================================================== */
+function branches(sp) {
+  return sp.cols.map((col, c) => {
+    let R = F(0), Sx = {};
+    (col.els || []).forEach(el => { if (el.k === 'R') R = R.add(fr(el.v)); else Sx = lin.add(Sx, { [el.n.replace(/[_{}]/g, '')]: F(isUp(el) ? 1 : -1) }); });
+    const seg = c === 0 ? sp.top[0] : c === 2 ? sp.top[1] : null;
+    if (seg) R = R.add(fr(seg));
+    return { c, R, S: Sx, s: col.cur.toA ? 1 : -1, n: col.cur.n };
+  });
+}
+function solve3(sp) {
+  const B = branches(sp);
+  let num = {}, den = F(0);
+  B.forEach(b => { num = lin.add(num, lin.scale(b.S, b.R.inv())); den = den.add(b.R.inv()); });
+  const VA = lin.scale(num, den.inv());
+  B.forEach(b => { b.I = lin.scale(lin.add(b.S, lin.scale(VA, F(-1))), b.R.inv().mul(b.s)); });
+  return { B, VA, num, den };
+}
+const joinSg = terms => terms.map((t, i) => (t.sg < 0 ? (i ? ' - ' : '-') : (i ? ' + ' : '')) + t.t).join('') || '0';
+const srcTex = Sx => joinSg(lin.keys(Sx).map(k => ({ sg: Sx[k].n, t: (Math.abs(Sx[k].n) === 1 ? '' : Math.abs(Sx[k].n)) + VTEX[k] }))) ;
+const RI = b => cR(b.R) + '\\,' + b.n;
+function meshTex(bj, bk) {
+  const t = [];
+  lin.keys(bj.S).forEach(k => t.push({ sg: bj.S[k].n, t: VTEX[k] }));
+  t.push({ sg: -bj.s, t: RI(bj) });
+  lin.keys(bk.S).forEach(k => t.push({ sg: -bk.S[k].n, t: VTEX[k] }));
+  t.push({ sg: bk.s, t: RI(bk) });
+  return joinSg(t) + ' = 0';
+}
+function nodeTex(B, sub) {
+  const inn = B.filter(b => b.s > 0), out = B.filter(b => b.s < 0);
+  const f = arr => arr.length ? arr.map(b => sub ? sub(b) : b.n).join(' + ') : '0';
+  return f(inn) + ' = ' + f(out);
+}
+const COLNAME = ['de gauche', 'centrale', 'de droite'];
+function branchRes(sp, c) {
+  const seg = c === 0 ? sp.top[0] : c === 2 ? sp.top[1] : null;
+  const r = (sp.cols[c].els || []).filter(e => e.k === 'R').map(e => fr(e.v));
+  if (seg) r.push(fr(seg));
+  return r;
+}
+function anTex(Ev, Rohm) {
+  const ks = lin.keys(Ev); const vals = ks.map(k => Ev[k]);
+  const srcs = vals.every(v => v === vals[0]) ? ks.map(k => VTEX[k]).join(' = ') + ' = ' + vals[0] + '\\ \\text{V}' : ks.map(k => VTEX[k] + ' = ' + Ev[k] + '\\ \\text{V}').join(',\\ ');
+  return '\\(' + srcs + '\\) et \\(R = ' + texOhm(Rohm) + '\\)';
+}
+function buildEx3(sp, title = 'Exercice 3') {
+  const { B, VA, num, den } = solve3(sp);
+  const srcVars = LORD.filter(k => B.some(b => k in b.S));
+  const vars = [...srcVars, 'R'];
+  const sorted = B.slice().sort((a, b) => a.n.localeCompare(b.n));
+  const fig = drawTri(sp);
+  // Q1
+  const c1 = drawTri(sp, { annot: 'full', label: 'Fléchage des courants et tensions' })
+    + `<p>Les courants (en rouge) sont choisis librement : ici ${B.map(b => '\\(' + b.n + '\\)' + (b.s > 0 ? ' arrive en A' : ' part de A')).join(', ')}. Les tensions (en bleu) sont fléchées à l'opposé du courant pour les résistances (convention récepteur, \\(U = R\\,I\\)) et vers la borne \\(+\\) pour les générateurs.</p>`;
+  // branche pivot : celle sans générateur (comme dans les corrigés), sinon celle du milieu
+  const pIdx = B.findIndex(b => !lin.keys(b.S).length), p = B[pIdx >= 0 ? pIdx : 1], oth = B.filter(b => b !== p);
+  // Q2
+  const ohm = [];
+  B.forEach(b => branchRes(sp, b.c).forEach(r => ohm.push('U = ' + cR(r) + '\\,' + b.n + '\\ \\text{(aux bornes de } ' + cR(r) + ')')));
+  const c2 = `<p><b>Loi des mailles</b> (on parcourt la maille, chaque tension orientée dans le sens du parcours compte en \\(+\\)) :</p>
+    \\[(1)\\quad ${meshTex(oth[0], p)}\\]\\[(2)\\quad ${meshTex(oth[1], p)}\\]\\[(3)\\quad ${meshTex(oth[0], oth[1])}\\]
+    <p>La maille (3) est la combinaison de (1) et (2) : elle n'apporte rien de nouveau.</p>
+    <p><b>Loi des nœuds</b> en A : \\(${nodeTex(B)}\\quad (4)\\)</p>
+    <p><b>Loi d'Ohm</b>, directement reportée sur le schéma : ${ohm.map(o => '\\(' + o + '\\)').join(' ; ')}.</p>`;
+  // Q3 : on exprime les deux autres courants en fonction de celui de la branche pivot
+  oth.forEach(b => { b.al = lin.scale(lin.add(b.S, lin.scale(p.S, F(-1))), b.R.inv().mul(b.s)); b.be = p.R.mul(p.s).div(b.R.mul(b.s)); });
+  const ex = b => { const a = texLin(b.al, true); return lin.keys(b.al).length ? a + sgFX(b.be, p.n, false) : sgFX(b.be, p.n, true); };
+  let kco = F(p.s); let rhs = {};
+  oth.forEach(b => { kco = kco.add(b.be.mul(b.s)); rhs = lin.add(rhs, lin.scale(b.al, F(b.s))); });
+  kco = kco.mul(-1);
+  if (kco.n < 0) { kco = kco.mul(-1); rhs = lin.scale(rhs, F(-1)); }
+  const c3 = `<p>On combine les lois des mailles (1) et (2) avec la loi d'Ohm pour exprimer les deux autres courants en fonction de \\(${p.n}\\) :</p>
+    \\[(1) \\Rightarrow ${oth[0].n} = ${ex(oth[0])}\\qquad (2) \\Rightarrow ${oth[1].n} = ${ex(oth[1])}\\]
+    <p>On remplace dans la loi des nœuds (4) :</p>
+    \\[${nodeTex(B, b => b === p ? b.n : '\\left(' + ex(b) + '\\right)')}\\]
+    \\[\\Rightarrow\\ ${texLin(rhs, true)} = ${absFX(kco, p.n)} \\Rightarrow \\boxed{${p.n} = ${texLinC(p.I, true)}}\\]
+    <p>Puis on réinjecte dans (1) et (2) :</p>
+    \\[\\boxed{${oth[0].n} = ${texLinC(oth[0].I, true)}}\\qquad \\boxed{${oth[1].n} = ${texLinC(oth[1].I, true)}}\\]
+    <p>Vérification : la loi des nœuds \\(${nodeTex(B)}\\) est bien respectée par ces expressions.</p>`;
+  // Q4
+  const Ev = sp.E, Rohm = sp.Rohm;
+  const c4 = sorted.map(b => `\\[${b.n} = ${texLinNum(b.I, Ev, Rohm, true)} = ${fmtN(lin.ev(b.I, Ev) / Rohm * 1000, true)}\\ \\text{mA}\\]`).join('')
+    + (sorted.some(b => lin.ev(b.I, Ev) < 0) ? '<p>Un courant négatif signifie que le courant circule dans le sens opposé à la flèche choisie.</p>' : '')
+    + `<p>Vérification avec la loi des nœuds : ${(() => { const inn = B.filter(b => b.s > 0), out = B.filter(b => b.s < 0); const f = a => a.map(b => fmtN(lin.ev(b.I, Ev) / Rohm * 1000, true)).join(' + ') || '0'; return '\\(' + f(inn) + ' = ' + f(out) + '\\)'; })()} mA.</p>`;
+  // Q5
+  const t = B[sp.ask5];
+  const desc = sp.q5 || (() => { const r = branchRes(sp, t.c); return 'la résistance ' + r.map(lblR).join(' + ') + ' de la branche ' + COLNAME[t.c]; })();
+  // terme de Millman d'une branche : {sg, t} avec t = \frac{E_1}{R} (ou \frac{0}{2R})
+  const term = b => { const k = lin.keys(b.S); if (!k.length) return { sg: 1, t: '\\frac{0}{' + cR(b.R) + '}' }; const neg = b.S[k[0]].n < 0; return { sg: neg ? -1 : 1, t: '\\frac{' + srcTex(neg ? lin.scale(b.S, F(-1)) : b.S) + '}{' + cR(b.R) + '}' }; };
+  const invR = f => '\\frac{' + f.n + '}{' + (f.d === 1 ? '' : f.d) + 'R}';
+  const ohmT = t.s > 0 ? `${RI(t)} = ${srcTex(t.S)} - V_A` : `${RI(t)} = V_A${lin.keys(t.S).length ? ' - ' + srcTex(t.S) : ' - 0'}`;
+  const c5 = drawTri(sp, { gnd: true, label: 'Potentiel 0 V placé en bas' })
+    + `<p>On place le 0 V sur la ligne du bas. Théorème de Millman au point A (chaque branche relie A au 0 V) :</p>
+    \\[V_A = \\dfrac{${joinSg(B.map(term))}}{${B.map(b => '\\frac{1}{' + cR(b.R) + '}').join(' + ')}} = \\dfrac{${texLinC(num, true)}}{${invR(den)}} \\Rightarrow \\boxed{V_A = ${texLinC(VA, false)}}\\]
+    <p>Loi d'Ohm sur la branche ${COLNAME[t.c]} : \\(${ohmT}\\), donc</p>
+    \\[\\boxed{${t.n} = ${texLinC(t.I, true)}}\\]<p>On retrouve bien le résultat de la question 3.</p>`;
+  return {
+    key: 'ex3', title, pts: 8, fig,
+    blocks: [
+      { n: '1', html: 'Flécher et nommer les tensions et courants sur le schéma.', paper: true, corr: c1,
+        items: [{ type: 'self', label: 'Un courant fléché et nommé dans chacune des trois branches', pts: .5 }, { type: 'self', label: 'Tensions fléchées : opposées au courant sur les résistances, vers le + sur les générateurs', pts: .5 }] },
+      { n: '2', html: 'Écrire les équations correspondant à la loi des mailles et à la loi des nœuds et appliquer la loi d\'Ohm pour les résistances.', paper: true, corr: c2,
+        items: [{ type: 'self', label: 'Deux lois des mailles justes (signes compris)', pts: 1 }, { type: 'self', label: 'Loi des nœuds juste', pts: .5 }, { type: 'self', label: 'Loi d\'Ohm appliquée à chaque résistance', pts: .5 }] },
+      { n: '3', html: 'À partir de ces équations, déterminer les courants dans les trois branches en expliquant.', corr: c3,
+        pre: `<div class="paper">Pour la saisie, garde le fléchage ci-dessous (celui du corrigé). Un courant qui sort avec le mauvais signe veut juste dire que ta flèche est dans l'autre sens.</div>` + drawTri(sp, { annot: 'cur', cls: 'sm', label: 'Sens des courants pour la saisie' }),
+        items: sorted.map(b => ({ type: 'expr', label: b.n + ' =', vars, ref: v => lin.ev(b.I, v) / v.R, sol: texLinC(b.I, true), pts: 1 })) },
+      { n: '4', html: 'Application numérique : ' + anTex(Ev, Rohm) + '.', corr: c4,
+        items: sorted.map(b => ({ type: 'num', unit: 'mA', label: b.n + ' =', val: lin.ev(b.I, Ev) / Rohm * 1000, sol: fmtN(lin.ev(b.I, Ev) / Rohm * 1000, true) + '\\ \\text{mA}', pts: 1 / 3 })) },
+      { n: '5', html: `Retrouver l'expression du courant parcourant ${desc} en utilisant le théorème de Millman au point A en mettant sur le schéma la position du potentiel 0 V.`, corr: c5,
+        items: [{ type: 'expr', label: 'V_A =', vars, ref: v => lin.ev(VA, v), sol: texLinC(VA, false), pts: .5 }, { type: 'expr', label: t.n + ' =', vars, ref: v => lin.ev(t.I, v) / v.R, sol: texLinC(t.I, true), pts: .5 }] }
+    ]
+  };
+}
+function genEx3(level) {
+  let last = null;
+  for (let t = 0; t < 800; t++) {
+    const passive = pick([1, 1, 1, 0, 2]);
+    const Rv = level === 'facile' ? [1, 2] : [1, 2, 3];
+    const srcCols = [0, 1, 2].filter(c => c !== passive);
+    const cols = [{}, {}, {}], top = [null, null];
+    let flipped = false;
+    [0, 1, 2].forEach(c => {
+      const r = pick(Rv), outer = c !== 1, onTop = outer && level !== 'facile' && Math.random() < .45;
+      if (c !== passive) {
+        const name = c === srcCols[0] ? 'E_1' : 'E_2';
+        const up = !(level === 'pieges' && Math.random() < .4); if (!up) flipped = true;
+        if (onTop) { top[c === 0 ? 0 : 1] = r; cols[c].els = [{ k: 'E', n: name, up }]; }
+        else cols[c].els = [{ k: 'R', v: r }, { k: 'E', n: name, up }];
+      } else if (onTop) { top[c === 0 ? 0 : 1] = r; cols[c].els = []; }
+      else cols[c].els = [{ k: 'R', v: r }];
+    });
+    srcCols.forEach((c, i) => { cols[c].cur = { n: 'I_' + (i + 1), toA: 1 }; });
+    cols[passive].cur = { n: 'I_3', toA: 0 };
+    const same = Math.random() < (level === 'facile' ? .6 : .35);
+    const e1 = pick([5, 6, 8, 9, 10, 12]), e2 = same ? e1 : pick([4, 5, 6, 8, 10, 12, 15].filter(x => x !== e1));
+    const sp = { cols, top, E: { E1: e1, E2: e2 }, Rohm: pick([1000, 1000, 1000, 2000, 500]), ask5: Math.random() < .6 ? passive : pick(srcCols) };
+    const { B } = solve3(sp);
+    const mA = B.map(b => lin.ev(b.I, sp.E) / sp.Rohm * 1000);
+    const nice = mA.every(x => Math.abs(x * 100 - Math.round(x * 100)) < 1e-6);
+    const pos = mA.every(x => x > 1e-9);
+    last = sp;
+    if (level === 'pieges') { if (nice && (flipped || mA.some(x => x < 0)) && mA.every(x => Math.abs(x) > 1e-9)) return sp; }
+    else if (nice && pos) return sp;
+  }
+  return last;
+}
+
+/* =====================================================================
+   EXERCICE 4 : CIRCUIT AVEC UNE CHARGE R_L
+   ===================================================================== */
+function poly(a, b) { const t = []; if (a) t.push((a === 1 ? '' : a) + 'R'); if (b) t.push((b === 1 ? '' : b) + 'R_L'); return t.join(' + ') || '0'; }
+function texRat(nR, nRL, dR, dRL, mult) {
+  const g = gcd(gcd(nR, nRL), gcd(dR, dRL)); nR /= g; nRL /= g; dR /= g; dRL /= g;
+  const f = gcd(nR, nRL);
+  const num = nR && nRL && f > 1 ? `${f}(${poly(nR / f, nRL / f)})` : poly(nR, nRL);
+  return `\\frac{${num}}{${poly(dR, dRL)}}\\,${mult}`;
+}
+const texK = (f, X) => f.z ? '0' : (f.n < 0 ? '-' : '') + absFX(f, X);
+function ex4Model(sp) {
+  if (sp.v === 'lad') {
+    const A = sp.aV + sp.aT, b = sp.b, c = sp.c, k = sp.k, P = A * b + A * c + b * c, Q = A + b, D = P + Q * k;
+    return { A, b, c, k, P, Q,
+      U: v => b * (c * v.R + v.RL) * v.E / (P * v.R + Q * v.RL), UL: v => b * v.RL * v.E / (P * v.R + Q * v.RL),
+      I1: v => ((b + c) * v.R + v.RL) * v.E / (v.R * (P * v.R + Q * v.RL)), I3: v => b * v.E / (P * v.R + Q * v.RL),
+      Uk: F(b * (c + k), D), ULk: F(b * k, D), I1k: F(b + c + k, D), I3k: F(b, D) };
+  }
+  const a = sp.a1 + sp.a2, b = sp.b, k = sp.k;
+  const ULk = F(a * k, (a + b) * k + a * b);
+  return { a, b, k, UL: v => a * v.RL * v.E / ((a + b) * v.RL + a * b * v.R), ULk, Uxk: ULk.mul(F(sp.a1, a)), rx: F(sp.a1, a) };
+}
+function buildEx4(sp, title = 'Exercice 4') {
+  const M = ex4Model(sp), tpl = sp.tpl, E = sp.E, k = sp.k;
+  const RL = '\\(R_L\\)', kR = cR(F(k));
+  let fig, blocks = [];
+  const V3 = ['E', 'R', 'RL'], V2 = ['E', 'R'];
+  if (sp.v === 'lad') {
+    const { A, b, c, P, Q } = M;
+    const bR = cR(F(b)), AR = cR(F(A)), cRt = c ? cR(F(c)) : '';
+    const showCur = tpl === 'T21';
+    const cols = [
+      { els: sp.aV ? [{ k: 'R', v: sp.aV }, { k: 'E', n: 'E', up: 1 }] : [{ k: 'E', n: 'E', up: 1 }], cur: showCur ? { n: 'I_1', toA: 1 } : null },
+      { els: [{ k: 'R', v: b, u: tpl === 'T22' ? 'U' : null }] },
+      { els: [{ k: 'R', lab: 'R_L', u: showCur ? null : 'U_L' }], cur: showCur ? { n: 'I_3', toA: 0 } : null }
+    ];
+    fig = drawTri({ cols, top: [sp.aT || null, c || null], A: false }, { annot: showCur ? 'cur' : null });
+    const serie = sp.aV && sp.aT ? `<p>\\(${cR(F(sp.aV))}\\) et \\(${cR(F(sp.aT))}\\) sont en série avec le générateur : elles équivalent à \\(${AR}\\).</p>` : '';
+    const reqT = c ? `R_{eq} = ${bR} \\parallel (${cRt} + R_L) = \\frac{${bR}\\,(${cRt} + R_L)}{${poly(b + c, 1)}}` : `R_{eq} = ${bR} \\parallel R_L = \\frac{${bR}\\,R_L}{${bR} + R_L}`;
+    const reqP = c ? `\\(${cRt}\\) et \\(R_L\\) sont en série, et cet ensemble est en parallèle avec \\(${bR}\\)` : `\\(R_L\\) est en parallèle avec \\(${bR}\\)`;
+    const Utex = texRat(b * c, b, P, Q, 'E'), ULtex = texRat(0, b, P, Q, 'E');
+    const I1tex = `\\frac{(${poly(b + c, 1)})\\,E}{R\\,(${poly(P, Q)})}`;
+    const g3 = gcd(b, gcd(P, Q)), I3tex = `\\frac{${b / g3 === 1 ? '' : b / g3}E}{${poly(P / g3, Q / g3)}}`;
+    const corrV = (Un, res) => `${serie}<p>Simplification : ${reqP} :</p>\\[${reqT}\\]<p>Pont diviseur de tension entre \\(${AR}\\) et \\(R_{eq}\\) (même courant) :</p>\\[${Un} = \\frac{R_{eq}}{R_{eq} + ${AR}}\\,E \\Rightarrow \\boxed{${Un} = ${res}}\\]<p>Variante : Millman au nœud du haut de \\(${bR}\\), avec le 0 V en bas : \\(${Un} = \\dfrac{\\frac{E}{${AR}} + \\frac{0}{${bR}} + \\frac{0}{${c ? cRt + ' + R_L' : 'R_L'}}}{\\frac{1}{${AR}} + \\frac{1}{${bR}} + \\frac{1}{${c ? cRt + ' + R_L' : 'R_L'}}}\\), qui donne le même résultat.</p>`;
+    const corrU = corrV('U', Utex);
+    const corrULofU = `<p>\\(${cRt}\\) et \\(R_L\\) sont en série (même courant) sous la tension \\(U\\). Pont diviseur de tension :</p>\\[\\boxed{U_L = \\frac{R_L}{${cRt} + R_L}\\,U}\\]`;
+    const subK = (name, res) => `<p>On reprend le résultat général avec \\(R_L = ${kR}\\) et on simplifie par \\(R\\) :</p>\\[\\boxed{${name} = ${res}}\\]`;
+    const anV = (lab, f) => `\\[${lab} = ${texK(f, 'E')} = ${texK(f, '\\times ' + E)}\\ \\text{V} = ${fmtN(f.val() * E, true)}\\ \\text{V}\\]`;
+    if (tpl === 'T21') {
+      blocks = [
+        { n: '1', html: `Déterminer le courant \\(I_1\\) qui parcourt la résistance \\(${AR}\\) par la méthode de votre choix.`, corr: `${serie}<p>Simplification du montage : ${reqP} :</p>\\[${reqT}\\]<p>Loi des mailles avec le générateur : \\(E - ${AR}\\,I_1 - R_{eq}\\,I_1 = 0\\), donc</p>\\[I_1 = \\frac{E}{${AR} + R_{eq}} \\Rightarrow \\boxed{I_1 = ${I1tex}}\\]`,
+          items: [{ type: 'expr', label: 'I_1 =', vars: V3, ref: M.I1, sol: I1tex, pts: 1 }] },
+        { n: '2', html: `Déterminer par la méthode de votre choix la relation entre le courant \\(I_3\\) qui parcourt la résistance ${RL} et \\(I_1\\).`, corr: `<p>\\(I_1\\) se partage entre \\(${bR}\\) et la branche \\(${cRt} + R_L\\). Pont diviseur de courant :</p>\\[I_3 = \\frac{\\frac{1}{${cRt} + R_L}}{\\frac{1}{${bR}} + \\frac{1}{${cRt} + R_L}}\\,I_1 \\Rightarrow \\boxed{I_3 = \\frac{${bR}}{${poly(b + c, 1)}}\\,I_1}\\]`,
+          items: [{ type: 'expr', label: 'I_3 =', vars: ['I1', 'R', 'RL'], ref: v => b * v.R / ((b + c) * v.R + v.RL) * v.I1, sol: `\\frac{${bR}}{${poly(b + c, 1)}}\\,I_1`, pts: 1 }] },
+        { n: '3', html: `Calculer le courant \\(I_1\\) en fonction de \\(E\\) et \\(R\\) pour \\(R_L = ${kR}\\).`, corr: subK('I_1', fracER(M.I1k)),
+          items: [{ type: 'expr', label: 'I_1 =', vars: V2, ref: v => M.I1k.val() * v.E / v.R, sol: fracER(M.I1k), pts: .75 }] },
+        { n: '4', html: `Calculer le courant \\(I_3\\) en fonction de \\(E\\) et \\(R\\) pour \\(R_L = ${kR}\\).`, corr: `<p>Avec la question 2 et \\(R_L = ${kR}\\) : \\(I_3 = \\frac{${b}}{${b + c + k}}\\,I_1\\), donc</p>\\[\\boxed{I_3 = ${fracER(M.I3k)}}\\]`,
+          items: [{ type: 'expr', label: 'I_3 =', vars: V2, ref: v => M.I3k.val() * v.E / v.R, sol: fracER(M.I3k), pts: .75 }] },
+        { n: '5', html: `AN : Donner la valeur de \\(I_1\\) et \\(I_3\\) pour \\(R_L = ${texOhm(k * sp.Rohm)}\\), \\(R = ${texOhm(sp.Rohm)}\\), \\(E = ${E}\\ \\text{V}\\).`,
+          corr: `<p>\\(R_L = ${kR}\\) : on utilise les résultats précédents.</p>\\[I_1 = ${fracER(M.I1k)} = ${fmtN(M.I1k.val() * E / sp.Rohm * 1000, true)}\\ \\text{mA}\\qquad I_3 = ${fracER(M.I3k)} = ${fmtN(M.I3k.val() * E / sp.Rohm * 1000, true)}\\ \\text{mA}\\]`,
+          items: [{ type: 'num', unit: 'mA', label: 'I_1 =', val: M.I1k.val() * E / sp.Rohm * 1000, sol: fmtN(M.I1k.val() * E / sp.Rohm * 1000, true) + '\\ \\text{mA}', pts: .25 },
+            { type: 'num', unit: 'mA', label: 'I_3 =', val: M.I3k.val() * E / sp.Rohm * 1000, sol: fmtN(M.I3k.val() * E / sp.Rohm * 1000, true) + '\\ \\text{mA}', pts: .25 }] }
+      ];
+    } else if (tpl === 'T24') {
+      blocks = [
+        { n: '1', html: `Déterminer par la méthode de votre choix l'expression de la tension \\(U_L\\) en fonction de \\(E\\), \\(R\\) et \\(R_L\\).`, corr: corrV('U_L', ULtex),
+          items: [{ type: 'expr', label: 'U_L =', vars: V3, ref: M.UL, sol: ULtex, pts: 2 }] },
+        { n: '2', html: `Donner la tension \\(U_L\\) pour \\(R_L = ${kR}\\) en simplifiant au maximum l'expression.`, corr: subK('U_L', texK(M.ULk, 'E')),
+          items: [{ type: 'expr', label: 'U_L =', vars: V2, ref: v => M.ULk.val() * v.E, sol: texK(M.ULk, 'E'), pts: 1 }] },
+        { n: '3', html: `AN : Donner la valeur \\(U_L\\) pour \\(E = ${E}\\ \\text{V}\\).`, corr: anV('U_L', M.ULk),
+          items: [{ type: 'num', unit: 'V', label: 'U_L =', val: M.ULk.val() * E, sol: fmtN(M.ULk.val() * E, true) + '\\ \\text{V}', pts: 1 }] }
+      ];
+    } else {
+      blocks = [
+        { n: '1', html: `Déterminer par la méthode de votre choix l'expression de la tension \\(U\\) aux bornes de \\(${bR}\\).`, corr: corrU,
+          items: [{ type: 'expr', label: 'U =', vars: V3, ref: M.U, sol: Utex, pts: 1 }] },
+        { n: '2', html: `Déterminer par la méthode de votre choix la tension \\(U_L\\) en fonction de \\(U\\).`, corr: corrULofU,
+          items: [{ type: 'expr', label: 'U_L =', vars: ['U', 'R', 'RL'], ref: v => v.RL / (c * v.R + v.RL) * v.U, sol: `\\frac{R_L}{${cRt} + R_L}\\,U`, pts: 1 }] },
+        { n: '3', html: `Donner la tension \\(U\\) en fonction de \\(E\\) et \\(R\\) pour \\(R_L = ${kR}\\).`, corr: `<p>On reprend le résultat de la question 1 avec \\(R_L = ${kR}\\) :</p>\\[U = \\frac{${b}(${c + k})R}{(${P} + ${Q * k})R}\\,E \\Rightarrow \\boxed{U = ${texK(M.Uk, 'E')}}\\]`,
+          items: [{ type: 'expr', label: 'U =', vars: V2, ref: v => M.Uk.val() * v.E, sol: texK(M.Uk, 'E'), pts: .75 }] },
+        { n: '4', html: `Donner la tension \\(U_L\\) en fonction de \\(E\\) et \\(R\\) pour \\(R_L = ${kR}\\).`, corr: `<p>Avec la question 2 : \\(U_L = \\frac{${kR}}{${cRt} + ${kR}}\\,U = ${texK(F(k, c + k), 'U')}\\), donc</p>\\[\\boxed{U_L = ${texK(M.ULk, 'E')}}\\]`,
+          items: [{ type: 'expr', label: 'U_L =', vars: V2, ref: v => M.ULk.val() * v.E, sol: texK(M.ULk, 'E'), pts: .75 }] },
+        { n: '5', html: `AN : Donner la valeur de \\(U\\) et \\(U_L\\) pour \\(R_L = ${texOhm(k * sp.Rohm)}\\), \\(R = ${texOhm(sp.Rohm)}\\), \\(E = ${E}\\ \\text{V}\\).`,
+          corr: `<p>\\(R_L = ${kR}\\) : on utilise donc les résultats précédents.</p>` + anV('U', M.Uk) + anV('U_L', M.ULk),
+          items: [{ type: 'num', unit: 'V', label: 'U =', val: M.Uk.val() * E, sol: fmtN(M.Uk.val() * E, true) + '\\ \\text{V}', pts: .25 },
+            { type: 'num', unit: 'V', label: 'U_L =', val: M.ULk.val() * E, sol: fmtN(M.ULk.val() * E, true) + '\\ \\text{V}', pts: .25 }] }
+      ];
+    }
+  } else {
+    const { a, b } = M, a1 = sp.a1, a2 = sp.a2, aR = cR(F(a)), bR = cR(F(b)), a1R = cR(F(a1)), Ux = 'U_{' + a1R + '}';
+    fig = drawTri({ cols: [{ els: [{ k: 'R', v: a1 }] }, { els: [{ k: 'R', v: b }, { k: 'E', n: 'E', up: 1 }] }, { els: [{ k: 'R', lab: 'R_L', u: 'U_L' }] }], top: [a2 || null, null], A: false });
+    const ULtex = texRat(0, a, a * b, a + b, 'E');
+    blocks = [
+      { n: '1', html: `Déterminer par la méthode de votre choix l'expression de la tension \\(U_L\\) en fonction de \\(E\\), \\(R\\) et \\(R_L\\).`,
+        corr: `<p>Simplification : \\(${a1R}\\) et \\(${cR(F(a2))}\\) sont en série, ce qui fait \\(${aR}\\). On place le 0 V en bas et on note \\(A\\) le nœud du haut : \\(U_L = V_A - 0\\).</p><p>Théorème de Millman en A :</p>\\[V_A = \\dfrac{\\frac{0}{${aR}} + \\frac{E}{${bR}} + \\frac{0}{R_L}}{\\frac{1}{${aR}} + \\frac{1}{${bR}} + \\frac{1}{R_L}} \\Rightarrow \\boxed{U_L = ${ULtex}}\\]`,
+        items: [{ type: 'expr', label: 'U_L =', vars: V3, ref: M.UL, sol: ULtex, pts: 1 }] },
+      { n: '2', html: `Déterminer par la méthode de votre choix la tension \\(${Ux}\\) (aux bornes de \\(${a1R}\\)) en fonction de \\(R\\) et \\(U_L\\).`,
+        corr: `<p>\\(${a1R}\\) et \\(${cR(F(a2))}\\) sont en série (même courant) sous la tension \\(U_L\\). Pont diviseur de tension :</p>\\[${Ux} = \\frac{${a1R}}{${a1R} + ${cR(F(a2))}}\\,U_L \\Rightarrow \\boxed{${Ux} = ${texK(M.rx, 'U_L')}}\\]`,
+        items: [{ type: 'expr', label: Ux + ' =', vars: ['UL', 'R'], ref: v => M.rx.val() * v.UL, sol: texK(M.rx, 'U_L'), pts: 1 }] },
+      { n: '3', html: `Donner la tension \\(U_L\\) pour \\(R_L = ${kR}\\) en simplifiant au maximum l'expression.`, corr: `<p>Avec \\(R_L = ${kR}\\) dans le résultat de la question 1 :</p>\\[\\boxed{U_L = ${texK(M.ULk, 'E')}}\\]`,
+        items: [{ type: 'expr', label: 'U_L =', vars: V2, ref: v => M.ULk.val() * v.E, sol: texK(M.ULk, 'E'), pts: .75 }] },
+      { n: '4', html: `Donner la tension \\(${Ux}\\) pour \\(R_L = ${kR}\\) en simplifiant au maximum l'expression.`, corr: `\\[${Ux} = ${texK(M.rx, '')}\\times ${texK(M.ULk, 'E')} \\Rightarrow \\boxed{${Ux} = ${texK(M.Uxk, 'E')}}\\]`,
+        items: [{ type: 'expr', label: Ux + ' =', vars: V2, ref: v => M.Uxk.val() * v.E, sol: texK(M.Uxk, 'E'), pts: .75 }] },
+      { n: '5', html: `AN : Donner la valeur de \\(${Ux}\\) et \\(U_L\\) pour \\(E = ${E}\\ \\text{V}\\).`,
+        corr: `\\[${Ux} = ${fmtN(M.Uxk.val() * E, true)}\\ \\text{V}\\qquad U_L = ${fmtN(M.ULk.val() * E, true)}\\ \\text{V}\\]`,
+        items: [{ type: 'num', unit: 'V', label: Ux + ' =', val: M.Uxk.val() * E, sol: fmtN(M.Uxk.val() * E, true) + '\\ \\text{V}', pts: .25 },
+          { type: 'num', unit: 'V', label: 'U_L =', val: M.ULk.val() * E, sol: fmtN(M.ULk.val() * E, true) + '\\ \\text{V}', pts: .25 }] }
+    ];
+  }
+  return { key: 'ex4', title, pts: 4, fig, blocks };
+}
+function fracER(f) { const n = Math.abs(f.n); return (f.n < 0 ? '-' : '') + `\\frac{${n === 1 ? '' : n}E}{${f.d === 1 ? '' : f.d}R}`; }
+function niceE(frs, scale) {
+  const Es = shuffle([6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 24]);
+  for (const prec of [1, 10, 100]) for (const E of Es) if (frs.every(f => { const x = f.val() * E * scale * prec; return Math.abs(x - Math.round(x)) < 1e-6; })) return E;
+  return null;
+}
+function genEx4(tpl) {
+  tpl = tpl || pick(['T21', 'T22', 'T22', 'T23', 'T24']);
+  for (let t = 0; t < 600; t++) {
+    if (tpl === 'T23') {
+      const a1 = 1 + rnd(3), a2 = 1 + rnd(2), b = 1 + rnd(3), k = 1 + rnd(4);
+      const M = ex4Model({ v: 'mil', a1, a2, b, k });
+      if (M.ULk.d > 12 || M.Uxk.d > 16) continue;
+      const E = niceE([M.ULk, M.Uxk], 1); if (!E) continue;
+      return { v: 'mil', a1, a2, b, k, E, tpl };
+    }
+    const A = 1 + rnd(3), b = 1 + rnd(4), c = tpl === 'T24' ? 0 : 1 + rnd(2), k = 1 + rnd(4);
+    let aV = A, aT = 0;
+    if (tpl === 'T24') { if (A === 1) continue; aT = 1 + rnd(A - 1); aV = A - aT; }
+    else if (tpl === 'T22' && Math.random() < .4) { aT = A; aV = 0; }
+    const sp = { v: 'lad', aV, aT, b, c, k, tpl, Rohm: pick([100, 1000]) };
+    const M = ex4Model(sp);
+    const frs = tpl === 'T21' ? [M.I1k, M.I3k] : tpl === 'T24' ? [M.ULk] : [M.Uk, M.ULk];
+    if (frs.some(f => f.d > 14)) continue;
+    const E = niceE(frs, tpl === 'T21' ? 1000 / sp.Rohm : 1); if (!E) continue;
+    sp.E = E; return sp;
+  }
+  return { v: 'lad', aV: 2, aT: 0, b: 3, c: 1, k: 2, E: 14, Rohm: 100, tpl: 'T22' };
+}
+
+/* =====================================================================
+   EXERCICE 1 : DÉMONSTRATIONS
+   ===================================================================== */
+const DEMOS = {
+  'dt-N': { kind: 'dt', short: 'Pont diviseur de tension', stmt: 'Donner et démontrer la formule du pont diviseur de tension pour N résistances en série.',
+    formula: String.raw`U_k = \frac{R_k}{\sum_{i=1}^{N} R_i}\,U`,
+    steps: [String.raw`Les \(N\) résistances sont en série : elles sont parcourues par le <b>même courant</b> \(I\). On flèche \(U_k\) aux bornes de \(R_k\) et \(U\) aux bornes de l'ensemble, en convention récepteur.`,
+      String.raw`Loi d'Ohm sur \(R_k\) : \(U_k = R_k\,I\) &nbsp;(1)`,
+      String.raw`Loi des mailles (les tensions en série s'additionnent) : \(U = \sum_{i=1}^{N} U_i = \sum_{i=1}^{N} R_i\,I\)`,
+      String.raw`On isole le courant : \(I = \dfrac{U}{\sum_{i=1}^{N} R_i}\)`,
+      String.raw`On remplace \(I\) dans (1) : \(U_k = \dfrac{R_k}{\sum_{i=1}^{N} R_i}\,U\)`],
+    tip: 'À utiliser seulement si les résistances sont parcourues par le même courant (aucune dérivation entre elles).' },
+  'dc-N': { kind: 'dc', short: 'Pont diviseur de courant (N)', stmt: 'Donner et démontrer la formule du pont diviseur de courant pour N branches.',
+    formula: String.raw`I_k = \frac{1/R_k}{\sum_{i=1}^{N} 1/R_i}\,I`,
+    steps: [String.raw`Les \(N\) résistances sont en parallèle : elles ont la <b>même tension</b> \(U\) à leurs bornes. Le courant total \(I\) se partage en \(I_1, \dots, I_N\).`,
+      String.raw`Loi d'Ohm sur chaque branche : \(I_k = \dfrac{U}{R_k}\) &nbsp;(1)`,
+      String.raw`Loi des nœuds : \(I = \sum_{i=1}^{N} I_i = U \sum_{i=1}^{N} \dfrac{1}{R_i}\)`,
+      String.raw`On isole la tension : \(U = \dfrac{I}{\sum_{i=1}^{N} 1/R_i}\)`,
+      String.raw`On remplace \(U\) dans (1) : \(I_k = \dfrac{1/R_k}{\sum_{i=1}^{N} 1/R_i}\,I\)`],
+    tip: 'Cas de deux résistances : I₁ = R₂/(R₁+R₂) · I. C\'est l\'autre résistance qui se retrouve au numérateur.' },
+  'dc-4': { kind: 'dc4', short: 'Pont diviseur de courant (4 branches)', stmt: 'Donner et démontrer la formule du pont diviseur de courant pour 4 branches.',
+    formula: String.raw`I_k = \frac{1/R_k}{\frac{1}{R_1} + \frac{1}{R_2} + \frac{1}{R_3} + \frac{1}{R_4}}\,I`,
+    steps: [String.raw`Les 4 résistances sont en parallèle : même tension \(U\) à leurs bornes. Le courant \(I\) se partage en \(I_1, I_2, I_3, I_4\).`,
+      String.raw`Loi d'Ohm sur chaque résistance : \(I_k = \dfrac{U}{R_k}\) &nbsp;(1)`,
+      String.raw`Loi des nœuds : \(I = I_1 + I_2 + I_3 + I_4 = U\left(\dfrac{1}{R_1} + \dfrac{1}{R_2} + \dfrac{1}{R_3} + \dfrac{1}{R_4}\right)\)`,
+      String.raw`Donc \(U = \dfrac{I}{\frac{1}{R_1} + \frac{1}{R_2} + \frac{1}{R_3} + \frac{1}{R_4}}\)`,
+      String.raw`Dans (1) : \(I_k = \dfrac{1/R_k}{\frac{1}{R_1} + \frac{1}{R_2} + \frac{1}{R_3} + \frac{1}{R_4}}\,I = \dfrac{1/R_k}{\sum_{i=1}^{4} 1/R_i}\,I\)`],
+    tip: 'Même démonstration qu\'avec N branches, en écrivant les 4 termes explicitement (le corrigé 2024 fait exactement ça).' },
+  'mi-N': { kind: 'mi', short: 'Théorème de Millman (N)', stmt: 'Donner et démontrer le théorème de Millman pour N branches.',
+    formula: String.raw`V_A = \frac{\sum_{k=1}^{N} V_k/R_k}{\sum_{k=1}^{N} 1/R_k}`,
+    steps: [String.raw`\(N\) branches de résistances \(R_k\) relient le nœud \(A\) à des points de potentiels \(V_k\). On oriente tous les courants \(I_k\) <b>vers</b> \(A\).`,
+      String.raw`Loi des nœuds en \(A\) : \(\sum_{k=1}^{N} I_k = 0\)`,
+      String.raw`Loi d'Ohm sur chaque résistance, soumise à la tension \(V_k - V_A\) : \(I_k = \dfrac{V_k - V_A}{R_k} = \dfrac{V_k}{R_k} - \dfrac{V_A}{R_k}\)`,
+      String.raw`D'où \(\sum_{k=1}^{N} \left(\dfrac{V_k}{R_k} - \dfrac{V_A}{R_k}\right) = 0\), soit \(\sum_{k=1}^{N} \dfrac{V_k}{R_k} = V_A \sum_{k=1}^{N} \dfrac{1}{R_k}\)`,
+      String.raw`Donc \(V_A = \dfrac{\sum_{k=1}^{N} V_k/R_k}{\sum_{k=1}^{N} 1/R_k}\)`],
+    tip: 'Il est tombé 3 fois en 5 ans (2022, 2023, 2025) : c\'est la démo la plus probable.' },
+  'mi-4': { kind: 'mi4', short: 'Théorème de Millman (4 branches)', stmt: 'Donner et démontrer le théorème de Millman pour 4 branches.',
+    formula: String.raw`V_A = \frac{\frac{V_1}{R_1} + \frac{V_2}{R_2} + \frac{V_3}{R_3} + \frac{V_4}{R_4}}{\frac{1}{R_1} + \frac{1}{R_2} + \frac{1}{R_3} + \frac{1}{R_4}}`,
+    steps: [String.raw`4 résistances relient \(A\) aux points de potentiels \(V_1, V_2, V_3, V_4\). Les courants \(I_1, \dots, I_4\) sont orientés vers \(A\).`,
+      String.raw`Loi des nœuds en \(A\) : \(I_1 + I_2 + I_3 + I_4 = 0\)`,
+      String.raw`Loi d'Ohm pour chaque résistance : \(I_1 = \dfrac{V_1 - V_A}{R_1}\), \(I_2 = \dfrac{V_2 - V_A}{R_2}\), \(I_3 = \dfrac{V_3 - V_A}{R_3}\), \(I_4 = \dfrac{V_4 - V_A}{R_4}\)`,
+      String.raw`D'où \(\dfrac{V_1}{R_1} + \dfrac{V_2}{R_2} + \dfrac{V_3}{R_3} + \dfrac{V_4}{R_4} = V_A\left(\dfrac{1}{R_1} + \dfrac{1}{R_2} + \dfrac{1}{R_3} + \dfrac{1}{R_4}\right)\)`,
+      String.raw`Donc \(V_A = \dfrac{\frac{V_1}{R_1} + \frac{V_2}{R_2} + \frac{V_3}{R_3} + \frac{V_4}{R_4}}{\frac{1}{R_1} + \frac{1}{R_2} + \frac{1}{R_3} + \frac{1}{R_4}} = \dfrac{\sum_i V_i/R_i}{\sum_i 1/R_i}\)`],
+    tip: 'Le corrigé 2023 dessine A au centre avec une branche dans chaque direction.' }
+};
+function demoHTML(id) {
+  const d = DEMOS[id];
+  return drawDemo(d.kind) + `<div class="formula">\\[${d.formula}\\]</div><p><b>Démonstration :</b></p><ol class="steps">${d.steps.map(s => '<li><div>' + s + '</div></li>').join('')}</ol><p class="fine" style="margin-top:8px">${esc(d.tip)}</p>`;
+}
+function buildEx1(id, title = 'Exercice 1') {
+  const d = DEMOS[id];
+  return { key: 'ex1', title, pts: 4, blocks: [{ n: '1', html: esc(d.stmt), paper: true, corr: demoHTML(id),
+    items: [
+      { type: 'self', label: 'Schéma avec les courants et les tensions fléchés et nommés', pts: 1 },
+      { type: 'self', label: 'Les lois utilisées sont citées (Ohm + nœuds ou mailles)', pts: 1 },
+      { type: 'self', label: 'Le calcul est mené jusqu\'au bout, sans étape magique', pts: 1 },
+      { type: 'self', label: 'Formule finale juste et encadrée', pts: 1 }
+    ] }] };
+}
+
+/* =====================================================================
+   ANNALES
+   ===================================================================== */
+const ANN = [
+  { y: '2021', date: '6 octobre 2021', e1: 'dt-N',
+    e2: { L: [{ s: [2] }, { p: [[2]] }, { s: [2] }, { p: [[3], [3], [3]] }] },
+    e3: { cols: [{ els: [{ k: 'R', v: 1 }, { k: 'E', n: 'E', up: 1 }], cur: { n: 'I_1', toA: 1 } }, { els: [{ k: 'R', v: 2 }, { k: 'E', n: 'E', up: 1 }], cur: { n: 'I_2', toA: 1 } }, { els: [{ k: 'R', v: 3 }], cur: { n: 'I', toA: 0 } }], top: [1, null], E: { E: 8 }, Rohm: 1000, ask5: 2, q5: 'la résistance 3R' },
+    e4: { v: 'lad', aV: 2, aT: 0, b: 3, c: 1, k: 2, E: 14, Rohm: 100, tpl: 'T21' },
+    note: 'Les deux générateurs ont la même f.é.m. E. Le schéma de l\'Ex 2 est dessiné « à l\'envers » dans le sujet (A en bas), mais le réseau est le même. Résultat : 16R/5.' },
+  { y: '2022', date: '11 octobre 2022', e1: 'mi-N',
+    e2: { L: [{ s: [5, 1] }, { p: [[4]] }, { s: [2] }, { p: [[4]] }, { s: [4] }] },
+    e3: { cols: [{ els: [{ k: 'E', n: 'E_1', up: 1 }], cur: { n: 'I_1', toA: 1 } }, { els: [{ k: 'R', v: 2 }], cur: { n: 'I', toA: 0 } }, { els: [{ k: 'R', v: 2 }, { k: 'E', n: 'E_2', up: 1 }], cur: { n: 'I_2', toA: 1 } }], top: [1, null], E: { E1: 8, E2: 8 }, Rohm: 1000, ask5: 0, q5: 'la résistance R' },
+    e4: { v: 'lad', aV: 2, aT: 0, b: 3, c: 1, k: 2, E: 14, Rohm: 100, tpl: 'T22' },
+    note: 'Dans l\'Ex 2, la 4R du bout est reliée en bas par un fil : 4R ∥ 4R = 2R. Résultat : 8R.' },
+  { y: '2023', date: '5 octobre 2023', e1: 'mi-4',
+    e2: { L: [{ p: [[4]] }, { s: [1, 1] }, { p: [[4]] }, { s: [2] }, { p: [[2]] }] },
+    e3: { cols: [{ els: [{ k: 'R', v: 2 }], cur: { n: 'I_3', toA: 0 } }, { els: [{ k: 'R', v: 1 }, { k: 'E', n: 'E_1', up: 1 }], cur: { n: 'I_1', toA: 1 } }, { els: [{ k: 'R', v: 2 }, { k: 'E', n: 'E_2', up: 1 }], cur: { n: 'I_2', toA: 1 } }], top: [null, null], E: { E1: 8, E2: 8 }, Rohm: 1000, ask5: 1, q5: 'la résistance R' },
+    e4: { v: 'mil', a1: 3, a2: 1, b: 2, k: 4, E: 8, tpl: 'T23' },
+    note: 'Dans l\'Ex 4, le générateur est dans la branche du milieu : Millman est la méthode la plus rapide. Dans l\'Ex 2, une 4R est branchée directement entre A et B. Résultat : 2R.' },
+  { y: '2024', date: '3 octobre 2024', e1: 'dc-4',
+    e2: { L: [{ s: [[1, 2]] }, { p: [[3]] }, { s: [1] }, { p: [[4]] }, { s: [2] }, { p: [[2]] }] },
+    e3: { cols: [{ els: [], cur: { n: 'I', toA: 0 } }, { els: [{ k: 'R', v: 1 }, { k: 'E', n: 'E_1', up: 1 }], cur: { n: 'I_1', toA: 1 } }, { els: [{ k: 'E', n: 'E_2', up: 1 }], cur: { n: 'I_2', toA: 1 } }], top: [1, 2], E: { E1: 5, E2: 5 }, Rohm: 1000, ask5: 2, q5: 'la résistance 2R' },
+    e4: { v: 'lad', aV: 2, aT: 1, b: 3, c: 0, k: 3, E: 9, tpl: 'T24' },
+    note: 'Dans l\'Ex 3, la branche de gauche ne contient qu\'une résistance R, placée en haut. Le corrigé place le 0 V ailleurs qu\'en bas : c\'est permis, mais le 0 V en bas reste le plus simple. L\'Ex 4 ne comporte que 3 questions.' },
+  { y: '2025', date: '10 octobre 2025', e1: 'mi-N',
+    e2: { L: [{ s: [2, 1] }, { p: [[1], [2], [1]] }, { s: [1] }, { p: [[1]] }] },
+    e3: { cols: [{ els: [{ k: 'E', n: 'E_1', up: 1 }], cur: { n: 'I_1', toA: 1 } }, { els: [{ k: 'R', v: 1 }], cur: { n: 'I', toA: 0 } }, { els: [{ k: 'R', v: 1 }, { k: 'E', n: 'E_2', up: 1 }], cur: { n: 'I_2', toA: 1 } }], top: [2, null], E: { E1: 10, E2: 5 }, Rohm: 1000, ask5: 1, q5: 'la résistance R de la branche centrale' },
+    e4: { v: 'lad', aV: 0, aT: 2, b: 2, c: 1, k: 1, E: 12, Rohm: 1000, tpl: 'T22' },
+    note: 'C\'est le premier sujet avec E₁ ≠ E₂ (10 V et 5 V). Dans l\'Ex 2, quatre branches sont en parallèle d\'un coup. Résultat : 10R/3.' }
+];
+function annDef(a) { return { e1: a.e1, e2: a.e2, e3: a.e3, e4: a.e4 }; }
+function buildAll(def) { return [buildEx1(def.e1), buildEx2(def.e2), buildEx3(def.e3), buildEx4(def.e4)]; }
+
+/* =====================================================================
+   RENDU D'UN EXERCICE
+   modes : train (vérif. immédiate), exam (saisie seule), review (après copie), read (annale corrigée)
+   ===================================================================== */
+const ITEMS = new Map();   // id -> item, pour la vérification
+function itemId(ex, bi, ii, pre) { return (pre || '') + ex.key + '-' + bi + '-' + ii; }
+function renderEx(ex, mode, st, pre) {
+  st = st || { ans: {}, self: {}, res: {} };
+  const scoreTag = mode === 'review' ? `<span class="score" data-score="${ex.key}"></span>` : '';
+  return `<article class="card exo" data-ex="${ex.key}">
+    <div class="exo-head"><h2>${esc(ex.title)}</h2><span class="pts">(${fmtPts(ex.pts)} points)</span>${scoreTag}</div>
+    ${ex.fig || ''}
+    ${ex.blocks.map((b, bi) => renderBlock(ex, b, bi, mode, st, pre)).join('')}
+  </article>`;
+}
+function renderBlock(ex, b, bi, mode, st, pre) {
+  const autos = b.items.filter(it => it.type !== 'self'), selfs = b.items.map((it, ii) => [it, ii]).filter(([it]) => it.type === 'self');
+  const items = b.items.map((it, ii) => {
+    if (it.type === 'self') return '';
+    const id = itemId(ex, bi, ii, pre); ITEMS.set(id, it);
+    const lab = `<span class="it-lab">${tx(it.label)}</span>`;
+    if (mode === 'read') return '';   // les résultats sont encadrés dans la correction repliée
+    if (mode === 'review') {
+      const a = st.ans[id] || '', r = st.res[id] || { st: 'empty' };
+      return `<div class="it">${lab}<div class="it-in">${a ? `<span class="my">${esc(a)}${it.unit && /^[-+\d.,\s]+$/.test(a) ? ' ' + it.unit : ''}</span>` : '<span class="fine">(pas de réponse)</span>'}</div>
+        <div class="fb">${pill(r.st)} ${r.st !== 'ok' ? '<span>Réponse attendue : ' + tx(it.sol) + '</span>' : ''}</div></div>`;
+    }
+    return `<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" class="ans-in" data-id="${id}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${it.type === 'num' ? 'decimal' : 'text'}" value="${esc(st.ans[id] || '')}" placeholder="${it.type === 'num' ? 'ex : 2,5' : 'ta formule'}">${it.unit ? `<span class="unit">${it.unit}</span>` : ''}</div><div class="prev"></div><div class="fb"></div></div>`;
+  }).join('');
+  const selfHTML = selfs.length ? (mode === 'review'
+    ? `<p class="self-h">Auto-correction : coche ce que ta copie contenait</p><div class="self-list">${selfs.map(([it, ii]) => { const id = itemId(ex, bi, ii, pre); return `<label class="self-it"><input type="checkbox" data-self="${id}" data-pts="${it.pts}"${st.self[id] ? ' checked' : ''}><span>${esc(it.label)}</span><span class="p">${fmtPts(it.pts)} pt</span></label>`; }).join('')}</div>`
+    : mode === 'train' ? `<p class="self-h">Vérifie ta copie</p><ul class="fine" style="margin:6px 0 0;padding-left:18px">${selfs.map(([it]) => '<li>' + esc(it.label) + '</li>').join('')}</ul>` : '') : '';
+  const paper = b.paper && (mode === 'exam' || mode === 'train') ? `<div class="paper">À faire sur ta feuille${mode === 'exam' ? ' : tu t\'auto-corrigeras avec le corrigé après avoir rendu la copie.' : ', puis compare avec la correction.'}</div>` : '';
+  const actions = mode === 'train' && autos.length ? `<div class="qb-actions"><button type="button" class="btn btn-primary btn-sm" data-act="check" data-b="${bi}">Vérifier</button></div>` : '';
+  const corr = mode === 'exam' ? '' : `<details class="corr-d"${mode === 'read' ? '' : ''}><summary>${mode === 'read' ? 'Correction détaillée' : 'Correction'}</summary><div class="expl">${b.corr}${mode === 'train' ? selfHTML : ''}</div></details>`;
+  return `<section class="qb" data-b="${bi}">
+    <div class="qb-text">${b.n ? `<b class="n">${b.n}-</b> ` : ''}${b.html}</div>
+    ${mode === 'exam' || mode === 'train' ? (b.pre || '') : ''}
+    ${paper}
+    ${items ? `<div class="items">${items}</div>` : ''}
+    ${actions}
+    ${mode === 'review' ? selfHTML : ''}
+    ${corr}
+  </section>`;
+}
+function pill(st) {
+  return { ok: '<span class="pill st-good">Juste</span>', sign: '<span class="pill st-part">Signe opposé</span>', bad: '<span class="pill st-bad">Faux</span>', err: '<span class="pill st-bad">Illisible</span>', empty: '<span class="pill st-empty">Vide</span>' }[st] || '';
+}
+function livePreview(inp) {
+  const it = ITEMS.get(inp.dataset.id); if (!it) return;
+  const box = inp.closest('.it').querySelector('.prev'); const v = inp.value.trim();
+  inp.closest('.it').querySelector('.fb').innerHTML = '';
+  if (!v) { box.innerHTML = ''; return; }
+  if (it.type === 'num') { const q = parseQty(v, it.unit); box.innerHTML = q.err ? `<span class="err">${esc(q.err)}</span>` : 'lu : ' + fmtN(q.v) + ' ' + it.unit; return; }
+  const P = parseExpr(v);
+  box.innerHTML = P.err !== undefined ? `<span class="err">${esc(P.err)}</span>` : 'lu : ' + tx(astTex(P.ast));
+}
+function wireInputs(root, onChange) {
+  root.addEventListener('input', e => { const inp = e.target.closest('.ans-in'); if (!inp) return; livePreview(inp); if (onChange) onChange(inp); });
+  $$('.ans-in', root).forEach(inp => { if (inp.value) livePreview(inp); });
+}
+
+/* =====================================================================
+   STATISTIQUES
+   ===================================================================== */
+function stats() { return ls.get(K.stats, { ex2: { n: 0, ok: 0 }, ex3: { n: 0, ok: 0 }, ex4: { n: 0, ok: 0 }, demo: {} }); }
+function addStat(key, ok) { const s = stats(); s[key] = s[key] || { n: 0, ok: 0 }; s[key].n++; if (ok) s[key].ok++; ls.set(K.stats, s); }
+function demoStat(id, ok) { const s = stats(); s.demo = s.demo || {}; const d = s.demo[id] = s.demo[id] || { n: 0, ok: 0 }; d.n++; if (ok) d.ok++; ls.set(K.stats, s); }
+function mastery(key) {
+  const s = stats();
+  if (key === 'ex1') { const ds = Object.values(s.demo || {}); const n = ds.reduce((a, d) => a + d.n, 0), ok = ds.reduce((a, d) => a + d.ok, 0); return { n, ok }; }
+  return s[key] || { n: 0, ok: 0 };
+}
+
+/* =====================================================================
+   NAVIGATION, THÈME
+   ===================================================================== */
+const ICON = {
+  sun: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+  auto: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>'
+};
+function getTheme() { try { return localStorage.getItem(K.theme) || 'auto'; } catch (e) { return 'auto'; } }
+function applyTheme(t) {
+  const root = document.documentElement;
+  if (t === 'auto') root.removeAttribute('data-theme'); else root.dataset.theme = t;
+  const b = $('#themeBtn'); b.innerHTML = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; b.dataset.mode = t;
+  const label = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t]; b.title = label; b.setAttribute('aria-label', label);
+}
+const VIEWS = ['home', 'cours', 'demos', 'exos', 'annales', 'blanc', 'exam', 'res'];
+function setView(v) {
+  VIEWS.forEach(x => { $('#v-' + x).hidden = x !== v; });
+  document.body.dataset.view = v === 'exam' ? 'exam' : v;
+  $$('#topnav .tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === v ? 'page' : 'false'));
+  const inExam = v === 'exam';
+  $('#clock').hidden = !inExam; $('#timeBar').hidden = !inExam; $('#submitBtn').hidden = !inExam; $('#pauseBtn').hidden = !inExam;
+  window.scrollTo(0, 0);
+}
+function showTab(tab) {
+  if (EXAM && EXAM.running && tab !== 'exam') { setView('exam'); return; }
+  if (tab === 'home') renderHome();
+  if (tab === 'demos' && !$('#demoGrid').children.length) renderDemos();
+  if (tab === 'exos' && !$('#exHost').children.length) newExercise();
+  if (tab === 'annales' && !$('#annGrid').children.length) renderAnnales();
+  if (tab === 'blanc') renderBlanc();
+  setView(tab);
+  if (VIEWS.includes(tab) && tab !== 'exam' && tab !== 'res') history.replaceState(null, '', '#' + tab);
+}
+
+/* =====================================================================
+   ACCUEIL
+   ===================================================================== */
+const PLAN = [
+  'Cours : conventions de fléchage + Kirchhoff. Démo du pont diviseur de tension (récite-la, puis remets les étapes dans l\'ordre).',
+  'Démos du pont diviseur de courant et de Millman. Récite les trois de mémoire le soir.',
+  'Ex 2 : 4 réseaux en niveau « Type CC ».',
+  'Ex 3 : 2 exercices en niveau « Type CC », Kirchhoff puis Millman.',
+  'Annale 2021 complète sur papier, puis lecture du corrigé.',
+  'Ex 4 : 3 exercices (types variés) + les 3 démos de mémoire.',
+  'Sujet blanc n°1 en conditions réelles (60 min).',
+  'Reprends tes erreurs : Ex 3 en niveau « Pièges » ×2, Ex 2 en niveau « Costaud » ×3.',
+  'Annales 2022 et 2023 en conditions (ou au moins leurs Ex 3 et 4).',
+  'Sujet blanc n°2.',
+  'Annales 2024 et 2025. Toutes les démos de mémoire.',
+  'Veille du CC : les 3 démos une dernière fois + un Ex 3 rapide. Dodo tôt.'
+];
+function renderHome() {
+  const tiles = [
+    { k: 'ex1', l: 'Ex 1 · 4 pts', h: 'Une démonstration du cours', p: 'Millman (3 fois), pont diviseur de tension ou de courant.', go: 'demos' },
+    { k: 'ex2', l: 'Ex 2 · 4 pts', h: 'Résistance équivalente', p: 'Réseau en échelle entre A et B, à réduire en partant du bout.', go: 'exos:ex2' },
+    { k: 'ex3', l: 'Ex 3 · 8 pts', h: 'Deux générateurs', p: 'Fléchage, Kirchhoff, courants, AN puis vérification par Millman.', go: 'exos:ex3' },
+    { k: 'ex4', l: 'Ex 4 · 4 pts', h: 'Charge \\(R_L\\)', p: 'Ponts diviseurs ou Millman, puis cas particulier \\(R_L = kR\\).', go: 'exos:ex4' }
+  ];
+  $('#homeTiles').innerHTML = tiles.map(t => { const m = mastery(t.k), pct = m.n ? Math.round(100 * m.ok / m.n) : null;
+    return `<div class="tile"><span class="tile-label">${t.l}</span><h3>${t.h}</h3><p>${t.p}</p>
+      <div class="bar ${pct == null ? '' : pct >= 75 ? '' : pct >= 45 ? 'mid' : 'low'}"><i style="width:${pct || 0}%"></i></div>
+      <p class="fine">${pct == null ? 'pas encore commencé' : pct + ' % de réussite · ' + m.n + ' réponse' + (m.n > 1 ? 's' : '')}</p>
+      <button type="button" class="btn btn-sm" data-go="${t.go}">S'entraîner</button></div>`; }).join('');
+  mathIn($('#homeTiles'));
+  const d = ls.get(K.date, ''); $('#ccDate').value = d;
+  const box = $('#countBox');
+  let today = -1;
+  if (d) {
+    const t0 = new Date(); t0.setHours(0, 0, 0, 0); const t1 = new Date(d + 'T00:00:00');
+    const n = Math.round((t1 - t0) / 86400000);
+    box.innerHTML = n > 0 ? `<b>J−${n}</b><span>avant le CC du ${t1.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>` : n === 0 ? '<b>Jour J</b><span>Bonne chance !</span>' : '<b>Fini</b><span>Le CC est passé. Pense à noter ta vraie note quelque part.</span>';
+    if (n >= 0 && n < 12) today = 11 - n;
+  } else box.innerHTML = '<span>Aucune date enregistrée.</span>';
+  const done = ls.get(K.plan, []);
+  $('#planList').innerHTML = PLAN.map((t, i) => `<li class="${done.includes(i) ? 'done' : ''}${i === today ? ' today' : ''}"><input type="checkbox" data-plan="${i}"${done.includes(i) ? ' checked' : ''} aria-label="Jour ${i + 1} fait"><span class="d">J${i + 1}${i === today ? ' ←' : ''}</span><span class="t">${esc(t)}</span></li>`).join('');
+  const H = ls.get(K.hist, []);
+  $('#lastNotes').innerHTML = H.length ? `<p class="lbl-s" style="margin-bottom:8px">Derniers sujets</p>` + H.slice(-4).reverse().map(r => `<div class="row" style="justify-content:space-between;padding:6px 0;border-top:1px solid var(--rule)"><span class="fine">${esc(r.title)} · ${new Date(r.ts).toLocaleDateString('fr-FR')}</span><b>${fmtPts(scoreRec(r).total)}/20</b></div>`).join('') : '';
+  const ex = ls.get(K.exam, null);
+  $('#resumeBanner').innerHTML = ex ? `<div class="banner"><p><b>Un sujet est en cours</b> (${esc(ex.title)}).</p><span class="spacer"></span><button type="button" class="btn btn-primary" data-act="resume">Reprendre</button></div>` : '';
+}
+
+/* =====================================================================
+   DÉMOS
+   ===================================================================== */
+function renderDemos() {
+  const s = stats().demo || {};
+  $('#demoGrid').innerHTML = Object.keys(DEMOS).map(id => { const d = DEMOS[id], st = s[id];
+    return `<section class="card demo" data-demo="${id}">
+      <div class="row"><h3>${esc(d.short)}</h3><span class="spacer"></span>${st ? `<span class="fine">${st.ok}/${st.n} réussie${st.ok > 1 ? 's' : ''}</span>` : ''}</div>
+      <p class="stmt">« ${esc(d.stmt)} »</p>
+      <div class="row"><button type="button" class="btn btn-primary btn-sm" data-dm="recite">Réciter pas à pas</button><button type="button" class="btn btn-sm" data-dm="order">Remettre dans l'ordre</button><button type="button" class="btn btn-ghost btn-sm" data-dm="full">Voir la démo complète</button></div>
+      <div class="demo-panel" hidden></div></section>`; }).join('');
+}
+function demoMode(card, mode) {
+  const id = card.dataset.demo, d = DEMOS[id], panel = $('.demo-panel', card);
+  panel.hidden = false;
+  if (mode === 'full') { panel.innerHTML = demoHTML(id); mathIn(panel); return; }
+  if (mode === 'recite') {
+    let k = 0;
+    const draw = () => {
+      panel.innerHTML = `<p class="fine">Écris chaque étape sur ta feuille avant de la dévoiler.</p>${k ? '' : drawDemo(d.kind)}<ol class="steps">${d.steps.slice(0, k).map(s => '<li><div>' + s + '</div></li>').join('')}</ol>
+        ${k < d.steps.length ? `<div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-sm" data-rc="next">Étape suivante (${k + 1}/${d.steps.length})</button></div>`
+        : `<div class="formula">\\[${d.formula}\\]</div><div class="row" style="margin-top:12px"><span class="fine">Tu l'avais en entier ?</span><button type="button" class="btn btn-sm" data-rc="ok">Oui, tout juste</button><button type="button" class="btn btn-sm" data-rc="ko">Pas complètement</button></div>`}`;
+      mathIn(panel);
+    };
+    panel.onclick = e => { const b = e.target.closest('[data-rc]'); if (!b) return;
+      if (b.dataset.rc === 'next') { k++; draw(); }
+      else { demoStat(id, b.dataset.rc === 'ok'); toast(b.dataset.rc === 'ok' ? 'Noté ! Refais-la demain pour l\'ancrer.' : 'Noté. Relis la démo complète puis réessaie.'); renderDemos(); } };
+    draw(); return;
+  }
+  // remettre dans l'ordre
+  let order = shuffle(d.steps.map((_, i) => i)); while (d.steps.length > 1 && order.every((v, i) => v === i)) order = shuffle(order);
+  let next = 0, errors = 0;
+  const draw = () => {
+    panel.innerHTML = `<p class="fine">Clique les étapes dans l'ordre de la démonstration.${errors ? ' Erreurs : ' + errors + '.' : ''}</p>
+      <ol class="steps">${d.steps.slice(0, next).map(s => '<li><div>' + s + '</div></li>').join('')}</ol>
+      ${next < d.steps.length ? `<div class="og-pool">${order.filter(i => i >= next).map(i => `<button type="button" class="og-card" data-og="${i}">${d.steps[i]}</button>`).join('')}</div>`
+      : `<div class="formula">\\[${d.formula}\\]</div><p style="margin-top:10px">${errors ? `Terminé avec ${errors} erreur${errors > 1 ? 's' : ''}. Recommence jusqu'à zéro faute.` : 'Sans faute !'}</p>`}`;
+    mathIn(panel);
+  };
+  panel.onclick = e => { const b = e.target.closest('[data-og]'); if (!b) return;
+    if (+b.dataset.og === next) { next++; draw(); if (next === d.steps.length) demoStat(id, errors === 0); }
+    else { errors++; b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong'); } };
+  draw();
+}
+
+/* =====================================================================
+   EXOS (entraînement)
+   ===================================================================== */
+const EXT = { ex2: { name: 'Ex 2 · Résistance équivalente', levels: [['facile', 'Facile'], ['cc', 'Type CC'], ['costaud', 'Costaud']] },
+  ex3: { name: 'Ex 3 · Deux générateurs', levels: [['facile', 'Facile'], ['cc', 'Type CC'], ['pieges', 'Pièges']] },
+  ex4: { name: 'Ex 4 · Charge R_L', levels: [['', 'Au hasard'], ['T22', 'U puis U_L'], ['T21', 'Courants I₁, I₃'], ['T23', 'Millman'], ['T24', 'U_L direct']] } };
+let TR = { type: 'ex3', level: { ex2: 'cc', ex3: 'cc', ex4: '' }, ex: null, checked: new Set() };
+function renderExControls() {
+  $('#exType').innerHTML = Object.keys(EXT).map(k => `<button type="button" data-ext="${k}" aria-pressed="${k === TR.type}">${EXT[k].name.replace('R_L', 'R<sub>L</sub>')}</button>`).join('');
+  $('#exLevel').innerHTML = EXT[TR.type].levels.map(([v, l]) => `<button type="button" data-exl="${v}" aria-pressed="${v === TR.level[TR.type]}">${l.replace('U_L', 'U<sub>L</sub>')}</button>`).join('');
+  const m = mastery(TR.type);
+  $('#exStats').innerHTML = m.n ? `Sur cet exercice : <b>${m.ok}/${m.n}</b> réponses justes du premier coup (${Math.round(100 * m.ok / m.n)} %).` : 'Pas encore de réponse enregistrée sur cet exercice.';
+}
+function newExercise() {
+  const lv = TR.level[TR.type];
+  const ex = TR.type === 'ex2' ? buildEx2(genEx2(lv)) : TR.type === 'ex3' ? buildEx3(genEx3(lv)) : buildEx4(genEx4(lv || null));
+  TR.ex = ex; TR.checked = new Set();
+  renderExControls();
+  const host = $('#exHost');
+  host.innerHTML = renderEx(ex, 'train', null, 'tr');
+  mathIn(host);
+  wireInputs(host);
+}
+function checkBlock(bi) {
+  const host = $('#exHost'), sec = $(`.qb[data-b="${bi}"]`, host);
+  $$('.ans-in', sec).forEach(inp => {
+    const it = ITEMS.get(inp.dataset.id), r = checkItem(it, inp.value), fb = inp.closest('.it').querySelector('.fb');
+    const msg = r.st === 'ok' ? 'Bravo !' : r.st === 'sign' ? 'Au signe près : vérifie le sens de ta flèche ou de ta formule.' : r.st === 'empty' ? 'Écris une réponse.' : r.msg ? r.msg : 'Ce n\'est pas ça. Revois la méthode ou ouvre la correction.';
+    fb.innerHTML = pill(r.st) + ' <span>' + msg + '</span>'; mathIn(fb);
+    if (r.st !== 'empty' && r.st !== 'err' && !TR.checked.has(inp.dataset.id)) { TR.checked.add(inp.dataset.id); addStat(TR.ex.key, r.st === 'ok'); }
+  });
+  const m = mastery(TR.type);
+  $('#exStats').innerHTML = `Sur cet exercice : <b>${m.ok}/${m.n}</b> réponses justes du premier coup (${Math.round(100 * m.ok / m.n)} %).`;
+}
+
+/* =====================================================================
+   ANNALES
+   ===================================================================== */
+function renderAnnales() {
+  $('#annGrid').innerHTML = ANN.map((a, i) => {
+    const r = reqLadder(a.e2.L).val;
+    return `<details class="th-card ann-card" data-ann="${i}"><summary><h3>CC1 ${a.y} <span class="fine" style="font-family:var(--sans)">· ${a.date}</span></h3>
+      <span class="chips"><span class="tag-off">Ex 1 : ${esc(DEMOS[a.e1].short)}</span><span class="tag-off">Ex 2 : ${lblR(r)}</span></span></summary>
+      <div class="th-body"><div class="box pen"><h5>À retenir de ce sujet</h5>${esc(a.note)}</div>
+      <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-annexam="${i}">Le faire en conditions (60 min)</button><span class="fine">ou lis le sujet et sa correction ci-dessous</span></div>
+      <div class="ann-body" style="display:grid;gap:16px;margin-top:18px"></div></div></details>`; }).join('');
+}
+function fillAnnale(det) {
+  const body = $('.ann-body', det); if (body.children.length) return;
+  const a = ANN[+det.dataset.ann];
+  body.innerHTML = buildAll(annDef(a)).map(ex => renderEx(ex, 'read', null, 'an' + a.y)).join('');
+  mathIn(body);
+}
+
+/* =====================================================================
+   ÉPREUVE (sujet blanc / annale en conditions)
+   ===================================================================== */
+let EXAM = null, tickId = null, BLV = 'cc';
+const DUR = 3600;
+function genBlanc(level) {
+  return { e1: pick(['dt-N', 'dc-N', 'dc-4', 'mi-N', 'mi-N', 'mi-4']), e2: genEx2(level === 'dur' ? 'costaud' : 'cc'), e3: genEx3(level === 'dur' ? 'pieges' : 'cc'), e4: genEx4(null) };
+}
+function startExam(def, title, kind) {
+  EXAM = { id: Date.now().toString(36), def, title, kind, ans: {}, elapsed: 0, since: Date.now(), running: true };
+  ls.set(K.exam, EXAM); openExam();
+}
+function resumeExam() { const ex = ls.get(K.exam, null); if (!ex) return; EXAM = ex; EXAM.since = Date.now(); EXAM.running = true; ls.set(K.exam, EXAM); openExam(); }
+function openExam() {
+  const exs = buildAll(EXAM.def);
+  const v = $('#v-exam');
+  v.innerHTML = `<section class="card exam-head"><p class="eyebrow">${esc(EXAM.title)}</p><h2>Contrôle continu · 60 min · sans document</h2>
+    <p class="sub">Réponds aux calculs dans les cases (formules ou valeurs). Schémas, équations et démonstration se font sur ta feuille : tu les auto-corrigeras après avoir rendu la copie.</p></section>`
+    + exs.map(ex => renderEx(ex, 'exam', { ans: EXAM.ans, self: {}, res: {} }, 'ex')).join('')
+    + `<div class="exam-foot"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div>`;
+  mathIn(v);
+  wireInputs(v, inp => { EXAM.ans[inp.dataset.id] = inp.value; saveExam(); });
+  setView('exam'); startTick();
+}
+function saveExam() { if (!EXAM) return; const c = Object.assign({}, EXAM, { elapsed: elapsedNow(), since: Date.now() }); ls.set(K.exam, c); }
+function elapsedNow() { return EXAM.elapsed + (EXAM.running ? (Date.now() - EXAM.since) / 1000 : 0); }
+function startTick() { stopTick(); tickId = setInterval(tick, 250); tick(); }
+function stopTick() { if (tickId) clearInterval(tickId); tickId = null; }
+function tick() {
+  if (!EXAM) return stopTick();
+  const left = DUR - elapsedNow();
+  $('#clockTime').textContent = fmtClock(left);
+  $('#timeBarFill').style.width = Math.max(0, 100 * left / DUR) + '%';
+  $('#topbar').classList.toggle('warn', left < 600 && left >= 120); $('#topbar').classList.toggle('danger', left < 120);
+  if (left <= 0) submitExam(true);
+}
+function pauseExam() {
+  if (!EXAM) return;
+  if (EXAM.running) { EXAM.elapsed = elapsedNow(); EXAM.running = false; stopTick(); ls.set(K.exam, EXAM); $('#pauseBtn').innerHTML = '<span class="long">Reprendre</span><span class="short">▶</span>'; $$('#v-exam .ans-in').forEach(i => i.disabled = true); toast('Pause. Le chrono est arrêté.'); }
+  else { EXAM.since = Date.now(); EXAM.running = true; startTick(); $('#pauseBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><span class="long">Pause</span>'; $$('#v-exam .ans-in').forEach(i => i.disabled = false); }
+}
+function submitExam(auto) {
+  if (!EXAM) return;
+  if (!auto && !confirm('Rendre la copie maintenant ?')) return;
+  stopTick();
+  const exs = buildAll(EXAM.def), res = {};
+  exs.forEach(ex => ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { if (it.type === 'self') return; const id = itemId(ex, bi, ii, 'ex'); res[id] = { st: checkItem(it, EXAM.ans[id] || '').st }; })));
+  const rec = { id: EXAM.id, ts: Date.now(), title: EXAM.title, kind: EXAM.kind, def: EXAM.def, ans: EXAM.ans, res, self: {}, dur: Math.min(DUR, Math.round(elapsedNow())) };
+  exs.forEach(ex => ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { if (it.type !== 'self') { const r = res[itemId(ex, bi, ii, 'ex')]; if (r.st !== 'empty' && ex.key !== 'ex1') addStat(ex.key, r.st === 'ok'); } })));
+  const H = ls.get(K.hist, []); H.push(rec); ls.set(K.hist, H);
+  ls.del(K.exam); EXAM = null;
+  $('#topbar').classList.remove('warn', 'danger');
+  if (auto) toast('Temps écoulé : copie rendue automatiquement.');
+  showResult(rec.id);
+}
+function scoreRec(rec) {
+  const exs = buildAll(rec.def), per = {};
+  let total = 0;
+  exs.forEach(ex => { let got = 0;
+    ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { const id = itemId(ex, bi, ii, 'ex');
+      if (it.type === 'self') { if (rec.self[id]) got += it.pts; } else if (rec.res[id] && rec.res[id].st === 'ok') got += it.pts; }));
+    per[ex.key] = { got, max: ex.pts }; total += got; });
+  return { per, total, exs };
+}
+function showResult(id) {
+  const H = ls.get(K.hist, []), rec = H.find(r => r.id === id); if (!rec) return;
+  const { exs } = scoreRec(rec);
+  const v = $('#v-res');
+  v.innerHTML = `<section class="card hero" id="resHero"></section>`
+    + exs.map(ex => renderEx(ex, 'review', { ans: rec.ans, self: rec.self, res: rec.res }, 'ex')).join('')
+    + `<div class="exam-foot"><button type="button" class="btn" data-go="blanc">Retour aux sujets</button></div>`;
+  v.dataset.rec = id;
+  drawHero(rec);
+  mathIn(v);
+  setView('res');
+}
+function drawHero(rec) {
+  const sc = scoreRec(rec), names = { ex1: 'Ex 1 · démo', ex2: 'Ex 2 · R équivalente', ex3: 'Ex 3 · deux générateurs', ex4: 'Ex 4 · charge R_L' };
+  $('#resHero').innerHTML = `<div><p class="eyebrow">${esc(rec.title)}</p><div class="grade"><span class="grade-value">${fmtPts(sc.total)}</span><span class="grade-max">/20</span></div>
+    <p class="grade-sub">Copie rendue le ${new Date(rec.ts).toLocaleDateString('fr-FR')} en ${Math.round(rec.dur / 60)} min. Les cases à cocher plus bas ajoutent les points de ce que tu as fait sur papier.</p></div>
+    <div class="rtiles">${Object.keys(sc.per).map(k => `<div class="rtile"><div class="l">${names[k].replace('R_L', 'R<sub>L</sub>')}</div><div class="v">${fmtPts(sc.per[k].got)} <small>/ ${sc.per[k].max}</small></div></div>`).join('')}</div>`;
+  $$('#v-res [data-score]').forEach(el => { const p = sc.per[el.dataset.score]; el.textContent = fmtPts(p.got) + '/' + p.max; });
+}
+function renderBlanc() {
+  $('#blancLevel').innerHTML = [['cc', 'Niveau CC'], ['dur', 'Plus dur que le CC']].map(([k, l]) => `<button type="button" data-blv="${k}" aria-pressed="${k === BLV}">${l}</button>`).join('');
+  const ex = ls.get(K.exam, null);
+  $('#blancBanner').innerHTML = ex ? `<div class="banner"><p><b>Un sujet est en cours</b> (${esc(ex.title)}). Tu peux le reprendre là où tu l'as laissé.</p><span class="spacer"></span><button type="button" class="btn" data-act="abandon">Abandonner</button><button type="button" class="btn btn-primary" data-act="resume">Reprendre</button></div>` : '';
+  const H = ls.get(K.hist, []);
+  $('#histBox').innerHTML = H.length ? `<div class="table-wrap"><table class="hist"><thead><tr><th>Date</th><th>Sujet</th><th>Note</th><th>Ex 1</th><th>Ex 2</th><th>Ex 3</th><th>Ex 4</th><th>Durée</th></tr></thead><tbody>${H.slice().reverse().map(r => { const s = scoreRec(r);
+    return `<tr data-rec="${r.id}" tabindex="0"><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td>${esc(r.title)}</td><td><b>${fmtPts(s.total)}/20</b></td>${['ex1', 'ex2', 'ex3', 'ex4'].map(k => `<td>${fmtPts(s.per[k].got)}</td>`).join('')}<td>${Math.round(r.dur / 60)} min</td></tr>`; }).join('')}</tbody></table></div>`
+    : '<p class="fine">Aucune copie pour l\'instant.</p>';
+}
+
+/* =====================================================================
+   INITIALISATION
+   ===================================================================== */
+function init() {
+  applyTheme(getTheme());
+  $('#themeBtn').addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[$('#themeBtn').dataset.mode || 'auto']; try { localStorage.setItem(K.theme, nx); } catch (e) { /* ignore */ } applyTheme(nx); });
+  $('#convFig').innerHTML = drawConventions();
+  mathIn($('#v-cours')); mathIn($('#v-home')); mathIn($('#v-blanc')); mathIn($('#v-exos'));
+  $('#topnav').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab); });
+  document.addEventListener('click', e => {
+    const go = e.target.closest('[data-go]');
+    if (go) { const [tab, t] = go.dataset.go.split(':'); if (t) { TR.type = t; $('#exHost').innerHTML = ''; } showTab(tab); return; }
+    const act = e.target.closest('[data-act]');
+    if (act) {
+      const a = act.dataset.act;
+      if (a === 'check') checkBlock(+act.dataset.b);
+      if (a === 'resume') resumeExam();
+      if (a === 'submit') submitExam(false);
+      if (a === 'abandon') { if (confirm('Abandonner ce sujet ? Tes réponses seront perdues.')) { ls.del(K.exam); renderBlanc(); } }
+      return;
+    }
+    const dm = e.target.closest('[data-dm]'); if (dm) { demoMode(dm.closest('.demo'), dm.dataset.dm); return; }
+    const ext = e.target.closest('[data-ext]'); if (ext) { TR.type = ext.dataset.ext; newExercise(); return; }
+    const exl = e.target.closest('[data-exl]'); if (exl) { TR.level[TR.type] = exl.dataset.exl; newExercise(); return; }
+    const blv = e.target.closest('[data-blv]'); if (blv) { BLV = blv.dataset.blv; renderBlanc(); return; }
+    const ae = e.target.closest('[data-annexam]'); if (ae) { const a = ANN[+ae.dataset.annexam]; if (ls.get(K.exam, null) && !confirm('Un sujet est déjà en cours : le remplacer ?')) return; startExam(annDef(a), 'Annale CC1 ' + a.y, 'annale'); return; }
+    const tr = e.target.closest('tr[data-rec]'); if (tr) { showResult(tr.dataset.rec); return; }
+  });
+  $('#exNew').addEventListener('click', newExercise);
+  $('#blancStart').addEventListener('click', () => { if (ls.get(K.exam, null) && !confirm('Un sujet est déjà en cours : le remplacer ?')) return; const n = ls.get(K.hist, []).filter(r => r.kind === 'blanc').length + 1; startExam(genBlanc(BLV), 'Sujet blanc n°' + n + (BLV === 'dur' ? ' (difficile)' : ''), 'blanc'); });
+  $('#submitBtn').addEventListener('click', () => submitExam(false));
+  $('#pauseBtn').addEventListener('click', pauseExam);
+  $('#annGrid').addEventListener('toggle', e => { if (e.target.open && e.target.dataset.ann) fillAnnale(e.target); }, true);
+  $('#ccDate').addEventListener('change', e => { ls.set(K.date, e.target.value); renderHome(); });
+  $('#planList').addEventListener('change', e => { const c = e.target.closest('[data-plan]'); if (!c) return; let d = ls.get(K.plan, []); const i = +c.dataset.plan; d = c.checked ? [...new Set([...d, i])] : d.filter(x => x !== i); ls.set(K.plan, d); renderHome(); });
+  $('#v-res').addEventListener('change', e => { const c = e.target.closest('[data-self]'); if (!c) return; const H = ls.get(K.hist, []), rec = H.find(r => r.id === $('#v-res').dataset.rec); if (!rec) return; rec.self[c.dataset.self] = c.checked; ls.set(K.hist, H); drawHero(rec); });
+  window.addEventListener('beforeunload', () => { if (EXAM && EXAM.running) saveExam(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && EXAM && EXAM.running) saveExam(); });
+  const fromHash = () => { const h = location.hash.replace('#', ''); showTab(['cours', 'demos', 'exos', 'annales', 'blanc'].includes(h) ? h : 'home'); };
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

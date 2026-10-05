@@ -4982,7 +4982,11 @@ function applyTheme(t) {
    ===================================================================== */
 function init() {
   applyTheme(getTheme());
+  let eggClicks = [];
   $('#themeBtn').addEventListener('click', () => {
+    const now = Date.now();
+    eggClicks = eggClicks.filter(t => now - t < 1500).concat(now);
+    if (eggClicks.length >= 5) { eggClicks = []; playBlizz(); }
     const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[$('#themeBtn').dataset.mode || 'auto'];
     try { localStorage.setItem(K.theme, nx); } catch (e) { /* ignore */ }
     applyTheme(nx);
@@ -5351,7 +5355,6 @@ function playBlizz() {
   v.play().catch(() => { v.muted = true; v.play().catch(close); });
 }
 async function joinGroup() {
-  if ($('#grpCode').value.trim().toLowerCase() === 'blizz') { $('#grpCode').value = ''; playBlizz(); return; }
   const code = $('#grpCode').value.trim().toUpperCase();
   if (!code) return;
   const { data, error } = await sb.rpc('join_group', { p_code: code });

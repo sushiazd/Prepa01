@@ -7,8 +7,8 @@ Le site regroupe plusieurs outils de révision :
 | `index.html` | la page d'accueil, avec un lien vers chaque outil |
 | `maths/index.html` | le QCM de maths (QCM, import de PDF, catalogue, comptes, groupes) |
 | `elec/index.html` | l'entraînement au CC1 d'électronique (cours, démos, exos générés, annales, sujets blancs) |
-| `duel/index.html` | le 1v1 : liste des joueurs, défis et duels en direct sur le QCM de maths |
-| `presence.js` | la présence en ligne (pastille verte) et les invitations 1v1, chargé par toutes les pages |
+| `duel/index.html` | le multijoueur : 1v1 (défis et duels en direct) et FFA (salle jusqu'à 8 joueurs, le dernier survivant gagne) sur le QCM de maths |
+| `presence.js` | la présence en ligne (pastille verte) et les invitations 1v1 et FFA, chargé par toutes les pages |
 | `config.js` | l'adresse de ta base Supabase (à remplir, étape 4), utilisée par le QCM de maths |
 | `supabase.sql` | la base de données et ses règles de sécurité (étape 2) |
 | `README.md` | ce guide |

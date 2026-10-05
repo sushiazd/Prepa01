@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>1v1 · Duels</title>
+<title>Duels · 1v1 et FFA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
@@ -189,6 +189,26 @@ details.corr .body{margin-top:10px;font:15.5px/1.6 var(--serif);color:var(--ink-
 .banner{margin-top:14px;padding:10px 14px;border-radius:10px;background:var(--flag-soft);color:var(--ink);font-size:14px;font-weight:600}
 .katex{font-size:1.05em}
 .katex-display{margin:.6em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+/* ---------- FFA ---------- */
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.pc{position:relative;display:grid;gap:6px;padding:10px 12px;border-radius:12px;background:var(--sheet);border:1px solid var(--rule)}
+.pc.me{border-color:var(--pen);box-shadow:0 0 0 1px var(--pen-line)}
+.pc.out{opacity:.55}
+.pc.out .bar i{background:var(--dot-off)}
+.pc .who{display:flex;align-items:center;gap:6px;font-weight:700;min-width:0}
+.pc .who .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc .meta{display:flex;justify-content:space-between;gap:8px;font:600 12.5px/1.2 var(--sans);color:var(--ink-2)}
+.pc .meta .ans{color:var(--ok)}
+.pc .meta .ko{color:var(--bad)}
+.pc .hit{right:8px}
+.ffa-round{text-align:center;font:800 13px/1 var(--sans);color:var(--muted);margin-bottom:10px}
+.ffa-round b{font:600 20px/1 var(--serif);color:var(--ink);margin-left:6px}
+.rank{list-style:none;margin:18px auto 0;padding:0;max-width:460px;text-align:left}
+.rank li{display:flex;gap:12px;align-items:center;padding:9px 4px;border-top:1px solid var(--rule)}
+.rank .pos{flex:none;width:26px;font:700 15px/1 var(--sans);color:var(--muted)}
+.rank li.first .pos{color:var(--ok)}
+.rank .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank .st{font-size:13px;color:var(--muted);white-space:nowrap}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600;box-shadow:var(--shadow)}
 @media (max-width:720px){
   .topbar{padding:0 16px}
@@ -205,7 +225,7 @@ details.corr .body{margin-top:10px;font:15.5px/1.6 var(--serif);color:var(--ink-
 </head>
 <body>
 <header class="topbar">
-  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">1v1</span><div><strong>Duels</strong><small>Affronte un pote sur une matière</small></div></a>
+  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">1v1</span><div><strong>Duels</strong><small>1v1 ou chacun pour soi</small></div></a>
   <button type="button" class="icon-btn" id="themeBtn" aria-label="Thème"></button>
 </header>
 <main id="app"><p class="muted center" style="margin-top:60px">Chargement…</p></main>
@@ -229,7 +249,9 @@ const RULES = {
   multStep: 0.5,    // gain de multiplicateur à chaque fois qu'on inflige des dégâts
   maxRounds: 20,    // garde-fou : ensuite le plus de PV gagne
   absentMs: 30000,  // déconnexion plus longue ⇒ forfait
-  joinMs: 45000     // l'adversaire doit rejoindre le duel dans ce délai
+  joinMs: 45000,    // l'adversaire doit rejoindre le duel dans ce délai
+  ffaMax: 8,        // FFA : joueurs maximum dans une salle (hôte compris)
+  ffaRounds: 30     // FFA : garde-fou, ensuite le plus de PV gagne
 };
 
 /* ---------- Outils ---------- */
@@ -316,14 +338,14 @@ function drawQuestion(theme) {
 const CFG = window.QCM_CONFIG || {};
 let sb = null, me = null;
 const params = new URLSearchParams(location.search);
-const MATCH = params.get('m'), VS = params.get('vs'), IS_HOST = params.get('host') === '1';
+const MATCH = params.get('m'), VS = params.get('vs'), IS_HOST = params.get('host') === '1', FFA = params.get('ffa') === '1';
 
 function boot() {
   if (!CFG.supabaseUrl || !CFG.supabaseAnonKey || !window.supabase) { app.innerHTML = '<div class="card"><h2>Base de données non configurée</h2><p class="sub">Le 1v1 a besoin de Supabase (voir le README).</p></div>'; return; }
   sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
   SitePresence.start(sb);
   SitePresence.on('me', u => { me = u; route(); });
-  SitePresence.on('presence', () => { if (view === 'lobby') renderPlayers(); if (M) M.onLobbyPresence(); });
+  SitePresence.on('presence', () => { if (view === 'lobby') renderPlayers(); if (M) M.onLobbyPresence(); if (F) F.onLobbyPresence(); });
   SitePresence.on('accept', onAccept);
   SitePresence.on('decline', onDecline);
   loadQuestions().then(route, e => { console.error(e); app.innerHTML = `<div class="card"><h2>Impossible de charger les questions</h2><p class="sub">${esc(e.message)}. Recharge la page.</p></div>`; });
@@ -335,6 +357,7 @@ function route() {
   if (!QGEN) return;                       // on attend les questions
   if (me === null && !routed) { routed = true; setTimeout(() => { if (!me) showLogin(); }, 1200); return; }
   if (!me) { showLogin(); return; }
+  if (MATCH && FFA && (IS_HOST || VS)) { if (!F) startFfa(); return; }
   if (MATCH && VS) { if (!M) startMatch(); return; }
   if (view !== 'lobby') showLobby();
 }
@@ -372,40 +395,58 @@ async function loadPlayers() {
   if (view === 'lobby') renderPlayers();
 }
 
+let lobbyMode = ss.get('duel.mode') === 'ffa' ? 'ffa' : '1v1';
 function showLobby() {
   view = 'lobby';
   SitePresence.setStatus('online');
+  const ffa = lobbyMode === 'ffa';
   app.innerHTML = `
-    <p class="eyebrow">1v1</p>
-    <h1>Affronte un pote</h1>
-    <p class="lede">Même question pour les deux. Le premier qui valide ne laisse que 15 secondes à l'autre.</p>
+    <p class="eyebrow">${ffa ? 'FFA' : '1v1'}</p>
+    <h1>${ffa ? 'Chacun pour soi' : 'Affronte un pote'}</h1>
+    <p class="lede">${ffa ? 'Jusqu\'à 8 joueurs, même question pour tous. À 0 PV, tu es éliminé : le dernier survivant gagne.' : 'Même question pour les deux. Le premier qui valide ne laisse que 15 secondes à l\'autre.'}</p>
     <section class="card">
-      <h2>Matière</h2>
+      <h2>Mode</h2>
+      <div class="subjects" role="group" aria-label="Mode de jeu">
+        <button type="button" class="subj" data-mode="1v1" aria-pressed="${!ffa}"><span class="ic">⚔</span><span><b>1v1</b><small>un contre un</small></span></button>
+        <button type="button" class="subj" data-mode="ffa" aria-pressed="${ffa}"><span class="ic">★</span><span><b>FFA</b><small>chacun pour soi</small></span></button>
+      </div>
+      <h2 style="margin-top:18px">Matière</h2>
       <div class="subjects" role="group" aria-label="Matière du duel">
         <button type="button" class="subj" aria-pressed="true"><span class="ic">∑</span><span><b>Maths</b><small>QCM</small></span></button>
         <button type="button" class="subj" disabled><span class="ic">Ω</span><span><b>Électricité</b><small>bientôt</small></span></button>
       </div>
     </section>
-    <section class="card">
+    ${ffa ? `<section class="card">
+      <div class="me-line"><div><h2>Créer une partie</h2><p class="sub">Tu joues en tant que <b>${esc(me.pseudo)}</b> · <a href="#" id="logout">changer de compte</a></p></div></div>
+      <p class="sub" style="margin-top:10px">Tu ouvres une salle, tu y invites les joueurs connectés, puis tu lances quand tout le monde est là (2 joueurs minimum, ${RULES.ffaMax} maximum).</p>
+      <button type="button" class="btn btn-primary btn-lg" id="ffaNew" style="margin-top:14px">Créer une salle FFA</button>
+    </section>` : `<section class="card">
       <div class="me-line"><div><h2>Joueurs</h2><p class="sub">Tu joues en tant que <b>${esc(me.pseudo)}</b> · <a href="#" id="logout">changer de compte</a></p></div></div>
       <div id="plWrap"><p class="muted" style="margin-top:14px">Chargement des joueurs…</p></div>
-    </section>
+    </section>`}
     <section class="card">
       <h2>Règles</h2>
       <ul class="rules">
         <li>Chacun commence avec <b>${RULES.hp} PV</b>. Une question par manche, <b>2 min</b> maximum.</li>
-        <li>Dès que l'un des deux <b>valide</b>, l'autre n'a plus que <b>15 s</b>.</li>
+        <li>Dès que ${ffa ? 'quelqu\'un' : 'l\'un des deux'} <b>valide</b>, ${ffa ? 'les autres n\'ont' : 'l\'autre n\'a'} plus que <b>15 s</b>.</li>
         <li>Questions ♣ : il faut cocher <b>toutes</b> les bonnes réponses pour avoir juste.</li>
         <li>Chacun a son <b>multiplicateur</b>, qui démarre à ×1 : il gagne <b>+0,5</b> à chaque fois que tu infliges des dégâts.</li>
+        ${ffa ? '<li>Le plus rapide des joueurs qui ont juste <b>remporte la manche</b> : c\'est lui qui inflige les dégâts.</li><li>À <b>0 PV</b>, tu es éliminé (tu peux regarder la suite). <b>Le dernier survivant gagne.</b></li>' : ''}
       </ul>
-      <table class="dmg-table"><tbody>
+      <table class="dmg-table"><tbody>${ffa ? `
+        <tr><td>Faux ou sans réponse</td><td>${RULES.hit} × multi du gagnant de la manche</td></tr>
+        <tr><td>Juste, mais moins rapide que le gagnant</td><td>${RULES.speed} × multi du gagnant</td></tr>
+        <tr><td>Personne n'a juste</td><td>personne</td></tr>
+        <tr><td>Tu valides en premier et tu as faux</td><td>+${RULES.rushPen} pour toi</td></tr>` : `
         <tr><td>Toi juste, l'autre faux ou sans réponse</td><td>il prend ${RULES.hit} × ton multi</td></tr>
         <tr><td>Les deux justes</td><td>le plus lent prend ${RULES.speed} × multi du plus rapide</td></tr>
         <tr><td>Les deux faux</td><td>personne</td></tr>
-        <tr><td>Tu valides en premier et tu as faux</td><td>+${RULES.rushPen} pour toi</td></tr>
+        <tr><td>Tu valides en premier et tu as faux</td><td>+${RULES.rushPen} pour toi</td></tr>`}
       </tbody></table>
     </section>`;
   $('#logout').addEventListener('click', e => { e.preventDefault(); sb.auth.signOut(); });
+  app.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { if (b.dataset.mode === lobbyMode) return; lobbyMode = b.dataset.mode; ss.set('duel.mode', lobbyMode); showLobby(); }));
+  if (ffa) { $('#ffaNew').onclick = () => { location.href = `?m=${encodeURIComponent(randId())}&ffa=1&host=1`; }; return; }
   renderPlayers();
   loadPlayers();
 }
@@ -473,6 +514,7 @@ function onAccept(p) {
   location.href = `?m=${encodeURIComponent(match)}&vs=${encodeURIComponent(id)}&host=1`;
 }
 function onDecline(p) {
+  if (F && F.host && p.match === F.id) { F.onDecline(p); return; }
   if (!pending || p.match !== pending.match) return;
   const who = pending.pseudo;
   cancelInvite(false);
@@ -903,6 +945,505 @@ class Match {
       if (!o || o.status !== 'online') { toast(`${(S.pseudo && S.pseudo[this.oppId]) || 'Ton adversaire'} n'est pas disponible.`); return; }
       invite(this.oppId, o.pseudo);
     };
+  }
+}
+
+/* =====================================================================
+   FFA : chacun pour soi, le dernier survivant gagne.
+   Mêmes règles que le 1v1, étendues à N joueurs : le plus rapide des joueurs
+   justes remporte la manche ; les joueurs faux ou sans réponse prennent
+   20 × son multi, les autres joueurs justes (plus lents) 5 × son multi, et son
+   multi gagne +0,5. À 0 PV, on est éliminé.
+   L'hôte (créateur de la salle) est l'arbitre et diffuse l'état complet.
+   URL : ?m=<salle>&ffa=1&host=1 (hôte) ou ?m=<salle>&ffa=1&vs=<id de l'hôte>.
+   ===================================================================== */
+let F = null;
+function startFfa() {
+  view = 'ffa';
+  SitePresence.setStatus('duel');
+  F = new Ffa(MATCH, IS_HOST ? me.id : VS);
+}
+
+class Ffa {
+  constructor(id, hostId) {
+    this.id = id; this.hostId = hostId; this.host = me.id === hostId;
+    this.key = 'ffa.' + id;
+    this.sel = []; this.sentR = 0; this.readySent = 0; this.deadline = 0;
+    this.here = new Set(); this.goneAt = {}; this.hostSeen = false;
+    this.t0 = Date.now();
+    this.invited = new Map();      // id → heure de l'invitation (hôte)
+    this.S = null;
+    if (this.host) {
+      const saved = ss.get(this.key);
+      this.S = saved && saved.v === 1 && saved.mode === 'ffa' ? saved : this.fresh();
+      if (this.S.phase === 'question' || this.S.phase === 'reveal') this.S.phase = 'restart';
+      if (this.S.phase === 'over') this.finish();
+      this.answers = {};
+    }
+    this.ch = sb.channel('ffa-' + id, { config: { presence: { key: me.id }, broadcast: { self: false } } });
+    this.ch.on('broadcast', { event: 'm' }, ({ payload }) => this.onMsg(payload || {}));
+    this.ch.on('presence', { event: 'sync' }, () => this.onPresence());
+    this.ch.subscribe(st => {
+      if (st !== 'SUBSCRIBED') return;
+      this.ch.track({ pseudo: me.pseudo });
+      if (!this.host) this.send({ t: 'hello' });
+    });
+    this.loop = setInterval(() => this.tick(), 200);
+    window.addEventListener('beforeunload', () => { if (this.host && this.S && this.S.phase !== 'over' && this.S.phase !== 'lobby') ss.set(this.key, this.S); });
+    this.render();
+  }
+
+  fresh() {
+    const pseudo = {}; pseudo[me.id] = me.pseudo;
+    return { v: 1, mode: 'ffa', ver: QVER, host: me.id, players: [me.id], pseudo, hp: {}, mult: {}, alive: {}, out: {}, r: 0, phase: 'lobby', bag: [],
+      qid: null, theme: null, remainMs: 0, rush: null, answered: {}, ready: {}, last: null, log: [], winner: null, reason: '' };
+  }
+  send(p) { p.from = me.id; this.ch.send({ type: 'broadcast', event: 'm', payload: p }); }
+  alive() { return this.S.players.filter(id => this.S.alive[id]); }
+  name(id) { return id === me.id ? me.pseudo : (this.S && this.S.pseudo[id]) || (SitePresence.online.get(id) || {}).pseudo || 'joueur'; }
+
+  /* ---------- Réception ---------- */
+  onMsg(p) {
+    if (!p.from) return;
+    if (this.host) {
+      if (p.t === 'hello') this.push();
+      else if (p.t === 'answer') this.hostAnswer(p.from, p.r, p.picks, p.auto);
+      else if (p.t === 'ready') this.hostReady(p.from, p.r);
+      else if (p.t === 'leave') this.hostLeave(p.from);
+    } else if (p.t === 'state' && p.from === this.hostId && p.S) {
+      const S = p.S, wasOver = this.S && this.S.phase === 'over';
+      if (this.S && this.S.r !== S.r) this.sel = [];
+      this.S = S;
+      this.deadline = Date.now() + (S.remainMs || 0);
+      if (S.phase === 'over' && !wasOver) this.finish();
+      this.render();
+    }
+  }
+
+  onPresence() {
+    const st = this.ch.presenceState(), now = Date.now();
+    const ids = new Set(Object.keys(st).filter(k => st[k] && st[k].length));
+    ids.forEach(k => { delete this.goneAt[k]; });
+    this.here.forEach(k => { if (!ids.has(k)) this.goneAt[k] = now; });
+    this.here = ids;
+    if (ids.has(this.hostId)) this.hostSeen = true;
+    if (!this.host) { this.render(); return; }
+    const S = this.S;
+    ids.forEach(k => { const m = st[k][st[k].length - 1]; if (m && m.pseudo) S.pseudo[k] = m.pseudo; });
+    if (S.phase === 'lobby') {
+      const keep = S.players.filter(k => k === me.id || ids.has(k));
+      [...ids].forEach(k => { if (!keep.includes(k) && keep.length < RULES.ffaMax) keep.push(k); });
+      S.players = keep;
+    }
+    this.push();
+  }
+  onLobbyPresence() { if (this.S && this.S.phase === 'lobby') this.render(); }
+  onDecline(p) { this.invited.delete(p.from); toast(p.busy ? `${p.fromPseudo || 'Ce joueur'} est déjà en partie.` : `${p.fromPseudo || 'Ce joueur'} a refusé l'invitation.`); this.render(); }
+
+  /* ---------- Arbitre (hôte) ---------- */
+  push() {
+    const S = this.S;
+    S.remainMs = Math.max(0, this.deadline - Date.now());
+    if (S.phase !== 'lobby') ss.set(this.key, S);
+    this.send({ t: 'state', S });
+    this.render();
+  }
+
+  hostInvite(id) {
+    const S = this.S;
+    if (S.phase !== 'lobby' || S.players.length >= RULES.ffaMax || S.players.includes(id)) return;
+    this.invited.set(id, Date.now());
+    SitePresence.send('invite', id, { match: this.id, subject: 'maths', mode: 'ffa' });
+    this.render();
+  }
+
+  hostStart() {
+    const S = this.S;
+    if (S.phase !== 'lobby' || S.players.length < 2) return;
+    S.players.forEach(k => { S.hp[k] = RULES.hp; S.mult[k] = 1; S.alive[k] = true; });
+    this.hostNext();
+  }
+
+  hostNext() {
+    const S = this.S;
+    if (this.checkOver()) return;
+    if (S.r >= RULES.ffaRounds) { this.overByHp(); return; }
+    if (!S.bag.length) S.bag = QGEN.themes.slice().sort(() => Math.random() - 0.5);
+    let qid = null, theme = null;
+    while (!qid && S.bag.length) { theme = S.bag.pop(); qid = drawQuestion(theme); }
+    if (!qid) { theme = QGEN.themes[0]; qid = drawQuestion(theme); }
+    S.r++; S.phase = 'question'; S.qid = qid; S.theme = theme;
+    S.rush = null; S.answered = {}; S.ready = {};
+    this.answers = {}; this.sel = [];
+    this.deadline = Date.now() + RULES.qMs;
+    this.push();
+  }
+
+  // Joueurs encore en vie et connectés qui n'ont pas répondu
+  waiting() { return this.alive().filter(k => !this.answers[k] && (k === me.id || this.here.has(k))); }
+
+  hostAnswer(id, r, picks, auto) {
+    const S = this.S;
+    if (S.phase !== 'question' || r !== S.r || !S.alive[id] || this.answers[id]) return;
+    if (Date.now() > this.deadline + RULES.graceMs) return;
+    this.answers[id] = { picks: Array.isArray(picks) ? picks.map(Number) : [], at: Date.now(), auto: !!auto };
+    S.answered[id] = true;
+    if (!auto && !S.rush) { S.rush = id; this.deadline = Math.min(this.deadline, Date.now() + RULES.rushMs); }
+    if (!this.waiting().length) this.hostResolve(); else this.push();
+  }
+
+  hostResolve() {
+    const S = this.S;
+    if (S.phase !== 'question') return;
+    const e = QGEN.entry(S.qid), good = e.q.a, A = this.answers, ids = this.alive();
+    const ok = {}, dmg = {}, picks = {}, raw = {};
+    ids.forEach(k => { picks[k] = A[k] ? A[k].picks : null; ok[k] = !!(A[k] && A[k].picks.length && sameSet(A[k].picks, good)); dmg[k] = 0; });
+    const right = ids.filter(k => ok[k]).sort((x, y) => A[x].at - A[y].at);
+    const gain = right[0] || null;
+    if (gain) ids.forEach(k => { if (k !== gain) dmg[k] = (ok[k] ? RULES.speed : RULES.hit) * S.mult[gain]; });
+    const vol = ids.filter(k => A[k] && !A[k].auto).sort((x, y) => A[x].at - A[y].at);
+    const first = vol[0] || null;
+    let pen = null;
+    if (first && !ok[first]) { dmg[first] += RULES.rushPen; pen = first; }
+    ids.forEach(k => { dmg[k] = Math.round(dmg[k]); raw[k] = S.hp[k] - dmg[k]; S.hp[k] = Math.max(0, raw[k]); });
+    const multBefore = Object.assign({}, S.mult);
+    if (gain) S.mult[gain] += RULES.multStep;
+    const dead = ids.filter(k => S.hp[k] <= 0);
+    dead.forEach(k => { S.alive[k] = false; S.out[k] = { r: S.r, raw: raw[k], why: 'ko' }; });
+    S.last = { r: S.r, picks, ok, dmg, first, gain, pen, multBefore, dead };
+    S.log.push({ r: S.r, theme: S.theme, n: ids.length, nOk: right.length, gain, dead });
+    S.ready = {};
+    if (this.checkOver()) return;
+    if (S.r >= RULES.ffaRounds) { this.overByHp(); return; }
+    S.phase = 'reveal';
+    this.deadline = Date.now() + RULES.revealMs;
+    this.push();
+  }
+
+  hostReady(id, r) {
+    const S = this.S;
+    if (S.phase !== 'reveal' || r !== S.r) return;
+    S.ready[id] = true;
+    if (this.alive().every(k => S.ready[k] || (k !== me.id && !this.here.has(k)))) this.hostNext(); else this.push();
+  }
+
+  // Abandon (ou départ prolongé) d'un joueur
+  hostLeave(id) {
+    const S = this.S;
+    if (S.phase === 'lobby') { S.players = S.players.filter(k => k !== id); this.push(); return; }
+    if (!S.alive[id]) return;
+    S.alive[id] = false; S.out[id] = { r: S.r, raw: -1e9, why: 'forfeit' };
+    if (this.checkOver()) return;
+    if (S.phase === 'question' && !this.waiting().length && Object.keys(this.answers).length) { this.hostResolve(); return; }
+    this.push();
+  }
+
+  // Un seul survivant (ou aucun) : fin de partie
+  checkOver() {
+    const S = this.S;
+    if (S.phase === 'lobby' || S.phase === 'over') return S.phase === 'over';
+    const alive = this.alive();
+    if (alive.length > 1) return false;
+    if (alive.length === 1) { this.hostOver(alive[0], 'last'); return true; }
+    // tous éliminés à la même manche : le moins « dans le négatif » l'emporte
+    const lastR = Math.max(...S.players.map(k => (S.out[k] ? S.out[k].r : 0)));
+    const cands = S.players.filter(k => S.out[k] && S.out[k].r === lastR && S.out[k].why === 'ko');
+    const best = Math.max(...cands.map(k => S.out[k].raw));
+    const top = cands.filter(k => S.out[k].raw === best);
+    this.hostOver(top.length === 1 ? top[0] : null, 'ko');
+    return true;
+  }
+  overByHp() {
+    const S = this.S, alive = this.alive(), best = Math.max(...alive.map(k => S.hp[k]));
+    const top = alive.filter(k => S.hp[k] === best);
+    this.hostOver(top.length === 1 ? top[0] : null, 'rounds');
+  }
+  hostOver(winner, reason) {
+    const S = this.S;
+    if (S.phase === 'over') return;
+    S.phase = 'over'; S.winner = winner; S.reason = reason;
+    this.deadline = Date.now();
+    this.push();
+    this.finish();
+  }
+
+  /* ---------- Horloge ---------- */
+  tick() {
+    const S = this.S, now = Date.now();
+    if (!this.host) {
+      // l'hôte est l'arbitre : s'il disparaît trop longtemps, la partie s'arrête
+      if (!(S && S.phase === 'over') && !this.here.has(this.hostId)) {
+        const since = this.hostSeen ? this.goneAt[this.hostId] : this.t0;
+        if (since && now - since > (this.hostSeen ? RULES.absentMs : RULES.joinMs)) { this.localOver(this.hostSeen ? 'hostgone' : 'nohost'); return; }
+      }
+      if (S && S.phase === 'question' && now >= this.deadline && this.sentR !== S.r && S.alive[me.id] && !S.answered[me.id]) this.submit(true);
+      this.updateClock();
+      return;
+    }
+    if (!S || S.phase === 'over') return;
+    if (S.phase !== 'lobby' && S.phase !== 'restart') {
+      // un joueur absent trop longtemps est éliminé
+      const gone = this.alive().filter(k => k !== me.id && !this.here.has(k) && now - (this.goneAt[k] || this.t0) > RULES.absentMs);
+      if (gone.length) { gone.forEach(k => { S.alive[k] = false; S.out[k] = { r: S.r, raw: -1e9, why: 'forfeit' }; }); if (this.checkOver()) return; this.push(); }
+    }
+    if (S.phase === 'question') {
+      if (now >= this.deadline && this.sentR !== S.r && S.alive[me.id] && !this.answers[me.id]) this.submit(true);
+      if (now > this.deadline + RULES.graceMs || (Object.keys(this.answers).length && !this.waiting().length)) this.hostResolve();
+    } else if (S.phase === 'reveal') {
+      if (now > this.deadline) this.hostNext();
+    } else if (S.phase === 'restart' && now - this.t0 > 3000) {
+      this.hostNext();
+    } else if (S.phase === 'lobby') {
+      let ch = false;
+      this.invited.forEach((t, k) => { if (now - t > SitePresence.INVITE_MS || S.players.includes(k)) { this.invited.delete(k); ch = true; } });
+      if (ch) this.render();
+    }
+    this.updateClock();
+  }
+
+  localOver(reason) {
+    this.S = Object.assign(this.S || { players: [me.id], pseudo: {}, hp: {}, mult: {}, alive: {}, out: {}, log: [] }, { phase: 'over', winner: null, reason });
+    this.render(); this.finish();
+  }
+  finish() { SitePresence.setStatus('online'); ss.del(this.key); }
+
+  /* ---------- Actions du joueur ---------- */
+  toggle(i) {
+    const S = this.S, e = QGEN.entry(S.qid);
+    if (S.phase !== 'question' || !S.alive[me.id] || this.sentR === S.r || S.answered[me.id]) return;
+    if (e.q.multi) this.sel = this.sel.includes(i) ? this.sel.filter(x => x !== i) : this.sel.concat(i);
+    else this.sel = [i];
+    this.render();
+  }
+  submit(auto) {
+    const S = this.S;
+    if (S.phase !== 'question' || !S.alive[me.id] || this.sentR === S.r) return;
+    if (!auto && !this.sel.length) return;
+    this.sentR = S.r;
+    const picks = this.sel.slice();
+    if (this.host) this.hostAnswer(me.id, S.r, picks, auto);
+    else { this.send({ t: 'answer', r: S.r, picks, auto: !!auto }); this.render(); }
+  }
+  ready() {
+    const S = this.S;
+    if (S.phase !== 'reveal' || this.readySent === S.r) return;
+    this.readySent = S.r;
+    if (this.host) this.hostReady(me.id, S.r); else { this.send({ t: 'ready', r: S.r }); this.render(); }
+  }
+  forfeit() {
+    if (!confirm(this.host ? 'Abandonner ? Tu es éliminé, mais garde cette page ouverte : tu es l\'arbitre de la partie.' : 'Abandonner la partie ? Tu seras éliminé.')) return;
+    if (this.host) this.hostLeave(me.id); else this.send({ t: 'leave' });
+  }
+  quit() {
+    if (this.host && this.S && this.S.phase !== 'over' && this.S.phase !== 'lobby' && !confirm('Quitter ? Tu es l\'arbitre : la partie s\'arrêtera pour tout le monde.')) return;
+    if (!this.host) this.send({ t: 'leave' });
+    ss.del(this.key);
+    location.href = './';
+  }
+
+  /* ---------- Affichage ---------- */
+  updateClock() {
+    const S = this.S, el = $('#clk'), bar = $('#tbarI');
+    if (S && el) {
+      const left = Math.max(0, this.deadline - Date.now());
+      if (S.phase === 'question') {
+        const rushed = !!S.rush, total = rushed ? RULES.rushMs : RULES.qMs;
+        el.textContent = fmtTime(left);
+        el.classList.toggle('rush', rushed); el.classList.remove('soft');
+        if (bar) { bar.style.width = Math.min(100, left / total * 100) + '%'; bar.classList.toggle('rush', rushed); }
+      } else if (S.phase === 'reveal') {
+        el.textContent = 'Manche suivante dans ' + Math.ceil(left / 1000) + ' s'; el.classList.add('soft');
+      }
+    }
+    const ab = $('#absent');
+    if (ab) {
+      if (!this.host && this.hostSeen && !this.here.has(this.hostId) && S && S.phase !== 'over') {
+        ab.hidden = false;
+        ab.textContent = `L'hôte (${this.name(this.hostId)}) est déconnecté… la partie s'arrête dans ${Math.max(0, Math.ceil((RULES.absentMs - (Date.now() - (this.goneAt[this.hostId] || Date.now()))) / 1000))} s s'il ne revient pas.`;
+      } else ab.hidden = true;
+    }
+  }
+
+  board() {
+    const S = this.S;
+    const cards = S.players.map(k => {
+      const hp = S.hp[k] == null ? RULES.hp : S.hp[k], pct = Math.max(0, hp) / RULES.hp * 100, m = S.mult[k] || 1, out = !S.alive[k];
+      const cls = pct <= 25 ? 'low' : pct <= 55 ? 'mid' : '';
+      const d = S.phase !== 'question' && S.last && S.last.r === S.r && S.last.dmg && S.last.dmg[k] ? S.last.dmg[k] : 0;
+      let st = '';
+      if (out) st = `<span class="ko">éliminé${S.out[k] ? ` (M${S.out[k].r})` : ''}</span>`;
+      else if (S.phase === 'question') st = S.answered[k] ? '<span class="ans">a répondu</span>' : '<span>réfléchit…</span>';
+      else if (S.phase === 'reveal') st = S.ready[k] ? '<span class="ans">prêt</span>' : '';
+      if (!out && k !== me.id && !this.here.has(k) && S.phase !== 'over') st = '<span class="ko">déconnecté</span>';
+      return `<div class="pc ${k === me.id ? 'me' : ''} ${out ? 'out' : ''}" data-pc="${esc(k)}">
+        <div class="who"><span class="n">${esc(this.name(k))}${k === me.id ? ' (toi)' : ''}</span><span class="mult ${m >= 2 ? 'hot' : ''}" title="Multiplicateur de dégâts">${fmtMult(m)}</span></div>
+        <div class="bar"><i class="${cls}" style="width:${pct}%"></i>${d ? `<span class="hit" data-hit="${S.r}-${esc(k)}">−${d}</span>` : ''}</div>
+        <div class="meta"><span>${hp} PV</span>${st}</div></div>`;
+    }).join('');
+    return `<div class="ffa-round">Manche<b>${S.r || '–'}</b> · ${this.alive().length} en vie</div><div class="board">${cards}</div>`;
+  }
+
+  render() {
+    const S = this.S;
+    if (!S) {
+      app.innerHTML = `<div class="card center" style="padding:40px 22px"><div class="spinner"></div>
+        <h2>Connexion à la salle de ${esc(this.name(this.hostId))}…</h2><p class="sub">La partie FFA s'affiche dès que l'hôte est joignable.</p>
+        <button type="button" class="btn" id="quitWait" style="margin-top:18px">Quitter</button></div>`;
+      $('#quitWait').onclick = () => this.quit();
+      return;
+    }
+    if (S.ver && QVER && S.ver !== QVER && !this.verWarned) { this.verWarned = true; toast('Vos versions du site diffèrent : rechargez la page.'); }
+    if (S.phase === 'lobby') { this.renderLobby(); return; }
+    if (S.phase === 'restart') {
+      app.innerHTML = `<div class="card center" style="padding:40px 22px"><div class="spinner"></div><h2>Reprise de la partie…</h2></div>`;
+      return;
+    }
+    if (S.phase === 'over') { this.renderEnd(); return; }
+    if (!S.players.includes(me.id) && !this.specWarned) { this.specWarned = true; toast('La partie avait déjà commencé : tu la regardes en spectateur.'); }
+    const e = QGEN.entry(S.qid);
+    if (!e) { app.innerHTML = '<div class="card"><h2>Question introuvable</h2><p class="sub">Vos versions du site diffèrent sans doute : rechargez la page.</p></div>'; return; }
+    const q = e.q, multi = !!q.multi, reveal = S.phase === 'reveal';
+    const alive = !!S.alive[me.id];
+    const myDone = !alive || S.answered[me.id] || this.sentR === S.r;
+    const L = S.last && S.last.r === S.r ? S.last : null;
+    const myPicks = reveal && L ? (L.picks[me.id] || []) : this.sel;
+    const nAlive = this.alive().length, nAns = this.alive().filter(k => S.answered[k]).length;
+    const status = reveal ? '' : `<span class="chip ${nAns && alive && !S.answered[me.id] ? 'rush' : ''}">${nAns}/${nAlive} ont répondu</span>`;
+    const choices = q.c.map((c, i) => {
+      let cls = 'ch' + (multi ? ' multi' : '');
+      if (reveal) { if (q.a.includes(i)) cls += ' good'; else if (myPicks.includes(i)) cls += ' wrongpick'; }
+      const who = reveal && L ? Object.keys(L.picks).filter(k => k !== me.id && (L.picks[k] || []).includes(i)) : [];
+      const tags = reveal ? (myPicks.includes(i) ? '<span class="tag">toi</span>' : '') + who.map(k => `<span class="tag opp">${esc(this.name(k))}</span>`).join('') : '';
+      return `<button type="button" class="${cls}" data-i="${i}" aria-pressed="${!reveal && myPicks.includes(i)}" ${reveal || myDone ? 'disabled' : ''}>
+        <span class="lt">${LET[i]}</span><span class="tx">${c}</span>${tags ? `<span class="tags">${tags}</span>` : ''}</button>`;
+    }).join('');
+    let foot;
+    if (!alive) foot = `<span class="waiting">${S.players.includes(me.id) ? 'Tu es éliminé : tu regardes la fin de la partie.' : 'Tu regardes la partie en spectateur.'}</span><button type="button" class="btn" id="qtBtn">Quitter</button>`;
+    else if (!reveal) {
+      foot = myDone ? `<span class="waiting">Réponse envoyée. En attente des autres…</span><span></span>`
+        : `<button type="button" class="btn" id="ffBtn">Abandonner</button><button type="button" class="btn btn-primary btn-lg" id="okBtn" ${this.sel.length ? '' : 'disabled'}>Valider${multi && this.sel.length ? ` (${this.sel.length})` : ''}</button>`;
+    } else {
+      const iReady = S.ready[me.id] || this.readySent === S.r, nReady = this.alive().filter(k => S.ready[k]).length;
+      foot = `<span class="muted">${nReady}/${nAlive} prêts</span><button type="button" class="btn btn-primary btn-lg" id="rdBtn" ${iReady ? 'disabled' : ''}>${iReady ? 'En attente…' : 'Prêt'}</button>`;
+    }
+    app.innerHTML = `
+      ${this.board()}
+      <p class="banner" id="absent" hidden></p>
+      <div class="roundbar"><span class="chip">${esc(themeName(S.theme))}</span>${status}<span class="timer" id="clk"></span></div>
+      ${!reveal ? '<div class="tbar"><i id="tbarI"></i></div>' : ''}
+      ${reveal && L ? this.verdict(L) : ''}
+      <section class="card qcard">
+        ${e.ctxText ? `<div class="qctx">${e.ctxText}</div>` : ''}
+        <div class="qtext">${q.q || ''}</div>
+        ${multi ? '<span class="multi-hint">♣ Plusieurs bonnes réponses possibles : coche-les toutes.</span>' : ''}
+        <div class="choices">${choices}</div>
+        <div class="actions">${foot}</div>
+        ${reveal && q.e ? `<details class="corr" open><summary>Correction</summary><div class="body">${q.e}</div></details>` : ''}
+      </section>`;
+    typeset(app);
+    app.querySelectorAll('.ch[data-i]').forEach(b => b.addEventListener('click', () => this.toggle(+b.dataset.i)));
+    const ok = $('#okBtn'); if (ok) ok.onclick = () => this.submit(false);
+    const ff = $('#ffBtn'); if (ff) ff.onclick = () => this.forfeit();
+    const rd = $('#rdBtn'); if (rd) rd.onclick = () => this.ready();
+    const qt = $('#qtBtn'); if (qt) qt.onclick = () => this.quit();
+    this.animateHits();
+    this.updateClock();
+  }
+
+  renderLobby() {
+    const S = this.S, full = S.players.length >= RULES.ffaMax;
+    const joined = S.players.map(k => `<li><span class="dot ${k === me.id || this.here.has(k) ? 'on' : ''}" aria-hidden="true"></span><span class="nm">${esc(this.name(k))}${k === me.id ? ' (toi)' : ''}</span><span class="st">${k === S.host ? 'hôte' : 'prêt'}</span></li>`).join('');
+    let invite = '';
+    if (this.host) {
+      const rows = [...SitePresence.online].filter(([k]) => k !== me.id && !S.players.includes(k))
+        .sort((a, b) => (a[1].status === 'online' ? 0 : 1) - (b[1].status === 'online' ? 0 : 1) || a[1].pseudo.localeCompare(b[1].pseudo, 'fr', { sensitivity: 'base' }));
+      invite = `<section class="card"><h2>Inviter des joueurs</h2><p class="sub">Seuls les joueurs connectés peuvent être invités.</p>
+        ${rows.length ? `<ul class="players">${rows.map(([k, v]) => {
+          const inv = this.invited.has(k), free = v.status === 'online';
+          return `<li><span class="dot ${free ? 'on' : 'busy'}" aria-hidden="true"></span><span class="nm">${esc(v.pseudo)}</span><span class="st">${inv ? 'invité…' : free ? 'connecté' : 'en partie'}</span>
+            <button type="button" class="btn ${free && !inv ? 'btn-primary' : ''}" data-inv="${esc(k)}" ${free && !inv && !full ? '' : 'disabled'}>Inviter</button></li>`;
+        }).join('')}</ul>` : '<p class="muted" style="margin-top:14px">Personne d\'autre n\'est connecté pour le moment.</p>'}</section>`;
+    }
+    app.innerHTML = `
+      <p class="eyebrow">FFA · Salle d'attente</p>
+      <h1>${this.host ? 'Ta salle FFA' : `Salle de ${esc(this.name(S.host))}`}</h1>
+      <p class="lede">${this.host ? 'Invite tes potes, puis lance la partie quand tout le monde est là.' : `En attente du lancement par ${esc(this.name(S.host))}…`}</p>
+      <section class="card">
+        <h2>Joueurs dans la salle (${S.players.length}/${RULES.ffaMax})</h2>
+        <ul class="players">${joined}</ul>
+        <div class="actions">
+          <button type="button" class="btn" id="qtBtn">Quitter</button>
+          ${this.host ? `<button type="button" class="btn btn-primary btn-lg" id="goBtn" ${S.players.length >= 2 ? '' : 'disabled'}>${S.players.length >= 2 ? `Lancer la partie (${S.players.length} joueurs)` : 'Il faut au moins 2 joueurs'}</button>` : '<span class="waiting">La partie va bientôt commencer.</span>'}
+        </div>
+      </section>
+      ${invite}`;
+    $('#qtBtn').onclick = () => this.quit();
+    const go = $('#goBtn'); if (go) go.onclick = () => this.hostStart();
+    app.querySelectorAll('[data-inv]').forEach(b => b.addEventListener('click', () => this.hostInvite(b.dataset.inv)));
+  }
+
+  verdict(L) {
+    const S = this.S, mid = me.id, g = L.gain;
+    let title, cls = '';
+    if (g === mid) { title = 'Tu remportes la manche !'; cls = 'win'; }
+    else if (g) { title = L.ok[mid] ? `Juste, mais ${esc(this.name(g))} a été plus rapide.` : `${esc(this.name(g))} remporte la manche.`; cls = S.alive[mid] || L.dead.includes(mid) ? 'lose' : ''; }
+    else title = 'Personne n\'a trouvé.';
+    const lines = [];
+    if (L.dmg[mid] != null) lines.push(L.dmg[mid] ? `Tu prends <b>${L.dmg[mid]}</b> dégâts${L.pen === mid ? ` (dont ${RULES.rushPen} de pénalité : tu as validé en premier)` : ''}.` : 'Tu ne prends aucun dégât.');
+    if (g) lines.push(`Le multiplicateur de ${g === mid ? 'toi' : esc(this.name(g))} passe de ${fmtMult(L.multBefore[g])} à <b>${fmtMult(S.mult[g])}</b>.`);
+    if (L.dead.length) lines.push(`Éliminé${L.dead.length > 1 ? 's' : ''} : <b>${L.dead.map(k => (k === mid ? 'toi' : esc(this.name(k)))).join(', ')}</b>.`);
+    return `<div class="verdict ${cls}" role="status"><h3>${title}</h3><p>${lines.join(' ')}</p></div>`;
+  }
+
+  animateHits() {
+    app.querySelectorAll('.hit[data-hit]').forEach(h => {
+      const k = h.dataset.hit;
+      if ((this.shown = this.shown || new Set()).has(k)) { h.remove(); return; }
+      this.shown.add(k);
+      const pc = h.closest('.pc'); if (pc) { pc.classList.remove('shake'); void pc.offsetWidth; pc.classList.add('shake'); }
+      setTimeout(() => h.remove(), 1700);
+    });
+  }
+
+  // Classement : le gagnant, puis les survivants par PV, puis les éliminés du plus tardif au plus précoce
+  ranking() {
+    const S = this.S;
+    return S.players.slice().sort((a, b) => {
+      if (a === S.winner) return -1; if (b === S.winner) return 1;
+      const oa = S.out[a], ob = S.out[b];
+      if (!oa && !ob) return (S.hp[b] || 0) - (S.hp[a] || 0);
+      if (!oa) return -1; if (!ob) return 1;
+      return ob.r - oa.r || ob.raw - oa.raw;
+    });
+  }
+
+  renderEnd() {
+    const S = this.S, win = S.winner === me.id, draw = !S.winner;
+    const stop = S.reason === 'hostgone' || S.reason === 'nohost';
+    const why = {
+      last: win ? 'Tu es le dernier survivant.' : `${esc(this.name(S.winner))} est le dernier survivant.`,
+      ko: draw ? 'Les derniers joueurs ont été éliminés en même temps, à égalité.' : `Les derniers joueurs sont tombés ensemble : ${win ? 'tu' : esc(this.name(S.winner))} ${win ? 'avais' : 'avait'} le plus de PV restants.`,
+      rounds: `Limite de ${RULES.ffaRounds} manches atteinte : ${draw ? 'égalité de PV' : 'le plus de PV l\'emporte'}.`,
+      hostgone: 'L\'hôte s\'est déconnecté : la partie est interrompue.',
+      nohost: 'L\'hôte n\'est pas joignable : la salle n\'existe plus.'
+    }[S.reason] || '';
+    const list = stop ? '' : this.ranking().map((k, i) => {
+      const o = S.out[k];
+      return `<li class="${i === 0 && !draw ? 'first' : ''}"><span class="pos">${i + 1}</span><span class="nm">${esc(this.name(k))}${k === me.id ? ' (toi)' : ''}</span>
+        <span class="st">${o ? (o.why === 'forfeit' ? `abandon (M${o.r})` : `éliminé manche ${o.r}`) : `${S.hp[k]} PV`}</span></li>`;
+    }).join('');
+    app.innerHTML = `
+      <section class="card end">
+        <p class="eyebrow">${stop ? 'Partie interrompue' : 'Fin de la partie FFA'}</p>
+        <div class="big ${stop || draw ? '' : win ? 'win' : 'lose'}">${stop ? 'Partie arrêtée' : draw ? 'Égalité' : win ? 'Victoire !' : `${esc(this.name(S.winner))} gagne`}</div>
+        <p class="lede" style="margin:12px auto 0">${why}</p>
+        <div class="row">
+          <button type="button" class="btn btn-primary btn-lg" id="again">Nouvelle salle FFA</button>
+          <a class="btn btn-lg" href="./">Retour</a>
+        </div>
+        ${list ? `<ol class="rank">${list}</ol>` : ''}
+      </section>`;
+    $('#again').onclick = () => { ss.set('duel.mode', 'ffa'); location.href = `?m=${encodeURIComponent(randId())}&ffa=1&host=1`; };
   }
 }
 

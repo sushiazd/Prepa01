@@ -1,5 +1,5 @@
 /* =====================================================================
-   Présence en ligne et invitations 1v1, partagées par toutes les pages.
+   Présence en ligne et invitations (1v1 et FFA), partagées par toutes les pages.
    - Chaque compte connecté rejoint le canal temps réel « site-lobby » :
      les autres le voient avec une pastille verte dans la liste du 1v1.
    - Une invitation reçue s'affiche en bas de l'écran, sur n'importe quelle page.
@@ -112,8 +112,9 @@
   function showInvite(p) {
     dropInvite(p.match);
     const el = document.createElement('div');
+    const ffa = p.mode === 'ffa';
     el.className = 'sp-inv'; el.dataset.match = p.match;
-    el.innerHTML = `<div class="sp-k">⚔ Défi 1v1 · Maths</div><div><b>${esc(p.fromPseudo)}</b> te défie en duel.</div>
+    el.innerHTML = `<div class="sp-k">${ffa ? '★ Partie FFA' : '⚔ Défi 1v1'} · Maths</div><div><b>${esc(p.fromPseudo)}</b> ${ffa ? 't\'invite à une partie FFA (chacun pour soi).' : 'te défie en duel.'}</div>
       <div class="sp-row"><button type="button" class="sp-no">Refuser</button><button type="button" class="sp-ok">Accepter</button></div>
       <span class="sp-bar" style="animation-duration:${INVITE_MS}ms"></span>`;
     const timer = setTimeout(() => el.remove(), INVITE_MS);
@@ -122,7 +123,7 @@
       clearTimeout(timer);
       el.querySelector('.sp-row').innerHTML = '<span>Connexion au duel…</span>';
       try { await P.send('accept', p.from, { match: p.match }); } catch (e) { /* on y va quand même */ }
-      location.href = `${ROOT}duel/?m=${encodeURIComponent(p.match)}&vs=${encodeURIComponent(p.from)}`;
+      location.href = `${ROOT}duel/?m=${encodeURIComponent(p.match)}&vs=${encodeURIComponent(p.from)}${ffa ? '&ffa=1' : ''}`;
     };
     ensureBox().appendChild(el);
     try { if (navigator.vibrate) navigator.vibrate(120); } catch (e) { /* ignore */ }

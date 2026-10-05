@@ -7,13 +7,23 @@ Le site regroupe plusieurs outils de révision :
 | `index.html` | la page d'accueil, avec un lien vers chaque outil |
 | `maths/index.html` | le QCM de maths (QCM, import de PDF, catalogue, comptes, groupes) |
 | `elec/index.html` | l'entraînement au CC1 d'électronique (cours, démos, exos générés, annales, sujets blancs) |
+| `duel/index.html` | le 1v1 : liste des joueurs, défis et duels en direct sur le QCM de maths |
+| `presence.js` | la présence en ligne (pastille verte) et les invitations 1v1, chargé par toutes les pages |
 | `config.js` | l'adresse de ta base Supabase (à remplir, étape 4), utilisée par le QCM de maths |
 | `supabase.sql` | la base de données et ses règles de sécurité (étape 2) |
 | `README.md` | ce guide |
 
-Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/` et `…/Prepa01/elec/`.
+Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/` `…/Prepa01/elec/` et `…/Prepa01/duel/`.
 
 La partie élec n'utilise pas Supabase : la progression (stats, copies, planning) reste dans le navigateur de chaque appareil.
+
+### Activer le 1v1
+
+1. Envoie sur GitHub le dossier `duel`, le fichier `presence.js` et les nouvelles versions de `index.html`, `maths/index.html` et `elec/index.html`.
+2. Supabase → **SQL Editor** : relance tout `supabase.sql` (il ajoute la fonction `list_players`, qui donne la liste des inscrits).
+3. C'est tout : les invitations et les parties passent par le temps réel de Supabase (*Realtime*), sans table. Si rien ne bouge, vérifie dans **Project Settings → Realtime** que l'accès aux canaux publics est autorisé.
+
+Le duel réutilise les questions générées du QCM de maths : la page `duel/` lit le générateur dans `maths/index.html`. Il faut donc toujours mettre en ligne les deux ensemble.
 
 Compte environ 30 minutes la première fois. Tout est gratuit.
 
@@ -90,6 +100,8 @@ Le QCM était à la racine du dépôt ; il est maintenant dans `maths/`. Pour mi
 3. Les comptes, groupes et la progression enregistrée dans le navigateur sont conservés, car le site reste sur le même domaine. Le dépôt s'appelle maintenant `Prepa01` : l'ancien lien `…/MathPrac/` ne fonctionne plus (GitHub ne redirige pas les sites Pages après un renommage), il faut partager `…/Prepa01/`.
 
 ## Limites connues
+
+- 1v1 : les bonnes réponses sont calculées dans le navigateur, un joueur qui fouille le code pourrait tricher. Le pseudo de chaque inscrit est visible par tous les comptes connectés, dans la liste du 1v1.
 
 - Pas encore de « mot de passe oublié » : en cas d'oubli, le compte peut être supprimé depuis Supabase (*Authentication → Users*) et recréé.
 - Le « temps d'entraînement » ne compte que les épreuves faites sur le site (pauses exclues).

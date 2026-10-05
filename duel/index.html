@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>1v1 · Duels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="../config.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script defer src="../presence.js" data-external></script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
+  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
+  --rule:#e4e0d6; --rule-strong:#cdc8bb;
+  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc; --pen-line:#bccaf5;
+  --ok:#1f8a4c; --ok-soft:#e6f4ec; --bad:#c2352b; --bad-soft:#fbeceb; --flag:#d4700a; --flag-soft:#fdf0e1;
+  --dot-off:#b9b4a8;
+  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
+  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+    --rule:#2e2d2a; --rule-strong:#45433e;
+    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340; --pen-line:#34437a;
+    --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --flag:#ff9d42; --flag-soft:#382512;
+    --dot-off:#5a574f;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+  --rule:#2e2d2a; --rule-strong:#45433e;
+  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340; --pen-line:#34437a;
+  --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --flag:#ff9d42; --flag-soft:#382512;
+  --dot-off:#5a574f;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+h1,h2,h3,p{margin:0}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+[hidden]{display:none !important}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px;padding:0 24px;border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:700 15px/1 var(--sans)}
+.brand strong{display:block;font:600 15px/1.2 var(--sans)}
+.brand small{display:block;color:var(--muted);font-size:12.5px}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer}
+main{max-width:860px;margin:40px auto 80px;padding:0 24px}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--pen);margin-bottom:12px}
+h1{font:600 clamp(30px,5vw,44px)/1.05 var(--serif);letter-spacing:-.02em}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:620px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:22px;margin-top:20px}
+.card h2{font:600 20px/1.25 var(--serif)}
+.sub{color:var(--muted);font-size:14px;margin-top:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:600 14px/1 var(--sans);cursor:pointer;text-decoration:none}
+.btn:hover:not(:disabled){border-color:var(--pen)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn-primary:hover:not(:disabled){background:var(--pen-hover);border-color:var(--pen-hover)}
+.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
+.muted{color:var(--muted)}
+.center{text-align:center}
+
+/* ---------- Lobby ---------- */
+.subjects{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.subj{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 10px;border-radius:12px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer}
+.subj .ic{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--sheet-2);font:600 17px/1 var(--serif)}
+.subj[aria-pressed="true"]{border-color:var(--pen);background:var(--pen-soft)}
+.subj[aria-pressed="true"] .ic{background:var(--pen);color:var(--pen-ink)}
+.subj:disabled{cursor:not-allowed;opacity:.6;border-style:dashed}
+.subj small{display:block;font-size:12px;color:var(--muted);line-height:1.2}
+.subj b{display:block;font-size:14.5px;line-height:1.2}
+.me-line{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.players{list-style:none;margin:14px 0 0;padding:0;border-top:1px solid var(--rule)}
+.players li{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--rule)}
+.dot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--dot-off)}
+.dot.on{background:#22c55e;box-shadow:0 0 0 3px color-mix(in srgb,#22c55e 25%,transparent)}
+.dot.busy{background:var(--flag);box-shadow:0 0 0 3px color-mix(in srgb,var(--flag) 25%,transparent)}
+.players .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.players .st{font-size:13px;color:var(--muted);white-space:nowrap}
+.players .btn{min-height:34px;padding:0 14px}
+.filter{width:100%;margin-top:14px;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet-2);color:var(--ink);font:15px var(--sans)}
+.rules{display:grid;gap:8px;margin:12px 0 0;padding-left:20px;color:var(--ink-2);font-size:14.5px}
+.rules b{color:var(--ink)}
+.dmg-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+.dmg-table td{padding:7px 8px;border-top:1px solid var(--rule)}
+.dmg-table td:last-child{text-align:right;font-weight:600;white-space:nowrap}
+.note{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--flag-soft);color:var(--ink);font-size:14px}
+.field{display:grid;gap:6px;margin-top:12px}
+.field label{font-size:13.5px;font-weight:600}
+.field input{min-height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet-2);color:var(--ink);font:15px var(--sans)}
+.msg{min-height:22px;margin-top:10px;font-size:14px;color:var(--bad)}
+
+/* ---------- Fenêtre d'attente ---------- */
+.overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(10,10,10,.45);backdrop-filter:blur(2px)}
+.overlay .card{width:min(420px,100%);margin:0;text-align:center}
+.spinner{width:36px;height:36px;margin:4px auto 14px;border-radius:50%;border:3px solid var(--pen-line);border-top-color:var(--pen);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- Match ---------- */
+.match main,.match-main{max-width:900px}
+.hud{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center}
+.pl{display:grid;gap:6px;min-width:0}
+.pl.right{text-align:right}
+.pl .who{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
+.pl.right .who{justify-content:flex-end}
+.pl .who span.n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mult{flex:none;font:700 12px/1 var(--sans);padding:4px 7px;border-radius:999px;background:var(--pen-soft);color:var(--pen);border:1px solid var(--pen-line)}
+.mult.hot{background:var(--flag-soft);color:var(--flag);border-color:color-mix(in srgb,var(--flag) 45%,transparent)}
+.bar{position:relative;height:16px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule-strong);overflow:visible}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:999px;background:var(--ok);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.bar i.mid{background:var(--flag)}
+.bar i.low{background:var(--bad)}
+.pl.right .bar i{inset:0 0 0 auto}
+.hpn{font:700 13px/1 var(--sans);color:var(--ink-2)}
+.hit{position:absolute;top:-26px;font:800 20px/1 var(--sans);color:var(--bad);animation:hit 1.6s ease-out forwards;pointer-events:none}
+.pl:not(.right) .hit{right:8px}
+.pl.right .hit{left:8px}
+@keyframes hit{0%{opacity:0;transform:translateY(8px) scale(.8)}15%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.vs{font:800 13px/1 var(--sans);color:var(--muted);text-align:center}
+.vs b{display:block;font:600 22px/1.1 var(--serif);color:var(--ink);margin-top:2px}
+.roundbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--sheet);border:1px solid var(--rule);font:600 13px/1 var(--sans);color:var(--ink-2)}
+.chip.rush{background:var(--bad-soft);border-color:color-mix(in srgb,var(--bad) 45%,transparent);color:var(--bad)}
+.chip.done{background:var(--ok-soft);border-color:color-mix(in srgb,var(--ok) 45%,transparent);color:var(--ok)}
+.timer{font:800 26px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.timer.rush{color:var(--bad)}
+.timer.soft{font:600 14px/1.2 var(--sans);color:var(--muted)}
+.tbar{height:6px;border-radius:999px;background:var(--rule);margin-top:10px;overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--pen);border-radius:999px}
+.tbar i.rush{background:var(--bad)}
+.qcard{margin-top:14px}
+.qctx{padding:12px 14px;border-radius:10px;background:var(--sheet-2);border:1px solid var(--rule);margin-bottom:12px;font-size:15.5px}
+.qtext{font:19px/1.55 var(--serif)}
+.multi-hint{display:inline-block;margin-top:10px;font:600 13px/1.3 var(--sans);color:var(--flag)}
+.choices{display:grid;gap:10px;margin-top:16px}
+.ch{position:relative;display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:1.5px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer;font:16px/1.5 var(--serif)}
+.ch:hover:not(:disabled){border-color:var(--pen)}
+.ch:disabled{cursor:default}
+.ch .lt{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font:700 13px/1 var(--sans);background:var(--sheet-2);border:1px solid var(--rule-strong);color:var(--ink-2)}
+.ch.multi .lt{border-radius:6px}
+.ch .tx{flex:1;min-width:0;padding-top:2px;overflow-x:auto}
+.ch[aria-pressed="true"]{border-color:var(--pen);background:var(--pen-soft)}
+.ch[aria-pressed="true"] .lt{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.ch.good{border-color:var(--ok);background:var(--ok-soft)}
+.ch.good .lt{background:var(--ok);border-color:var(--ok);color:#fff}
+.ch.wrongpick{border-color:var(--bad);background:var(--bad-soft)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-self:center}
+.tag{font:700 11.5px/1 var(--sans);padding:5px 7px;border-radius:999px;background:var(--ink);color:var(--paper);white-space:nowrap}
+.tag.opp{background:var(--flag);color:#fff}
+.actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap}
+.waiting{color:var(--ink-2);font-weight:600}
+.verdict{margin-top:14px;padding:14px 16px;border-radius:12px;border:1px solid var(--rule);background:var(--sheet-2)}
+.verdict h3{font:600 19px/1.3 var(--serif)}
+.verdict p{margin-top:6px;color:var(--ink-2);font-size:15px}
+.verdict.win{border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:var(--ok-soft)}
+.verdict.lose{border-color:color-mix(in srgb,var(--bad) 45%,transparent);background:var(--bad-soft)}
+details.corr{margin-top:14px;border-top:1px solid var(--rule);padding-top:12px}
+details.corr summary{cursor:pointer;font-weight:600;color:var(--pen)}
+details.corr .body{margin-top:10px;font:15.5px/1.6 var(--serif);color:var(--ink-2)}
+.end{text-align:center;padding:34px 22px}
+.end .big{font:600 clamp(36px,7vw,56px)/1 var(--serif);letter-spacing:-.02em}
+.end .big.win{color:var(--ok)}
+.end .big.lose{color:var(--bad)}
+.end .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.log{list-style:none;margin:16px 0 0;padding:0;text-align:left}
+.log li{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:8px 2px;border-top:1px solid var(--rule);font-size:14px}
+.log .r{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.log .ok{color:var(--ok);font-weight:700}
+.log .ko{color:var(--bad);font-weight:700}
+.log .d{font-weight:700;text-align:right;white-space:nowrap;min-width:60px}
+.banner{margin-top:14px;padding:10px 14px;border-radius:10px;background:var(--flag-soft);color:var(--ink);font-size:14px;font-weight:600}
+.katex{font-size:1.05em}
+.katex-display{margin:.6em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600;box-shadow:var(--shadow)}
+@media (max-width:720px){
+  .topbar{padding:0 16px}
+  main{margin-top:24px;padding:0 16px}
+  .card{padding:18px}
+  .hud{grid-template-columns:1fr 1fr;row-gap:6px}
+  .vs{grid-column:1/-1;grid-row:1}
+  .qtext{font-size:17.5px}
+  .log li{grid-template-columns:auto 1fr auto}
+  .log .th{display:none}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">1v1</span><div><strong>Duels</strong><small>Affronte un pote sur une matière</small></div></a>
+  <button type="button" class="icon-btn" id="themeBtn" aria-label="Thème"></button>
+</header>
+<main id="app"><p class="muted center" style="margin-top:60px">Chargement…</p></main>
+
+<script>
+(function () {
+'use strict';
+
+/* =====================================================================
+   RÈGLES DU DUEL
+   ===================================================================== */
+const RULES = {
+  hp: 100,          // points de vie de départ
+  qMs: 120000,      // temps max par question
+  rushMs: 15000,    // temps laissé à l'autre quand le premier valide
+  graceMs: 1500,    // tolérance réseau avant de clore la manche
+  revealMs: 20000,  // durée max de l'écran de correction
+  hit: 20,          // l'un juste, l'autre faux
+  speed: 5,         // les deux justes : le plus lent prend ça
+  rushPen: 5,       // pénalité si on valide en premier et qu'on a faux
+  multStep: 0.5,    // gain de multiplicateur à chaque fois qu'on inflige des dégâts
+  maxRounds: 20,    // garde-fou : ensuite le plus de PV gagne
+  absentMs: 30000,  // déconnexion plus longue ⇒ forfait
+  joinMs: 45000     // l'adversaire doit rejoindre le duel dans ce délai
+};
+
+/* ---------- Outils ---------- */
+const $ = s => document.querySelector(s);
+const app = $('#app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const fmtMult = m => '×' + String(Math.round(m * 10) / 10).replace('.', ',');
+const fmtTime = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const LET = 'ABCDEFGH';
+const sameSet = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.slice().sort().join() === b.slice().sort().join();
+const randId = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => 'abcdefghijkmnpqrstuvwxyz23456789'[x % 32]).join('');
+const ss = {
+  get(k) { try { return JSON.parse(sessionStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } },
+  del(k) { try { sessionStorage.removeItem(k); } catch (e) { /* ignore */ } }
+};
+let toastT = 0;
+function toast(t) {
+  let el = $('.toast');
+  if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  el.textContent = t; el.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500);
+}
+function typeset(el) {
+  if (!el || !window.renderMathInElement) return;
+  try { renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); } catch (e) { console.warn(e); }
+}
+
+/* ---------- Thème clair / sombre (même réglage que le reste du site) ---------- */
+(function () {
+  const ICON = {
+    sun: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+    moon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+    auto: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>'
+  };
+  const KEY = 'qcm-maths-theme', btn = $('#themeBtn');
+  function apply(t) {
+    if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t;
+    btn.innerHTML = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; btn.dataset.mode = t;
+    btn.title = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t];
+  }
+  let t = 'auto'; try { t = localStorage.getItem(KEY) || 'auto'; } catch (e) { /* ignore */ }
+  apply(t);
+  btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
+})();
+
+/* =====================================================================
+   QUESTIONS : on réutilise le générateur du QCM de maths.
+   La page maths reste la seule source : on lit son code et on n'en garde que
+   le bloc QGEN (même graine ⇒ même question chez les deux joueurs).
+   ===================================================================== */
+let QGEN = null, THEME_NAMES = {}, QVER = '';
+async function loadQuestions() {
+  const res = await fetch('../maths/index.html', { cache: 'no-cache' });
+  if (!res.ok) throw new Error('Page maths introuvable (' + res.status + ')');
+  const src = await res.text();
+  const a = src.indexOf('const QGEN = (function () {');
+  const r = src.indexOf('return { entry, unit, exam', a);
+  const b = src.indexOf('\n})();', r);
+  if (a < 0 || r < 0 || b < 0) throw new Error('Générateur de questions introuvable dans la page maths');
+  const code = src.slice(a, b + 6);
+  QGEN = new Function(code + '\nreturn QGEN;')();
+  let h = 0; for (let i = 0; i < code.length; i++) h = (Math.imul(h, 31) + code.charCodeAt(i)) | 0;
+  QVER = (h >>> 0).toString(36);
+  const re = /\{ id: '([a-z_0-9]+)', name: '(?:[^'\\]|\\.)*', short: '((?:[^'\\]|\\.)*)'/g;
+  let m; while ((m = re.exec(src))) THEME_NAMES[m[1]] = m[2].replace(/\\'/g, "'");
+}
+const themeName = id => THEME_NAMES[id] || id;
+// Une question à réponse unique ou ♣ (pour un sujet en plusieurs questions, une seule sous-question)
+function drawQuestion(theme) {
+  for (let k = 0; k < 8; k++) {
+    const u = QGEN.unit(theme);
+    if (!u) return null;
+    const qid = u.qids[Math.floor(Math.random() * u.qids.length)];
+    const e = QGEN.entry(qid);
+    if (e && e.q && Array.isArray(e.q.c) && Array.isArray(e.q.a) && e.q.a.length) return qid;
+  }
+  return null;
+}
+
+/* =====================================================================
+   CONNEXION
+   ===================================================================== */
+const CFG = window.QCM_CONFIG || {};
+let sb = null, me = null;
+const params = new URLSearchParams(location.search);
+const MATCH = params.get('m'), VS = params.get('vs'), IS_HOST = params.get('host') === '1';
+
+function boot() {
+  if (!CFG.supabaseUrl || !CFG.supabaseAnonKey || !window.supabase) { app.innerHTML = '<div class="card"><h2>Base de données non configurée</h2><p class="sub">Le 1v1 a besoin de Supabase (voir le README).</p></div>'; return; }
+  sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
+  SitePresence.start(sb);
+  SitePresence.on('me', u => { me = u; route(); });
+  SitePresence.on('presence', () => { if (view === 'lobby') renderPlayers(); if (M) M.onLobbyPresence(); });
+  SitePresence.on('accept', onAccept);
+  SitePresence.on('decline', onDecline);
+  loadQuestions().then(route, e => { console.error(e); app.innerHTML = `<div class="card"><h2>Impossible de charger les questions</h2><p class="sub">${esc(e.message)}. Recharge la page.</p></div>`; });
+}
+
+let view = '';
+let routed = false;
+function route() {
+  if (!QGEN) return;                       // on attend les questions
+  if (me === null && !routed) { routed = true; setTimeout(() => { if (!me) showLogin(); }, 1200); return; }
+  if (!me) { showLogin(); return; }
+  if (MATCH && VS) { if (!M) startMatch(); return; }
+  if (view !== 'lobby') showLobby();
+}
+
+function showLogin() {
+  if (me) return;
+  view = 'login';
+  app.innerHTML = `
+    <p class="eyebrow">1v1</p>
+    <h1>Connecte-toi pour jouer</h1>
+    <p class="lede">Le 1v1 utilise ton compte du QCM de maths : ton pseudo apparaît dans la liste des joueurs.</p>
+    <form class="card" id="loginForm" style="max-width:440px">
+      <div class="field"><label for="lgE">E-mail</label><input id="lgE" type="email" autocomplete="email" required></div>
+      <div class="field"><label for="lgW">Mot de passe</label><input id="lgW" type="password" autocomplete="current-password" required></div>
+      <p class="msg" id="lgMsg" role="alert"></p>
+      <button class="btn btn-primary btn-lg" type="submit" style="width:100%">Se connecter</button>
+      <p class="sub" style="margin-top:14px">Pas encore de compte ? Crée-le dans <a href="../maths/">QCM Maths</a>, onglet <b>Groupe</b>.</p>
+    </form>`;
+  $('#loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('#lgMsg'); msg.textContent = 'Un instant…';
+    const { error } = await sb.auth.signInWithPassword({ email: $('#lgE').value.trim(), password: $('#lgW').value });
+    msg.textContent = error ? (/Invalid login/i.test(error.message) ? 'E-mail ou mot de passe incorrect.' : error.message) : '';
+  });
+}
+
+/* =====================================================================
+   LOBBY : choix de la matière et liste des joueurs
+   ===================================================================== */
+let players = null, playersErr = false, filterTxt = '', pending = null;
+
+async function loadPlayers() {
+  const { data, error } = await sb.rpc('list_players');
+  if (error) { console.warn(error); playersErr = true; players = []; } else { playersErr = false; players = data || []; }
+  if (view === 'lobby') renderPlayers();
+}
+
+function showLobby() {
+  view = 'lobby';
+  SitePresence.setStatus('online');
+  app.innerHTML = `
+    <p class="eyebrow">1v1</p>
+    <h1>Affronte un pote</h1>
+    <p class="lede">Même question pour les deux. Le premier qui valide ne laisse que 15 secondes à l'autre.</p>
+    <section class="card">
+      <h2>Matière</h2>
+      <div class="subjects" role="group" aria-label="Matière du duel">
+        <button type="button" class="subj" aria-pressed="true"><span class="ic">∑</span><span><b>Maths</b><small>QCM</small></span></button>
+        <button type="button" class="subj" disabled><span class="ic">Ω</span><span><b>Électricité</b><small>bientôt</small></span></button>
+      </div>
+    </section>
+    <section class="card">
+      <div class="me-line"><div><h2>Joueurs</h2><p class="sub">Tu joues en tant que <b>${esc(me.pseudo)}</b> · <a href="#" id="logout">changer de compte</a></p></div></div>
+      <div id="plWrap"><p class="muted" style="margin-top:14px">Chargement des joueurs…</p></div>
+    </section>
+    <section class="card">
+      <h2>Règles</h2>
+      <ul class="rules">
+        <li>Chacun commence avec <b>${RULES.hp} PV</b>. Une question par manche, <b>2 min</b> maximum.</li>
+        <li>Dès que l'un des deux <b>valide</b>, l'autre n'a plus que <b>15 s</b>.</li>
+        <li>Questions ♣ : il faut cocher <b>toutes</b> les bonnes réponses pour avoir juste.</li>
+        <li>Chacun a son <b>multiplicateur</b>, qui démarre à ×1 : il gagne <b>+0,5</b> à chaque fois que tu infliges des dégâts.</li>
+      </ul>
+      <table class="dmg-table"><tbody>
+        <tr><td>Toi juste, l'autre faux ou sans réponse</td><td>il prend ${RULES.hit} × ton multi</td></tr>
+        <tr><td>Les deux justes</td><td>le plus lent prend ${RULES.speed} × multi du plus rapide</td></tr>
+        <tr><td>Les deux faux</td><td>personne</td></tr>
+        <tr><td>Tu valides en premier et tu as faux</td><td>+${RULES.rushPen} pour toi</td></tr>
+      </tbody></table>
+    </section>`;
+  $('#logout').addEventListener('click', e => { e.preventDefault(); sb.auth.signOut(); });
+  renderPlayers();
+  loadPlayers();
+}
+
+function renderPlayers() {
+  const wrap = $('#plWrap'); if (!wrap) return;
+  if (players === null) return;
+  const on = SitePresence.online;
+  const map = new Map();
+  players.forEach(p => map.set(p.id, p.pseudo));
+  on.forEach((v, id) => { if (!map.has(id)) map.set(id, v.pseudo); });   // inscrit récent ou liste indisponible
+  map.delete(me.id);
+  let rows = [...map].map(([id, pseudo]) => ({ id, pseudo, st: on.has(id) ? on.get(id).status : 'off' }));
+  const rank = { online: 0, duel: 1, off: 2 };
+  rows.sort((a, b) => rank[a.st] - rank[b.st] || a.pseudo.localeCompare(b.pseudo, 'fr', { sensitivity: 'base' }));
+  const nOn = rows.filter(r => r.st !== 'off').length;
+  const f = filterTxt.trim().toLowerCase();
+  const shown = f ? rows.filter(r => r.pseudo.toLowerCase().includes(f)) : rows;
+  const hadFocus = document.activeElement && document.activeElement.id === 'plFilter';
+  wrap.innerHTML = `
+    <p class="sub" style="margin-top:6px">${nOn} connecté${nOn > 1 ? 's' : ''} sur ${rows.length} joueur${rows.length > 1 ? 's' : ''}.</p>
+    ${playersErr ? '<p class="note">La liste complète des inscrits n\'est pas disponible : relance <b>supabase.sql</b> dans Supabase (voir le README). En attendant, seuls les joueurs connectés apparaissent.</p>' : ''}
+    ${rows.length > 8 ? `<input class="filter" id="plFilter" type="search" placeholder="Chercher un pseudo" value="${esc(filterTxt)}" aria-label="Chercher un pseudo">` : ''}
+    ${shown.length ? `<ul class="players">${shown.map(r => `
+      <li><span class="dot ${r.st === 'online' ? 'on' : r.st === 'duel' ? 'busy' : ''}" aria-hidden="true"></span>
+        <span class="nm">${esc(r.pseudo)}</span>
+        <span class="st">${r.st === 'online' ? 'connecté' : r.st === 'duel' ? 'en duel' : 'hors ligne'}</span>
+        <button type="button" class="btn ${r.st === 'online' ? 'btn-primary' : ''}" data-defy="${esc(r.id)}" ${r.st === 'online' ? '' : 'disabled'}>Défier</button></li>`).join('')}</ul>`
+      : `<p class="muted" style="margin-top:14px">${rows.length ? 'Aucun pseudo ne correspond.' : 'Personne d\'autre n\'est encore inscrit.'}</p>`}`;
+  const fi = $('#plFilter');
+  if (fi) { fi.addEventListener('input', () => { filterTxt = fi.value; renderPlayers(); }); if (hadFocus) { fi.focus(); fi.setSelectionRange(fi.value.length, fi.value.length); } }
+  wrap.querySelectorAll('[data-defy]').forEach(b => b.addEventListener('click', () => invite(b.dataset.defy, map.get(b.dataset.defy))));
+}
+
+/* ---------- Invitation envoyée ---------- */
+function invite(id, pseudo) {
+  if (pending) return;
+  const match = randId();
+  pending = { id, pseudo, match, t0: Date.now() };
+  SitePresence.send('invite', id, { match, subject: 'maths' });
+  const ov = document.createElement('div');
+  ov.className = 'overlay'; ov.id = 'waitOv';
+  ov.innerHTML = `<div class="card" role="dialog" aria-modal="true" aria-labelledby="wtT"><div class="spinner"></div>
+    <h2 id="wtT">Défi envoyé à ${esc(pseudo)}</h2><p class="sub" id="wtS">En attente de sa réponse…</p>
+    <button type="button" class="btn" id="wtC" style="margin-top:16px">Annuler</button></div>`;
+  document.body.appendChild(ov);
+  $('#wtC').addEventListener('click', () => cancelInvite(true));
+  pending.timer = setInterval(() => {
+    const left = SitePresence.INVITE_MS - (Date.now() - pending.t0);
+    if (left <= 0) { cancelInvite(true); toast(`${pseudo} n'a pas répondu.`); return; }
+    const s = $('#wtS'); if (s) s.textContent = `En attente de sa réponse… ${Math.ceil(left / 1000)} s`;
+  }, 250);
+}
+function cancelInvite(notify) {
+  if (!pending) return;
+  clearInterval(pending.timer);
+  if (notify) SitePresence.send('cancel', pending.id, { match: pending.match });
+  const ov = $('#waitOv'); if (ov) ov.remove();
+  pending = null;
+}
+function onAccept(p) {
+  if (!pending || p.match !== pending.match || p.from !== pending.id) return;
+  const { match, id } = pending;
+  cancelInvite(false);
+  location.href = `?m=${encodeURIComponent(match)}&vs=${encodeURIComponent(id)}&host=1`;
+}
+function onDecline(p) {
+  if (!pending || p.match !== pending.match) return;
+  const who = pending.pseudo;
+  cancelInvite(false);
+  toast(p.busy ? `${who} est déjà en duel.` : `${who} a refusé le défi.`);
+}
+
+/* =====================================================================
+   MATCH
+   L'hôte (celui qui a lancé le défi) est l'arbitre : il tire les questions,
+   chronomètre, calcule les dégâts et envoie l'état complet à l'autre joueur.
+   ===================================================================== */
+let M = null;
+
+function startMatch() {
+  view = 'match';
+  SitePresence.setStatus('duel');
+  M = new Match(MATCH, IS_HOST ? me.id : VS, IS_HOST ? VS : me.id);
+}
+
+class Match {
+  constructor(id, hostId, guestId) {
+    this.id = id; this.hostId = hostId; this.guestId = guestId;
+    this.host = me.id === hostId;
+    this.oppId = this.host ? guestId : hostId;
+    this.key = 'duel.' + id;
+    this.sel = [];                // sélection locale non validée
+    this.sentR = 0;               // manche pour laquelle j'ai déjà envoyé ma réponse
+    this.readySent = 0;
+    this.deadline = 0;            // échéance locale de la phase en cours
+    this.oppHere = false; this.oppGoneAt = 0; this.everMet = false;
+    this.t0 = Date.now();
+    this.lastShown = '';
+    this.S = null;
+    if (this.host) {
+      const saved = ss.get(this.key);
+      this.S = saved && saved.v === 1 ? saved : this.fresh();
+      if (this.S.phase === 'question') this.S.phase = 'restart';
+      if (this.S.phase === 'over') this.finish();   // l'hôte a rechargé : on retire une question
+      this.answers = {};
+    }
+    this.ch = sb.channel('duel-' + id, { config: { presence: { key: me.id }, broadcast: { self: false } } });
+    this.ch.on('broadcast', { event: 'm' }, ({ payload }) => this.onMsg(payload || {}));
+    this.ch.on('presence', { event: 'sync' }, () => this.onPresence());
+    this.ch.subscribe(st => {
+      if (st !== 'SUBSCRIBED') return;
+      this.ch.track({ pseudo: me.pseudo });
+      if (!this.host) this.send({ t: 'hello' });
+    });
+    this.loop = setInterval(() => this.tick(), 200);
+    window.addEventListener('beforeunload', () => { if (this.host && this.S && this.S.phase !== 'over') ss.set(this.key, this.S); });
+    this.render();
+  }
+
+  fresh() {
+    const pseudo = {};
+    pseudo[me.id] = me.pseudo;
+    const o = SitePresence.online.get(this.oppId); pseudo[this.oppId] = o ? o.pseudo : 'Adversaire';
+    const hp = {}, mult = {};
+    [this.hostId, this.guestId].forEach(id => { hp[id] = RULES.hp; mult[id] = 1; });
+    return { v: 1, ver: QVER, host: this.hostId, guest: this.guestId, pseudo, hp, mult, r: 0, phase: 'wait', bag: [],
+      qid: null, theme: null, remainMs: 0, rush: null, answered: {}, ready: {}, last: null, log: [], winner: null, reason: '' };
+  }
+
+  send(p) { p.from = me.id; this.ch.send({ type: 'broadcast', event: 'm', payload: p }); }
+
+  /* ---------- Réception ---------- */
+  onMsg(p) {
+    if (p.from !== this.oppId) return;
+    if (this.host) {
+      if (p.t === 'hello') this.push();
+      else if (p.t === 'answer') this.hostAnswer(this.oppId, p.r, p.picks, p.auto);
+      else if (p.t === 'ready') this.hostReady(this.oppId, p.r);
+      else if (p.t === 'forfeit') this.hostOver(me.id, 'forfeit');
+    } else if (p.t === 'state') {
+      const S = p.S;
+      if (!S) return;
+      if (this.S && this.S.r !== S.r) { this.sel = []; }
+      const wasOver = this.S && this.S.phase === 'over';
+      this.S = S;
+      if (S.phase === 'over' && !wasOver) this.finish();
+      this.deadline = Date.now() + (S.remainMs || 0);
+      this.render();
+    }
+  }
+
+  onPresence() {
+    const st = this.ch.presenceState();
+    const here = !!st[this.oppId];
+    if (here && st[this.oppId][0] && this.S && this.host && st[this.oppId][0].pseudo) this.S.pseudo[this.oppId] = st[this.oppId][0].pseudo;
+    if (here && !this.oppHere) {
+      this.oppHere = true; this.oppGoneAt = 0; this.everMet = true;
+      if (this.host) {
+        if (this.S.phase === 'wait') setTimeout(() => { if (this.S.phase === 'wait') this.hostNext(); }, 1500);
+        else this.push();
+      }
+      this.render();
+    } else if (!here && this.oppHere) {
+      this.oppHere = false; this.oppGoneAt = Date.now();
+      this.render();
+    }
+  }
+  onLobbyPresence() {
+    if (this.host && this.S && this.S.pseudo[this.oppId] === 'Adversaire') {
+      const o = SitePresence.online.get(this.oppId); if (o) { this.S.pseudo[this.oppId] = o.pseudo; this.render(); }
+    }
+  }
+
+  /* ---------- Arbitre (hôte) ---------- */
+  push() {
+    const S = this.S;
+    S.remainMs = Math.max(0, this.deadline - Date.now());
+    ss.set(this.key, S);   // une partie finie reste affichée si l'hôte recharge
+    this.send({ t: 'state', S });
+    this.render();
+  }
+
+  hostNext() {
+    const S = this.S;
+    if (S.r >= RULES.maxRounds) { this.hostOver(S.hp[S.host] === S.hp[S.guest] ? null : (S.hp[S.host] > S.hp[S.guest] ? S.host : S.guest), 'rounds'); return; }
+    if (!S.bag.length) S.bag = QGEN.themes.slice().sort(() => Math.random() - 0.5);
+    let qid = null, theme = null;
+    while (!qid && S.bag.length) { theme = S.bag.pop(); qid = drawQuestion(theme); }
+    if (!qid) { theme = QGEN.themes[0]; qid = drawQuestion(theme); }
+    S.r++; S.phase = 'question'; S.qid = qid; S.theme = theme;
+    S.rush = null; S.answered = {}; S.ready = {};
+    this.answers = {};
+    this.sel = [];
+    this.deadline = Date.now() + RULES.qMs;
+    this.push();
+  }
+
+  hostAnswer(id, r, picks, auto) {
+    const S = this.S;
+    if (S.phase !== 'question' || r !== S.r || this.answers[id]) return;
+    if (Date.now() > this.deadline + RULES.graceMs) return;
+    this.answers[id] = { picks: Array.isArray(picks) ? picks.map(Number) : [], at: Date.now(), auto: !!auto };
+    S.answered[id] = true;
+    if (!auto && !S.rush) {
+      S.rush = id;
+      this.deadline = Math.min(this.deadline, Date.now() + RULES.rushMs);
+    }
+    if (this.answers[S.host] && this.answers[S.guest]) this.hostResolve();
+    else this.push();
+  }
+
+  hostResolve() {
+    const S = this.S, e = QGEN.entry(S.qid), good = e.q.a;
+    const ids = [S.host, S.guest], A = this.answers;
+    const ok = {}, dmg = {}, picks = {};
+    ids.forEach(id => { picks[id] = A[id] ? A[id].picks : null; ok[id] = !!(A[id] && A[id].picks.length && sameSet(A[id].picks, good)); dmg[id] = 0; });
+    // premier à avoir validé volontairement (une validation automatique en fin de temps ne compte pas)
+    const vol = ids.filter(id => A[id] && !A[id].auto).sort((x, y) => A[x].at - A[y].at);
+    const first = vol[0] || null;
+    const other = id => (id === S.host ? S.guest : S.host);
+    let gain = null, kind = 'none', pen = null;
+    if (ok[S.host] && ok[S.guest]) {
+      const fast = A[S.host].at <= A[S.guest].at ? S.host : S.guest;
+      dmg[other(fast)] = RULES.speed * S.mult[fast]; gain = fast; kind = 'both';
+    } else if (ok[S.host] || ok[S.guest]) {
+      const w = ok[S.host] ? S.host : S.guest;
+      dmg[other(w)] = RULES.hit * S.mult[w]; gain = w; kind = 'hit';
+    }
+    if (first && !ok[first]) { dmg[first] += RULES.rushPen; pen = first; }
+    ids.forEach(id => { dmg[id] = Math.round(dmg[id]); S.hp[id] = Math.max(0, S.hp[id] - dmg[id]); });
+    const multBefore = Object.assign({}, S.mult);
+    if (gain) S.mult[gain] += RULES.multStep;
+    S.last = { r: S.r, qid: S.qid, theme: S.theme, picks, ok, dmg, first, gain, pen, kind, multBefore };
+    S.log.push({ r: S.r, theme: S.theme, ok, dmg });
+    S.ready = {};
+    const dead = ids.filter(id => S.hp[id] <= 0);
+    if (dead.length) { this.hostOver(other(dead[0]), 'ko'); return; }
+    if (S.r >= RULES.maxRounds) { this.hostOver(S.hp[S.host] === S.hp[S.guest] ? null : (S.hp[S.host] > S.hp[S.guest] ? S.host : S.guest), 'rounds'); return; }
+    S.phase = 'reveal';
+    this.deadline = Date.now() + RULES.revealMs;
+    this.push();
+  }
+
+  hostReady(id, r) {
+    const S = this.S;
+    if (S.phase !== 'reveal' || r !== S.r) return;
+    S.ready[id] = true;
+    if (S.ready[S.host] && S.ready[S.guest]) this.hostNext(); else this.push();
+  }
+
+  hostOver(winner, reason) {
+    const S = this.S;
+    if (S.phase === 'over') return;
+    S.phase = 'over'; S.winner = winner; S.reason = reason;
+    this.deadline = Date.now();
+    this.push();
+    this.finish();
+  }
+
+  /* ---------- Horloge ---------- */
+  tick() {
+    const S = this.S, now = Date.now();
+    if (!S) {
+      if (!this.host && now - this.t0 > RULES.joinMs && !this.everMet) this.localOver('noshow');
+      this.updateClock(); return;
+    }
+    if (S.phase === 'over') return;
+    // forfait si l'adversaire a disparu trop longtemps (ou n'est jamais venu)
+    if (!this.oppHere) {
+      const since = this.oppGoneAt || this.t0;
+      const lim = this.everMet ? RULES.absentMs : RULES.joinMs;
+      if (now - since > lim) {
+        if (this.host) this.hostOver(me.id, this.everMet ? 'forfeit' : 'noshow');
+        else this.localOver(this.everMet ? 'forfeit' : 'noshow');
+        return;
+      }
+    }
+    if (S.phase === 'question') {
+      // validation automatique de la sélection en cours quand le temps est écoulé
+      if (now >= this.deadline && this.sentR !== S.r && !S.answered[me.id]) this.submit(true);
+      if (this.host && now > this.deadline + RULES.graceMs) this.hostResolve();
+    } else if (S.phase === 'reveal') {
+      if (this.host && now > this.deadline) this.hostNext();
+    } else if (S.phase === 'restart' && this.host && this.oppHere) {
+      this.hostNext();
+    }
+    this.updateClock();
+  }
+
+  localOver(reason) {
+    if (!this.S) this.S = { phase: 'over', winner: reason === 'noshow' ? null : me.id, reason, hp: {}, mult: {}, pseudo: {}, log: [], host: this.hostId, guest: this.guestId };
+    else { this.S.phase = 'over'; this.S.winner = me.id; this.S.reason = reason; }
+    this.render(); this.finish();
+  }
+
+  finish() {
+    SitePresence.setStatus('online');
+  }
+
+  /* ---------- Actions du joueur ---------- */
+  toggle(i) {
+    const S = this.S, e = QGEN.entry(S.qid);
+    if (S.phase !== 'question' || this.sentR === S.r || S.answered[me.id]) return;
+    if (e.q.multi) this.sel = this.sel.includes(i) ? this.sel.filter(x => x !== i) : this.sel.concat(i);
+    else this.sel = [i];
+    this.render();
+  }
+  submit(auto) {
+    const S = this.S;
+    if (S.phase !== 'question' || this.sentR === S.r) return;
+    if (!auto && !this.sel.length) return;
+    this.sentR = S.r;
+    const picks = this.sel.slice();
+    if (this.host) this.hostAnswer(me.id, S.r, picks, auto);
+    else { this.send({ t: 'answer', r: S.r, picks, auto: !!auto }); this.render(); }
+  }
+  ready() {
+    const S = this.S;
+    if (S.phase !== 'reveal' || this.readySent === S.r) return;
+    this.readySent = S.r;
+    if (this.host) this.hostReady(me.id, S.r); else { this.send({ t: 'ready', r: S.r }); this.render(); }
+  }
+  forfeit() {
+    if (!confirm('Abandonner le duel ? Ton adversaire gagne.')) return;
+    if (this.host) this.hostOver(this.oppId, 'forfeit');
+    else { this.send({ t: 'forfeit' }); this.S = this.S || this.fresh(); this.S.phase = 'over'; this.S.winner = this.oppId; this.S.reason = 'forfeit'; this.render(); this.finish(); }
+  }
+
+  /* ---------- Affichage ---------- */
+  updateClock() {
+    const S = this.S, el = $('#clk'), bar = $('#tbarI');
+    if (!S || !el) return;
+    const left = Math.max(0, this.deadline - Date.now());
+    if (S.phase === 'question') {
+      const rushed = !!S.rush, total = rushed ? RULES.rushMs : RULES.qMs;
+      el.textContent = fmtTime(left);
+      el.classList.toggle('rush', rushed); el.classList.remove('soft');
+      if (bar) { bar.style.width = Math.min(100, left / total * 100) + '%'; bar.classList.toggle('rush', rushed); }
+    } else if (S.phase === 'reveal') {
+      el.textContent = 'Manche suivante dans ' + Math.ceil(left / 1000) + ' s'; el.classList.add('soft');
+    }
+    const ab = $('#absent');
+    if (ab) {
+      if (!this.oppHere && this.everMet && S.phase !== 'over') {
+        ab.hidden = false;
+        ab.textContent = `${S.pseudo[this.oppId] || 'Ton adversaire'} est déconnecté… victoire par forfait dans ${Math.max(0, Math.ceil((RULES.absentMs - (Date.now() - this.oppGoneAt)) / 1000))} s`;
+      } else ab.hidden = true;
+    }
+  }
+
+  hud() {
+    const S = this.S, L = me.id, R = this.oppId;
+    const side = (id, right) => {
+      const hp = S.hp[id] == null ? RULES.hp : S.hp[id], pct = Math.max(0, hp) / RULES.hp * 100, m = S.mult[id] || 1;
+      const cls = pct <= 25 ? 'low' : pct <= 55 ? 'mid' : '';
+      const d = S.phase !== 'question' && S.last && S.last.dmg && S.last.dmg[id] ? S.last.dmg[id] : 0;
+      return `<div class="pl ${right ? 'right' : ''}" id="pl-${id === L ? 'me' : 'opp'}">
+        <div class="who">${right ? `<span class="mult ${m >= 2 ? 'hot' : ''}" title="Multiplicateur de dégâts">${fmtMult(m)}</span>` : ''}<span class="n">${esc(id === L ? me.pseudo + ' (toi)' : S.pseudo[id] || 'Adversaire')}</span>${right ? '' : `<span class="mult ${m >= 2 ? 'hot' : ''}" title="Multiplicateur de dégâts">${fmtMult(m)}</span>`}</div>
+        <div class="bar"><i class="${cls}" style="width:${pct}%"></i>${d ? `<span class="hit" data-hit="${S.r}-${id}">−${d}</span>` : ''}</div>
+        <div class="hpn">${hp} PV</div></div>`;
+    };
+    return `<div class="hud">${side(L, false)}<div class="vs">Manche<b>${S.r || '–'}</b></div>${side(R, true)}</div>`;
+  }
+
+  render() {
+    const S = this.S;
+    if (!S || S.phase === 'wait' || S.phase === 'restart') {
+      const opp = (S && S.pseudo && S.pseudo[this.oppId]) || (SitePresence.online.get(this.oppId) || {}).pseudo || 'ton adversaire';
+      app.innerHTML = `<div class="card center" style="padding:40px 22px"><div class="spinner"></div>
+        <h2>${this.oppHere ? 'La partie commence…' : `En attente de ${esc(opp)}…`}</h2>
+        <p class="sub">${this.oppHere ? 'Préparez vos brouillons.' : 'Le duel démarre dès que vous êtes connectés tous les deux.'}</p>
+        <button type="button" class="btn" id="quitWait" style="margin-top:18px">Quitter</button></div>`;
+      $('#quitWait').onclick = () => { ss.del(this.key); location.href = './'; };
+      return;
+    }
+    if (S.ver && QVER && S.ver !== QVER && !this.verWarned) { this.verWarned = true; toast('Vos versions du site diffèrent : rechargez la page tous les deux.'); }
+    if (S.phase === 'over') { this.renderEnd(); return; }
+    const e = QGEN.entry(S.qid);
+    if (!e) { app.innerHTML = '<div class="card"><h2>Question introuvable</h2><p class="sub">Vos versions du site diffèrent sans doute : rechargez la page tous les deux.</p></div>'; return; }
+    const q = e.q, multi = !!q.multi;
+    const reveal = S.phase === 'reveal';
+    const myDone = S.answered[me.id] || this.sentR === S.r;
+    const oppDone = S.answered[this.oppId];
+    const oppName = esc(S.pseudo[this.oppId] || 'Adversaire');
+    const L = S.last && S.last.r === S.r ? S.last : null;
+    const myPicks = reveal && L ? L.picks[me.id] || [] : this.sel;
+    const oppPicks = reveal && L ? L.picks[this.oppId] || [] : [];
+
+    let status = '';
+    if (!reveal) {
+      status = oppDone ? `<span class="chip ${myDone ? 'done' : 'rush'}">${oppName} a répondu !</span>` : `<span class="chip">${oppName} réfléchit…</span>`;
+    }
+    const choices = q.c.map((c, i) => {
+      let cls = 'ch' + (multi ? ' multi' : '');
+      if (reveal) {
+        if (q.a.includes(i)) cls += ' good';
+        else if (myPicks.includes(i)) cls += ' wrongpick';
+      }
+      const tags = reveal ? (myPicks.includes(i) ? '<span class="tag">toi</span>' : '') + (oppPicks.includes(i) ? `<span class="tag opp">${oppName}</span>` : '') : '';
+      return `<button type="button" class="${cls}" data-i="${i}" aria-pressed="${!reveal && myPicks.includes(i)}" ${reveal || myDone ? 'disabled' : ''}>
+        <span class="lt">${LET[i]}</span><span class="tx">${c}</span>${tags ? `<span class="tags">${tags}</span>` : ''}</button>`;
+    }).join('');
+
+    let foot = '';
+    if (!reveal) {
+      foot = myDone
+        ? `<span class="waiting">${oppDone ? 'Correction…' : `Réponse envoyée. En attente de ${oppName}…`}</span><span></span>`
+        : `<button type="button" class="btn" id="ffBtn">Abandonner</button><button type="button" class="btn btn-primary btn-lg" id="okBtn" ${this.sel.length ? '' : 'disabled'}>Valider${multi && this.sel.length ? ` (${this.sel.length})` : ''}</button>`;
+    } else {
+      const iReady = S.ready[me.id] || this.readySent === S.r;
+      foot = `<span class="muted">${S.ready[this.oppId] ? `${oppName} est prêt.` : ''}</span>
+        <button type="button" class="btn btn-primary btn-lg" id="rdBtn" ${iReady ? 'disabled' : ''}>${iReady ? 'En attente…' : 'Prêt'}</button>`;
+    }
+
+    app.innerHTML = `
+      ${this.hud()}
+      <p class="banner" id="absent" hidden></p>
+      <div class="roundbar"><span class="chip">${esc(themeName(S.theme))}</span>${status}<span class="timer" id="clk"></span></div>
+      ${!reveal ? '<div class="tbar"><i id="tbarI"></i></div>' : ''}
+      ${reveal && L ? this.verdict(L) : ''}
+      <section class="card qcard">
+        ${e.ctxText ? `<div class="qctx">${e.ctxText}</div>` : ''}
+        <div class="qtext">${q.q || ''}</div>
+        ${multi ? '<span class="multi-hint">♣ Plusieurs bonnes réponses possibles : coche-les toutes.</span>' : ''}
+        <div class="choices">${choices}</div>
+        <div class="actions">${foot}</div>
+        ${reveal && q.e ? `<details class="corr" open><summary>Correction</summary><div class="body">${q.e}</div></details>` : ''}
+      </section>`;
+    typeset(app);
+    app.querySelectorAll('.ch[data-i]').forEach(b => b.addEventListener('click', () => this.toggle(+b.dataset.i)));
+    const ok = $('#okBtn'); if (ok) ok.onclick = () => this.submit(false);
+    const ff = $('#ffBtn'); if (ff) ff.onclick = () => this.forfeit();
+    const rd = $('#rdBtn'); if (rd) rd.onclick = () => this.ready();
+    this.animateHits();
+    this.updateClock();
+  }
+
+  verdict(L) {
+    const S = this.S, mid = me.id, oid = this.oppId, opp = esc(S.pseudo[oid] || 'Adversaire');
+    const iOk = L.ok[mid], oOk = L.ok[oid], dMe = L.dmg[mid], dOpp = L.dmg[oid];
+    let title, cls = '';
+    if (iOk && !oOk) { title = `Touché ! Tu as juste, pas ${opp}.`; cls = 'win'; }
+    else if (!iOk && oOk) { title = `Aïe : ${opp} a juste, pas toi.`; cls = 'lose'; }
+    else if (iOk && oOk) { title = L.gain === mid ? 'Les deux justes, tu as été le plus rapide.' : `Les deux justes, ${opp} a été plus rapide.`; cls = L.gain === mid ? 'win' : 'lose'; }
+    else { title = L.picks[mid] && L.picks[mid].length ? 'Les deux faux.' : 'Personne n\'a trouvé.'; }
+    const lines = [];
+    if (dOpp) lines.push(`Tu infliges <b>${dOpp}</b> dégâts${L.pen === oid ? ` (dont ${RULES.rushPen} de pénalité : ${opp} a validé en premier)` : ''}.`);
+    if (dMe) lines.push(`Tu prends <b>${dMe}</b> dégâts${L.pen === mid ? ` (dont ${RULES.rushPen} de pénalité : tu as validé en premier)` : ''}.`);
+    if (L.gain) lines.push(`${L.gain === mid ? 'Ton' : 'Son'} multiplicateur passe de ${fmtMult(L.multBefore[L.gain])} à <b>${fmtMult(S.mult[L.gain])}</b>.`);
+    if (!lines.length) lines.push('Aucun dégât cette manche.');
+    return `<div class="verdict ${cls}" role="status"><h3>${title}</h3><p>${lines.join(' ')}</p></div>`;
+  }
+
+  animateHits() {
+    app.querySelectorAll('.hit[data-hit]').forEach(h => {
+      const k = h.dataset.hit;
+      if ((this.shown = this.shown || new Set()).has(k)) { h.remove(); return; }
+      this.shown.add(k);
+      const pl = h.closest('.pl'); if (pl) { pl.classList.remove('shake'); void pl.offsetWidth; pl.classList.add('shake'); }
+      setTimeout(() => h.remove(), 1700);
+    });
+  }
+
+  renderEnd() {
+    const S = this.S, win = S.winner === me.id, draw = !S.winner;
+    const opp = esc((S.pseudo && S.pseudo[this.oppId]) || (SitePresence.online.get(this.oppId) || {}).pseudo || 'Ton adversaire');
+    const why = {
+      ko: win ? `${opp} n'a plus de PV.` : 'Tu n\'as plus de PV.',
+      forfeit: win ? `${opp} a abandonné ou s'est déconnecté.` : 'Tu as abandonné.',
+      noshow: `${opp} n'a pas rejoint le duel.`,
+      rounds: `Limite de ${RULES.maxRounds} manches atteinte : ${draw ? 'égalité de PV' : 'le plus de PV l\'emporte'}.`
+    }[S.reason] || '';
+    const log = (S.log || []).map(l => {
+      const a = l.ok[me.id], b = l.ok[this.oppId], dm = l.dmg[me.id], dO = l.dmg[this.oppId];
+      return `<li><span class="r">M${l.r}</span><span class="th">${esc(themeName(l.theme))}</span>
+        <span><span class="${a ? 'ok' : 'ko'}">${a ? '✓' : '✗'}</span> toi · <span class="${b ? 'ok' : 'ko'}">${b ? '✓' : '✗'}</span> ${opp}</span>
+        <span class="d">${dO ? `<span class="ok">${opp} −${dO}</span>` : ''}${dm ? ` <span class="ko">toi −${dm}</span>` : ''}${!dm && !dO ? '<span class="muted">—</span>' : ''}</span></li>`;
+    }).join('');
+    const noshow = S.reason === 'noshow';
+    app.innerHTML = `
+      ${S.log && S.log.length ? this.hud() : ''}
+      <section class="card end">
+        <p class="eyebrow">${noshow ? 'Duel annulé' : 'Fin du duel'}</p>
+        <div class="big ${noshow || draw ? '' : win ? 'win' : 'lose'}">${noshow ? 'Personne en face' : draw ? 'Égalité' : win ? 'Victoire !' : 'Défaite'}</div>
+        <p class="lede" style="margin:12px auto 0">${why}</p>
+        <div class="row">
+          <button type="button" class="btn btn-primary btn-lg" id="rematch">Revanche</button>
+          <a class="btn btn-lg" href="./">Retour aux joueurs</a>
+        </div>
+        ${log ? `<ul class="log">${log}</ul>` : ''}
+      </section>`;
+    $('#rematch').onclick = () => {
+      const o = SitePresence.online.get(this.oppId);
+      if (!o || o.status !== 'online') { toast(`${(S.pseudo && S.pseudo[this.oppId]) || 'Ton adversaire'} n'est pas disponible.`); return; }
+      invite(this.oppId, o.pseudo);
+    };
+  }
+}
+
+// Les scripts « defer » (supabase-js, presence.js) sont prêts au DOMContentLoaded
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+</body>
+</html>

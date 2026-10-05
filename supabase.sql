@@ -211,3 +211,14 @@ create policy group_tests_insert on public.group_tests for insert to authenticat
   with check (public.is_member(group_id) and created_by = auth.uid());
 drop policy if exists group_tests_delete on public.group_tests;
 create policy group_tests_delete on public.group_tests for delete to authenticated using (created_by = auth.uid());
+
+-- ---------- 1v1 : liste des joueurs inscrits ----------
+-- Le 1v1 propose d'affronter n'importe quel inscrit : seuls l'identifiant et le pseudo sont exposés
+-- (aux comptes connectés uniquement). Le temps réel (présence, invitations, parties) passe par
+-- les canaux Realtime de Supabase, sans table.
+create or replace function public.list_players() returns table (id uuid, pseudo text)
+language sql stable security definer set search_path = public as $$
+  select p.id, p.pseudo from profiles p where auth.uid() is not null order by lower(p.pseudo);
+$$;
+revoke all on function public.list_players() from public, anon;
+grant execute on function public.list_players() to authenticated;

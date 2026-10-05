@@ -11,7 +11,7 @@ Le site regroupe plusieurs outils de révision :
 | `supabase.sql` | la base de données et ses règles de sécurité (étape 2) |
 | `README.md` | ce guide |
 
-Adresses une fois en ligne : `…/MathPrac/` (accueil), `…/MathPrac/maths/` et `…/MathPrac/elec/`.
+Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/` et `…/Prepa01/elec/`.
 
 La partie élec n'utilise pas Supabase : la progression (stats, copies, planning) reste dans le navigateur de chaque appareil.
 
@@ -86,8 +86,8 @@ Dans le dépôt GitHub (*Add file → Upload files*), glisse le ou les fichiers 
 Le QCM était à la racine du dépôt ; il est maintenant dans `maths/`. Pour migrer :
 
 1. Envoie le nouveau `index.html` (l'accueil), puis les dossiers `maths` et `elec` entiers. GitHub crée les dossiers automatiquement.
-2. Supabase → **Authentication → URL Configuration** → *Site URL* : ajoute `maths/` à la fin de l'adresse (ex. `https://TON-PSEUDO.github.io/MathPrac/maths/`).
-3. Les comptes, groupes et la progression enregistrée dans le navigateur sont conservés, car le site reste sur le même domaine. L'ancien lien `…/MathPrac/` mène maintenant à l'accueil, d'où on clique sur « QCM de maths ».
+2. Supabase → **Authentication → URL Configuration** → *Site URL* : ajoute `maths/` à la fin de l'adresse (ex. `https://sushiazd.github.io/Prepa01/maths/`).
+3. Les comptes, groupes et la progression enregistrée dans le navigateur sont conservés, car le site reste sur le même domaine. Le dépôt s'appelle maintenant `Prepa01` : l'ancien lien `…/MathPrac/` ne fonctionne plus (GitHub ne redirige pas les sites Pages après un renommage), il faut partager `…/Prepa01/`.
 
 ## Limites connues
 

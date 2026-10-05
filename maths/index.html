@@ -1234,7 +1234,68 @@ const THEMES = [
       R`Tirage sans remise : le dénominateur diminue à chaque tirage.`] }],
   formulas: [R`\(\mathbb P(X=k)=\dbinom nkp^k(1-p)^{n-k}\)`, R`\(\dbinom nk=\dfrac{n!}{k!(n-k)!}\)`],
   pitfalls: [R`\(\mathbb P(X=0)=0{,}8^{10}\), pas \(0{,}8^{11}\).`, R`\(\binom n0=1\), pas \(n\).`, R`Additionner deux événements qui se chevauchent (\(\{X\leqslant8\}\) et \(\{X\geqslant8\}\)).`],
-  check: R`Additionner toutes les probabilités : la somme vaut 1 (formule du binôme).` }
+  check: R`Additionner toutes les probabilités : la somme vaut 1 (formule du binôme).` },
+{ id: 'espace', name: 'Géométrie dans l\'espace : vecteurs, droites et plans', short: 'Espace',
+  kw: 'espace vecteur droite plan représentation paramétrique équation cartésienne vecteur normal projeté orthogonal distance coplanaire base produit scalaire',
+  recognize: R`« Une équation du plan passant par \(A\) de vecteur normal \(\vec n\)… », « une représentation paramétrique de \((AB)\)… », « le projeté orthogonal de \(M\) sur \(\mathcal P\)… ».`,
+  methods: [
+    { t: 'Équation cartésienne d\'un plan', w: R`Plan donné par un point \(A\) et un vecteur normal \(\vec n\,(a\,;b\,;c)\).`, s: [
+      R`L'équation est \(ax+by+cz+d=0\) : les coefficients de \(x,y,z\) sont les coordonnées de \(\vec n\).`,
+      R`On trouve \(d\) en remplaçant par les coordonnées de \(A\).`,
+      R`Inversement, dans \(ax+by+cz+d=0\), le vecteur \((a\,;b\,;c)\) est normal au plan.`] },
+    { t: 'Représentation paramétrique d\'une droite', w: R`Droite \((AB)\), ou passant par \(A\) et dirigée par \(\vec u\).`, s: [
+      R`\(\left\{x=x_A+t\,u_x\,;\ y=y_A+t\,u_y\,;\ z=z_A+t\,u_z\right.\), \(t\in\mathbb R\), avec \(\vec u=\overrightarrow{AB}\).`,
+      R`Elle n'est pas unique : n'importe quel point de la droite et n'importe quel vecteur colinéaire à \(\vec u\) conviennent.`] },
+    { t: 'Intersection droite–plan, position relative', w: 'Droite paramétrée et plan donné par une équation.', s: [
+      R`On remplace \(x,y,z\) par leurs expressions en \(t\) dans l'équation du plan, on trouve \(t\), puis le point.`,
+      R`Si \(\vec u\cdot\vec n=0\), la droite est parallèle au plan : incluse si un de ses points est dans le plan, sinon strictement parallèle.`] },
+    { t: 'Projeté orthogonal et distance', w: R`Distance d'un point \(M\) à un plan.`, s: [
+      R`On écrit la droite passant par \(M\) dirigée par \(\vec n\), on la coupe avec le plan : c'est le projeté \(H\).`,
+      R`La distance de \(M\) au plan est \(MH\) (c'est la plus petite distance entre \(M\) et un point du plan).`] },
+    { t: 'Orthogonalité, colinéarité, coplanarité', w: 'Vecteurs donnés par leurs coordonnées.', s: [
+      R`\(\vec u\cdot\vec v=xx'+yy'+zz'\), \(\|\vec u\|=\sqrt{x^2+y^2+z^2}\) ; orthogonaux \(\iff\vec u\cdot\vec v=0\).`,
+      R`Colinéaires : coordonnées proportionnelles. Coplanaires : \(\vec w=a\vec u+b\vec v\) a une solution \((a\,;b)\). Sinon, \((\vec u,\vec v,\vec w)\) est une base.`] }],
+  formulas: [R`\(ax+by+cz+d=0\), \(\vec n\,(a\,;b\,;c)\)`, R`\(\vec u\cdot\vec v=xx'+yy'+zz'\)`],
+  pitfalls: [R`Prendre le vecteur normal pour un vecteur directeur (ou l'inverse).`, R`Oublier qu'une même droite a plusieurs représentations paramétriques.`, R`Donner \(\|\vec u\|^2\) au lieu de \(\|\vec u\|\).`],
+  check: R`Vérifier que le point trouvé est bien sur la droite <strong>et</strong> dans le plan.` },
+{ id: 'trigo', name: 'Fonctions sinus et cosinus', short: 'Sinus & cosinus',
+  kw: 'sinus cosinus trigonométrie cercle trigonométrique pi parité périodicité équation inéquation dérivée',
+  recognize: R`« Que vaut \(\cos\left(\frac{5\pi}6\right)\) ? », « solutions de \(\sin x=\frac12\) dans \(]-\pi\,;\pi]\) », « maximum de \(x+2\cos x\) sur \([0\,;\pi]\) ».`,
+  methods: [
+    { t: 'Valeurs remarquables', w: R`Angles multiples de \(\frac\pi6\), \(\frac\pi4\), \(\frac\pi3\).`, s: [
+      R`\(\cos\frac\pi6=\frac{\sqrt3}2\), \(\cos\frac\pi4=\frac{\sqrt2}2\), \(\cos\frac\pi3=\frac12\) ; pour \(\sin\), on échange \(\frac\pi6\) et \(\frac\pi3\).`,
+      R`On place l'angle sur le cercle trigonométrique, on se ramène à un angle de référence par symétrie, le quadrant donne le signe.`] },
+    { t: R`Équations \(\cos x=a\) et \(\sin x=a\)`, w: R`Solutions dans \(]-\pi\,;\pi]\).`, s: [
+      R`\(\cos x=\cos\alpha\iff x=\alpha\) ou \(x=-\alpha\) (à \(2\pi\) près).`,
+      R`\(\sin x=\sin\alpha\iff x=\alpha\) ou \(x=\pi-\alpha\) (à \(2\pi\) près), puis on ramène dans l'intervalle demandé.`] },
+    { t: R`Inéquations \(\cos x\geqslant a\)`, w: R`Sur \([-\pi\,;\pi]\).`, s: [
+      R`\(\cos x\) est l'abscisse du point du cercle : \(\cos x\geqslant\cos\alpha\iff-\alpha\leqslant x\leqslant\alpha\) (pour \(\alpha\in[0\,;\pi]\)).`] },
+    { t: 'Étude d\'une fonction trigonométrique', w: R`Variations, extremum sur un intervalle.`, s: [
+      R`\(\sin'=\cos\), \(\cos'=-\sin\), \((\cos(ax+b))'=-a\sin(ax+b)\).`,
+      R`Signe de \(f'\) avec le cercle, puis on compare les valeurs aux points critiques et aux bornes.`] }],
+  formulas: [R`\(\cos^2x+\sin^2x=1\)`, R`\(\cos(-x)=\cos x\), \(\sin(-x)=-\sin x\)`, R`\(\sin'=\cos\), \(\cos'=-\sin\)`],
+  pitfalls: [R`Oublier la deuxième solution de \(\cos x=a\) ou \(\sin x=a\).`, R`\(\cos'=\sin\) : faux, c'est \(-\sin\).`, R`Croire que \(\cos\) est \(\pi\)-périodique.`],
+  check: R`Remplacer la solution trouvée dans l'équation (valeur exacte sur le cercle).` },
+{ id: 'recurrence', name: 'Raisonnement par récurrence', short: 'Récurrence',
+  kw: 'récurrence initialisation hérédité suite formule somme encadrement démonstration',
+  recognize: R`« On peut démontrer par récurrence que \(u_n=\dots\) », « la somme \(1+2+\dots+n\) vaut… », « pour tout \(n\), \(0\leqslant u_n\leqslant 2\) ».`,
+  methods: [
+    { t: 'Structure d\'une récurrence', w: R`Démontrer une propriété \(\mathcal P(n)\) pour tout \(n\geqslant n_0\).`, s: [
+      R`<strong>Initialisation</strong> : vérifier \(\mathcal P(n_0)\).`,
+      R`<strong>Hérédité</strong> : on suppose \(\mathcal P(n)\) vraie pour un \(n\geqslant n_0\) fixé, et on démontre \(\mathcal P(n+1)\).`,
+      R`<strong>Conclusion</strong> : \(\mathcal P(n)\) est vraie pour tout \(n\geqslant n_0\).`] },
+    { t: 'Formule explicite d\'une suite', w: R`\(u_{n+1}=f(u_n)\) et une formule à prouver.`, s: [
+      R`Calculer \(u_0,u_1,u_2\) élimine vite les formules fausses.`,
+      R`Hérédité : \(u_{n+1}=f(u_n)\), on remplace \(u_n\) par la formule et on simplifie jusqu'à obtenir la formule au rang \(n+1\).`] },
+    { t: 'Formule de somme', w: R`\(S_n=\sum_{k=1}^n\dots\)`, s: [
+      R`Hérédité : \(S_{n+1}=S_n+\text{(terme de rang }n+1)\), puis factoriser.`,
+      R`\(\sum k=\frac{n(n+1)}2\), \(\sum(2k-1)=n^2\), \(\sum k^2=\frac{n(n+1)(2n+1)}6\), \(\sum_{k=0}^n2^k=2^{n+1}-1\).`] },
+    { t: 'Encadrement, sens de variation', w: R`\(u_{n+1}=f(u_n)\) avec \(f\) croissante.`, s: [
+      R`Si \(a\leqslant u_n\leqslant b\), on applique \(f\) (croissante) : \(f(a)\leqslant u_{n+1}\leqslant f(b)\).`,
+      R`Pour la monotonie, on démontre \(u_n\leqslant u_{n+1}\) en appliquant \(f\) à cette inégalité.`] }],
+  formulas: [R`\(\displaystyle\sum_{k=1}^nk=\frac{n(n+1)}2\)`, R`\(\displaystyle\sum_{k=0}^nq^k=\frac{q^{n+1}-1}{q-1}\)`],
+  pitfalls: [R`Supposer la propriété vraie « pour tout \(n\) » dans l'hérédité.`, R`Oublier l'initialisation.`, R`Croire que quelques exemples suffisent.`],
+  check: R`Tester la formule obtenue pour \(n=0\), \(1\) et \(2\).` }
 ];
 
 /* ===== Lecture d'un contrôle corrigé (PDF) : notes rouges + texte du sujet ===== */
@@ -5722,6 +5783,333 @@ def('bin_seuil', 'binomiale', 2, g => {
     d: R`« Au moins un succès » : passer par l'événement contraire \(\{X=0\}\), de probabilité \((1-p)^n\).`,
     _: { chk: () => (1 - (1 - p) ** n >= 1 - al && 1 - (1 - p) ** (n - 1) < 1 - al) || 'faux' }
   }, mcqv(g, [String(n), n], g.shuffle([n - 1, n + 1, Math.ceil(Math.log(al) / Math.log(p)), Math.round((1 - al) / p)]).map(v => [String(v), v])));
+});
+
+/* =====================================================================
+   NOUVEAUX THÈMES DE TERMINALE : espace, sinus et cosinus, récurrence
+   ===================================================================== */
+/* ---------- Géométrie dans l'espace ---------- */
+const v3 = { add: (u, v) => u.map((x, i) => x + v[i]), sub: (u, v) => u.map((x, i) => x - v[i]), sc: (u, k) => u.map(x => x * k + 0), dot: (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2],
+  cross: (u, v) => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], det: (u, v, w) => v3.dot(u, v3.cross(v, w)) };
+const P3 = p => R`(${p.map(x => fx(x, true)).join(R`\,;`)})`;
+const V3 = (n, u) => R`\vec ${n}\,${P3(u)}`;
+const rndPt = g => [g.int(-4, 4), g.int(-4, 4), g.int(-4, 4)];
+const rndVec = g => { let u; do u = [g.int(-3, 3), g.int(-3, 3), g.int(-3, 3)]; while (!u[0] && !u[1] && !u[2]); return u; };
+const normP = (a, b, c, d) => { const k = gcd(gcd(gcd(a, b), c), d) || 1, s = (a || b || c) < 0 ? -1 : 1; return [a, b, c, d].map(x => (s * x) / k + 0).join(); };
+const eqP = (n, d) => [R`${sum([[n[0], 'x'], [n[1], 'y'], [n[2], 'z'], [d, '']])}=0`, normP(n[0], n[1], n[2], d)];
+const paramT = (P, u, t = 't') => R`\left\{\begin{array}{l}x=${sum([[P[0], ''], [u[0], t]])}\\y=${sum([[P[1], ''], [u[1], t]])}\\z=${sum([[P[2], ''], [u[2], t]])}\end{array}\right.\ (${t}\in\mathbb R)`;
+const NICE_N = [[1, 2, 2], [2, 1, 2], [2, 2, 1], [0, 3, 4], [3, 0, 4], [4, 3, 0], [2, 3, 6], [6, 2, 3], [1, 4, 8], [1, 0, 0], [0, 1, 0], [0, 0, 1]];
+
+def('esp_plane_eq', 'espace', 2, g => {
+  const A = rndPt(g), n = rndVec(g);
+  const d = -v3.dot(n, A);
+  const good = eqP(n, d);
+  const perm = [n[1], n[2], n[0]];
+  const bads = g.shuffle([eqP(n, -d), eqP(n, 0), eqP(perm, -v3.dot(perm, A)), A.some(Boolean) ? eqP(A, -v3.dot(A, n)) : null]).filter(Boolean).concat([eqP(n, d + 1)]);
+  return Object.assign({
+    q: R`Dans un repère orthonormé de l'espace, une équation cartésienne du plan \(\mathcal P\) passant par \(A${P3(A)}\) et de vecteur normal \(${V3('n', n)}\) est :`,
+    e: R`Un plan de vecteur normal \(\vec n\,(a\,;b\,;c)\) a une équation \(ax+by+cz+d=0\) : ici \(${sum([[n[0], 'x'], [n[1], 'y'], [n[2], 'z']])}+d=0\).<br>` +
+      R`\(A\in\mathcal P\) : \(${sum([[n[0], par(A[0])], [n[1], par(A[1])], [n[2], par(A[2])]])}+d=0\), donc \(d=${d}\) : \(${good[0]}\).`,
+    d: R`Les coefficients de \(x\), \(y\), \(z\) sont les coordonnées du vecteur normal ; on trouve \(d\) en écrivant que \(A\) est dans le plan.`,
+    _: { chk: () => (v3.dot(n, A) + d === 0) || 'faux' }
+  }, mcqv(g, good, bads));
+});
+
+def('esp_param', 'espace', 2, g => {
+  const A = rndPt(g), u = rndVec(g), B = v3.add(A, u);
+  const onLine = (P, w) => v3.cross(w, u).every(x => x === 0) && v3.cross(v3.sub(P, A), u).every(x => x === 0) && w.some(Boolean);
+  const C = (P, w) => [paramT(P, w), onLine(P, w) ? 'ok' : P.join() + '|' + w.join()];
+  const goodP = g.pick([[A, u], [B, u], [A, v3.sc(u, -1)], [B, v3.sc(u, 2)]]);
+  const good = C(...goodP);
+  const flip = u.slice(); const i = u.findIndex(x => x); flip[i] = -flip[i];
+  const off = v3.add(A, [u[1] ? 1 : 0, u[1] ? 0 : 1, 1]);
+  const bads = g.shuffle([C(A, flip), C(off, u), C(u, A), C(A, B)]).concat([C(B, v3.add(u, [1, 0, 0]))]);
+  return Object.assign({
+    q: R`Dans un repère de l'espace, on considère les points \(A${P3(A)}\) et \(B${P3(B)}\). Une représentation paramétrique de la droite \((AB)\) est :`,
+    e: R`\(\overrightarrow{AB}${P3(u)}\) dirige \((AB)\). Une représentation paramétrique s'écrit avec <strong>un point de la droite</strong> et <strong>un vecteur directeur</strong> (n'importe quel vecteur colinéaire à \(\overrightarrow{AB}\)).<br>` +
+      R`La bonne réponse utilise le point \(${P3(goodP[0])}\) et le vecteur \(${P3(goodP[1])}\) : le point est sur \((AB)\) et le vecteur est colinéaire à \(\overrightarrow{AB}\).`,
+    d: R`Pour vérifier : le vecteur (coefficients de \(t\)) doit être colinéaire à \(\overrightarrow{AB}\), et le point (pour \(t=0\)) doit être sur la droite.`,
+    _: { chk: () => (onLine(...goodP)) || 'faux' }
+  }, mcqv(g, good, bads));
+});
+
+def('esp_inter', 'espace', 2, g => {
+  const P = rndPt(g), u = rndVec(g), t0 = g.nz(-3, 3), n = rndVec(g);
+  need(v3.dot(n, u) !== 0);
+  const I = v3.add(P, v3.sc(u, t0)), d = -v3.dot(n, I);
+  need(I.every(x => Math.abs(x) <= 12));
+  const T = p => [R`${P3(p)}`, p.join()];
+  const bads = g.shuffle([T(v3.add(P, v3.sc(u, -t0))), T(v3.add(P, v3.sc(u, t0 + 1))), T([I[1], I[0], I[2]]), T(v3.sc(u, t0))]);
+  const nu = v3.dot(n, u), nP = v3.dot(n, P);
+  return Object.assign({
+    q: R`Dans un repère de l'espace, la droite \(d\) a pour représentation paramétrique \(${paramT(P, u)}\) et le plan \(\mathcal P\) a pour équation \(${eqP(n, d)[0]}\).<br>Les coordonnées du point d'intersection de \(d\) et \(\mathcal P\) sont :`,
+    e: R`On remplace \(x\), \(y\), \(z\) dans l'équation du plan : \(${sum([[n[0], R`(${sum([[P[0], ''], [u[0], 't']])})`], [n[1], R`(${sum([[P[1], ''], [u[1], 't']])})`], [n[2], R`(${sum([[P[2], ''], [u[2], 't']])})`], [d, '']])}=0\),<br>` +
+      R`soit \(${sum([[nu, 't'], [nP + d, '']])}=0\), donc \(t=${t0}\). Le point est \(${P3(I)}\).`,
+    d: R`Intersection droite–plan : on injecte la représentation paramétrique dans l'équation du plan, on trouve \(t\), puis le point.`,
+    _: { chk: () => (v3.dot(n, I) + d === 0) || 'faux' }
+  }, mcqv(g, T(I), bads));
+});
+
+def('esp_proj', 'espace', 2, g => {
+  const n = g.pick(NICE_N).map(x => x * g.sign() + 0), nn = Math.round(Math.sqrt(v3.dot(n, n)));
+  const H = rndPt(g), s = g.nz(-2, 2), M = v3.add(H, v3.sc(n, s)), d = -v3.dot(n, H);
+  const askH = g.chance(0.5);
+  const plane = eqP(n, d)[0];
+  const num = v3.dot(n, M) + d; // = s·|n|²
+  const e0 = R`La droite passant par \(M\) et dirigée par \(${V3('n', n)}\) (orthogonale au plan) : \(${paramT(M, n)}\).<br>` +
+    R`En remplaçant dans l'équation du plan : \(${sum([[nn * nn, 't'], [num, '']])}=0\), donc \(t=${-s}\) et \(H${P3(H)}\).`;
+  if (askH) {
+    const T = p => [P3(p), p.join()];
+    return Object.assign({
+      q: R`Dans un repère orthonormé de l'espace, on considère le plan \(\mathcal P\) d'équation \(${plane}\) et le point \(M${P3(M)}\). Le projeté orthogonal \(H\) de \(M\) sur \(\mathcal P\) a pour coordonnées :`,
+      e: e0, d: R`Projeté orthogonal sur un plan : on suit la droite passant par \(M\) et dirigée par un vecteur normal du plan, jusqu'au plan.`,
+      _: { chk: () => (v3.dot(n, H) + d === 0 && v3.cross(v3.sub(M, H), n).every(x => x === 0)) || 'faux' }
+    }, mcqv(g, T(H), g.shuffle([T(v3.add(M, v3.sc(n, s))), T(v3.add(H, n)), T(v3.sub(M, n)), T([H[0], H[2], H[1]])])));
+  }
+  const dist = Math.abs(s) * nn;
+  return Object.assign({
+    q: R`Dans un repère orthonormé de l'espace, on considère le plan \(\mathcal P\) d'équation \(${plane}\) et le point \(M${P3(M)}\). La distance du point \(M\) au plan \(\mathcal P\) est :`,
+    e: e0 + R`<br>La distance cherchée est \(MH=\|\overrightarrow{MH}\|=${Math.abs(s)}\times\|\vec n\|=${Math.abs(s)}\times${nn}=${dist}\).`,
+    d: R`La distance d'un point à un plan est la distance au projeté orthogonal \(H\) : c'est le point du plan le plus proche de \(M\).`,
+    _: { chk: () => close(Math.abs(v3.dot(n, M) + d) / nn, dist) || 'faux' }
+  }, mcqv(g, [String(dist), dist], g.shuffle([Math.abs(num), Math.abs(s), dist * nn, dist + 1]).map(v => [String(v), v])));
+});
+
+def('esp_vec', 'espace', 2, g => {
+  const u = rndVec(g); let v = rndVec(g);
+  if (g.chance(0.25)) { const r = rndVec(g); v = v3.cross(u, r); need(v.some(Boolean) && v.every(x => Math.abs(x) <= 9)); }
+  const w = g.chance(0.4) ? v3.add(v3.sc(u, g.nz(-2, 2)), v3.sc(v, g.nz(-2, 2))) : rndVec(g);
+  need(w.every(x => Math.abs(x) <= 9));
+  const dt = v3.dot(u, v), n2 = v3.dot(u, u), D = v3.det(u, v, w), col = v3.cross(u, v).every(x => x === 0);
+  const rT = x => { const r = Math.round(Math.sqrt(x)); return r * r === x ? String(r) : R`\sqrt{${x}}`; };
+  const st = [
+    { t: M(R`\vec u\cdot\vec v=${dt}`), ok: true, why: R`\(xx'+yy'+zz'=${dt}\).` },
+    { t: M(R`\vec u\cdot\vec v=${dt + g.pick([1, -2, 3])}`), ok: false, why: R`\(\vec u\cdot\vec v=${dt}\).` },
+    { t: M(R`\|\vec u\|=${rT(n2)}`), ok: true, why: R`\(\sqrt{${u.map(x => `${par(x)}^2`).join('+')}}=\sqrt{${n2}}\).` },
+    { t: M(R`\|\vec u\|=${n2}`), ok: n2 === 1, why: R`c'est \(\|\vec u\|^2\) ; \(\|\vec u\|=${rT(n2)}\).` },
+    { t: R`\(\vec u\) et \(\vec v\) sont orthogonaux`, ok: dt === 0, why: dt === 0 ? R`\(\vec u\cdot\vec v=0\).` : R`\(\vec u\cdot\vec v=${dt}\neq0\).` },
+    { t: R`\(\vec u\) et \(\vec v\) sont colinéaires`, ok: col, why: col ? R`leurs coordonnées sont proportionnelles.` : R`leurs coordonnées ne sont pas proportionnelles.` },
+    { t: R`\(\vec u\), \(\vec v\) et \(\vec w\) sont coplanaires`, ok: D === 0, why: D === 0 ? R`\(\vec w\) s'écrit \(a\vec u+b\vec v\).` : R`aucune combinaison \(a\vec u+b\vec v\) ne donne \(\vec w\) (le système n'a pas de solution).` },
+    { t: R`\((\vec u,\vec v,\vec w)\) est une base de l'espace`, ok: D !== 0, why: D !== 0 ? R`les trois vecteurs ne sont pas coplanaires.` : R`les trois vecteurs sont coplanaires.` }
+  ];
+  return Object.assign(multi(g, st), {
+    q: R`Dans un repère orthonormé de l'espace, on considère \(${V3('u', u)}\), \(${V3('v', v)}\) et \(${V3('w', w)}\). Parmi les affirmations suivantes, lesquelles sont vraies ?`,
+    d: R`\(\vec u\cdot\vec v=xx'+yy'+zz'\). Trois vecteurs sont coplanaires si l'un est combinaison linéaire des deux autres ; sinon ils forment une base.`, _: {}
+  });
+});
+
+def('esp_pos', 'espace', 2, g => {
+  const n = rndVec(g), kind = g.pick(['sec', 'par', 'in']);
+  let u, P;
+  if (kind === 'sec') { u = rndVec(g); need(v3.dot(n, u) !== 0); }
+  else { u = v3.cross(n, rndVec(g)); need(u.some(Boolean) && u.every(x => Math.abs(x) <= 9)); }
+  const Q = rndPt(g), d = -v3.dot(n, Q);
+  P = kind === 'in' ? v3.add(Q, u) : kind === 'par' ? v3.add(Q, n) : rndPt(g);
+  const W = { sec: R`La droite et le plan sont sécants en un seul point.`, par: R`La droite est strictement parallèle au plan.`, in: R`La droite est incluse dans le plan.` };
+  const nu = v3.dot(n, u), onP = v3.dot(n, P) + d === 0;
+  return Object.assign({
+    q: R`Dans un repère de l'espace, on considère la droite \(d\) de représentation paramétrique \(${paramT(P, u)}\) et le plan \(\mathcal P\) d'équation \(${eqP(n, d)[0]}\). Quelle est la position relative de \(d\) et \(\mathcal P\) ?`,
+    e: R`Vecteur normal \(${V3('n', n)}\), vecteur directeur \(${V3('u', u)}\) : \(\vec u\cdot\vec n=${nu}\).<br>` +
+      (nu ? R`Comme \(\vec u\cdot\vec n\neq0\), la droite n'est pas parallèle au plan : ils sont sécants en un point.` :
+        R`\(\vec u\cdot\vec n=0\) : la droite est parallèle au plan. Le point \(${P3(P)}\) de \(d\) ${onP ? 'vérifie' : 'ne vérifie pas'} l'équation de \(\mathcal P\) : ${onP ? 'la droite est incluse dans le plan' : 'la droite est strictement parallèle au plan'}.`),
+    d: R`Droite et plan sont parallèles \(\iff\vec u\cdot\vec n=0\). Ensuite, on teste un point de la droite pour savoir si elle est incluse.`,
+    _: { chk: () => ((kind === 'sec') === (nu !== 0) && (kind === 'in') === (nu === 0 && onP)) || 'faux' }
+  }, mcq(g, W[kind], g.shuffle(Object.keys(W).filter(k => k !== kind)).map(k => W[k]).concat([R`La droite est orthogonale au plan.`].filter(() => v3.cross(u, n).some(Boolean))), 0.15));
+});
+
+/* ---------- Fonctions sinus et cosinus ---------- */
+// angle kπ/q (fraction de π)
+const angT = f => { f = F(f); if (!f.p) return '0'; const a = Math.abs(f.p), s = f.p < 0 ? '-' : ''; return f.q === 1 ? s + (a === 1 ? '' : a) + R`\pi` : s + R`\dfrac{${a === 1 ? '' : a}\pi}{${f.q}}`; };
+const TRIGV = [[0, '0'], [0.5, R`\dfrac12`], [-0.5, R`-\dfrac12`], [Math.SQRT1_2, R`\dfrac{\sqrt2}2`], [-Math.SQRT1_2, R`-\dfrac{\sqrt2}2`], [Math.sqrt(3) / 2, R`\dfrac{\sqrt3}2`], [-Math.sqrt(3) / 2, R`-\dfrac{\sqrt3}2`], [1, '1'], [-1, '-1']];
+const trigT = v => (TRIGV.find(([x]) => Math.abs(x - v) < 1e-9) || [0, null])[1];
+def('trig_values', 'trigo', 2, g => {
+  const q = g.pick([6, 4, 3]), k = g.int(-2 * q, 2 * q), f = F(k, q), isCos = g.chance(0.5);
+  need(f.q > 1);
+  const x = f.v * Math.PI, val = isCos ? Math.cos(x) : Math.sin(x), alt = isCos ? Math.sin(x) : Math.cos(x);
+  const opts = [val, -val, alt, -alt, 0.5, Math.sqrt(3) / 2].map(v => [trigT(v), v]);
+  return Object.assign({
+    q: R`Que vaut \(${isCos ? R`\cos` : R`\sin`}\left(${angT(f)}\right)\) ?`,
+    e: R`On place \(${angT(f)}\) sur le cercle trigonométrique et on se ramène, par symétrie, à un angle de référence (\(\frac\pi6\), \(\frac\pi4\) ou \(\frac\pi3\)) ; le quadrant donne les signes.<br>` +
+      R`\(\cos\left(${angT(f)}\right)=${trigT(Math.cos(x))}\) et \(\sin\left(${angT(f)}\right)=${trigT(Math.sin(x))}\).`,
+    d: R`Retenir \(\cos\) et \(\sin\) de \(\frac\pi6,\frac\pi4,\frac\pi3\), puis utiliser les symétries du cercle : le signe dépend du quadrant.`, _: {}
+  }, mcqv(g, [trigT(val), val], g.shuffle(opts)));
+});
+
+const TRIG_A = [[0.5, 1, 3], [-0.5, 2, 3], [Math.SQRT1_2, 1, 4], [-Math.SQRT1_2, 3, 4], [Math.sqrt(3) / 2, 1, 6], [-Math.sqrt(3) / 2, 5, 6], [0, 1, 2]]; // [a, arccos(a) = kπ/q]
+def('trig_eq', 'trigo', 2, g => {
+  const [a, k, q] = g.pick(TRIG_A), isCos = g.chance(0.55);
+  const al = F(k, q); // arccos(a) ∈ [0, π]
+  let sols;
+  if (isCos) sols = [al.neg(), al];
+  else { // sin x = b avec b = a : arcsin(b) = π/2 − arccos(b)
+    const as = F(1, 2).sub(al); sols = [as, F(1).sub(as)].map(s => (s.v > 1 ? s.sub(2) : s.v <= -1 ? s.add(2) : s));
+  }
+  const S = L => { const u = [...new Map(L.map(s => [s.v, s])).values()].sort((x, y) => x.v - y.v); return [setT(u.map(angT)), u.map(s => s.v.toFixed(6)).join()]; };
+  const good = S(sols);
+  const bads = g.shuffle([S([sols[1]]), S(sols.map(s => s.neg())), S(isCos ? [F(1, 2).sub(al), F(1, 2).add(al)] : [al.neg(), al]), S(sols.map(s => (s.v < 0 ? s.add(2) : s)))]);
+  const fn = isCos ? R`\cos` : R`\sin`;
+  return Object.assign({
+    q: R`L'ensemble des solutions dans \(]-\pi\,;\pi]\) de l'équation \(${fn} x=${trigT(a)}\) est :`,
+    e: isCos ? R`\(\cos\left(${angT(al)}\right)=${trigT(a)}\), et \(\cos\) est paire : \(\cos x=\cos\left(${angT(al)}\right)\iff x=${angT(al)}\) ou \(x=${angT(al.neg())}\) (à \(2\pi\) près).<br>Dans \(]-\pi\,;\pi]\) : \(${good[0]}\).`
+      : R`\(\sin x=\sin\alpha\iff x=\alpha\) ou \(x=\pi-\alpha\) (à \(2\pi\) près), avec ici \(\alpha=${angT(sols[0])}\).<br>On ramène dans \(]-\pi\,;\pi]\) : \(${good[0]}\).`,
+    d: R`Sur le cercle trigonométrique : \(\cos x=a\) donne deux points symétriques par rapport à l'axe des abscisses, \(\sin x=a\) deux points symétriques par rapport à l'axe des ordonnées.`,
+    _: { chk: () => (sols.every(s => close((isCos ? Math.cos : Math.sin)(s.v * Math.PI), a, 1e-9) && s.v > -1 && s.v <= 1)) || 'faux' }
+  }, mcqv(g, good, bads, 0.2));
+});
+
+def('trig_ineq', 'trigo', 2, g => {
+  const [a, k, q] = g.pick(TRIG_A.filter(t => t[0] !== 0).concat([[0, 1, 2]])), al = F(k, q);
+  const ge = g.chance(0.5), strict = g.chance(0.4);
+  const op = ge ? (strict ? '>' : R`\geqslant `) : (strict ? '&lt;' : R`\leqslant `);
+  const L = (lo, hi, lc, rc) => ({ lo, hi, lc, rc });
+  // cos x ≥ a sur [−π, π] ⟺ x ∈ [−α, α]
+  const sol = ge ? [L(al.neg(), al, !strict, !strict)] : [L(F(-1), al.neg(), true, !strict), L(al, F(1), !strict, true)];
+  const show = P => cup(...P.map(p => iv(angT(p.lo), angT(p.hi), p.lc, p.rc)));
+  const key = P => P.map(p => [p.lo.v, p.hi.v, p.lc, p.rc].join()).join('U');
+  const T = P => [show(P), key(P)];
+  const other = ge ? [L(F(-1), al.neg(), true, strict), L(al, F(1), strict, true)] : [L(al.neg(), al, strict, strict)];
+  const bads = g.shuffle([T(other), T(ge ? [L(F(0), al, !strict, !strict)] : [L(al, F(1), !strict, true)]), T(sol.map(p => L(p.lo, p.hi, !p.lc, !p.rc))), T(ge ? [L(F(1, 2).sub(al), F(1, 2).add(al), !strict, !strict)] : [L(F(-1), F(1, 2).sub(al), true, !strict)])]);
+  return Object.assign({
+    q: R`L'ensemble des solutions dans \([-\pi\,;\pi]\) de l'inéquation \(\cos x${op}${trigT(a)}\) est :`,
+    e: R`\(\cos x=${trigT(a)}\) pour \(x=\pm${angT(al)}\). Sur le cercle, \(\cos x\) est l'abscisse : elle est ${ge ? 'plus grande' : 'plus petite'} que \(${trigT(a)}\) ${ge ? R`entre \(-${angT(al)}\) et \(${angT(al)}\)` : R`aux extrémités, de \(-\pi\) à \(-${angT(al)}\) et de \(${angT(al)}\) à \(\pi\)`}.<br>Solutions : \(${show(sol)}\).`,
+    d: R`\(\cos\) est croissante sur \([-\pi\,;0]\) et décroissante sur \([0\,;\pi]\) : un dessin du cercle (ou de la courbe) évite les erreurs.`,
+    _: { chk: () => { for (let x = -Math.PI; x <= Math.PI; x += 0.003) { if (Math.abs(Math.abs(x) - al.v * Math.PI) < 1e-3) continue; const ok = ge ? Math.cos(x) >= a : Math.cos(x) <= a; const inn = sol.some(p => x >= p.lo.v * Math.PI - 1e-9 && x <= p.hi.v * Math.PI + 1e-9); if (ok !== inn) return 'x=' + x; } return true; } }
+  }, mcqv(g, T(sol), bads, 0.2));
+});
+
+def('trig_props', 'trigo', 2, g => {
+  const S = [
+    [R`\cos(-x)=\cos x`, x => Math.cos(-x), x => Math.cos(x), R`\(\cos\) est paire.`],
+    [R`\sin(-x)=\sin x`, x => Math.sin(-x), x => Math.sin(x), R`\(\sin\) est impaire : \(\sin(-x)=-\sin x\).`],
+    [R`\sin(x+2\pi)=\sin x`, x => Math.sin(x + 2 * Math.PI), x => Math.sin(x), R`\(\sin\) est \(2\pi\)-périodique.`],
+    [R`\cos(x+\pi)=\cos x`, x => Math.cos(x + Math.PI), x => Math.cos(x), R`\(\cos(x+\pi)=-\cos x\) : la période est \(2\pi\), pas \(\pi\).`],
+    [R`\sin(\pi-x)=\sin x`, x => Math.sin(Math.PI - x), x => Math.sin(x), R`symétrie par rapport à l'axe des ordonnées sur le cercle.`],
+    [R`\cos(\pi-x)=\cos x`, x => Math.cos(Math.PI - x), x => Math.cos(x), R`\(\cos(\pi-x)=-\cos x\).`],
+    [R`\cos\left(\dfrac\pi2-x\right)=\sin x`, x => Math.cos(Math.PI / 2 - x), x => Math.sin(x), R`angles complémentaires.`],
+    [R`\cos^2x+\sin^2x=1`, x => Math.cos(x) ** 2 + Math.sin(x) ** 2, () => 1, R`le point \((\cos x\,;\sin x)\) est sur le cercle de rayon 1.`],
+    [R`\cos'(x)=\sin x`, x => nd1(Math.cos, x), x => Math.sin(x), R`\(\cos'=-\sin\).`],
+    [R`\sin'(x)=\cos x`, x => nd1(Math.sin, x), x => Math.cos(x), R`c'est la dérivée du cours.`],
+    [R`\sin(2x)=2\sin x`, x => Math.sin(2 * x), x => 2 * Math.sin(x), R`par exemple \(x=\dfrac\pi2\) : \(\sin\pi=0\neq2\).`],
+    [R`\cos x\leqslant1`, x => Math.min(Math.cos(x), 1), x => Math.cos(x), R`\(\cos x\) est compris entre \(-1\) et \(1\).`]
+  ];
+  const xs = [0.3, 1.1, 2.0, -0.7];
+  const st = S.map(([t, l, r, why]) => { const ok = xs.every(x => close(l(x), r(x), 1e-6)); return { t: M(R`\text{pour tout réel }x,\ ${t}`), ok, why }; });
+  return Object.assign(multi(g, st), {
+    q: R`Parmi les affirmations suivantes, lesquelles sont vraies ?`,
+    d: R`\(\cos\) est paire, \(\sin\) est impaire, toutes deux \(2\pi\)-périodiques ; \(\sin'=\cos\) et \(\cos'=-\sin\). En cas de doute, tester \(x=0\) ou \(x=\frac\pi2\).`, _: {}
+  });
+});
+
+def('trig_study', 'trigo', 2, g => {
+  const L = [
+    [R`x-2\sin x`, R`[0\,;\pi]`, 'minimum', R`\dfrac\pi3-\sqrt3`, Math.PI / 3 - Math.sqrt(3), x => x - 2 * Math.sin(x), 0, Math.PI,
+      R`\(f'(x)=1-2\cos x\), qui s'annule pour \(\cos x=\dfrac12\), soit \(x=\dfrac\pi3\) ; \(f'\) est négative avant, positive après.`,
+      [[R`\dfrac\pi3`, Math.PI / 3], [R`\dfrac\pi3+\sqrt3`, Math.PI / 3 + Math.sqrt(3)], [R`-\sqrt3`, -Math.sqrt(3)], [R`\pi`, Math.PI]]],
+    [R`x+2\cos x`, R`[0\,;\pi]`, 'maximum', R`\dfrac\pi6+\sqrt3`, Math.PI / 6 + Math.sqrt(3), x => x + 2 * Math.cos(x), 0, Math.PI,
+      R`\(f'(x)=1-2\sin x\), qui s'annule en \(\dfrac\pi6\) et \(\dfrac{5\pi}6\) : \(f\) croît sur \(\left[0\,;\frac\pi6\right]\), décroît sur \(\left[\frac\pi6\,;\frac{5\pi}6\right]\) puis croît. On compare \(f\left(\frac\pi6\right)=\frac\pi6+\sqrt3\approx2{,}26\) et \(f(\pi)=\pi-2\approx1{,}14\).`,
+      [[R`\dfrac\pi6`, Math.PI / 6], [R`\pi-2`, Math.PI - 2], [R`\dfrac{5\pi}6-\sqrt3`, 5 * Math.PI / 6 - Math.sqrt(3)], ['2', 2]]],
+    [R`2\sin x-x`, R`[0\,;\pi]`, 'maximum', R`\sqrt3-\dfrac\pi3`, Math.sqrt(3) - Math.PI / 3, x => 2 * Math.sin(x) - x, 0, Math.PI,
+      R`\(f'(x)=2\cos x-1\), positive sur \(\left[0\,;\frac\pi3\right[\), négative ensuite : maximum en \(\dfrac\pi3\).`,
+      [[R`\dfrac\pi3`, Math.PI / 3], ['1', 1], [R`\sqrt3+\dfrac\pi3`, Math.sqrt(3) + Math.PI / 3], ['2', 2]]],
+    [R`\cos(2x)`, R`\left[0\,;\dfrac\pi2\right]`, 'minimum', '-1', -1, x => Math.cos(2 * x), 0, Math.PI / 2,
+      R`\(f'(x)=-2\sin(2x)\leqslant0\) sur \(\left[0\,;\frac\pi2\right]\) : \(f\) est décroissante, minimum \(f\left(\frac\pi2\right)=\cos\pi=-1\).`,
+      [['0', 0], [R`\dfrac\pi2`, Math.PI / 2], ['1', 1], ['-2', -2]]],
+    [R`\sin x+\cos x`, R`[0\,;\pi]`, 'maximum', R`\sqrt2`, Math.SQRT2, x => Math.sin(x) + Math.cos(x), 0, Math.PI,
+      R`\(f'(x)=\cos x-\sin x\), qui s'annule en \(\dfrac\pi4\) (positive avant, négative après) : maximum \(f\left(\frac\pi4\right)=\dfrac{\sqrt2}2+\dfrac{\sqrt2}2=\sqrt2\).`,
+      [['2', 2], ['1', 1], [R`\dfrac\pi4`, Math.PI / 4], [R`\dfrac{\sqrt2}2`, Math.SQRT1_2]]]
+  ];
+  const [fT, I, kind, vT, v, f, lo, hi, e, bads] = g.pick(L);
+  return Object.assign({
+    q: R`Soit \(f\) la fonction définie sur \(${I}\) par \(f(x)=${fT}\). Le ${kind} de \(f\) sur cet intervalle vaut :`,
+    e: e + R`<br>Le ${kind} vaut \(${vT}\).`,
+    d: R`On étudie le signe de \(f'\) avec le cercle trigonométrique, puis on compare les valeurs aux points critiques <strong>et</strong> aux bornes.`,
+    _: { chk: () => { let m = kind === 'maximum' ? -Infinity : Infinity; for (let x = lo; x <= hi + 1e-12; x += (hi - lo) / 20000) m = kind === 'maximum' ? Math.max(m, f(x)) : Math.min(m, f(x)); return close(m, v, 1e-6) || 'extremum faux ' + m; } }
+  }, mcqv(g, [vT, v], g.shuffle(bads)));
+});
+
+/* ---------- Raisonnement par récurrence ---------- */
+def('rec_formula', 'recurrence', 2, g => {
+  const F0 = [
+    () => ({ def: R`u_0=0\) et \(u_{n+1}=u_n+2n+1`, u0: 0, f: (u, n) => u + 2 * n + 1, good: ['n^2', n => n * n], bads: [['2n+1', n => 2 * n + 1], ['n(n+1)', n => n * (n + 1)], ['(n+1)^2', n => (n + 1) ** 2], ['n^2+n', n => n * n + n]] }),
+    () => ({ def: R`u_0=0\) et \(u_{n+1}=u_n+n+1`, u0: 0, f: (u, n) => u + n + 1, good: [R`\dfrac{n(n+1)}{2}`, n => n * (n + 1) / 2], bads: [[R`\dfrac{n^2}{2}`, n => n * n / 2], ['n(n+1)', n => n * (n + 1)], [R`\dfrac{(n+1)(n+2)}{2}`, n => (n + 1) * (n + 2) / 2], ['n', n => n]] }),
+    () => { const q = g.pick([2, 3, 4]), k = g.nz(-3, 3), c = g.int(-3, 3); return { def: R`u_0=${c + k}\) et \(u_{n+1}=${q}u_n${pm(c * (1 - q))}`, u0: c + k, f: u => q * u + c * (1 - q),
+      good: [sum([[k, `${q}^n`], [c, '']]), n => k * q ** n + c], bads: [[sum([[k, `${q}^{n+1}`], [c, '']]), n => k * q ** (n + 1) + c], [sum([[c + k, `${q}^n`]]), n => (c + k) * q ** n], [sum([[k, `${q}^n`], [-c, '']]), n => k * q ** n - c], [sum([[c, `${q}^n`], [k, '']]), n => c * q ** n + k]] }; },
+    () => ({ def: R`u_0=1\) et \(u_{n+1}=\dfrac{u_n}{1+u_n}`, u0: 1, f: u => u / (1 + u), good: [R`\dfrac1{n+1}`, n => 1 / (n + 1)], bads: [[R`\dfrac1n`, n => 1 / n], [R`\dfrac1{2^n}`, n => 1 / 2 ** n], [R`\dfrac{n}{n+1}`, n => n / (n + 1)], [R`\dfrac{1}{n+2}`, n => 1 / (n + 2)]] }),
+    () => ({ def: R`u_0=2\) et \(u_{n+1}=2u_n-n`, u0: 2, f: (u, n) => 2 * u - n, good: ['2^n+n+1', n => 2 ** n + n + 1], bads: [['2^{n+1}', n => 2 ** (n + 1)], ['2^n+1', n => 2 ** n + 1], ['2^n+n', n => 2 ** n + n], ['n+2', n => n + 2]] })
+  ];
+  const S = g.pick(F0)();
+  const U = [S.u0]; for (let n = 0; n < 8; n++) U.push(S.f(U[n], n));
+  const key = fn => U.map((_, n) => { try { const v = fn(n); return Number.isFinite(v) ? v.toFixed(6) : 'x'; } catch (e) { return 'x'; } }).join();
+  return Object.assign({
+    q: R`Soit \((u_n)\) la suite définie par \(${S.def}\) pour tout entier naturel \(n\). On peut démontrer par récurrence que, pour tout entier naturel \(n\), \(u_n\) est égal à :`,
+    e: R`Premiers termes : ` + U.slice(0, 5).map((v, i) => R`\(u_{${i}}=${fx(F(Math.round(v * 120), 120))}\)`).join(', ') + R`, ce qui élimine les autres propositions.<br>` +
+      R`Récurrence : <strong>initialisation</strong> — la formule donne bien \(u_0=${fx(F(Math.round(U[0] * 120), 120))}\) ; <strong>hérédité</strong> — si \(u_n=${S.good[0]}\), on calcule \(u_{n+1}\) avec la relation de récurrence et on retrouve la formule au rang \(n+1\).`,
+    d: R`Calculer les premiers termes élimine vite les mauvaises formules ; la récurrence prouve ensuite la bonne pour <strong>tout</strong> \(n\).`,
+    _: { chk: () => (key(S.good[1]) === key(n => U[n])) || 'formule fausse' }
+  }, mcqv(g, [S.good[0], key(S.good[1])], g.shuffle(S.bads).map(([t, fn]) => [t, key(fn)])));
+});
+
+def('rec_sum', 'recurrence', 2, g => {
+  const L = [
+    [R`\sum_{k=1}^{n}k`, R`\dfrac{n(n+1)}2`, n => n * (n + 1) / 2, [[R`\dfrac{n^2}2`, n => n * n / 2], [R`n(n+1)`, n => n * (n + 1)], [R`\dfrac{n(n-1)}2`, n => n * (n - 1) / 2]]],
+    [R`\sum_{k=1}^{n}(2k-1)`, R`n^2`, n => n * n, [[R`2n-1`, n => 2 * n - 1], [R`n^2-1`, n => n * n - 1], [R`n(n+1)`, n => n * (n + 1)]]],
+    [R`\sum_{k=1}^{n}k^2`, R`\dfrac{n(n+1)(2n+1)}6`, n => n * (n + 1) * (2 * n + 1) / 6, [[R`\dfrac{n^2(n+1)^2}4`, n => (n * (n + 1) / 2) ** 2], [R`\dfrac{n(n+1)}2`, n => n * (n + 1) / 2], [R`\dfrac{n^3}3`, n => n ** 3 / 3]]],
+    [R`\sum_{k=1}^{n}k^3`, R`\dfrac{n^2(n+1)^2}4`, n => (n * (n + 1) / 2) ** 2, [[R`\dfrac{n(n+1)(2n+1)}6`, n => n * (n + 1) * (2 * n + 1) / 6], [R`\dfrac{n^4}4`, n => n ** 4 / 4], [R`n^3`, n => n ** 3]]],
+    [R`\sum_{k=0}^{n}2^k`, R`2^{n+1}-1`, n => 2 ** (n + 1) - 1, [[R`2^{n}-1`, n => 2 ** n - 1], [R`2^{n+1}`, n => 2 ** (n + 1)], [R`2n+1`, n => 2 * n + 1]]],
+    [R`\sum_{k=1}^{n}\dfrac1{k(k+1)}`, R`\dfrac{n}{n+1}`, n => n / (n + 1), [[R`\dfrac{1}{n+1}`, n => 1 / (n + 1)], [R`1-\dfrac1n`, n => 1 - 1 / n], [R`\dfrac{n+1}{n+2}`, n => (n + 1) / (n + 2)]]],
+    [R`\sum_{k=1}^{n}k(k+1)`, R`\dfrac{n(n+1)(n+2)}3`, n => n * (n + 1) * (n + 2) / 3, [[R`\dfrac{n(n+1)(n+2)}6`, n => n * (n + 1) * (n + 2) / 6], [R`n^2(n+1)`, n => n * n * (n + 1)], [R`\dfrac{n(n+1)(2n+1)}3`, n => n * (n + 1) * (2 * n + 1) / 3]]]
+  ];
+  const TERMS = [k => k, k => 2 * k - 1, k => k * k, k => k ** 3, k => 2 ** k, k => 1 / (k * (k + 1)), k => k * (k + 1)];
+  const idx = g.int(0, L.length - 1);
+  const [S, gT, gf, bads] = L[idx], term = TERMS[idx];
+  const start = /k=0/.test(S) ? 0 : 1;
+  const real = n => { let s = 0; for (let k = start; k <= n; k++) s += term(k); return s; };
+  const key = fn => [1, 2, 3, 4, 5, 6].map(n => fn(n).toFixed(6)).join();
+  return Object.assign({
+    q: R`Pour tout entier \(n\geqslant1\), la somme \(\displaystyle ${S}\) vaut :`,
+    e: R`On vérifie pour \(n=1\) et \(n=2\) (les autres propositions échouent), puis on démontre par récurrence :<br>` +
+      R`<strong>initialisation</strong> pour \(n=1\) ; <strong>hérédité</strong> : si la formule est vraie au rang \(n\), on ajoute le terme suivant et on factorise pour retrouver la formule au rang \(n+1\).<br>Résultat : \(${gT}\).`,
+    d: R`Une formule de somme se prouve par récurrence : \(S_{n+1}=S_n+(\text{terme }n+1)\). Tester \(n=1,2,3\) permet de trier les propositions.`,
+    _: { chk: () => (key(gf) === key(real)) || 'formule fausse' }
+  }, mcqv(g, [gT, key(gf)], g.shuffle(bads).map(([t, fn]) => [t, key(fn)])));
+});
+
+def('rec_bound', 'recurrence', 2, g => {
+  const l = g.int(2, 5), a = g.int(1, l - 1), b = l * l - a * l;
+  const up = g.chance(0.6), u0 = up ? g.int(0, l - 1) : g.int(l + 1, l + 6);
+  const f = x => Math.sqrt(a * x + b);
+  const U = [u0]; for (let n = 0; n < 400; n++) U.push(f(U[n]));
+  const all = p => U.every((u, n) => n === U.length - 1 || p(u, U[n + 1], n));
+  const st = [
+    [up ? R`0\leqslant u_n\leqslant ${l}` : R`u_n\geqslant ${l}`, up ? (u => u >= 0 && u <= l + 1e-12) : (u => u >= l - 1e-12), R`récurrence : si ${up ? R`\(0\leqslant u_n\leqslant${l}\)` : R`\(u_n\geqslant${l}\)`}, alors \(${lin(a, b).replace('x', 'u_n')}\) est ${up ? R`entre \(${b}\) et \(${l * l}\)` : R`\(\geqslant${l * l}\)`} et la racine carrée (croissante) donne ${up ? R`\(\sqrt{${b}}\leqslant u_{n+1}\leqslant${l}\)` : R`\(u_{n+1}\geqslant${l}\)`}.`],
+    [up ? R`u_n\leqslant u_{n+1}` : R`u_{n+1}\leqslant u_n`, up ? ((u, v) => u <= v + 1e-12) : ((u, v) => v <= u + 1e-12), R`récurrence, en appliquant la fonction croissante \(x\mapsto\sqrt{${lin(a, b)}}\) à l'inégalité.`],
+    [up ? R`u_n\geqslant ${l}` : R`u_n\leqslant ${l}`, up ? (u => u >= l) : (u => u <= l), up ? R`faux pour \(n=0\) : \(u_0=${u0}\).` : R`faux pour \(n=0\) : \(u_0=${u0}\).`],
+    [up ? R`u_n\leqslant u_0` : R`u_n\geqslant u_0`, up ? (u => u <= u0 + 1e-12) : (u => u >= u0 - 1e-12), R`faux dès \(n=1\) : \(u_1=\sqrt{${a * u0 + b}}\).`],
+    [up ? R`u_n\leqslant ${l - 1}` : R`u_n\geqslant ${l + 1}`, up ? (u => u <= l - 1) : (u => u >= l + 1), R`faux à partir d'un certain rang : la suite se rapproche de \(${l}\).`],
+    [up ? R`u_{n+1}-u_n\geqslant1` : R`u_n-u_{n+1}\geqslant1`, up ? ((u, v) => v - u >= 1) : ((u, v) => u - v >= 1), R`faux : les écarts tendent vers \(0\) (la suite converge).`]
+  ].map(([t, p, why]) => { const ok = all(p); return { t: M(R`\text{pour tout entier }n,\ ${t}`), ok, why: ok ? why.replace(/^faux[^:]*: /, '') : why }; });
+  return Object.assign(multi(g, st), {
+    q: R`Soit \((u_n)\) la suite définie par \(u_0=${u0}\) et \(u_{n+1}=\sqrt{${lin(a, b).replace('x', 'u_n')}}\). Parmi les propriétés suivantes, lesquelles sont vraies ?`,
+    d: R`Pour démontrer un encadrement ou un sens de variation de \(u_{n+1}=f(u_n)\) avec \(f\) croissante : récurrence, en appliquant \(f\) aux inégalités de l'hypothèse.`,
+    _: { chk: () => (close(U[400], l, 1e-6)) || 'limite inattendue' }
+  });
+});
+
+def('rec_steps', 'recurrence', 2, g => {
+  const st = [
+    [R`L'initialisation consiste à vérifier la propriété au premier rang (souvent \(n=0\)).`, true, R`c'est la première étape.`],
+    [R`Dans l'hérédité, on suppose la propriété vraie pour <strong>un</strong> entier \(n\) fixé, et on la démontre au rang \(n+1\).`, true, R`c'est l'hypothèse de récurrence.`],
+    [R`Dans l'hérédité, on suppose la propriété vraie pour <strong>tout</strong> entier \(n\).`, false, R`ce serait supposer ce qu'on veut démontrer.`],
+    [R`Une propriété héréditaire est vraie pour tout \(n\), même sans initialisation.`, false, R`« \(n>n+1\) » est héréditaire mais toujours fausse.`],
+    [R`Vérifier la propriété pour \(n=0,1,2,3\) suffit à la démontrer pour tout \(n\).`, false, R`des exemples ne prouvent rien pour tous les entiers (il faut l'hérédité).`],
+    [R`Si la propriété est vraie au rang \(n_0\) et héréditaire, elle est vraie pour tout \(n\geqslant n_0\).`, true, R`c'est le principe de récurrence.`],
+    [R`Une seule valeur de \(n\) où la propriété est fausse suffit à la réfuter.`, true, R`un contre-exemple suffit.`],
+    [R`Pour l'hérédité, on part de la propriété au rang \(n+1\) et on en déduit le rang \(n\).`, false, R`c'est le sens inverse : on part du rang \(n\) pour obtenir le rang \(n+1\).`]
+  ].map(([t, ok, why]) => ({ t, ok, why }));
+  return Object.assign(multi(g, st), {
+    q: R`À propos du raisonnement par récurrence, lesquelles de ces affirmations sont vraies ?`,
+    d: R`Récurrence = initialisation (premier rang) + hérédité (rang \(n\Rightarrow\) rang \(n+1\)). Les deux sont indispensables.`, _: {}
+  });
 });
 
 /* =====================================================================

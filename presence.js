@@ -63,7 +63,9 @@
   }
 
   function join() {
-    ch = sb.channel('site-lobby', { config: { presence: { key: me.id }, broadcast: { self: false } } });
+    // ack : send() n'est résolu qu'une fois le message reçu par le serveur (sinon un message
+    // envoyé juste avant de changer de page, comme « accept », peut se perdre)
+    ch = sb.channel('site-lobby', { config: { presence: { key: me.id }, broadcast: { self: false, ack: true } } });
     ch.on('presence', { event: 'sync' }, () => {
       const st = ch.presenceState(), m = new Map();
       Object.keys(st).forEach(id => {
@@ -122,7 +124,7 @@
     el.querySelector('.sp-ok').onclick = async () => {
       clearTimeout(timer);
       el.querySelector('.sp-row').innerHTML = '<span>Connexion au duel…</span>';
-      try { await P.send('accept', p.from, { match: p.match }); } catch (e) { /* on y va quand même */ }
+      try { await Promise.race([P.send('accept', p.from, { match: p.match }), new Promise(r => setTimeout(r, 3000))]); } catch (e) { /* on y va quand même */ }
       location.href = `${ROOT}duel/?m=${encodeURIComponent(p.match)}&vs=${encodeURIComponent(p.from)}${ffa ? '&ffa=1' : ''}`;
     };
     ensureBox().appendChild(el);

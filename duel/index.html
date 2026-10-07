@@ -565,6 +565,14 @@ class Match {
     });
     this.loop = setInterval(() => this.tick(), 200);
     window.addEventListener('beforeunload', () => { if (this.host && this.S && this.S.phase !== 'over') ss.set(this.key, this.S); });
+    if (!this.host) {
+      // L'acceptation est envoyée juste avant de changer de page et peut se perdre :
+      // on la renvoie à l'hôte jusqu'à ce qu'il rejoigne le duel.
+      this.acceptT = setInterval(() => {
+        if (this.everMet || Date.now() - this.t0 > SitePresence.INVITE_MS) { clearInterval(this.acceptT); return; }
+        SitePresence.send('accept', this.oppId, { match: this.id });
+      }, 2000);
+    }
     this.render();
   }
 

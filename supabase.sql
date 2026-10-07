@@ -222,3 +222,20 @@ language sql stable security definer set search_path = public as $$
 $$;
 revoke all on function public.list_players() from public, anon;
 grant execute on function public.list_players() to authenticated;
+
+-- ---------- Données synchronisées entre appareils (progression élec…) ----------
+-- Une ligne par compte et par clé (ex. « elec.path.v1 » = le parcours d'élec). Le site
+-- (account.js) fusionne ces données avec celles de l'appareil à chaque ouverture de page.
+create table if not exists public.user_data (
+  user_id    uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  key        text not null check (char_length(key) between 1 and 64),
+  value      jsonb not null,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, key)
+);
+alter table public.user_data enable row level security;
+grant select, insert, update, delete on public.user_data to authenticated;
+grant select, insert, update, delete on public.user_data to service_role;
+drop policy if exists user_data_own on public.user_data;
+create policy user_data_own on public.user_data for all to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());

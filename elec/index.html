@@ -10,7 +10,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script defer src="../presence.js"></script>
+<script defer src="../presence.js" data-external></script>
+<script defer src="../account.js" data-lazy></script>
 <style>
 :root{
   color-scheme:light;
@@ -275,6 +276,18 @@ details.corr-d[open]>summary::before{transform:rotate(90deg)}
 .exam-head{display:grid;gap:10px}
 .exam-foot{display:flex;justify-content:center;padding:10px 0 30px}
 
+/* ---------- Compte ---------- */
+.acc-chip{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:500 14px/1 var(--sans);text-decoration:none;max-width:180px;white-space:nowrap}
+.acc-chip:hover{border-color:var(--ink-2)}
+.acc-chip span{overflow:hidden;text-overflow:ellipsis}
+.acc-chip i{width:8px;height:8px;border-radius:50%;background:var(--good-fill);flex:none}
+.acc-chip.sync i{background:var(--warn-fill)}
+.acc-chip.err i{background:var(--bad-fill)}
+.acc-chip.out i{background:var(--empty-fill)}
+body[data-view="exam"] .acc-chip{display:none}
+.acc-chip .short{display:none}
+@media (max-width:720px){ .acc-chip{max-width:120px;padding:0 12px} .acc-chip .long{display:none} .acc-chip .short{display:inline} }
+
 /* ---------- Parcours ---------- */
 .ptop{display:grid;gap:16px}
 .pprog{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
@@ -366,6 +379,7 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
   </div>
   <div class="top-actions">
     <button type="button" class="btn" id="pauseBtn" hidden title="Pause"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><span class="long">Pause</span></button>
+    <a class="acc-chip out" id="accChip" href="../#compte" title="Mon compte : se connecter pour synchroniser sa progression"><i></i><span class="long">Se connecter</span><span class="short">Compte</span></a>
     <button type="button" class="btn icon-btn" id="themeBtn" aria-label="Thème"></button>
     <button type="button" class="btn btn-primary" id="submitBtn" hidden><span class="long">Rendre la copie</span><span class="short">Rendre</span></button>
   </div>
@@ -618,8 +632,8 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const memStore = {};
 const ls = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? (k in memStore ? memStore[k] : d) : JSON.parse(v); } catch (e) { return k in memStore ? memStore[k] : d; } },
-  set(k, v) { memStore[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stockage indisponible */ } },
-  del(k) { delete memStore[k]; try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
+  set(k, v) { memStore[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stockage indisponible */ } if (window.SiteAccount) SiteAccount.touch(k); },
+  del(k) { delete memStore[k]; try { localStorage.removeItem(k); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
 };
 const K = { theme: 'qcm-maths-theme', stats: 'elec.stats.v1', hist: 'elec.hist.v1', exam: 'elec.exam.v1', plan: 'elec.plan.v1', date: 'elec.ccdate.v1' };
 const rnd = n => Math.floor(Math.random() * n);
@@ -2417,7 +2431,35 @@ function init() {
   window.addEventListener('hashchange', fromHash);
   fromHash();
 }
+/* =====================================================================
+   COMPTE : synchronisation entre appareils (../account.js)
+   ===================================================================== */
+function renderAccChip() {
+  const A = window.SiteAccount, el = $('#accChip'); if (!el) return;
+  const u = A && A.user, st = A ? A.status : 'off';
+  el.className = 'acc-chip' + (!u ? ' out' : st === 'sync' ? ' sync' : st === 'err' || st === 'notable' ? ' err' : '');
+  el.innerHTML = '<i></i>' + (u ? `<span>${esc(A.profile ? A.profile.pseudo : '…')}</span>` : '<span class="long">Se connecter</span><span class="short">Compte</span>');
+  el.title = !u ? 'Se connecter pour retrouver sa progression sur tous ses appareils'
+    : ({ sync: 'Synchronisation en cours…', ok: 'Progression synchronisée avec ton compte', err: 'Synchronisation incomplète : nouvel essai plus tard', notable: 'La base de données n\'est pas encore prête pour la synchronisation' })[st] || 'Mon compte';
+}
+function onRemoteData() {
+  // CUR est un exercice du parcours pas encore commencé : on le remplace par celui que choisit la progression à jour
+  if (CUR && !CUR.done && !CUR.first.size && !CUR.place) { CUR = null; $('#pathHost').innerHTML = ''; }
+  const v = document.body.dataset.view;
+  if (v === 'home') renderHome();
+  else if (v === 'path') renderPath();
+  else if (v === 'blanc') renderBlanc();
+  else if (v === 'demos') renderDemos();
+  else if (v === 'exos') renderExControls();
+  toast('Progression synchronisée depuis ton compte.');
+}
+function wireAccount() {
+  const A = window.SiteAccount; if (!A) return;
+  A.on('change', renderAccChip); A.on('status', renderAccChip); A.on('data', onRemoteData);
+  renderAccChip();
+}
 document.addEventListener('DOMContentLoaded', init);
+if (window.SiteAccount) wireAccount(); else window.addEventListener('siteaccount', wireAccount, { once: true });
 </script>
 </body>
 </html>

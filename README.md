@@ -4,7 +4,8 @@ Le site regroupe plusieurs outils de révision :
 
 | Fichier | Rôle |
 |---|---|
-| `index.html` | la page d'accueil, avec un lien vers chaque outil |
+| `index.html` | la page d'accueil : connexion au compte et lien vers chaque outil |
+| `account.js` | le compte du site (connexion unique) et la synchronisation de la progression entre appareils |
 | `maths/index.html` | le QCM de maths (QCM, import de PDF, catalogue, comptes, groupes) |
 | `elec/index.html` | l'entraînement au CC1 d'électronique (cours, démos, exos générés, annales, sujets blancs) |
 | `duel/index.html` | le multijoueur : 1v1 (défis et duels en direct) et FFA (salle jusqu'à 8 joueurs, le dernier survivant gagne) sur le QCM de maths |
@@ -15,7 +16,11 @@ Le site regroupe plusieurs outils de révision :
 
 Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/` `…/Prepa01/elec/` et `…/Prepa01/duel/`.
 
-La partie élec n'utilise pas Supabase : la progression (stats, copies, planning) reste dans le navigateur de chaque appareil.
+On se connecte une seule fois, sur la page d'accueil : la session vaut pour toutes les pages. Une fois connecté, la progression d'élec (parcours, stats, copies, planning, date du CC) est enregistrée dans la table `user_data` et fusionnée à chaque ouverture de page, donc on la retrouve sur tous ses appareils. Sans compte, elle reste dans le navigateur.
+
+### Activer la synchronisation
+
+Supabase → **SQL Editor** : relance tout `supabase.sql` (il ajoute la table `user_data`). Tant que ce n'est pas fait, l'accueil affiche « Base pas encore prête pour la synchro ».
 
 ### Activer le 1v1
 

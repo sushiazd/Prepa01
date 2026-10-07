@@ -2188,13 +2188,33 @@ function pickNext(P) {
 }
 
 let CUR = null;
-function nextPath() {
+/* L'exercice en cours est mémorisé dans P.cur : la graine de son tirage au hasard (on retombe sur le
+   même exercice), les réponses tapées et ce qui a déjà été vérifié. On le retrouve tel quel en revenant
+   sur la page ou sur un autre appareil. P.curT ne bouge que sur une action de l'élève, pour qu'un
+   exercice tiré automatiquement à l'ouverture ne remplace pas celui d'un autre appareil. */
+function seeded(seed) {
+  let a = seed >>> 0;
+  return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+function withSeed(seed, f) { const r = Math.random; Math.random = seeded(seed); try { return f(); } finally { Math.random = r; } }
+let saveCurT = null;
+function saveCur(bump = true) {
+  clearTimeout(saveCurT);
+  if (!CUR) return;
   const P = pst();
-  if (P.place != null && P.place < PROBES.length) { const pr = PROBES[P.place]; startPathEx(skById(pr.id), { d: pr.d, place: true }); renderPathTop(); return; }
+  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, review: CUR.review, place: CUR.place, seed: CUR.seed, ans: CUR.ans, first: Object.fromEntries(CUR.first), peek: [...CUR.peek] };
+  if (bump) P.curT = Date.now();
+  ls.set(PK, P);
+}
+const saveCurSoon = () => { clearTimeout(saveCurT); saveCurT = setTimeout(saveCur, 400); };
+function nextPath(o = {}) {
+  const P = pst();
+  if (!o.fresh && P.cur && skById(P.cur.id)) { startPathEx(skById(P.cur.id), { resume: P.cur }); renderPathTop(); renderPathMap(); return; }
+  if (P.place != null && P.place < PROBES.length) { const pr = PROBES[P.place]; startPathEx(skById(pr.id), { d: pr.d, place: true }); renderPathTop(); renderPathMap(); return; }
   const n = pickNext(P);
   if (!n) { toast('Tout est validé. Passe aux sujets blancs !'); return; }
-  startPathEx(n.k, { review: n.review });
-  renderPathTop();
+  startPathEx(n.k, { review: n.review, user: o.user });
+  renderPathTop(); renderPathMap();
 }
 function pathStrip() {
   const k = CUR.k, s = skS(pst(), k.id);
@@ -2206,18 +2226,29 @@ function pathStrip() {
     + (s.ko >= 2 && !CUR.review && !CUR.place ? `<div class="box warn"><h5>On ralentit</h5>Les deux derniers essais n'étaient pas bons, alors l'exercice est plus simple. Relis la fiche du cours (2 minutes), puis lis la correction en entier si tu bloques : c'est comme ça qu'on progresse.</div>` : '');
 }
 function startPathEx(k, o = {}) {
-  const s = skS(pst(), k.id);
-  const d = o.d != null ? o.d : o.review ? 2 : levelOf(s);
-  CUR = { k, d, review: !!o.review, place: !!o.place, first: new Map(), peek: new Set(), done: false, ids: [] };
+  const s = skS(pst(), k.id), R = o.resume || null;
+  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s);
+  const seed = R && R.seed != null ? R.seed : Math.floor(Math.random() * 4294967296);
+  CUR = { k, d, seed, review: R ? !!R.review : !!o.review, place: R ? !!R.place : !!o.place, done: false, ids: [],
+    first: new Map(R ? Object.entries(R.first || {}) : []), peek: new Set(R ? R.peek || [] : []), ans: R ? Object.assign({}, R.ans) : {} };
   const host = $('#pathHost');
-  if (k.demo) { host.innerHTML = pathStrip() + `<article class="card exo"><div class="exo-head"><h2>${esc(DEMOS[k.demo].short)}</h2></div><p class="qb-text">« ${esc(DEMOS[k.demo].stmt)} »</p><div class="paper">Écris d'abord la démonstration sur ta feuille, sans regarder. Ensuite, remets les étapes dans l'ordre ci-dessous : zéro erreur pour valider.</div><div class="demo-panel" id="pDemo"></div></article>`; pathDemo(k.demo); }
+  if (k.demo) { host.innerHTML = pathStrip() + `<article class="card exo"><div class="exo-head"><h2>${esc(DEMOS[k.demo].short)}</h2></div><p class="qb-text">« ${esc(DEMOS[k.demo].stmt)} »</p><div class="paper">Écris d'abord la démonstration sur ta feuille, sans regarder. Ensuite, remets les étapes dans l'ordre ci-dessous : zéro erreur pour valider.</div><div class="demo-panel" id="pDemo"></div></article>`; withSeed(seed, () => pathDemo(k.demo)); }
   else {
-    const ex = k.gen(d); ex.pts = 0; CUR.ex = ex;
+    const ex = withSeed(seed, () => k.gen(d)); ex.pts = 0; CUR.ex = ex;
     host.innerHTML = pathStrip() + renderEx(ex, 'train', null, 'pa')
       + '<p class="fine">Une réponse compte si elle est juste à la première vérification. Ouvrir la correction d\'un bloc avant de l\'avoir vérifié compte comme une erreur, mais vaut mieux ça que rester bloqué.</p>';
     CUR.ids = $$('.it[data-id]', host).map(e => e.dataset.id);
+    // reprise : réponses déjà tapées, puis corrections des blocs déjà vérifiés
+    Object.entries(CUR.ans).forEach(([id, v]) => {
+      const row = $(`#pathHost .it[data-id="${id}"]`); if (!row) return;
+      const inp = $('.ans-in', row);
+      if (inp) { inp.value = v; livePreview(inp); }
+      else { const rb = $$('input[type="radio"]', row).find(x => x.value === v); if (rb) rb.checked = true; }
+    });
+    $$('#pathHost .qb').forEach(qb => { const ids = $$('.it[data-id]', qb).map(e => e.dataset.id); if (ids.length && ids.every(id => CUR.first.has(id))) pathCheck(+qb.dataset.b); });
   }
   mathIn(host);
+  if (!R) saveCur(!!o.user);
   host.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function pathDemo(id) {
@@ -2250,6 +2281,7 @@ function pathCheck(bi) {
       const ok = r.st === 'ok' && !CUR.peek.has(bi);
       CUR.first.set(id, ok);
       if (['ex2', 'ex3', 'ex4'].includes(CUR.ex.key) && !CUR.place) addStat(CUR.ex.key, ok);
+      saveCurSoon();
     }
   });
   if (!CUR.done && CUR.ids.every(id => CUR.first.has(id))) pathFinish(CUR.ids.filter(id => CUR.first.get(id)).length / CUR.ids.length);
@@ -2300,6 +2332,7 @@ function pathFinish(r) {
     }
   }
   P.n++;
+  clearTimeout(saveCurT); P.cur = null; P.curT = Date.now();
   ls.set(PK, P);
   const pct = x => Math.min(100, Math.round(x));
   const st = r === 1 ? ['st-good', 'Parfait'] : r >= .5 ? ['st-part', 'Partiel'] : ['st-bad', 'Raté'];
@@ -2318,7 +2351,8 @@ function pathFinish(r) {
 function renderPathTop() {
   const P = pst(), { n, tot } = coreDone(P), f = frontier(P), pct = Math.round(100 * n / tot), fresh = !P.n && !CUR;
   const btns = fresh ? `<button type="button" class="btn btn-primary btn-lg" data-pact="next">Commencer depuis le début</button><button type="button" class="btn btn-lg" data-pact="place">J'ai des bases : test rapide</button>`
-    : `<button type="button" class="btn btn-primary btn-lg" data-pact="next">${P.place != null ? 'Reprendre le test' : CUR && !CUR.done ? 'Autre exercice' : 'Continuer'}</button>`;
+    : CUR && !CUR.done ? `<button type="button" class="btn btn-ghost" data-pact="skip">Changer d'exercice</button><button type="button" class="btn btn-primary btn-lg" data-pact="resume">Reprendre l'exercice</button>`
+    : `<button type="button" class="btn btn-primary btn-lg" data-pact="next">${P.place != null ? 'Reprendre le test' : 'Continuer'}</button>`;
   $('#pathTop').innerHTML = `<section class="card ptop">
     <div class="row" style="align-items:flex-end"><div class="pprog"><b>${n}/${tot}</b><span>compétences validées</span></div><span class="spacer"></span>${btns}</div>
     <div class="bar ${pct >= 75 ? '' : pct >= 35 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>
@@ -2342,13 +2376,14 @@ function renderPathMap() {
       const cls = val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock';
       return `<div class="psk ${cls}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}<small>${esc(k.desc)}${s.ever && !val ? ' · à revoir' : ''}</small></span>
         <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>
-        ${open ? `<button type="button" class="btn btn-sm" data-pgo="${k.id}">${k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
+        ${open ? `<button type="button" class="btn btn-sm" data-pgo="${k.id}">${CUR && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
     }).join('') + '</div>').join('') + '</div>'
     + (P.n ? '<div class="row" style="margin-top:20px"><span class="spacer"></span><button type="button" class="btn btn-ghost btn-sm" data-pact="reset">Recommencer le parcours à zéro</button></div>' : '');
 }
 function renderPath() {
   renderPathTop(); renderPathMap();
-  if (!CUR && pst().n) nextPath();
+  const P = pst();
+  if (!CUR && (P.n || P.cur)) nextPath();
 }
 function openFiche(n) {
   showTab('cours');
@@ -2387,10 +2422,17 @@ function init() {
     const pa = e.target.closest('[data-pact]');
     if (pa) { const a = pa.dataset.pact;
       if (a === 'next') nextPath();
+      if (a === 'resume') $('#pathHost').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (a === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
       if (a === 'place') { const P = pst(); P.place = 0; ls.set(PK, P); renderPathTop(); nextPath(); }
       if (a === 'reset' && confirm('Effacer toute ta progression du parcours ?')) { ls.del(PK); CUR = null; $('#pathHost').innerHTML = ''; renderPath(); }
       return; }
-    const pg = e.target.closest('[data-pgo]'); if (pg) { startPathEx(skById(pg.dataset.pgo)); renderPathTop(); return; }
+    const pg = e.target.closest('[data-pgo]');
+    if (pg) {
+      // l'exercice affiché est déjà de ce type : on y retourne au lieu d'en tirer un autre
+      if (CUR && !CUR.done && CUR.k.id === pg.dataset.pgo) { $('#pathHost').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+      startPathEx(skById(pg.dataset.pgo), { user: true }); renderPathTop(); renderPathMap(); return;
+    }
     const fi = e.target.closest('[data-fiche]'); if (fi) { openFiche(+fi.dataset.fiche); return; }
     const dm = e.target.closest('[data-dm]'); if (dm) { demoMode(dm.closest('.demo'), dm.dataset.dm); return; }
     const ext = e.target.closest('[data-ext]'); if (ext) { TR.type = ext.dataset.ext; newExercise(); return; }
@@ -2401,10 +2443,11 @@ function init() {
   });
   $('#exNew').addEventListener('click', newExercise);
   const ph = $('#pathHost');
-  ph.addEventListener('input', e => { const inp = e.target.closest('.ans-in'); if (inp) livePreview(inp); });
+  ph.addEventListener('input', e => { const inp = e.target.closest('.ans-in'); if (!inp) return; livePreview(inp); if (CUR && !CUR.done) { CUR.ans[inp.dataset.id] = inp.value; saveCurSoon(); } });
+  ph.addEventListener('change', e => { const rb = e.target.closest('input[type="radio"]'); if (rb && CUR && !CUR.done) { CUR.ans[rb.name] = rb.value; saveCurSoon(); } });
   ph.addEventListener('keydown', e => { const inp = e.target.closest('.ans-in'); if (!inp || e.key !== 'Enter') return; e.preventDefault(); const b = inp.closest('.qb').querySelector('[data-act="check"]'); if (b) b.click(); });
   ph.addEventListener('toggle', e => { const d = e.target; if (!CUR || !CUR.ex || !d.open || !d.matches('details.corr-d')) return; const qb = d.closest('.qb'); if (!qb) return;
-    const bi = +qb.dataset.b; if ($$('.it[data-id]', qb).some(r => !CUR.first.has(r.dataset.id))) CUR.peek.add(bi); }, true);
+    const bi = +qb.dataset.b; if ($$('.it[data-id]', qb).some(r => !CUR.first.has(r.dataset.id))) { CUR.peek.add(bi); saveCur(); } }, true);
   $('#blancStart').addEventListener('click', () => { if (ls.get(K.exam, null) && !confirm('Un sujet est déjà en cours : le remplacer ?')) return; const n = ls.get(K.hist, []).filter(r => r.kind === 'blanc').length + 1; startExam(genBlanc(BLV), 'Sujet blanc n°' + n + (BLV === 'dur' ? ' (difficile)' : ''), 'blanc'); });
   $('#submitBtn').addEventListener('click', () => submitExam(false));
   $('#pauseBtn').addEventListener('click', pauseExam);
@@ -2422,8 +2465,11 @@ function init() {
    COMPTE : synchronisation entre appareils (../account.js)
    ===================================================================== */
 function onRemoteData() {
-  // CUR est un exercice du parcours pas encore commencé : on le remplace par celui que choisit la progression à jour
-  if (CUR && !CUR.done && !CUR.first.size && !CUR.place) { CUR = null; $('#pathHost').innerHTML = ''; }
+  // exercice affiché pas encore commencé ici : on reprend celui de la progression à jour (peut-être celui d'un autre appareil)
+  if (CUR && !CUR.done && !CUR.first.size && !Object.keys(CUR.ans).length) {
+    const c = pst().cur;
+    if (!c || c.seed !== CUR.seed) { CUR = null; $('#pathHost').innerHTML = ''; }
+  }
   const v = document.body.dataset.view;
   if (v === 'home') renderHome();
   else if (v === 'path') renderPath();

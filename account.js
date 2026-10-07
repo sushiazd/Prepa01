@@ -28,7 +28,9 @@
         const a = (L.sk || {})[id], b = (R.sk || {})[id];
         sk[id] = !a ? b : !b ? a : (a.last || 0) > (b.last || 0) || ((a.last || 0) === (b.last || 0) && a.n >= b.n) ? a : b;
       });
-      return Object.assign({}, top, { sk, n: Math.max(L.n || 0, R.n || 0) });
+      // exercice en cours : celui touché le plus récemment par l'élève (curT)
+      const c = (L.curT || 0) >= (R.curT || 0) ? L : R;
+      return Object.assign({}, top, { sk, n: Math.max(L.n || 0, R.n || 0), cur: c.cur || null, curT: c.curT || 0 });
     },
     // compteurs : on garde le plus avancé (additionner compterait deux fois les mêmes réponses)
     'elec.stats.v1': (L, R) => {

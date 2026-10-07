@@ -131,6 +131,62 @@
     try { if (navigator.vibrate) navigator.vibrate(120); } catch (e) { /* ignore */ }
   }
 
+  /* ---------- Indicateur de compte, à gauche du bouton thème (toutes les pages) ---------- */
+  let badge = null, known = false;                // known : la session a été vérifiée auprès de Supabase
+  const SYNC_TITLE = { sync: ' · synchronisation en cours…', ok: ' · progression synchronisée', err: ' · synchronisation incomplète, nouvel essai plus tard', notable: ' · base pas encore prête pour la synchro' };
+  function renderBadge() {
+    const theme = document.getElementById('themeBtn');
+    if (!theme) return;
+    if (!badge) {
+      const css = document.createElement('style');
+      css.textContent = `
+.sp-top{display:inline-flex;align-items:center;gap:10px;min-width:0}
+.sp-acc{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--rule-strong,#cdc8bb);background:var(--sheet,#fffefb);color:var(--ink,#1c1b19);
+  font:500 14px/1 var(--sans,Inter,system-ui,sans-serif);text-decoration:none;white-space:nowrap;max-width:230px}
+.sp-acc:hover{border-color:var(--ink-2,#55524b)}
+.sp-acc i{width:9px;height:9px;border-radius:50%;flex:none;background:#9a978e}
+.sp-acc[data-s="in"] i{background:#0ca30c}
+.sp-acc[data-s="sync"] i{background:#fab219}
+.sp-acc[data-s="err"] i{background:#d03b3b}
+.sp-acc .sp-l{color:var(--ink-2,#55524b)}
+.sp-acc b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.sp-acc[data-s="out"]{border-color:var(--pen,#2446c8);color:var(--pen,#2446c8)}
+.sp-acc[data-s="out"] .sp-l{color:inherit}
+body[data-view="exam"] .sp-acc{display:none}
+@media (max-width:720px){ .sp-acc{padding:0 12px;max-width:130px} .sp-acc .sp-l{display:none} .sp-acc[data-s="out"] .sp-l{display:inline} }`;
+      document.head.appendChild(css);
+      const wrap = document.createElement('span');
+      wrap.className = 'sp-top';
+      theme.parentNode.insertBefore(wrap, theme);
+      badge = document.createElement('a');
+      badge.className = 'sp-acc';
+      wrap.appendChild(badge); wrap.appendChild(theme);
+    }
+    const A = window.SiteAccount, st = A && A.user ? A.status : '';
+    badge.href = ROOT + '#compte';
+    if (me) {
+      badge.dataset.s = st === 'sync' ? 'sync' : st === 'err' || st === 'notable' ? 'err' : 'in';
+      badge.innerHTML = `<i></i><span class="sp-l">Connecté ·</span><b>${esc(me.pseudo)}</b>`;
+      badge.title = `Connecté en tant que ${me.pseudo}${SYNC_TITLE[st] || ''}. Cliquer pour gérer le compte.`;
+    } else if (!known && hasSession()) {
+      badge.dataset.s = 'wait';
+      badge.innerHTML = '<i></i><span class="sp-l">Connexion…</span>';
+      badge.title = 'Vérification du compte…';
+    } else {
+      badge.dataset.s = 'out';
+      badge.innerHTML = '<i></i><span class="sp-l">Non connecté</span>';
+      badge.title = 'Tu n\'es pas connecté : ta progression reste sur cet appareil. Cliquer pour te connecter.';
+    }
+  }
+  P.on('me', () => { known = true; renderBadge(); });
+  function hookAccount() {
+    const A = window.SiteAccount; if (!A) return;
+    A.on('status', renderBadge); A.on('change', renderBadge);
+    A.ready.then(() => { if (!A.user && !sb) known = true; renderBadge(); });
+  }
+  if (window.SiteAccount) hookAccount(); else window.addEventListener('siteaccount', hookAccount, { once: true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderBadge); else renderBadge();
+
   /* ---------- Démarrage autonome (pages sans client Supabase) ---------- */
   function hasSession() {
     try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^sb-.*-auth-token$/.test(k)) return true; } } catch (e) { /* ignore */ }

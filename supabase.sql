@@ -236,6 +236,8 @@ create table if not exists public.user_data (
 alter table public.user_data enable row level security;
 grant select, insert, update, delete on public.user_data to authenticated;
 grant select, insert, update, delete on public.user_data to service_role;
+revoke all on public.user_data from anon;
+revoke truncate, references, trigger on public.user_data from authenticated;
 drop policy if exists user_data_own on public.user_data;
 create policy user_data_own on public.user_data for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());

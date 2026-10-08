@@ -46,7 +46,14 @@
       return [...m.values()].sort((a, b) => a.ts - b.ts);
     },
     'elec.plan.v1': null,                // le plus récent gagne
-    'elec.ccdate.v1': null
+    'elec.ccdate.v1': null,
+    // mode Streak : meilleur record par matière et par source, série en cours la plus récente
+    'streak.v1': (L, R) => {
+      const best = Object.assign({}, R.best || {}, L.best || {});
+      Object.keys(best).forEach(k => { const a = (L.best || {})[k], b = (R.best || {})[k]; best[k] = !a ? b : !b ? a : (a.n >= b.n ? a : b); });
+      const c = (L.curT || 0) >= (R.curT || 0) ? L : R;
+      return { best, runs: Math.max(L.runs || 0, R.runs || 0), total: Math.max(L.total || 0, R.total || 0), cur: c.cur || null, curT: c.curT || 0 };
+    }
   };
   const KEYS = Object.keys(SYNC);
 

@@ -6357,6 +6357,25 @@ function genExamDef(kind) {
   return { id: 'x' + Date.now(), kind: 'genexam', title: `Sujet inédit n° ${k}`, eyebrow: `Sujet inédit · format du prof${kind === 'short' ? ' (court)' : ''}`,
     qids: QGEN.exam(kind), duration: ex.dur * 60 };
 }
+/* Sujet « nouveaux types » : une question par thème, tirée parmi les modèles qui ne sont pas
+   au format des sujets du prof, pour s'entraîner aux questions qui ne sont pas encore tombées. */
+K.ncount = 'qcmhub.ncount.v1';
+const EXAM_TPL = new Set();
+Object.values(QGEN.EXAMS).forEach(ex => ex.slots.forEach(sl => Object.keys(sl).forEach(k => EXAM_TPL.add(k))));
+const newTypesOf = th => Object.values(QGEN.TPL).filter(x => x.theme === th && !EXAM_TPL.has(x.id) && !x.group);
+const NEWTYPES = { n: THEMES.filter(t => newTypesOf(t.id).length).length, dur: 50 };
+function newTypesDef() {
+  const k = ls.get(K.ncount, 0) + 1; ls.set(K.ncount, k);
+  const qids = [], themeCount = {};
+  THEMES.forEach(t => {
+    const c = newTypesOf(t.id); if (!c.length) return;
+    const x = c[Math.floor(Math.random() * c.length)];
+    qids.push(`gen.${x.id}.${Math.floor(Math.random() * 2147483647).toString(36)}`);
+    themeCount[t.id] = 1;
+  });
+  return { id: 'n' + Date.now(), kind: 'newtypes', title: `Sujet nouveaux types n° ${k}`, eyebrow: 'Sujet inédit · questions pas encore tombées en contrôle',
+    qids, duration: NEWTYPES.dur * 60, themeCount };
+}
 /* Construit l'épreuve (questions complètes + contexte d'exercice) à partir d'une définition */
 function buildTest(def) {
   const Qs = [], groups = new Map();
@@ -6839,7 +6858,16 @@ function renderSujets() {
       <p class="last">${last ? `Dernière copie : <strong>${fmtNum(last.note, 2)}/20</strong> (${fmtDate(last.at)})` : 'Pas encore tenté.'}</p>
       <button type="button" class="btn btn-primary" data-genexam="${k}">Générer et commencer</button></article>`;
   }).join('');
-  $('#sjGrid').innerHTML = genCards + BANK_ORDER.map(b => {
+  const lastN = attempts.filter(a => a.kind === 'newtypes').slice(-1)[0];
+  const newCard = `<article class="card sj sj-gen"><h3>Sujet nouveaux types</h3><p class="sub">Une question par thème (${NEWTYPES.n} thèmes), uniquement parmi les types de questions qui ne sont pas au format des sujets du prof : pour être prêt si le prochain QCM change.</p>
+      <div class="meta-chips"><span class="meta-chip">${NEWTYPES.n} questions</span><span class="meta-chip">${fmtMin(NEWTYPES.dur)}</span><span class="meta-chip">Toujours nouveau</span></div>
+      <p class="last">${lastN ? `Dernière copie : <strong>${fmtNum(lastN.note, 2)}/20</strong> (${fmtDate(lastN.at)})` : 'Pas encore tenté.'}</p>
+      <button type="button" class="btn btn-primary" data-newtypes="1">Générer et commencer</button></article>`;
+  const streakCard = `<article class="card sj sj-gen"><h3>Mode Streak</h3><p class="sub">Des questions à la suite tant que tu as juste : à la première erreur, c'est fini. Choisis « Nouveaux types » pour t'entraîner sur les questions qui ne sont pas encore tombées.</p>
+      <div class="meta-chips"><span class="meta-chip">Sans chrono</span><span class="meta-chip">Record à battre</span></div>
+      <p class="last">&nbsp;</p>
+      <a class="btn btn-primary" href="../streak/">Jouer</a></article>`;
+  $('#sjGrid').innerHTML = genCards + newCard + streakCard + BANK_ORDER.map(b => {
     const Q = BANKS[b].Q, m = BANK_META[b], last = attempts.filter(a => a.defId === b).slice(-1)[0];
     const multi = Q.filter(q => q.multi).length;
     return `<article class="card sj"><h3>${m.title}</h3><p class="sub">${m.sub}</p>
@@ -6848,7 +6876,7 @@ function renderSujets() {
       <button type="button" class="btn btn-primary" data-bank="${b}">Commencer</button></article>`;
   }).join('');
   const rows = attempts.slice().reverse().slice(0, 25);
-  $('#histBox').innerHTML = rows.length ? `<div style="overflow-x:auto"><table class="hist"><thead><tr><th>Date</th><th>Épreuve</th><th>Questions</th><th>Note</th><th>Temps</th></tr></thead><tbody>${rows.map(a => `<tr><td>${fmtDate(a.at)}</td><td>${a.kind === 'targeted' || a.kind === 'genexam' ? '<span class="tag-t">' + esc(a.title) + '</span>' : esc(a.title)}</td><td>${a.N}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used || 0)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="fine">Aucune épreuve rendue pour le moment.</p>';
+  $('#histBox').innerHTML = rows.length ? `<div style="overflow-x:auto"><table class="hist"><thead><tr><th>Date</th><th>Épreuve</th><th>Questions</th><th>Note</th><th>Temps</th></tr></thead><tbody>${rows.map(a => `<tr><td>${fmtDate(a.at)}</td><td>${a.kind === 'targeted' || a.kind === 'genexam' || a.kind === 'newtypes' ? '<span class="tag-t">' + esc(a.title) + '</span>' : esc(a.title)}</td><td>${a.N}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used || 0)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="fine">Aucune épreuve rendue pour le moment.</p>';
 }
 
 /* =====================================================================
@@ -7464,6 +7492,7 @@ function init() {
     if (bk) { openIntro(bankDef(bk.dataset.bank)); return; }
     const gx = e.target.closest('[data-genexam]');
     if (gx) { openIntro(genExamDef(gx.dataset.genexam)); return; }
+    if (e.target.closest('[data-newtypes]')) { openIntro(newTypesDef()); return; }
     const nq = e.target.closest('[data-newq]');
     if (nq) { showNewQuestion(nq.dataset.newq, nq); return; }
     const dr = e.target.closest('[data-drill]');

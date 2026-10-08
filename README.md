@@ -9,12 +9,13 @@ Le site regroupe plusieurs outils de révision :
 | `maths/index.html` | le QCM de maths (QCM, import de PDF, catalogue, comptes, groupes) |
 | `elec/index.html` | l'entraînement au CC1 d'électronique (cours, démos, exos générés, annales, sujets blancs) |
 | `duel/index.html` | le multijoueur : 1v1 (défis et duels en direct) et FFA (salle jusqu'à 8 joueurs, le dernier survivant gagne) sur le QCM de maths |
+| `streak/index.html` | le mode Streak : des questions du QCM de maths à la suite jusqu'à la première erreur, avec records (tout le programme, nouveaux types, format du QCM) |
 | `presence.js` | la présence en ligne (pastille verte) et les invitations 1v1 et FFA, chargé par toutes les pages |
 | `config.js` | l'adresse de ta base Supabase (à remplir, étape 4), utilisée par le QCM de maths |
 | `supabase.sql` | la base de données et ses règles de sécurité (étape 2) |
 | `README.md` | ce guide |
 
-Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/` `…/Prepa01/elec/` et `…/Prepa01/duel/`.
+Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/` `…/Prepa01/elec/`, `…/Prepa01/duel/` et `…/Prepa01/streak/`.
 
 On se connecte une seule fois, sur la page d'accueil : la session vaut pour toutes les pages. Une fois connecté, la progression d'élec (parcours, stats, copies, planning, date du CC) est enregistrée dans la table `user_data` et fusionnée à chaque ouverture de page, donc on la retrouve sur tous ses appareils. Sans compte, elle reste dans le navigateur.
 

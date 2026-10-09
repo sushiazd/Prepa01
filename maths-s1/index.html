@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mathématiques 1 · Entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../presence.js" data-external></script>
+<script defer src="../account.js" data-lazy></script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
+  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
+  --rule:#e4e0d6; --rule-strong:#cdc8bb;
+  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc;
+  --ok:#1f8a4c; --ok-soft:#e6f4ec; --bad:#c2352b; --bad-soft:#fbeceb; --warn:#9a5b00; --warn-soft:#fcf2da;
+  --phys:#1d4ed8; --phys-soft:#e7edfd;
+  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
+  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+    --rule:#2e2d2a; --rule-strong:#45433e;
+    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
+    --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+    --phys:#60a5fa; --phys-soft:#162544;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+  --rule:#2e2d2a; --rule-strong:#45433e;
+  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
+  --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+  --phys:#60a5fa; --phys-soft:#162544;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+h1,h2,h3,h4,p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+[hidden]{display:none !important}
+code{font-family:var(--mono);font-size:.9em;background:var(--sheet-2);padding:1px 5px;border-radius:5px;border:1px solid var(--rule)}
+.katex{font-size:1.05em}
+.katex-display{margin:.6em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;min-height:64px;padding:8px 24px;background:color-mix(in srgb,var(--paper) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;min-width:0}
+.brand-mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--phys);color:#fff;display:grid;place-items:center;font:italic 700 17px/1 var(--serif)}
+.brand strong{display:block;font:600 15px/1.2 var(--sans)}
+.brand small{display:block;color:var(--muted);font-size:12.5px}
+.tabs{display:flex;gap:4px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
+.tab{height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:500 14px/1 var(--sans);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.tab:hover{background:var(--sheet-2)}
+.tab[aria-current="page"]{background:var(--ink);color:var(--paper)}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer}
+.clock{font:800 22px/1 var(--sans);font-variant-numeric:tabular-nums}
+.clock.rush{color:var(--bad)}
+main{max-width:980px;margin:32px auto 90px;padding:0 24px;display:grid;gap:20px}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--phys);margin-bottom:10px}
+h1{font:600 clamp(28px,4.6vw,42px)/1.08 var(--serif);letter-spacing:-.02em}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:720px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:24px;min-width:0}
+.card h2{font:600 21px/1.25 var(--serif)}
+.sub{color:var(--ink-2);font-size:14.5px;margin-top:4px}
+.fine{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:600 14px/1 var(--sans);cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--pen)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn-primary:hover:not(:disabled){background:var(--pen-hover)}
+.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .sp{flex:1}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font:600 12.5px/1 var(--sans);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.part{background:var(--warn-soft);color:var(--warn)}
+.bar{height:10px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.bar.mid>i{background:var(--warn)} .bar.low>i{background:var(--bad)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600}
+.count{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.count b{font:800 clamp(40px,7vw,58px)/1 var(--sans);letter-spacing:-.04em;color:var(--phys);font-variant-numeric:tabular-nums}
+.count span{color:var(--ink-2)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+/* exercices */
+.ex .q{font:17px/1.6 var(--serif);margin-top:8px}
+.ex .q p+p{margin-top:8px}
+.items{display:grid;gap:12px;margin-top:16px}
+.it{display:grid;grid-template-columns:fit-content(40%) minmax(0,1fr);gap:4px 12px;align-items:center}
+.it-lab{text-align:right;font:16px/1.3 var(--serif);overflow-wrap:anywhere}
+.it-lab.w{font:15px/1.4 var(--sans);text-align:left}
+.it.full{grid-template-columns:minmax(0,1fr)}
+.it.full .fb,.it.full .pv,.it.full .vh{grid-column:1}
+.it-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.it-in input[type=text]{flex:1;min-width:0;width:100%;max-width:340px;font:15px/1.3 var(--mono);font-variant-ligatures:none;color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:42px}
+.it.ex-expr .it-in input[type=text]{max-width:none}
+.unit{font:15px/1 var(--sans);color:var(--ink-2);white-space:nowrap}
+.pv,.vh{grid-column:2;min-width:0;overflow-x:auto;overflow-y:hidden}
+.pv{padding:3px 0}
+.pv{font-size:15px;color:var(--ink-2);min-height:0}
+.pv:empty{display:none}
+.vh{font-size:12.5px;color:var(--muted)}
+.fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto;overflow-y:hidden}
+.fb:empty{display:none}
+.ch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);cursor:pointer;font-size:14.5px}
+.ch:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
+.ch input{accent-color:var(--pen);margin:0}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+details.corr{margin-top:14px}
+details.corr>summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen);padding:6px 0}
+.expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.6 var(--serif);overflow-x:auto}
+.expl p+p,.expl ul{margin-top:8px}
+.expl ul{padding-left:20px}
+.strip{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--phys-soft);border:1px solid color-mix(in srgb,var(--phys) 35%,transparent)}
+.strip b{font:600 17px/1.3 var(--serif)}
+.lvl{display:inline-flex;gap:4px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.lvl i{width:8px;height:8px;border-radius:50%;background:var(--rule-strong)} .lvl i.on{background:var(--phys)}
+.tag-rev{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font:600 11.5px/1 var(--sans)}
+.res{border-color:color-mix(in srgb,var(--pen) 40%,transparent)}
+.psk{display:grid;grid-template-columns:24px minmax(0,1fr) 110px auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--rule)}
+.psk .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 11px/1 var(--sans);background:var(--sheet-2);color:var(--muted);border:1px solid var(--rule)}
+.psk.val .ic{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.psk.cur .ic{background:var(--phys);color:#fff;border-color:transparent}
+.psk.rev .ic{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.psk.lock{opacity:.5}
+.psk .nm small{display:block;color:var(--muted);font-size:12.5px}
+.pch h3{font:600 17px/1.3 var(--serif);margin:16px 0 4px}
+/* cours */
+.fiche{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.fiche>summary{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:16px 22px;cursor:pointer;list-style:none;font:600 18px/1.3 var(--serif)}
+.fiche>summary::-webkit-details-marker{display:none}
+.fiche>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+.fiche[open]>summary::before{transform:rotate(90deg)}
+.fiche>summary .tag{margin-left:auto;font:600 11.5px/1 var(--sans);padding:5px 9px;border-radius:999px;background:var(--phys-soft);color:var(--phys)}
+.fiche .body{padding:4px 24px 22px;border-top:1px solid var(--rule);font:16.5px/1.65 var(--serif);overflow-x:auto}
+.fiche .body p,.fiche .body ul,.fiche .body ol{margin-top:10px}
+.fiche .body ul,.fiche .body ol{padding-left:22px}
+.box{margin-top:12px;padding:12px 16px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
+.box.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.box.key{background:var(--phys-soft);border-color:color-mix(in srgb,var(--phys) 30%,transparent)}
+.box h5{font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;margin:0 0 6px;color:var(--ink-2)}
+table.t{border-collapse:collapse;margin-top:10px;font:14.5px/1.4 var(--sans)}
+table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:left}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);font:500 13.5px/1 var(--sans);color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.score{font:800 clamp(48px,9vw,72px)/1 var(--sans);letter-spacing:-.03em}
+.hist{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+.hist td,.hist th{padding:8px;border-bottom:1px solid var(--rule);text-align:left}
+@media (max-width:760px){
+  .topbar{padding:8px 16px}
+  .brand small{display:none}
+  .tabs{order:3;flex-basis:100%;justify-content:flex-start}
+  main{padding:0 16px;margin-top:22px}
+  .card{padding:18px}
+  .grid2{grid-template-columns:1fr}
+  .it{grid-template-columns:1fr}
+  .it-lab{text-align:left}
+  .fb,.pv,.vh{grid-column:1}
+  .psk{grid-template-columns:24px minmax(0,1fr) auto} .psk .bar{display:none}
+  .fiche .body{padding:4px 16px 18px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">∀</span><div><strong>Mathématiques 1</strong><small>Révisions du CC de maths</small></div></a>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button type="button" class="tab" data-tab="home">Accueil</button>
+    <button type="button" class="tab" data-tab="path">Parcours</button>
+    <button type="button" class="tab" data-tab="cours">Cours</button>
+    <button type="button" class="tab" data-tab="exos">Exos</button>
+    <button type="button" class="tab" data-tab="blanc">Sujet blanc</button>
+  </nav>
+  <span class="clock" id="clock" hidden></span>
+  <button type="button" class="icon-btn" id="themeBtn" aria-label="Thème"></button>
+</header>
+<main id="app"></main>
+
+<script>
+(function () {
+'use strict';
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const app = $('#app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
+};
+let toastT = 0;
+function toast(t) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500); }
+function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const G = R => ({ int: (a, b) => a + Math.floor(R() * (b - a + 1)), pick: a => a[Math.floor(R() * a.length)], shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }, r: R });
+const newSeed = () => Math.floor(Math.random() * 4294967296);
+function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
+function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
+
+/* ---------- nombres et unités ---------- */
+function nfmt(x, s = 3, tex = false) {
+  if (!isFinite(x)) return '?';
+  if (Math.abs(x) < 1e-12) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)) + 1e-9);
+  if (e >= 6 || e <= -3) {
+    let m = +(x / Math.pow(10, e)).toPrecision(s), ee = e; if (Math.abs(m) >= 10) { m /= 10; ee++; }
+    const ms = String(+m.toPrecision(s)).replace('.', tex ? '{,}' : ',');
+    return tex ? `${ms} \\times 10^{${ee}}` : `${ms} × 10^${ee}`;
+  }
+  return String(+x.toPrecision(s)).replace('.', tex ? '{,}' : ',');
+}
+const tN = (x, s = 3) => nfmt(x, s, true);
+const TU = { 'm': '\\mathrm{m}', 's': '\\mathrm{s}', 'm/s': '\\mathrm{m\\cdot s^{-1}}', 'm/s²': '\\mathrm{m\\cdot s^{-2}}', 'N': '\\mathrm{N}', 'J': '\\mathrm{J}', 'W': '\\mathrm{W}', 'rad/s': '\\mathrm{rad\\cdot s^{-1}}', 's⁻¹': '\\mathrm{s^{-1}}', 'kg': '\\mathrm{kg}', '°': '', 'kg·m²/s': '\\mathrm{kg\\cdot m^2\\cdot s^{-1}}', 'N·m': '\\mathrm{N\\cdot m}', 'kg/s': '\\mathrm{kg\\cdot s^{-1}}', '': '' };
+const Q = (x, u, s = 3) => u === '°' ? tN(x, s) + '^\\circ' : tN(x, s) + (TU[u] ? '\\ ' + TU[u] : '');
+const UN = {
+  'm': { m: 1, cm: .01, mm: 1e-3, km: 1e3, 'µm': 1e-6, 'μm': 1e-6, um: 1e-6 },
+  's': { s: 1, ms: 1e-3, 'µs': 1e-6, 'μs': 1e-6, us: 1e-6, min: 60, mn: 60, h: 3600, j: 86400, jour: 86400, jours: 86400 },
+  'm/s': { 'm/s': 1, 'm.s-1': 1, 'ms-1': 1, 'km/h': 1 / 3.6, 'km.h-1': 1 / 3.6, 'km/s': 1e3, 'km.s-1': 1e3, 'cm/s': .01, 'µm/s': 1e-6, 'μm/s': 1e-6, 'um/s': 1e-6 },
+  'm/s²': { 'm/s2': 1, 'm.s-2': 1, 'ms-2': 1 },
+  'N': { N: 1, kN: 1e3, mN: 1e-3 },
+  'J': { J: 1, kJ: 1e3, mJ: 1e-3, MJ: 1e6, GJ: 1e9 },
+  'W': { W: 1, kW: 1e3 },
+  'rad/s': { 'rad/s': 1, 'rad.s-1': 1, 's-1': 1, '/s': 1, '1/s': 1 },
+  's⁻¹': { 's-1': 1, '/s': 1, '1/s': 1, 'rad/s': 1 },
+  'kg': { kg: 1, g: 1e-3, mg: 1e-6, t: 1e3 },
+  '°': { '°': 1, deg: 1, 'degrés': 1, degres: 1 },
+  'kg·m²/s': { 'kg.m2/s': 1, 'kg.m2.s-1': 1, 'J.s': 1, Js: 1, 'kgm2/s': 1 },
+  'N·m': { 'N.m': 1, Nm: 1, 'm.N': 1 },
+  'kg/s': { 'kg/s': 1, 'kg.s-1': 1 },
+  '': {}
+};
+function parseNum(raw, unit) {
+  const s = String(raw).trim().replace(/[−–]/g, '-').replace(/,/g, '.').replace(/\s+/g, ' ');
+  if (!s) return { err: '' };
+  const m = /^([-+]?(?:\d+\.?\d*|\.\d+))\s*(?:[eE]\s*([-+]?\d+)|(?:\*|x|×|·)\s*10\s*\^?\s*\(?\s*([-+]?\d+)\s*\)?)?\s*(.*)$/.exec(s);
+  if (!m) return { err: 'écris un nombre (ex : 2,5 ou 4,2e-3)' + (unit ? ', éventuellement suivi de l\'unité' : '') };
+  const v = parseFloat(m[1]) * Math.pow(10, +(m[2] || m[3] || 0));
+  const u = m[4].replace(/\s+/g, '').replace(/[·*]/g, '.').replace(/⁻¹/g, '-1').replace(/⁻²/g, '-2').replace(/²/g, '2').replace(/\^/g, '');
+  if (!u) return { v };
+  const f = (UN[unit] || {})[u];
+  if (f === undefined) return { err: unit ? 'unité attendue : ' + unit : 'cette grandeur n\'a pas d\'unité' };
+  return { v: v * f };
+}
+
+/* ---------- formules littérales ---------- */
+// nom : [TeX, min, max (tirage pour la vérification), autres écritures acceptées]
+const VD = { x: ['x', .3, 2], n: ['n', 5, 12] };
+const FUNCS = { sqrt: Math.sqrt, '√': Math.sqrt, sin: Math.sin, cos: Math.cos, tan: Math.tan, exp: Math.exp, ln: Math.log };
+const FTEX = { sin: '\\sin', cos: '\\cos', tan: '\\tan', ln: '\\ln' };
+function parseF(src, vars, std) {
+  let s = String(src);
+  if (s.includes('=')) s = s.split('=').pop();
+  s = s.replace(/\\(left|right)/g, '').replace(/\\[,;:! ]/g, '').replace(/[−–—]/g, '-').replace(/[×·∙⋅]/g, '*').replace(/÷/g, '/').replace(/,/g, '.').replace(/²/g, '^2').replace(/³/g, '^3')
+    .replace(/\\(cdot|times)/g, '*');
+  for (let k = 0; k < 6 && /[{}]/.test(s); k++) s = s.replace(/\\sqrt\{([^{}]*)\}/g, 'sqrt($1)').replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)').replace(/_\{([^{}]*)\}/g, '$1').replace(/\^\{([^{}]*)\}/g, '^($1)');
+  s = s.replace(/\\/g, '')
+    .replace(/[{\[]/g, '(').replace(/[}\]]/g, ')').replace(/_/g, '').replace(/\s+/g, '');
+  if (!s) return { err: '' };
+  const cands = [];
+  vars.forEach(v => { cands.push([v, 'var', v]); (VD[v][3] || []).forEach(a => cands.push([a, 'var', v])); });
+  Object.keys(FUNCS).forEach(f => cands.push([f, 'fn', f === '√' ? 'sqrt' : f]));
+  cands.push(['pi', 'pi'], ['π', 'pi']);
+  cands.sort((a, b) => b[0].length - a[0].length);
+  const toks = []; let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (/[0-9.]/.test(ch)) { let j = i; while (j < s.length && /[0-9.]/.test(s[j])) j++; const t = s.slice(i, j); if (t === '.' || (t.match(/\./g) || []).length > 1) return { err: 'nombre mal écrit : ' + t }; toks.push({ t: 'num', v: parseFloat(t), s: t }); i = j; continue; }
+    if ('+-*/^()'.includes(ch)) { toks.push({ t: ch }); i++; continue; }
+    const c = cands.find(c => c[1] === 'fn' || c[1] === 'pi' ? s.slice(i, i + c[0].length).toLowerCase() === c[0] : s.startsWith(c[0], i));
+    if (!c) return { err: 'lettre inconnue : « ' + ch + ' »' };
+    toks.push(c[1] === 'var' ? { t: 'var', n: c[2] } : c[1] === 'fn' ? { t: 'fn', f: c[2] } : { t: 'pi' });
+    i += c[0].length;
+  }
+  let p = 0;
+  const peek = () => toks[p];
+  const start = k => k && (k.t === 'num' || k.t === 'var' || k.t === '(' || k.t === 'fn' || k.t === 'pi');
+  function expr() { let a = term(); while (peek() && (peek().t === '+' || peek().t === '-')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: term() }; } return a; }
+  function term() {
+    let a = jux();
+    for (;;) {
+      if (peek() && (peek().t === '*' || peek().t === '/')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: jux() }; }
+      else if (std && start(peek())) a = { t: 'bin', op: 'j', a, b: power() };
+      else return a;
+    }
+  }
+  function jux() { let a = unary(); while (!std && start(peek())) a = { t: 'bin', op: 'j', a, b: power() }; return a; }
+  function unary() { const k = peek(); if (k && k.t === '-') { p++; return { t: 'neg', a: unary() }; } if (k && k.t === '+') { p++; return unary(); } return power(); }
+  function power() { let a = atom(); if (peek() && peek().t === '^') { p++; a = { t: 'bin', op: '^', a, b: unary() }; } return a; }
+  function atom() {
+    const k = toks[p++]; if (!k) throw 'formule incomplète';
+    if (k.t === 'num') return { t: 'num', v: k.v, s: k.s };
+    if (k.t === 'var') return { t: 'var', n: k.n };
+    if (k.t === 'pi') return { t: 'pi' };
+    if (k.t === 'fn') { let e = null; if (peek() && peek().t === '^') { p++; e = atom(); } let a; if (peek() && peek().t === '(') { p++; a = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; } else a = std ? power() : jux(); const f = { t: 'fn', f: k.f, a }; return e ? { t: 'bin', op: '^', a: f, b: e } : f; }
+    if (k.t === '(') { const e = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; return e; }
+    throw 'symbole « ' + k.t + ' » mal placé';
+  }
+  try { const ast = expr(); if (p < toks.length) throw 'symbole « ' + toks[p].t + ' » mal placé'; return { ast }; }
+  catch (e) { return { err: String(e) }; }
+}
+function evF(n, v) {
+  switch (n.t) {
+    case 'num': return n.v;
+    case 'var': return v[n.n];
+    case 'pi': return Math.PI;
+    case 'neg': return -evF(n.a, v);
+    case 'fn': return FUNCS[n.f](evF(n.a, v));
+    default: { const a = evF(n.a, v), b = evF(n.b, v); return n.op === '+' ? a + b : n.op === '-' ? a - b : n.op === '/' ? a / b : n.op === '^' ? Math.pow(a, b) : a * b; }
+  }
+}
+function texF(n) {
+  const isSum = x => x.t === 'neg' || (x.t === 'bin' && (x.op === '+' || x.op === '-'));
+  const wrap = x => isSum(x) ? '\\left(' + texF(x) + '\\right)' : texF(x);
+  switch (n.t) {
+    case 'num': return n.s.replace('.', '{,}');
+    case 'var': return VD[n.n][0];
+    case 'pi': return '\\pi';
+    case 'neg': return '-' + wrap(n.a);
+    case 'fn': return n.f === 'sqrt' ? '\\sqrt{' + texF(n.a) + '}' : n.f === 'exp' ? 'e^{' + texF(n.a) + '}' : FTEX[n.f] + '\\left(' + texF(n.a) + '\\right)';
+    default:
+      if (n.op === '/') return '\\dfrac{' + texF(n.a) + '}{' + texF(n.b) + '}';
+      if (n.op === '+') return texF(n.a) + ' + ' + texF(n.b);
+      if (n.op === '-') return texF(n.a) + ' - ' + wrap(n.b);
+      if (n.op === '^') return '{' + (n.a.t === 'bin' || n.a.t === 'neg' || n.a.t === 'fn' ? '\\left(' + texF(n.a) + '\\right)' : texF(n.a)) + '}^{' + texF(n.b) + '}';
+      { const A = n.a.t === 'neg' ? texF(n.a) : wrap(n.a), B = wrap(n.b); return A + (/^[0-9]/.test(B) ? ' \\times ' : '\\,') + B; }
+  }
+}
+function checkExpr1(P, it) {
+  if (P.err !== undefined) return { st: P.err === '' ? 'empty' : 'err', msg: P.err };
+  let ok = true, opp = true;
+  for (let t = 0; t < 8; t++) {
+    const v = {}; it.vars.forEach(k => { const d = VD[k]; v[k] = d[1] + Math.random() * (d[2] - d[1]); });
+    const r = it.ref(v), u = evF(P.ast, v);
+    if (!isFinite(r)) { t--; continue; }
+    if (!isFinite(u)) { ok = opp = false; break; }
+    const tol = 1e-6 * Math.max(1, Math.abs(r));
+    if (Math.abs(u - r) > tol) ok = false;
+    if (Math.abs(u + r) > tol || Math.abs(r) < 1e-9) opp = false;
+  }
+  return { st: ok ? 'ok' : opp ? 'sign' : 'bad' };
+}
+function checkExpr(raw, it) {
+  const a = checkExpr1(parseF(raw, it.vars, false), it);
+  if (a.st === 'ok' || a.st === 'empty' || a.st === 'err') return a;
+  const b = checkExpr1(parseF(raw, it.vars, true), it);   // autre lecture de « v0^2/2g »
+  return b.st === 'ok' ? b : a;
+}
+const varsHint = vs => 'avec ' + vs.map(v => { const al = (VD[v][3] || [])[0]; return '<code>' + esc(v) + '</code>' + (al && al.length === 1 && /[^a-zA-Z]/.test(al) ? ' ou ' + esc(al) : ''); }).join(', ');
+
+/* =====================================================================
+   RÉPONSES SPÉCIALES : table de vérité, ensemble fini, intervalles
+   ===================================================================== */
+const sortN = a => [...new Set(a)].sort((x, y) => x - y);
+const setTex = a => a.length ? '\\{' + sortN(a).join(',\\ ') + '\\}' : '\\varnothing';
+function parseIntv(raw) {
+  let s = String(raw).trim(); if (!s) return null;
+  s = s.replace(/\s+/g, '').replace(/[−–]/g, '-').replace(/∞|infini/gi, 'inf').replace(/\+inf/g, 'inf');
+  if (/^(∅|\{\}|vide)$/i.test(s)) return [];
+  if (/^(R|ℝ)$/.test(s)) return [[-Infinity, Infinity, false, false]];
+  const out = [], num = (t, dec) => { if (t === 'inf') return Infinity; if (t === '-inf') return -Infinity; t = dec ? t.replace(',', '.') : t; const f = /^([-+]?\d+(?:\.\d+)?)\/(\d+)$/.exec(t); if (f) return +f[1] / +f[2]; return /^[-+]?\d+(\.\d+)?$/.test(t) ? +t : NaN; };
+  for (const part of s.split(/∪|U/)) {
+    if (!part) return { err: 'morceau vide autour de ∪' };
+    const fs = /^\{(.*)\}$/.exec(part);
+    if (fs) { for (const t of fs[1].split(/[;,]/)) { const v = num(t, false); if (isNaN(v)) return { err: 'élément illisible : ' + t }; out.push([v, v, true, true]); } continue; }
+    const m = /^([\[\]])(.*)([\[\]])$/.exec(part); if (!m) return { err: 'écris par exemple [0;4], ]-1;1[, ]-inf;2], {3} et ∪ (ou U) entre les morceaux' };
+    const semi = m[2].includes(';'), b = m[2].split(semi ? ';' : ','); if (b.length !== 2) return { err: 'un intervalle a deux bornes séparées par ; : ' + part };
+    const lo = num(b[0], semi), hi = num(b[1], semi); if (isNaN(lo) || isNaN(hi)) return { err: 'borne illisible dans ' + part };
+    if (lo > hi) return { err: 'bornes dans le désordre : ' + part };
+    out.push([lo, hi, m[1] === '[' && isFinite(lo), m[3] === ']' && isFinite(hi)]);
+  }
+  return out;
+}
+function normI(L) {
+  const a = L.filter(I => I[0] < I[1] || (I[0] === I[1] && I[2] && I[3])).map(I => I.slice()).sort((x, y) => x[0] - y[0] || (y[2] - x[2]));
+  const r = [];
+  for (const I of a) {
+    const p = r[r.length - 1];
+    if (p && (I[0] < p[1] || (Math.abs(I[0] - p[1]) < 1e-12 && (p[3] || I[2])))) { if (I[1] > p[1] || (Math.abs(I[1] - p[1]) < 1e-12 && I[3])) { p[3] = Math.abs(I[1] - p[1]) < 1e-12 ? p[3] || I[3] : I[3]; p[1] = Math.max(p[1], I[1]); } }
+    else r.push(I);
+  }
+  return r;
+}
+const sameI = (A, B) => A.length === B.length && A.every((I, k) => { const J = B[k]; return (I[0] === J[0] || Math.abs(I[0] - J[0]) < 1e-9) && (I[1] === J[1] || Math.abs(I[1] - J[1]) < 1e-9) && (!isFinite(I[0]) || I[2] === J[2]) && (!isFinite(I[1]) || I[3] === J[3]); });
+const bTex = x => x === Infinity ? '+\\infty' : x === -Infinity ? '-\\infty' : tN(x);
+const intvTex = L => { L = normI(L); if (!L.length) return '\\varnothing'; return L.map(I => I[0] === I[1] ? `\\{${bTex(I[0])}\\}` : `${I[2] ? '[' : ']'}${bTex(I[0])}\\,;\\,${bTex(I[1])}${I[3] ? ']' : '['}`).join(' \\cup '); };
+const CHECKX = {
+  bits(it, raw) { const s = String(raw).toUpperCase().replace(/V/g, '1').replace(/F/g, '0').replace(/[^01]/g, ''); if (!s) return { st: 'empty' }; if (s.length !== it.ans.length) return { st: 'err', msg: `il faut ${it.ans.length} valeurs (0 ou 1), une par ligne de la table` }; return { st: s === it.ans ? 'ok' : 'bad' }; },
+  set(it, raw) {
+    const r = String(raw).trim(); if (!r) return { st: 'empty' };
+    if (/^(∅|\{\s*\}|vide|ensemble vide)$/i.test(r)) return { st: it.ans.length ? 'bad' : 'ok' };
+    const t = r.replace(/[{}]/g, '').replace(/[−–]/g, '-').split(/[;,\s]+/).filter(Boolean);
+    if (t.some(x => !/^[-+]?\d+$/.test(x))) return { st: 'err', msg: 'écris les éléments séparés par des virgules, par exemple {1, 4, 7} (ou ∅)' };
+    const v = sortN(t.map(Number)), a = sortN(it.ans); return { st: v.length === a.length && v.every((x, i) => x === a[i]) ? 'ok' : 'bad' };
+  },
+  intv(it, raw) { const P = parseIntv(raw); if (P === null) return { st: 'empty' }; if (P.err) return { st: 'err', msg: P.err }; return { st: sameI(normI(P), normI(it.ans)) ? 'ok' : 'bad' }; }
+};
+const PH = { bits: 'ex. 1011', set: 'ex. {1, 4, 7}', intv: 'ex. [0;4] ou ]-1;1[ U {3}' };
+
+/* =====================================================================
+   GÉNÉRATEURS D'EXERCICES
+   ===================================================================== */
+const Nn = (lab, val, unit, o) => Object.assign({ type: 'num', lab, val, unit: unit || '', tol: 1e-9 }, o || {});
+const Ex = (lab, vars, ref, sol) => ({ type: 'expr', lab, vars, ref, sol });
+const Ch = (lab, opts, ans) => ({ type: 'choice', lab, opts: opts.map(([v, t]) => ({ v, t })), ans });
+const St = (lab, ans) => ({ type: 'set', lab, ans });
+const Iv = (lab, ans) => ({ type: 'intv', lab, ans });
+const Bt = (lab, ans) => ({ type: 'bits', lab, ans });
+const YN = [['o', 'oui'], ['n', 'non']];
+const GEN = {};
+const fact = n => { let p = 1; for (let i = 2; i <= n; i++) p *= i; return p; };
+const Ark = (n, k) => { let p = 1; for (let i = 0; i < k; i++) p *= n - i; return p; };
+const Cnk = (n, k) => k < 0 || k > n ? 0 : Math.round(Ark(n, k) / fact(k));
+const gcd = (a, b) => b ? gcd(b, a % b) : a, lcm = (a, b) => a / gcd(a, b) * b;
+
+/* ---------- logique propositionnelle ---------- */
+const OPT = { and: '\\wedge', or: '\\vee', imp: '\\Rightarrow', eqv: '\\Leftrightarrow' };
+const Fv = n => ({ t: 'v', n }), Fn = a => ({ t: 'not', a }), Fb = (t, a, b) => ({ t, a, b });
+function fEv(f, e) { switch (f.t) { case 'v': return e[f.n]; case 'not': return !fEv(f.a, e); case 'and': return fEv(f.a, e) && fEv(f.b, e); case 'or': return fEv(f.a, e) || fEv(f.b, e); case 'imp': return !fEv(f.a, e) || fEv(f.b, e); default: return fEv(f.a, e) === fEv(f.b, e); } }
+function fTex(f, top = true) { if (f.t === 'v') return f.n; if (f.t === 'not') return '\\neg ' + fTex(f.a, false); const s = fTex(f.a, false) + ' ' + OPT[f.t] + ' ' + fTex(f.b, false); return top ? s : '(' + s + ')'; }
+const fVars = (f, s = new Set()) => { if (f.t === 'v') s.add(f.n); else { fVars(f.a, s); if (f.b) fVars(f.b, s); } return s; };
+const rows = vs => Array.from({ length: 1 << vs.length }, (_, i) => Object.fromEntries(vs.map((v, j) => [v, !!(i >> (vs.length - 1 - j) & 1)])));
+const col = (f, vs) => rows(vs).map(e => fEv(f, e) ? '1' : '0').join('');
+const kind = (f, vs) => { const c = col(f, vs); return /^1+$/.test(c) ? 't' : /^0+$/.test(c) ? 'a' : 'n'; };
+const equivF = (f, g, vs) => col(f, vs) === col(g, vs);
+function fRand(g, depth, vs) {
+  if (depth === 0) { const v = Fv(g.pick(vs)); return g.r() < .3 ? Fn(v) : v; }
+  if (g.r() < .15) return Fn(fRand(g, depth - 1, vs));
+  return Fb(g.pick(['and', 'or', 'imp', 'imp', 'eqv']), fRand(g, depth - 1, vs), fRand(g, g.r() < .5 ? depth - 1 : 0, vs));
+}
+const P = Fv('P'), Qv = Fv('Q'), R = Fv('R');
+const KIND = [['t', 'une tautologie (toujours vraie)'], ['a', 'une antilogie (toujours fausse)'], ['n', 'neutre (ni l\'un ni l\'autre)']];
+const ttHead = vs => `<p class="fine">Lignes dans l'ordre ${rows(vs).map(e => '(' + vs.map(v => e[v] ? 1 : 0).join(',') + ')').join(', ')} pour \\((${vs.join(', ')})\\) ; écris la colonne de la formule, par exemple <code>${'1011'.padEnd(1 << vs.length, '0').slice(0, 1 << vs.length)}</code> (1 = vrai, 0 = faux).</p>`;
+const ttTable = (f, vs) => `<table class="t"><tr>${vs.map(v => `<th>\\(${v}\\)</th>`).join('')}<th>\\(${fTex(f)}\\)</th></tr>${rows(vs).map(e => `<tr>${vs.map(v => `<td>${e[v] ? 1 : 0}</td>`).join('')}<td><b>${fEv(f, e) ? 1 : 0}</b></td></tr>`).join('')}</table>`;
+const CONN = '<p>Rappels : \\(P\\wedge Q\\) vrai seulement si les deux sont vrais ; \\(P\\vee Q\\) faux seulement si les deux sont faux ; \\(P\\Rightarrow Q\\) faux <b>seulement</b> si \\(P\\) vrai et \\(Q\\) faux ; \\(P\\Leftrightarrow Q\\) vrai si \\(P\\) et \\(Q\\) ont la même valeur.</p>';
+GEN.conn = (d, g) => {
+  const vs = d === 2 ? ['P', 'Q', 'R'] : ['P', 'Q'];
+  if (d === 0) {
+    const pool = [Fb('and', P, Fn(Qv)), Fb('or', Fn(P), Qv), Fb('imp', P, Qv), Fn(Fb('and', P, Qv)), Fb('eqv', P, Fn(Qv)), Fb('imp', Qv, P), Fb('or', P, Fn(Qv)), Fb('imp', Fn(P), Qv)];
+    const fs = g.shuffle(pool).slice(0, 2);
+    return { title: 'Tables de vérité', q: '<p>Donner la table de vérité de chacune des formules suivantes.</p>' + ttHead(vs), items: fs.map(f => Bt(fTex(f), col(f, vs))), corr: CONN + fs.map(f => ttTable(f, vs)).join('') };
+  }
+  const T = [Fb('or', P, Fn(P)), Fb('imp', Fb('and', P, Qv), P), Fb('imp', P, Fb('or', P, Qv)), Fb('imp', Fb('and', Fb('imp', P, Qv), P), Qv), Fb('eqv', Fb('imp', P, Qv), Fb('imp', Fn(Qv), Fn(P))), Fb('or', Fb('imp', P, Qv), Fb('imp', Qv, P))];
+  const A = [Fb('and', P, Fn(P)), Fb('and', Fb('imp', P, Qv), Fb('and', P, Fn(Qv))), Fn(Fb('imp', Qv, Qv)), Fb('eqv', P, Fn(P))];
+  let f;
+  if (d === 1) { const r = g.r(); f = r < .3 ? g.pick(T) : r < .45 ? g.pick(A) : null; if (!f) for (let t = 0; t < 30; t++) { f = fRand(g, 2, vs); if (fVars(f).size === 2) break; } }
+  else for (let t = 0; t < 40; t++) { f = fRand(g, 2, vs); if (fVars(f).size === 3) break; }
+  const k = kind(f, vs);
+  return { title: d === 2 ? 'Table de vérité à trois variables' : 'Tautologie, antilogie ou neutre ?', q: `<p>Soit la formule \\(F = ${fTex(f)}\\). Donner sa table de vérité, puis dire si c'est une tautologie, une antilogie ou une formule neutre.</p>` + ttHead(vs),
+    items: [Bt('F', col(f, vs)), Ch('F est', KIND, k)],
+    corr: CONN + ttTable(f, vs) + `<p>La colonne contient ${k === 't' ? 'uniquement des 1 : c\'est une <b>tautologie</b>' : k === 'a' ? 'uniquement des 0 : c\'est une <b>antilogie</b>' : 'des 0 et des 1 : la formule est <b>neutre</b>'}.</p><p class="fine">Méthode : calculer d'abord les sous-formules (une colonne chacune), de l'intérieur vers l'extérieur.</p>` };
+};
+
+const PAIRS = [
+  [Fn(Fb('and', P, Qv)), Fb('or', Fn(P), Fn(Qv))], [Fn(Fb('and', P, Qv)), Fb('and', Fn(P), Fn(Qv))], [Fn(Fb('or', P, Qv)), Fb('and', Fn(P), Fn(Qv))], [Fn(Fb('or', P, Qv)), Fb('or', Fn(P), Fn(Qv))],
+  [Fn(Fb('imp', P, Qv)), Fb('and', P, Fn(Qv))], [Fn(Fb('imp', P, Qv)), Fb('imp', Fn(P), Fn(Qv))], [Fb('imp', P, Qv), Fb('imp', Fn(Qv), Fn(P))], [Fb('imp', P, Qv), Fb('imp', Qv, P)], [Fb('imp', P, Qv), Fb('or', Fn(P), Qv)],
+  [Fb('eqv', P, Qv), Fb('and', Fb('imp', P, Qv), Fb('imp', Qv, P))], [Fb('and', P, Fb('or', Qv, R)), Fb('or', Fb('and', P, Qv), Fb('and', P, R))], [Fb('and', P, Fb('or', Qv, R)), Fb('or', Fb('and', P, Qv), R)],
+  [Fb('imp', Fb('and', P, Qv), R), Fb('imp', P, Fb('imp', Qv, R))], [Fb('imp', Fb('or', P, Qv), R), Fb('and', Fb('imp', P, R), Fb('imp', Qv, R))], [Fb('imp', P, Fb('and', Qv, R)), Fb('and', Fb('imp', P, Qv), Fb('imp', P, R))], [Fb('imp', Fb('imp', P, Qv), R), Fb('imp', P, Fb('imp', Qv, R))]
+];
+GEN.equiv = (d, g) => {
+  const vs = ['P', 'Q', 'R'];
+  if (d < 2) {
+    const ps = g.shuffle(PAIRS.slice(0, d === 0 ? 10 : 16)).slice(0, d === 0 ? 2 : 3);
+    return { title: 'Formules équivalentes', q: '<p>Les formules suivantes sont-elles logiquement équivalentes (même table de vérité) ?</p>',
+      items: ps.map(([a, b]) => Ch(`\\(${fTex(a)}\\) et \\(${fTex(b)}\\)`, YN, equivF(a, b, vs) ? 'o' : 'n')),
+      corr: `<p>À connaître : De Morgan \\(\\neg(P\\wedge Q) \\equiv \\neg P\\vee\\neg Q\\) et \\(\\neg(P\\vee Q) \\equiv \\neg P\\wedge\\neg Q\\) ; \\(P\\Rightarrow Q \\equiv \\neg P\\vee Q \\equiv \\neg Q\\Rightarrow\\neg P\\) (contraposée) ; \\(\\neg(P\\Rightarrow Q) \\equiv P\\wedge\\neg Q\\). La réciproque \\(Q\\Rightarrow P\\) n'est <b>pas</b> équivalente.</p><ul>${ps.map(([a, b]) => `<li>\\(${fTex(a)}\\) et \\(${fTex(b)}\\) : ${equivF(a, b, vs) ? 'équivalentes' : `non (colonnes ${col(a, vs)} et ${col(b, vs)} pour les 8 lignes de \\((P, Q, R)\\))`}.</li>`).join('')}</ul>` };
+  }
+  let f; for (let t = 0; t < 30; t++) { f = Fb('imp', fRand(g, 1, ['P', 'Q']), fRand(g, 0, ['P', 'Q', 'R'])); if (fVars(f).size >= 2) break; }
+  const nf = Fn(f), good = Fb('and', f.a, Fn(f.b)), cands = [Fb('imp', Fn(f.a), Fn(f.b)), Fb('imp', f.b, f.a), Fb('and', Fn(f.a), f.b), Fb('or', Fn(f.a), Fn(f.b)), Fb('imp', f.a, Fn(f.b))].filter(c => !equivF(c, nf, vs));
+  const opts = g.shuffle([good, ...g.shuffle(cands).slice(0, 3)]);
+  return { title: 'Négation d\'une implication', q: `<p>Parmi ces formules, laquelle est équivalente à la négation de \\(${fTex(f)}\\) ?</p>`,
+    items: [Ch('\\(\\neg F \\equiv\\)', opts.map((o, i) => [o === good ? 'ok' : 'x' + i, `\\(${fTex(o)}\\)`]), 'ok')],
+    corr: `<p>\\(\\neg(A\\Rightarrow B) \\equiv A\\wedge\\neg B\\) : une implication est fausse quand l'hypothèse est vraie et la conclusion fausse. Ici \\(\\neg F \\equiv ${fTex(good)}\\).</p><p class="fine">Piège : la négation d'une implication n'est pas une implication.</p>` };
+};
+
+/* ---------- quantificateurs ---------- */
+const NEGQ = [
+  ['\\forall x\\in\\mathbb R,\\ f(x)\\geq 0', '\\exists x\\in\\mathbb R,\\ f(x) < 0', ['\\forall x\\in\\mathbb R,\\ f(x) < 0', '\\exists x\\in\\mathbb R,\\ f(x)\\leq 0', '\\forall x\\in\\mathbb R,\\ f(x)\\leq 0']],
+  ['\\exists n\\in\\mathbb N,\\ n^2 = 2', '\\forall n\\in\\mathbb N,\\ n^2\\neq 2', ['\\exists n\\in\\mathbb N,\\ n^2\\neq 2', '\\forall n\\notin\\mathbb N,\\ n^2 = 2', '\\nexists n\\notin\\mathbb N,\\ n^2\\neq 2']],
+  ['\\forall \\varepsilon > 0,\\ \\exists n\\in\\mathbb N,\\ \\tfrac1n < \\varepsilon', '\\exists \\varepsilon > 0,\\ \\forall n\\in\\mathbb N,\\ \\tfrac1n\\geq\\varepsilon', ['\\forall \\varepsilon > 0,\\ \\exists n\\in\\mathbb N,\\ \\tfrac1n\\geq\\varepsilon', '\\exists \\varepsilon\\leq 0,\\ \\forall n\\in\\mathbb N,\\ \\tfrac1n\\geq\\varepsilon', '\\exists \\varepsilon > 0,\\ \\exists n\\in\\mathbb N,\\ \\tfrac1n\\geq\\varepsilon']],
+  ['\\forall x\\in\\mathbb R,\\ (x > 0 \\Rightarrow f(x) > 0)', '\\exists x\\in\\mathbb R,\\ (x > 0 \\wedge f(x)\\leq 0)', ['\\exists x\\in\\mathbb R,\\ (x > 0 \\Rightarrow f(x)\\leq 0)', '\\exists x\\in\\mathbb R,\\ (x\\leq 0 \\wedge f(x)\\leq 0)', '\\forall x\\in\\mathbb R,\\ (x\\leq 0 \\Rightarrow f(x)\\leq 0)']],
+  ['\\exists M\\in\\mathbb R,\\ \\forall x\\in\\mathbb R,\\ f(x)\\leq M', '\\forall M\\in\\mathbb R,\\ \\exists x\\in\\mathbb R,\\ f(x) > M', ['\\exists M\\in\\mathbb R,\\ \\forall x\\in\\mathbb R,\\ f(x) > M', '\\forall M\\in\\mathbb R,\\ \\forall x\\in\\mathbb R,\\ f(x) > M', '\\exists x\\in\\mathbb R,\\ \\forall M\\in\\mathbb R,\\ f(x) > M']],
+  ['\\forall x\\in\\mathbb R,\\ \\forall y\\in\\mathbb R,\\ (f(x) = f(y) \\Rightarrow x = y)', '\\exists x\\in\\mathbb R,\\ \\exists y\\in\\mathbb R,\\ (f(x) = f(y) \\wedge x\\neq y)', ['\\exists x\\in\\mathbb R,\\ \\exists y\\in\\mathbb R,\\ (f(x)\\neq f(y) \\wedge x = y)', '\\forall x\\in\\mathbb R,\\ \\forall y\\in\\mathbb R,\\ (f(x) = f(y) \\Rightarrow x\\neq y)', '\\exists x\\in\\mathbb R,\\ \\exists y\\in\\mathbb R,\\ (f(x)\\neq f(y) \\Rightarrow x\\neq y)']]
+];
+const TRUTH = [
+  ['\\forall x\\in\\mathbb R,\\ \\exists y\\in\\mathbb R,\\ y > x', 1, 'pour chaque \\(x\\), \\(y = x + 1\\) convient.'], ['\\exists y\\in\\mathbb R,\\ \\forall x\\in\\mathbb R,\\ y > x', 0, 'aucun réel n\'est plus grand que tous les autres (il n\'est pas plus grand que lui-même).'],
+  ['\\forall x\\in\\mathbb R,\\ x^2\\geq 0', 1, 'un carré est toujours positif.'], ['\\exists x\\in\\mathbb R,\\ x^2 = -1', 0, 'un carré réel n\'est jamais négatif.'],
+  ['\\forall n\\in\\mathbb N,\\ n^2\\geq n', 1, 'vrai pour \\(n = 0\\) et, si \\(n\\geq 1\\), \\(n^2 = n\\times n\\geq n\\).'], ['\\exists n\\in\\mathbb N,\\ \\forall m\\in\\mathbb N,\\ n\\leq m', 1, '\\(n = 0\\) convient.'],
+  ['\\forall x\\in\\mathbb R,\\ \\exists y\\in\\mathbb R,\\ y^2 = x', 0, 'contre-exemple \\(x = -1\\).'], ['\\forall x\\in\\mathbb R_+,\\ \\exists y\\in\\mathbb R,\\ y^2 = x', 1, '\\(y = \\sqrt x\\) convient.'],
+  ['\\exists x\\in\\mathbb Z,\\ 2x = 3', 0, '\\(x = 3/2\\) n\'est pas entier.'], ['\\forall x\\in\\mathbb R,\\ (x^2 = 4 \\Rightarrow x = 2)', 0, 'contre-exemple \\(x = -2\\).'], ['\\forall x\\in\\mathbb R,\\ (x = 2 \\Rightarrow x^2 = 4)', 1, 'si \\(x = 2\\), \\(x^2 = 4\\).'],
+  ['\\exists x\\in\\mathbb R,\\ \\forall y\\in\\mathbb R,\\ xy = 0', 1, '\\(x = 0\\) convient.'], ['\\forall x\\in\\mathbb R,\\ \\exists y\\in\\mathbb R,\\ xy = 1', 0, 'contre-exemple \\(x = 0\\).'], ['\\forall x\\in\\mathbb R^*,\\ \\exists y\\in\\mathbb R,\\ xy = 1', 1, '\\(y = 1/x\\) convient.']
+];
+const FORM = [
+  ['\\(f\\) est majorée sur \\(\\mathbb R\\)', '\\exists M\\in\\mathbb R,\\ \\forall x\\in\\mathbb R,\\ f(x)\\leq M', ['\\forall x\\in\\mathbb R,\\ \\exists M\\in\\mathbb R,\\ f(x)\\leq M', '\\forall M\\in\\mathbb R,\\ \\exists x\\in\\mathbb R,\\ f(x)\\leq M']],
+  ['\\(f\\) s\'annule sur \\(\\mathbb R\\)', '\\exists x\\in\\mathbb R,\\ f(x) = 0', ['\\forall x\\in\\mathbb R,\\ f(x) = 0', '\\exists x\\in\\mathbb R,\\ f(0) = x']],
+  ['\\(f\\) est constante', '\\forall x\\in\\mathbb R,\\ \\forall y\\in\\mathbb R,\\ f(x) = f(y)', ['\\exists x\\in\\mathbb R,\\ \\forall y\\in\\mathbb R,\\ f(x) = y', '\\forall x\\in\\mathbb R,\\ \\exists y\\in\\mathbb R,\\ f(x) = f(y)']],
+  ['\\(f\\) n\'est pas croissante', '\\exists x,y\\in\\mathbb R,\\ (x\\leq y \\wedge f(x) > f(y))', ['\\forall x,y\\in\\mathbb R,\\ (x\\leq y \\Rightarrow f(x) > f(y))', '\\exists x,y\\in\\mathbb R,\\ (x\\leq y \\Rightarrow f(x) > f(y))']],
+  ['tout réel positif est un carré', '\\forall x\\in\\mathbb R_+,\\ \\exists y\\in\\mathbb R,\\ x = y^2', ['\\exists y\\in\\mathbb R,\\ \\forall x\\in\\mathbb R_+,\\ x = y^2', '\\forall y\\in\\mathbb R,\\ \\exists x\\in\\mathbb R_+,\\ x = y^2']],
+  ['\\(f\\) est surjective de \\(\\mathbb R\\) dans \\(\\mathbb R\\)', '\\forall y\\in\\mathbb R,\\ \\exists x\\in\\mathbb R,\\ f(x) = y', ['\\exists x\\in\\mathbb R,\\ \\forall y\\in\\mathbb R,\\ f(x) = y', '\\forall x\\in\\mathbb R,\\ \\exists y\\in\\mathbb R,\\ f(x) = y']]
+];
+const qOpts = (g, good, bad) => g.shuffle([good, ...bad]).map((o, i) => [o === good ? 'ok' : 'x' + i, `\\(${o}\\)`]);
+GEN.quant = (d, g) => {
+  const NQ = '<p>Pour nier une phrase quantifiée : on échange \\(\\forall\\) et \\(\\exists\\) <b>sans toucher aux ensembles</b>, et on nie la propriété finale (\\(\\neg(A\\Rightarrow B) \\equiv A\\wedge\\neg B\\), \\(<\\) devient \\(\\geq\\)…).</p>';
+  if (d === 0) { const qs = g.shuffle(NEGQ).slice(0, 2);
+    return { title: 'Nier une phrase quantifiée', q: '<p>Donner la négation de chacune des propositions.</p>', items: qs.map(([s, ng, bad]) => Ch(`\\(\\neg\\big(${s}\\big)\\)`, qOpts(g, ng, bad), 'ok')), corr: NQ + `<ul>${qs.map(([s, ng]) => `<li>\\(${ng}\\)</li>`).join('')}</ul>` }; }
+  if (d === 1) { const qs = g.shuffle(TRUTH).slice(0, 4);
+    return { title: 'Vrai ou faux ?', q: '<p>Les propositions suivantes sont-elles vraies ou fausses ?</p>', items: qs.map(([s, v]) => Ch(`\\(${s}\\)`, [['1', 'vraie'], ['0', 'fausse']], String(v))),
+      corr: `<p>L'ordre des quantificateurs compte : dans « \\(\\forall x,\\ \\exists y\\) », \\(y\\) peut dépendre de \\(x\\) ; dans « \\(\\exists y,\\ \\forall x\\) », le même \\(y\\) doit convenir pour tous les \\(x\\). Pour montrer qu'un « pour tout » est faux, un contre-exemple suffit.</p><ul>${qs.map(([s, v, w]) => `<li>\\(${s}\\) : <b>${v ? 'vraie' : 'fausse'}</b>, ${w}</li>`).join('')}</ul>` }; }
+  const qs = g.shuffle(FORM).slice(0, 2);
+  return { title: 'Traduire avec des quantificateurs', q: '<p>Choisir la traduction correcte de chaque phrase.</p>', items: qs.map(([s, good, bad]) => Ch(s, qOpts(g, good, bad), 'ok')), corr: `<ul>${qs.map(([s, good]) => `<li>${s} : \\(${good}\\)</li>`).join('')}</ul>` + NQ };
+};
+
+/* ---------- raisonnements ---------- */
+const CNS = [['x = 2', 'x^2 = 4', 1], ['x > 3', 'x > 1', 1], ['n\\text{ est divisible par }6', 'n\\text{ est pair}', 1], ['ABCD\\text{ est un carré}', 'ABCD\\text{ est un losange}', 1], ['x^2 = x', 'x\\in\\{0, 1\\}', 2], ['|x| < 1', 'x < 1', 1], ['n\\text{ est pair}', 'n^2\\text{ est pair}', 2], ['x\\geq 0', 'x^2\\geq 0', 1]];
+const METH = [['Montrer que pour tout \\(n\\in\\mathbb N\\), \\(1 + 2 + \\dots + n = \\frac{n(n+1)}{2}\\).', 'rec'], ['Montrer que \\(\\sqrt 2\\) est irrationnel.', 'abs'], ['Montrer que si \\(n^2\\) est pair, alors \\(n\\) est pair.', 'contra'], ['Montrer que « tout entier naturel est pair » est faux.', 'ce'], ['Montrer que \\(n(n+1)\\) est pair pour tout \\(n\\in\\mathbb N\\).', 'cas'], ['Montrer que pour tout \\(n\\geq 4\\), \\(2^n\\geq n^2\\).', 'rec'], ['Montrer que pour tout réel \\(x\\), \\(|x|\\geq x\\).', 'cas'], ['Montrer qu\'il y a une infinité de nombres premiers.', 'abs'], ['Montrer que si \\(xy\\) est irrationnel, alors \\(x\\) ou \\(y\\) est irrationnel.', 'contra'], ['Montrer que « \\(\\forall x\\in\\mathbb R,\\ x^2 > x\\) » est faux.', 'ce']];
+const METHN = [['dir', 'raisonnement direct'], ['contra', 'par contraposée'], ['abs', 'par l\'absurde'], ['rec', 'par récurrence'], ['ce', 'par contre-exemple'], ['cas', 'par disjonction des cas']];
+const INF = [[[Fb('imp', P, Qv), Fb('imp', Qv, R)], Fb('imp', P, R), 'transitivité'], [[Fb('imp', P, Qv), Qv], P, 'affirmation du conséquent'], [[Fb('imp', P, Qv), Fn(P)], Fn(Qv), 'négation de l\'antécédent'], [[Fb('imp', P, Qv), Fn(Qv)], Fn(P), 'modus tollens'], [[Fb('or', P, Qv), Fn(P)], Qv, 'syllogisme disjonctif'], [[Fb('imp', P, Qv), P], Qv, 'modus ponens'], [[Fb('imp', P, R), Fb('imp', Qv, R)], Fb('imp', Fb('or', P, Qv), R), 'disjonction des cas']];
+const valid = (prem, c) => rows(['P', 'Q', 'R']).every(e => !prem.every(p => fEv(p, e)) || fEv(c, e));
+GEN.raison = (d, g) => {
+  if (d === 0) {
+    const [a, b, k] = g.pick(CNS), sw = g.r() < .5, X = sw ? b : a, Y = sw ? a : b, ans = k === 2 ? 'ns' : sw ? 'n' : 's';
+    return { title: 'Condition nécessaire, condition suffisante', q: `<p>On considère les propositions \\(A : ${X}\\) et \\(B : ${Y}\\) (\\(x\\) réel, \\(n\\) entier).</p>`,
+      items: [Ch('\\(A\\) est pour \\(B\\) une condition', [['s', 'suffisante (mais pas nécessaire)'], ['n', 'nécessaire (mais pas suffisante)'], ['ns', 'nécessaire et suffisante'], ['r', 'ni nécessaire ni suffisante']], ans)],
+      corr: `<p>« \\(A\\Rightarrow B\\) » se lit : \\(A\\) est une condition <b>suffisante</b> pour \\(B\\), et \\(B\\) est une condition <b>nécessaire</b> pour \\(A\\).</p><p>Ici, ${k === 2 ? `\\(${a}\\iff ${b}\\) : condition nécessaire et suffisante.` : `\\(${a}\\Rightarrow ${b}\\) mais pas la réciproque, donc \\(A\\) est ${sw ? 'nécessaire mais pas suffisante' : 'suffisante mais pas nécessaire'} pour \\(B\\).`}</p>` };
+  }
+  if (d === 1) { const qs = g.shuffle(METH).slice(0, 3);
+    return { title: 'Choisir le bon raisonnement', q: '<p>Quel type de raisonnement est le plus adapté ?</p>', items: qs.map(([s, m]) => Ch(s, METHN, m)),
+      corr: '<ul><li><b>Contraposée</b> : pour \\(A\\Rightarrow B\\), montrer \\(\\neg B\\Rightarrow\\neg A\\) (utile quand l\'hypothèse est difficile à exploiter, ex. « \\(n^2\\) pair »).</li><li><b>Absurde</b> : supposer le contraire et aboutir à une contradiction (\\(\\sqrt 2 = p/q\\) irréductible…).</li><li><b>Récurrence</b> : initialisation + hérédité, pour une propriété indexée par \\(n\\).</li><li><b>Contre-exemple</b> : pour montrer qu\'un « pour tout » est faux.</li><li><b>Disjonction des cas</b> : \\(n\\) pair / impair, \\(x\\geq 0\\) / \\(x < 0\\)…</li></ul>' }; }
+  const qs = g.shuffle(INF).slice(0, 3);
+  return { title: 'Inférences valides', q: '<p>Les raisonnements suivants (prémisses ⊢ conclusion) sont-ils valides, c\'est-à-dire la conclusion est-elle vraie chaque fois que toutes les prémisses le sont ?</p>',
+    items: qs.map(([pr, c]) => Ch(`\\(${pr.map(p => fTex(p)).join(',\\ ')}\\ \\vdash\\ ${fTex(c)}\\)`, [['v', 'valide'], ['i', 'non valide']], valid(pr, c) ? 'v' : 'i')),
+    corr: `<ul>${qs.map(([pr, c, nm]) => `<li>${nm} : <b>${valid(pr, c) ? 'valide' : 'non valide'}</b>${valid(pr, c) ? '' : ' (il existe une ligne où les prémisses sont vraies et la conclusion fausse)'}.</li>`).join('')}</ul><p class="fine">Exemple du TD : « si 2 + 2 = 5 alors le père Noël existe » et « si le Soleil tourne autour de la Terre alors 2 + 2 = 5 » donnent bien « si le Soleil tourne autour de la Terre, alors le père Noël existe » (transitivité), même si tout est faux !</p>` };
+};
+
+/* ---------- ensembles ---------- */
+const sub = (g, E, k) => g.shuffle(E).slice(0, k).sort((a, b) => a - b);
+GEN.ops = (d, g) => {
+  const n = g.pick([8, 9, 10]), E = Array.from({ length: n }, (_, i) => i + 1), A = sub(g, E, g.int(3, 6)), B = sub(g, E, g.int(3, 6)), inA = x => A.includes(x), inB = x => B.includes(x);
+  const st = `<p>\\(E = \\{1, 2, \\dots, ${n}\\}\\), \\(A = ${setTex(A)}\\), \\(B = ${setTex(B)}\\).</p>`;
+  if (d === 0) { const U = E.filter(x => inA(x) || inB(x)), I = E.filter(x => inA(x) && inB(x)), Cb = E.filter(x => !inA(x));
+    return { title: 'Union, intersection, complémentaire', q: st + '<p>Déterminer \\(A\\cup B\\), \\(A\\cap B\\) et le complémentaire \\(\\overline A\\) de \\(A\\) dans \\(E\\) (écris <code>∅</code> pour l\'ensemble vide).</p>',
+      items: [St('A\\cup B', U), St('A\\cap B', I), St('\\overline A', Cb)], corr: `<p>\\(A\\cup B = ${setTex(U)}\\) (dans A <b>ou</b> dans B), \\(A\\cap B = ${setTex(I)}\\) (dans les deux), \\(\\overline A = ${setTex(Cb)}\\) (dans E mais pas dans A).</p>` }; }
+  if (d === 1) { const AmB = A.filter(x => !inB(x)), BmA = B.filter(x => !inA(x)), D = AmB.concat(BmA);
+    return { title: 'Différence et différence symétrique', q: st + '<p>Déterminer \\(A\\setminus B\\), \\(B\\setminus A\\) et la différence symétrique \\(A\\,\\Delta\\, B = (A\\setminus B)\\cup(B\\setminus A)\\).</p>',
+      items: [St('A\\setminus B', AmB), St('B\\setminus A', BmA), St('A\\,\\Delta\\,B', D)], corr: `<p>\\(A\\setminus B = A\\cap\\overline B = ${setTex(AmB)}\\), \\(B\\setminus A = ${setTex(BmA)}\\), \\(A\\,\\Delta\\,B = ${setTex(D)}\\) (les éléments qui sont dans un seul des deux).</p>` }; }
+  const C = sub(g, E, g.int(3, 5)), inC = x => C.includes(x), r1 = E.filter(x => inA(x) && (inB(x) || inC(x))), r2 = E.filter(x => (inA(x) || inB(x)) && !inC(x)), r3 = E.filter(x => !(inA(x) && inB(x)));
+  return { title: 'Trois ensembles', q: st.replace('</p>', `, \\(C = ${setTex(C)}\\).</p>`) + '<p>Déterminer \\(A\\cap(B\\cup C)\\), \\((A\\cup B)\\setminus C\\) et \\(\\overline{A\\cap B}\\).</p>',
+    items: [St('A\\cap(B\\cup C)', r1), St('(A\\cup B)\\setminus C', r2), St('\\overline{A\\cap B}', r3)],
+    corr: `<p>\\(A\\cap(B\\cup C) = (A\\cap B)\\cup(A\\cap C) = ${setTex(r1)}\\) (distributivité).</p><p>\\((A\\cup B)\\setminus C = ${setTex(r2)}\\).</p><p>De Morgan : \\(\\overline{A\\cap B} = \\overline A\\cup\\overline B = ${setTex(r3)}\\).</p>` };
+};
+GEN.crible = (d, g) => {
+  if (d === 0) { const N = g.int(120, 250), both = g.int(20, 60), a = g.int(both + 20, N - 30), b = N - a + both;
+    return { title: 'Formule du crible (deux ensembles)', q: `<p>${N} élèves choisissent entre ketchup et mayonnaise ; chacun prend au moins une sauce. ${a} prennent du ketchup et ${b} de la mayonnaise. Combien prennent les deux ?</p>`,
+      items: [Nn('\\mathrm{Card}(K\\cap M)', both)], corr: `<p>\\(\\mathrm{Card}(K\\cup M) = \\mathrm{Card}\\,K + \\mathrm{Card}\\,M - \\mathrm{Card}(K\\cap M)\\), avec \\(\\mathrm{Card}(K\\cup M) = ${N}\\) (tout le monde prend une sauce).</p><p>Donc \\(\\mathrm{Card}(K\\cap M) = ${a} + ${b} - ${N} = ${both}\\).</p>` }; }
+  const r = { h: g.int(30, 90), m: g.int(30, 90), s: g.int(30, 90), hm: g.int(10, 40), hs: g.int(10, 40), ms: g.int(10, 40), hms: g.int(5, 30), none: g.int(20, 120) };
+  const H = r.h + r.hm + r.hs + r.hms, M = r.m + r.hm + r.ms + r.hms, S = r.s + r.hs + r.ms + r.hms, HM = r.hm + r.hms, HS = r.hs + r.hms, MS = r.ms + r.hms, U = H + M + S - HM - HS - MS + r.hms, T = U + r.none, two = r.hm + r.hs + r.ms;
+  const st = `<p>Dans une entreprise de ${T} employés, on note H les hommes, M les personnes mariées, S les syndiqués : \\(|H| = ${H}\\), \\(|M| = ${M}\\), \\(|S| = ${S}\\), \\(|H\\cap M| = ${HM}\\), \\(|H\\cap S| = ${HS}\\), \\(|M\\cap S| = ${MS}\\), \\(|H\\cap M\\cap S| = ${r.hms}\\) (TD, exercice 1.5).</p>`;
+  const crib = `<p>Formule du crible : \\(|H\\cup M\\cup S| = |H| + |M| + |S| - |H\\cap M| - |H\\cap S| - |M\\cap S| + |H\\cap M\\cap S| = ${U}\\).</p>`;
+  if (d === 1) return { title: 'Formule du crible (trois ensembles)', q: st + '<p>Calculer \\(|H\\cup M\\cup S|\\), puis le nombre de femmes célibataires non syndiquées.</p>',
+    items: [Nn('|H\\cup M\\cup S|', U), Nn('\\text{femmes célibataires non syndiquées}', r.none)], corr: crib + `<p>Les femmes célibataires non syndiquées sont hors de \\(H\\cup M\\cup S\\) : \\(${T} - ${U} = ${r.none}\\).</p>` };
+  return { title: 'Crible : exactement deux propriétés', q: st + '<p>Combien d\'employés ont exactement deux des trois propriétés ? Exactement une ?</p>',
+    items: [Nn('\\text{exactement deux}', two), Nn('\\text{exactement une}', r.h + r.m + r.s)],
+    corr: crib + `<p>Exactement deux : \\((|H\\cap M| - |H\\cap M\\cap S|) + (|H\\cap S| - |H\\cap M\\cap S|) + (|M\\cap S| - |H\\cap M\\cap S|) = ${two}\\).</p><p>Exactement une : \\(|H\\cup M\\cup S| - ${two} - ${r.hms} = ${r.h + r.m + r.s}\\).</p><p class="fine">Faire un diagramme de Venn en partant du centre (\\(|H\\cap M\\cap S|\\)) est la méthode la plus sûre.</p>` };
+};
+GEN.parties = (d, g) => {
+  if (d === 0) { const n = g.int(3, 6), m = g.int(2, 5), k = g.int(3, 5);
+    return { title: 'Parties et produit cartésien', q: `<p>Soit \\(E\\) un ensemble à ${n} éléments et \\(F\\) un ensemble à ${m} éléments. Calculer \\(\\mathrm{Card}\\,\\mathcal P(E)\\) et \\(\\mathrm{Card}(E\\times F)\\). Combien de codes de ${k} chiffres (de 0 à 9, répétitions permises) existe-t-il ?</p>`,
+      items: [Nn('\\mathrm{Card}\\,\\mathcal P(E)', 2 ** n), Nn('\\mathrm{Card}(E\\times F)', n * m), Nn('\\text{nombre de codes}', 10 ** k)],
+      corr: `<p>\\(\\mathrm{Card}\\,\\mathcal P(E) = 2^{${n}} = ${2 ** n}\\) (chaque élément est dedans ou non). \\(\\mathrm{Card}(E\\times F) = ${n}\\times${m} = ${n * m}\\). Les codes forment \\(\\{0,\\dots,9\\}^{${k}}\\), de cardinal \\(10^{${k}} = ${10 ** k}\\).</p>` }; }
+  if (d === 1) { const a = g.int(2, 4), L = g.int(3, 6), b = g.int(1, 3), n = g.int(2, 3), m = g.int(2, 3);
+    return { title: 'Codes et produits cartésiens', q: `<p>Un digicode se compose de ${a} chiffres (0 à 9) suivis de ${b} lettre${b > 1 ? 's' : ''} parmi ${L} lettres, avec répétitions permises. Combien de codes ? Si \\(|E| = ${n}\\) et \\(|F| = ${m}\\), combien \\(\\mathcal P(E\\times F)\\) a-t-il d'éléments ?</p>`,
+      items: [Nn('\\text{codes}', 10 ** a * L ** b), Nn('\\mathrm{Card}\\,\\mathcal P(E\\times F)', 2 ** (n * m))],
+      corr: `<p>Codes : \\(\\{0,\\dots,9\\}^{${a}}\\times\\{\\text{lettres}\\}^{${b}}\\), soit \\(10^{${a}}\\times ${L}^{${b}} = ${10 ** a * L ** b}\\).</p><p>\\(E\\times F\\) a \\(${n * m}\\) éléments, donc \\(\\mathcal P(E\\times F)\\) en a \\(2^{${n * m}} = ${2 ** (n * m)}\\).</p>` }; }
+  const E = [1, 2, 3, 4, 5, 6, 7, 8, 9], mk = () => { const s = g.shuffle(E), c1 = g.int(2, 4), c2 = g.int(2, 4); return [s.slice(0, c1), s.slice(c1, c1 + c2), s.slice(c1 + c2)].map(p => p.sort((a, b) => a - b)); };
+  const fams = [0, 1].map(() => { const f = mk(), kind = g.int(0, 2); if (kind === 1) { const x = f[0][0]; f[1].push(x); f[1].sort((a, b) => a - b); } if (kind === 2) f[2].pop(); return [f, kind === 0]; });
+  return { title: 'Partitions', q: '<p>Soit \\(E = \\{1, 2, \\dots, 9\\}\\). Les familles suivantes sont-elles des partitions de \\(E\\) ?</p>',
+    items: fams.map(([f, ok]) => Ch(`\\(${f.map(p => setTex(p)).join(',\\ ')}\\)`, YN, ok ? 'o' : 'n')),
+    corr: `<p>Une partition de \\(E\\) : des parties <b>non vides</b>, <b>deux à deux disjointes</b>, dont la <b>réunion</b> est \\(E\\).</p><ul>${fams.map(([f, ok]) => { const all = [].concat(...f), dup = all.filter((x, i) => all.indexOf(x) !== i), miss = E.filter(x => !all.includes(x)); return `<li>${ok ? 'oui' : 'non : ' + (dup.length ? dup[0] + ' est dans deux parties' : miss.join(', ') + ' n\'est dans aucune partie')}.</li>`; }).join('')}</ul>` };
+};
+
+/* ---------- applications ---------- */
+const INF_ = Infinity;
+GEN.image = (d, g) => {
+  if (d < 2) {
+    const sq = d === 1, nm = sq ? 'x^2' : '|x|', f = x => sq ? x * x : Math.abs(x), r = y => sq ? Math.sqrt(y) : y;
+    const a = -g.int(1, 3), b = g.int(1, 3), a2 = g.int(1, 2), b2 = a2 + g.int(1, 2);
+    const c = sq ? g.pick([1, 4]) : g.int(1, 2), dd = sq ? g.pick([9, 16]) : c + g.int(1, 2), m = sq ? 4 : 2;
+    const imgAB = [[0, Math.max(f(a), f(b)), true, true]], imgPos = [[f(a2), f(b2), true, true]], pre = [[-r(dd), -r(c), true, true], [r(c), r(dd), true, true]], preNeg = [[0, 0, true, true]], preOpen = [[-r(m), r(m), false, false]];
+    const it = [Iv(`f([${a}\\,;\\,${b}])`, imgAB), Iv(`f([${a2}\\,;\\,${b2}])`, imgPos), Iv(`f^{-1}([${c}\\,;\\,${dd}])`, pre), Iv(d === 0 ? 'f^{-1}([-2\\,;\\,0])' : `f^{-1}(]-\\infty\\,;\\,${m}[)`, d === 0 ? preNeg : preOpen)];
+    const items = g.shuffle(it).slice(0, 3);
+    return { title: 'Image directe, image réciproque', q: `<p>Soit \\(f : \\mathbb R\\to\\mathbb R,\\ x\\mapsto ${nm}\\). Déterminer les ensembles suivants (trace la courbe de \\(f\\)).</p>`, items,
+      corr: `<p>\\(f(A) = \\{f(x),\\ x\\in A\\}\\) : on lit sur l'axe des ordonnées. \\(f^{-1}(B) = \\{x\\in\\mathbb R,\\ f(x)\\in B\\}\\) : on lit sur l'axe des abscisses tous les \\(x\\) dont l'image tombe dans \\(B\\) (attention aux deux branches).</p><ul>${items.map(i => `<li>\\(${i.lab} = ${intvTex(i.ans)}\\)</li>`).join('')}</ul><p class="fine">\\(f\\) n'est pas injective (\\(f(-x) = f(x)\\)) : elle n'a pas de fonction réciproque sur \\(\\mathbb R\\).</p>` };
+  }
+  // g(x) = x + 1 si x ≤ 0, 2x + 1 si x > 0 (TD, exercice 2.4)
+  const a = -g.int(1, 4), b = g.int(1, 3), c = -g.pick([1, 3]), dd = g.pick([3, 5, 7]);
+  const img = [[a + 1, 2 * b + 1, true, true]], pre = normI([[Math.max(c - 1, -INF_), Math.min(dd - 1, 0), true, true], [Math.max((c - 1) / 2, 0), (dd - 1) / 2, (c - 1) / 2 > 0, true]].filter(I => I[0] <= I[1]));
+  return { title: 'Fonction définie par morceaux', q: `<p>Soit \\(g : \\mathbb R\\to\\mathbb R\\) définie par \\(g(x) = x + 1\\) si \\(x\\leq 0\\) et \\(g(x) = 2x + 1\\) si \\(x > 0\\) (TD 2, exercice 2.4). Déterminer \\(g([${a}\\,;\\,${b}])\\) et \\(g^{-1}([${c}\\,;\\,${dd}])\\). \\(g\\) est-elle bijective de \\(\\mathbb R\\) dans \\(\\mathbb R\\) ?</p>`,
+    items: [Iv(`g([${a}\\,;\\,${b}])`, img), Iv(`g^{-1}([${c}\\,;\\,${dd}])`, pre), Ch('\\(g : \\mathbb R\\to\\mathbb R\\) est', [['b', 'bijective'], ['i', 'injective, pas surjective'], ['s', 'surjective, pas injective'], ['r', 'ni l\'un ni l\'autre']], 'b')],
+    corr: `<p>Sur \\(]-\\infty\\,;\\,0]\\), \\(g\\) croît de \\(-\\infty\\) à \\(1\\) (atteint) ; sur \\(]0\\,;\\,+\\infty[\\), elle croît de \\(1\\) (non atteint) à \\(+\\infty\\). Les deux morceaux se recollent sans se chevaucher : \\(g\\) est strictement croissante et prend chaque valeur exactement une fois, donc <b>bijective</b>.</p><p>\\(g([${a}\\,;\\,${b}]) = [${a + 1}\\,;\\,1]\\cup\\,]1\\,;\\,${2 * b + 1}] = ${intvTex(img)}\\).</p><p>\\(g^{-1}([${c}\\,;\\,${dd}])\\) : pour \\(x\\leq 0\\), \\(${c}\\leq x + 1\\leq ${dd}\\) ; pour \\(x > 0\\), \\(${c}\\leq 2x + 1\\leq ${dd}\\). On obtient \\(${intvTex(pre)}\\).</p>` };
+};
+const NATURE = [['b', 'bijective'], ['i', 'injective, pas surjective'], ['s', 'surjective, pas injective'], ['r', 'ni injective ni surjective']];
+const REALF = [['\\mathbb R\\to\\mathbb R,\\ x\\mapsto e^x', 'i'], ['\\mathbb R\\to\\,]0\\,;+\\infty[,\\ x\\mapsto e^x', 'b'], ['\\mathbb R\\to\\mathbb R,\\ x\\mapsto x^2', 'r'], ['\\mathbb R_+\\to\\mathbb R_+,\\ x\\mapsto x^2', 'b'], ['\\mathbb R\\to\\mathbb R_+,\\ x\\mapsto x^2', 's'], ['\\mathbb R\\to\\mathbb R,\\ x\\mapsto 2x + 3', 'b'], ['\\mathbb R\\to[-1\\,;1],\\ x\\mapsto\\sin x', 's'], ['[-\\tfrac\\pi2\\,;\\tfrac\\pi2]\\to[-1\\,;1],\\ x\\mapsto\\sin x', 'b'], ['\\mathbb R\\to\\mathbb R,\\ x\\mapsto x^3', 'b'], ['\\mathbb N\\to\\mathbb N,\\ n\\mapsto n + 1', 'i'], ['\\mathbb Z\\to\\mathbb Z,\\ n\\mapsto n + 1', 'b'], ['\\mathbb N\\to\\mathbb N,\\ n\\mapsto\\lfloor n/2\\rfloor', 's'], ['\\mathbb N\\to\\mathbb N,\\ n\\mapsto 2n', 'i']];
+GEN.inj = (d, g) => {
+  const DEF = '<p>Injective : deux éléments distincts ont des images distinctes (chaque élément d\'arrivée a <b>au plus</b> un antécédent). Surjective : chaque élément d\'arrivée a <b>au moins</b> un antécédent. Bijective : les deux (exactement un antécédent).</p>';
+  if (d === 0) {
+    const mk = () => { const n = 3, m = g.int(2, 4), f = Array.from({ length: n }, () => g.int(1, m)); const inj = new Set(f).size === n, sur = new Set(f).size === m; return [f, m, inj && sur ? 'b' : inj ? 'i' : sur ? 's' : 'r']; };
+    const fs = [mk(), mk()];
+    return { title: 'Injective, surjective, bijective ?', q: '<p>\\(E = \\{1, 2, 3\\}\\). Pour chaque application, dire si elle est injective, surjective, bijective.</p>',
+      items: fs.map(([f, m]) => Ch(`\\(f : E\\to\\{s_1,\\dots,s_${m}\\}\\) : ${f.map((y, i) => `\\(f(${i + 1}) = s_${y}\\)`).join(', ')}`, NATURE, fs.find(x => x[0] === f)[2])),
+      corr: DEF + `<ul>${fs.map(([f, m, k]) => `<li>Images ${f.map(y => 's' + y).join(', ')} dans un ensemble à ${m} éléments : ${NATURE.find(x => x[0] === k)[1]}.</li>`).join('')}</ul><p class="fine">Avec \\(|E| = 3\\) : si \\(|F| < 3\\), pas d'injection possible ; si \\(|F| > 3\\), pas de surjection possible.</p>` };
+  }
+  if (d === 1) { const fs = g.shuffle(REALF).slice(0, 3);
+    return { title: 'Applications réelles', q: '<p>Nature des applications suivantes (attention aux ensembles de départ et d\'arrivée) :</p>', items: fs.map(([s, k]) => Ch(`\\(${s}\\)`, NATURE, k)),
+      corr: DEF + `<ul>${fs.map(([s, k]) => `<li>\\(${s}\\) : ${NATURE.find(x => x[0] === k)[1]}.</li>`).join('')}</ul><p class="fine">On peut rendre une application bijective en restreignant le départ (pour l'injectivité) et l'arrivée à l'image (pour la surjectivité) : \\(x\\mapsto x^2\\) est une bijection de \\(\\mathbb R_+\\) sur \\(\\mathbb R_+\\), de réciproque \\(\\sqrt{\\ }\\).</p>` }; }
+  const n = g.int(3, 4), m = g.int(n + 1, 8);
+  return { title: 'Compter les applications', q: `<p>Soient \\(E\\) un ensemble à ${n} éléments et \\(F\\) un ensemble à ${m} éléments. Combien y a-t-il d'applications de \\(E\\) dans \\(F\\) ? d'injections de \\(E\\) dans \\(F\\) ? de bijections de \\(E\\) dans \\(E\\) ? Existe-t-il une surjection de \\(E\\) sur \\(F\\) ?</p>`,
+    items: [Nn('\\text{applications}', m ** n), Nn('\\text{injections}', Ark(m, n)), Nn('\\text{bijections de }E\\text{ dans }E', fact(n)), Ch('Surjection de \\(E\\) sur \\(F\\) ?', YN, 'n')],
+    corr: `<p>Chaque élément de \\(E\\) a \\(${m}\\) images possibles : \\(${m}^{${n}} = ${m ** n}\\) applications.</p><p>Injections : images toutes différentes, \\(${m}\\times${m - 1}\\times\\dots = A_{${m}}^{${n}} = \\dfrac{${m}!}{${m - n}!} = ${Ark(m, n)}\\).</p><p>Bijections de \\(E\\) dans \\(E\\) : \\(${n}! = ${fact(n)}\\). Pas de surjection car \\(|E| = ${n} < |F| = ${m}\\).</p>` };
+};
+// [affichage, forme avec X à remplacer (lisible par le correcteur), fonction]
+const FS = [['x^2', 'X^2', x => x * x], ['\\sin x', '\\sin(X)', Math.sin], ['x + 1', 'X + 1', x => x + 1], ['2x', '2X', x => 2 * x], ['e^x', '\\exp(X)', Math.exp], ['3x - 1', '3X - 1', x => 3 * x - 1], ['\\dfrac1x', '\\dfrac{1}{X}', x => 1 / x]];
+const subst = (outer, inner) => { const a = inner.replace(/X/g, 'x'); return outer.replace(/X/g, /^(x|\\sin\(x\)|\\exp\(x\))$/.test(a) || outer.startsWith('\\') ? a : `(${a})`); };
+GEN.compo = (d, g) => {
+  if (d === 0 || d === 2) {
+    const [f, h] = g.shuffle(FS).slice(0, 2), fg = v => f[2](h[2](v.x)), gf = v => h[2](f[2](v.x));
+    const items = [Ex('(f\\circ g)(x)', ['x'], fg, subst(f[1], h[1])), Ex('(g\\circ f)(x)', ['x'], gf, subst(h[1], f[1]))];
+    let same = true; for (const x of [0.3, 0.7, 1.3, 1.9]) if (Math.abs(fg({ x }) - gf({ x })) > 1e-9) same = false;
+    if (d === 2) items.push(Ch('\\(f\\circ g = g\\circ f\\) ?', YN, same ? 'o' : 'n'));
+    return { title: 'Composer des fonctions', q: `<p>Soient \\(f(x) = ${f[0]}\\) et \\(g(x) = ${h[0]}\\). Exprimer \\((f\\circ g)(x) = f(g(x))\\) et \\((g\\circ f)(x)\\) (on tape <code>sin(x)^2</code>, <code>exp(2x)</code>, <code>1/(x+1)</code>…).</p>`, items,
+      corr: `<p>\\((f\\circ g)(x) = f(g(x)) = ${subst(f[1], h[1])}\\) : on remplace \\(x\\) par \\(g(x)\\) dans \\(f\\).</p><p>\\((g\\circ f)(x) = g(f(x)) = ${subst(h[1], f[1])}\\).</p><p class="fine">En général \\(f\\circ g\\neq g\\circ f\\) : la composition n'est pas commutative.</p>` };
+  }
+  const R = g.pick([[`2x + 3`, v => (v.x - 3) / 2, '\\dfrac{x - 3}{2}'], ['5 - 2x', v => (5 - v.x) / 2, '\\dfrac{5 - x}{2}'], ['e^x - 1', v => Math.log(v.x + 1), '\\ln(x + 1)', ']-1\\,;+\\infty['], ['2e^x', v => Math.log(v.x / 2), '\\ln\\left(\\dfrac{x}{2}\\right)', ']0\\,;+\\infty['], ['x^3', v => Math.cbrt(v.x), 'x^{1/3}'], ['\\ln(x) + 2', v => Math.exp(v.x - 2), '\\exp(x - 2)'], ['\\dfrac{x}{3} - 4', v => 3 * (v.x + 4), '3(x + 4)']]);
+  return { title: 'Bijection réciproque', q: `<p>L'application \\(f(x) = ${R[0]}\\) est une bijection de son ensemble de départ sur son image${R[3] ? ` \\(${R[3]}\\)` : ''}. Exprimer sa réciproque \\(f^{-1}(x)\\).</p>`,
+    items: [Ex('f^{-1}(x)', ['x'], R[1], R[2])],
+    corr: `<p>On résout \\(y = f(x)\\) en \\(x\\), puis on renomme la variable : \\(f^{-1}(x) = ${R[2]}\\).</p><p class="fine">Vérification : \\(f\\circ f^{-1} = \\mathrm{Id}\\) et \\(f^{-1}\\circ f = \\mathrm{Id}\\).</p>` };
+};
+
+/* ---------- relations ---------- */
+const props = (E, G) => { const has = (a, b) => G.some(p => p[0] === a && p[1] === b); return { r: E.every(a => has(a, a)), s: G.every(([a, b]) => has(b, a)), an: G.every(([a, b]) => a === b || !has(b, a)), t: G.every(([a, b]) => G.every(([c, e]) => b !== c || has(a, e))) }; };
+const pairTex = G => '\\{' + G.map(p => `(${p[0]},${p[1]})`).join(',\\ ') + '\\}';
+const RULES = [['x\\,\\mathcal R\\,y \\iff x\\leq y\\ \\text{ sur }\\mathbb R', 1, 0, 1, 1, 'o'], ['a\\,\\mathcal R\\,b \\iff a\\equiv b\\ [5]\\ \\text{ sur }\\mathbb Z', 1, 1, 0, 1, 'e'], ['n\\,\\mathcal R\\,m \\iff n\\text{ divise }m\\ \\text{ sur }\\mathbb N^*', 1, 0, 1, 1, 'o'], ['D\\,\\mathcal R\\,D\' \\iff D\\perp D\'\\ \\text{(droites du plan)}', 0, 1, 0, 0, 'x'], ['D\\,\\mathcal R\\,D\' \\iff D\\parallel D\'\\ \\text{(droites du plan)}', 1, 1, 0, 1, 'e'], ['x\\,\\mathcal R\\,y \\iff x < y\\ \\text{ sur }\\mathbb R', 0, 0, 1, 1, 'x'], ['x\\,\\mathcal R\\,y \\iff x^2 = y^2\\ \\text{ sur }\\mathbb R', 1, 1, 0, 1, 'e'], ['x\\,\\mathcal R\\,y \\iff |x - y|\\leq 1\\ \\text{ sur }\\mathbb R', 1, 1, 0, 0, 'x'], ['A\\,\\mathcal R\\,B \\iff A\\subset B\\ \\text{ sur }\\mathcal P(\\mathbb N)', 1, 0, 1, 1, 'o'], ['x\\,\\mathcal R\\,y \\iff \\sin^2 x + \\cos^2 y = 1\\ \\text{ sur }\\mathbb R', 1, 1, 0, 1, 'e']];
+const TYPE = [['e', 'une relation d\'équivalence'], ['o', 'une relation d\'ordre'], ['x', 'ni l\'un ni l\'autre']];
+const RDEF = '<p>Réflexive : \\(\\forall x,\\ x\\mathcal Rx\\). Symétrique : \\(x\\mathcal Ry\\Rightarrow y\\mathcal Rx\\). Antisymétrique : \\((x\\mathcal Ry\\wedge y\\mathcal Rx)\\Rightarrow x = y\\). Transitive : \\((x\\mathcal Ry\\wedge y\\mathcal Rz)\\Rightarrow x\\mathcal Rz\\). <b>Équivalence</b> = réflexive + symétrique + transitive ; <b>ordre</b> = réflexive + antisymétrique + transitive.</p>';
+function randRel(g, E) {
+  const k = g.int(0, 2); let G = [];
+  if (k === 0) { const cls = []; g.shuffle(E).forEach(x => { if (cls.length && g.r() < .5) g.pick(cls).push(x); else cls.push([x]); }); cls.forEach(c => c.forEach(a => c.forEach(b => G.push([a, b])))); }
+  else if (k === 1) { const o = g.shuffle(E); E.forEach(a => G.push([a, a])); o.forEach((a, i) => o.slice(i + 1).forEach(b => { if (g.r() < .6) G.push([a, b]); })); const n = E.length; for (let t = 0; t < n; t++) G.forEach(([a, b]) => G.forEach(([c, e]) => { if (b === c && !G.some(p => p[0] === a && p[1] === e)) G.push([a, e]); })); }
+  else { E.forEach(a => E.forEach(b => { if (g.r() < .35) G.push([a, b]); })); }
+  return G.sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+}
+GEN.rel = (d, g) => {
+  if (d === 0) {
+    const E = [1, 2, 3, 4], G = randRel(g, E), pr = props(E, G), ty = pr.r && pr.s && pr.t ? 'e' : pr.r && pr.an && pr.t ? 'o' : 'x';
+    return { title: 'Propriétés d\'une relation (graphe)', q: `<p>Sur \\(E = \\{1, 2, 3, 4\\}\\), la relation \\(\\mathcal R\\) a pour graphe \\(\\Gamma = ${pairTex(G)}\\).</p>`,
+      items: [Ch('Réflexive ?', YN, pr.r ? 'o' : 'n'), Ch('Symétrique ?', YN, pr.s ? 'o' : 'n'), Ch('Transitive ?', YN, pr.t ? 'o' : 'n'), Ch('\\(\\mathcal R\\) est', TYPE, ty)],
+      corr: RDEF + `<p>Réflexive : ${pr.r ? 'oui, les quatre couples \\((x,x)\\) sont présents' : 'non, il manque un couple \\((x,x)\\)'}. Symétrique : ${pr.s ? 'oui' : 'non (un couple \\((a,b)\\) sans \\((b,a)\\))'}. Antisymétrique : ${pr.an ? 'oui' : 'non'}. Transitive : ${pr.t ? 'oui' : 'non (on trouve \\((a,b)\\) et \\((b,c)\\) sans \\((a,c)\\))'}. Donc \\(\\mathcal R\\) est ${TYPE.find(x => x[0] === ty)[1]}.</p>` };
+  }
+  const [s, r, sy, an, t, ty] = g.pick(RULES);
+  if (d === 1) return { title: 'Propriétés d\'une relation', q: `<p>On considère la relation \\(${s}\\).</p>`,
+    items: [Ch('Réflexive ?', YN, r ? 'o' : 'n'), Ch('Symétrique ?', YN, sy ? 'o' : 'n'), Ch('Transitive ?', YN, t ? 'o' : 'n'), Ch('\\(\\mathcal R\\) est', TYPE, ty)],
+    corr: RDEF + `<p>\\(${s}\\) : ${r ? 'réflexive' : 'non réflexive'}, ${sy ? 'symétrique' : 'non symétrique'}, ${an ? 'antisymétrique' : 'non antisymétrique'}, ${t ? 'transitive' : 'non transitive'} : ${TYPE.find(x => x[0] === ty)[1]}.</p>${s.includes('perp') ? '<p class="fine">Deux droites perpendiculaires à une même troisième sont parallèles, pas perpendiculaires : pas de transitivité.</p>' : s.includes('|x - y|') ? '<p class="fine">\\(0\\mathcal R1\\) et \\(1\\mathcal R2\\) mais pas \\(0\\mathcal R2\\).</p>' : ''}` };
+  const F = g.pick([[2, 3, 6], [2, 3, 5], [1, 3, 5], [4, 6], [2, 4, 8], [3, 4, 12]]), sup = F.reduce(lcm), inf = F.reduce(gcd);
+  return { title: 'Ordre de divisibilité', q: `<p>Sur \\(\\mathbb N^*\\), on considère l'ordre « \\(n\\preceq m \\iff n\\) divise \\(m\\) ». Soit \\(F = ${setTex(F)}\\). Donner la borne supérieure et la borne inférieure de \\(F\\) pour cet ordre. \\(F\\) a-t-il un plus grand élément ? L'ordre est-il total ?</p>`,
+    items: [Nn('\\sup F', sup), Nn('\\inf F', inf), Ch('Plus grand élément ?', YN, F.includes(sup) ? 'o' : 'n'), Ch('L\'ordre « divise » est', [['t', 'total'], ['p', 'partiel']], 'p')],
+    corr: `<p>Un majorant de \\(F\\) est un multiple commun de tous ses éléments ; le plus petit (pour la divisibilité) est le PPCM : \\(\\sup F = ${sup}\\). De même \\(\\inf F = \\mathrm{PGCD} = ${inf}\\).</p><p>Plus grand élément : ${F.includes(sup) ? `oui, \\(${sup}\\in F\\)` : `non, \\(${sup}\\notin F\\)`}. L'ordre est <b>partiel</b> : 2 et 3 ne sont pas comparables.</p>` };
+};
+GEN.classes = (d, g) => {
+  if (d === 0) { const n = g.int(3, 5), N = g.int(10, 14), a = g.int(0, N);
+    const cl = Array.from({ length: N + 1 }, (_, i) => i).filter(x => (x - a) % n === 0);
+    return { title: 'Classes de congruence', q: `<p>Sur \\(E = \\{0, 1, \\dots, ${N}\\}\\), on considère la relation d'équivalence \\(a\\equiv b\\ [${n}]\\) (\\(${n}\\) divise \\(b - a\\)). Combien y a-t-il de classes d'équivalence ? Quelle est la classe de \\(${a}\\) ?</p>`,
+      items: [Nn('\\text{nombre de classes}', n), St(`\\overline{${a}}`, cl)], corr: `<p>Deux nombres sont équivalents s'ils ont le même reste dans la division par ${n}. Il y a ${n} restes possibles (0 à ${n - 1}), donc ${n} classes.</p><p>\\(\\overline{${a}} = ${setTex(cl)}\\) (reste ${a % n}). Les classes forment une partition de \\(E\\) ; \\(\\{0, \\dots, ${n - 1}\\}\\) est un système de représentants.</p>` }; }
+  if (d === 1) { const E = [1, 2, 3, 4, 5, 6], cls = []; g.shuffle(E).forEach(x => { if (cls.length && g.r() < .55 && cls.length < 4) g.pick(cls).push(x); else cls.push([x]); });
+    const G = []; cls.forEach(c => c.forEach(a => c.forEach(b => G.push([a, b])))); G.sort((p, q) => p[0] - q[0] || p[1] - q[1]); const x = g.int(1, 6), cx = cls.find(c => c.includes(x));
+    return { title: 'Classes d\'équivalence (graphe)', q: `<p>Sur \\(E = \\{1, \\dots, 6\\}\\), la relation d'équivalence \\(\\mathcal R\\) a pour graphe \\(\\Gamma = ${pairTex(G)}\\). Combien de classes ? Quelle est la classe de \\(${x}\\) ?</p>`,
+      items: [Nn('\\text{nombre de classes}', cls.length), St(`C(${x})`, cx)], corr: `<p>\\(C(x) = \\{y\\in E,\\ x\\mathcal Ry\\}\\) : on lit les couples qui commencent par \\(x\\). Classes : ${cls.map(c => `\\(${setTex(c)}\\)`).join(', ')}, soit ${cls.length} classes (une partition de \\(E\\)).</p>` }; }
+  const N = g.int(3, 4), x = g.int(1, N);
+  return { title: 'Relation « même image »', q: `<p>Sur \\(E = \\{-${N}, \\dots, ${N}\\}\\), on définit \\(x\\mathcal Ry \\iff x^2 = y^2\\) (c'est la relation \\(f(x) = f(y)\\) avec \\(f(x) = x^2\\)). Quelle est la classe de \\(${x}\\) ? Combien de classes ? La relation est-elle une relation d'équivalence ?</p>`,
+    items: [St(`C(${x})`, [-x, x]), Nn('\\text{nombre de classes}', N + 1), Ch('Équivalence ?', YN, 'o')], corr: `<p>« \\(f(x) = f(y)\\) » est toujours une relation d'équivalence (réflexive, symétrique, transitive grâce à l'égalité). \\(C(${x}) = \\{-${x}, ${x}\\}\\). Les classes sont \\(\\{0\\}\\), \\(\\{-1, 1\\}\\), …, \\(\\{-${N}, ${N}\\}\\) : ${N + 1} classes, une par valeur de \\(x^2\\).</p>` };
+};
+GEN.ordre = (d, g) => {
+  const a = g.int(-5, 2), b = a + g.int(2, 6);
+  const S = d === 0 ? g.pick([[`[${a}\\,;\\,${b}[`, a, b, 1, 0], [`]${a}\\,;\\,${b}]`, a, b, 0, 1], [`[${a}\\,;\\,${b}]`, a, b, 1, 1]])
+    : d === 1 ? g.pick([['\\{\\tfrac1n,\\ n\\in\\mathbb N^*\\}', 0, 1, 0, 1], ['\\{1 - \\tfrac1n,\\ n\\in\\mathbb N^*\\}', 0, 1, 1, 0], [`]${a}\\,;\\,${b}[`, a, b, 0, 0], ['\\{\\tfrac{n}{n+1},\\ n\\in\\mathbb N\\}', 0, 1, 1, 0]])
+      : g.pick([[`]-\\infty\\,;\\,${b}[`, null, b, 0, 0], [`[${a}\\,;\\,+\\infty[`, a, null, 1, 0], [`]-\\infty\\,;\\,${b}]`, null, b, 0, 1]]);
+  const [t, inf, sup, hasMin, hasMax] = S, EX = [['o', 'oui'], ['n', 'n\'existe pas']];
+  const items = [Ch('Plus petit élément (minimum) ?', EX, hasMin ? 'o' : 'n'), Ch('Plus grand élément (maximum) ?', EX, hasMax ? 'o' : 'n')];
+  if (inf !== null) items.push(Nn('\\inf A', inf)); else items.push(Ch('\\(\\inf A\\)', [['n', 'n\'existe pas (A non minorée)'], ['z', 'vaut 0']], 'n'));
+  if (sup !== null) items.push(Nn('\\sup A', sup)); else items.push(Ch('\\(\\sup A\\)', [['n', 'n\'existe pas (A non majorée)'], ['z', 'vaut 0']], 'n'));
+  return { title: 'Bornes d\'une partie de ℝ', q: `<p>Soit \\(A = ${t}\\). Dire si \\(A\\) a un minimum et un maximum, et donner ses bornes inférieure et supérieure si elles existent.</p>`, items,
+    corr: `<p>La borne supérieure est le <b>plus petit des majorants</b> ; c'est un maximum seulement si elle appartient à \\(A\\). De même pour la borne inférieure et le minimum. Toute partie non vide et majorée de \\(\\mathbb R\\) a une borne supérieure.</p><p>Ici : ${inf !== null ? `\\(\\inf A = ${inf}\\), ${hasMin ? 'atteinte (minimum)' : 'non atteinte (pas de minimum)'}` : 'A n\'est pas minorée : ni borne inférieure ni minimum'} ; ${sup !== null ? `\\(\\sup A = ${sup}\\), ${hasMax ? 'atteinte (maximum)' : 'non atteinte (pas de maximum)'}` : 'A n\'est pas majorée : ni borne supérieure ni maximum'}.</p>` };
+};
+
+/* ---------- dénombrement ---------- */
+const WORDS = ['CHIEN', 'POISON', 'POISSON', 'LILLE', 'BANANE', 'RENNES', 'ANANAS', 'ESIR', 'CUPGE', 'ASSASSINATS', 'MISSISSIPPI', 'ABRACADABRA', 'ELLIPSE'];
+const anag = w => { const c = {}; [...w].forEach(x => { c[x] = (c[x] || 0) + 1; }); return [fact(w.length) / Object.values(c).reduce((p, k) => p * fact(k), 1), c]; };
+GEN.perm = (d, g) => {
+  if (d < 2) {
+    const ws = g.shuffle(d === 0 ? ['CHIEN', 'POISON', 'LILLE', 'ESIR', 'CUPGE', 'BANANE', 'RENNES'] : WORDS.slice(2)).slice(0, 2);
+    return { title: 'Anagrammes', q: '<p>Combien de mots (ayant un sens ou non) peut-on former en permutant les lettres de chacun de ces mots ?</p>',
+      items: ws.map(w => Nn(`\\text{${w}}`, anag(w)[0])),
+      corr: `<p>Permutations de \\(n\\) objets dont \\(n_1\\) identiques, \\(n_2\\) identiques… : \\(\\dfrac{n!}{n_1!\\,n_2!\\cdots}\\).</p><ul>${ws.map(w => { const [v, c] = anag(w), rep = Object.entries(c).filter(([, k]) => k > 1); return `<li>${w} : \\(${rep.length ? `\\dfrac{${w.length}!}{${rep.map(([l, k]) => `${k}!`).join('\\,')}}` : `${w.length}!`} = ${v}\\)${rep.length ? ` (${rep.map(([l, k]) => `${k} ${l}`).join(', ')})` : ''}</li>`; }).join('')}</ul>` };
+  }
+  const n = g.int(5, 8);
+  return { title: 'Personnes en rang', q: `<p>${n} personnes, dont Alice et Bob, se placent.</p><p>1) En rang : combien de dispositions ? 2) Combien où Alice et Bob sont côte à côte ? 3) Combien où ils ne sont pas côte à côte ? 4) Autour d'une table ronde (deux dispositions qui se déduisent par rotation sont identiques) ?</p>`,
+    items: [Nn('\\text{en rang}', fact(n)), Nn('\\text{côte à côte}', 2 * fact(n - 1)), Nn('\\text{séparés}', fact(n) - 2 * fact(n - 1)), Nn('\\text{table ronde}', fact(n - 1))],
+    corr: `<p>1) \\(${n}! = ${fact(n)}\\).</p><p>2) On colle Alice et Bob en un bloc : \\(${n - 1}\\) objets à ranger, \\((${n - 1})!\\), et 2 ordres dans le bloc : \\(2\\times${n - 1}! = ${2 * fact(n - 1)}\\).</p><p>3) Complémentaire : \\(${fact(n)} - ${2 * fact(n - 1)} = ${fact(n) - 2 * fact(n - 1)}\\).</p><p>4) On fixe la place d'une personne : \\((${n} - 1)! = ${fact(n - 1)}\\).</p>` };
+};
+GEN.arr = (d, g) => {
+  const RAP = '<p>Ordre compte, sans répétition : arrangements \\(A_n^k = \\dfrac{n!}{(n-k)!}\\). Ordre ne compte pas : combinaisons \\(\\binom nk = \\dfrac{n!}{k!\\,(n-k)!}\\). Avec répétition et ordre : \\(n^k\\).</p>';
+  if (d === 0) { const N = g.int(12, 20), h = g.int(1, N);
+    return { title: 'Tiercé', q: `<p>Une course compte ${N} partants. Un tiercé est la liste <b>ordonnée</b> des trois premiers (TD, exercice 4). Combien de tiercés possibles ? Combien où le n° ${h} est gagnant ? Combien où le n° ${h} n'est pas sur le podium ?</p>`,
+      items: [Nn('\\text{tiercés}', Ark(N, 3)), Nn(`\\text{${h} gagnant}`, Ark(N - 1, 2)), Nn(`\\text{${h} absent}`, Ark(N - 1, 3))],
+      corr: RAP + `<p>\\(A_{${N}}^3 = ${N}\\times${N - 1}\\times${N - 2} = ${Ark(N, 3)}\\). Le ${h} gagnant : il reste \\(A_{${N - 1}}^2 = ${Ark(N - 1, 2)}\\) choix pour les places 2 et 3. Le ${h} absent : \\(A_{${N - 1}}^3 = ${Ark(N - 1, 3)}\\), ou \\(${Ark(N, 3)} - 3\\times${Ark(N - 1, 2)}\\) (il peut être 1er, 2e ou 3e).</p>` }; }
+  if (d === 1) { const n = g.int(5, 12), m = g.int(5, 12);
+    return { title: 'Urne : tirage simultané', q: `<p>Une urne contient ${n} boules noires et ${m} boules rouges. On tire 2 boules simultanément (sans ordre, sans remise). Combien de tirages possibles ? Avec deux couleurs différentes ? Avec deux boules rouges ? Avec deux boules de même couleur ?</p>`,
+      items: [Nn('\\text{tirages}', Cnk(n + m, 2)), Nn('\\text{couleurs différentes}', n * m), Nn('\\text{deux rouges}', Cnk(m, 2)), Nn('\\text{même couleur}', Cnk(n, 2) + Cnk(m, 2))],
+      corr: RAP + `<p>\\(\\binom{${n + m}}{2} = ${Cnk(n + m, 2)}\\) ; couleurs différentes : une noire et une rouge, \\(${n}\\times${m} = ${n * m}\\) ; deux rouges : \\(\\binom{${m}}{2} = ${Cnk(m, 2)}\\) ; même couleur : \\(\\binom{${n}}{2} + \\binom{${m}}{2} = ${Cnk(n, 2) + Cnk(m, 2)}\\).</p><p class="fine">Vérification : \\(${n * m} + ${Cnk(n, 2) + Cnk(m, 2)} = ${Cnk(n + m, 2)}\\).</p>` }; }
+  const N = g.int(20, 30), A = g.int(8, N - 8), k = g.int(4, 6), j = g.int(1, k - 1);
+  return { title: 'Échantillons dans un conseil', q: `<p>Un conseil de ${N} membres compte ${A} électeurs du candidat A et ${N - A} du candidat B. On choisit un échantillon de ${k} conseillers (TD, exercice 5). Combien d'échantillons possibles ? Combien où tous votent A ? Combien où exactement ${j} votent A ?</p>`,
+    items: [Nn('\\text{échantillons}', Cnk(N, k)), Nn('\\text{tous A}', Cnk(A, k)), Nn(`\\text{exactement ${j} A}`, Cnk(A, j) * Cnk(N - A, k - j))],
+    corr: RAP + `<p>\\(\\binom{${N}}{${k}} = ${Cnk(N, k)}\\) ; tous A : \\(\\binom{${A}}{${k}} = ${Cnk(A, k)}\\) ; exactement ${j} A : on choisit les ${j} parmi les ${A} électeurs de A et les ${k - j} autres parmi les ${N - A} de B : \\(\\binom{${A}}{${j}}\\binom{${N - A}}{${k - j}} = ${Cnk(A, j) * Cnk(N - A, k - j)}\\).</p>` };
+};
+GEN.binom = (d, g) => {
+  if (d === 0) { const n = g.int(5, 10), k = g.int(2, n - 2);
+    return { title: 'Coefficients binomiaux', q: `<p>Calculer \\(${n}!\\), \\(A_{${n}}^{${k}}\\), \\(\\binom{${n}}{${k}}\\) et \\(\\binom{${n}}{${n - k}}\\).</p>`,
+      items: [Nn(`${n}!`, fact(n)), Nn(`A_{${n}}^{${k}}`, Ark(n, k)), Nn(`\\binom{${n}}{${k}}`, Cnk(n, k)), Nn(`\\binom{${n}}{${n - k}}`, Cnk(n, k))],
+      corr: `<p>\\(A_{${n}}^{${k}} = \\dfrac{${n}!}{${n - k}!} = ${Ark(n, k)}\\) ; \\(\\binom{${n}}{${k}} = \\dfrac{A_{${n}}^{${k}}}{${k}!} = ${Cnk(n, k)}\\) ; symétrie \\(\\binom nk = \\binom n{n-k}\\).</p>` }; }
+  if (d === 1) return { title: 'Formules de dénombrement', q: '<p>Exprimer en fonction de \\(n\\) : le nombre de parties à 2 éléments d\'un ensemble à \\(n\\) éléments, puis le nombre de diagonales d\'un polygone convexe à \\(n\\) côtés.</p>',
+    items: [Ex('\\binom n2', ['n'], v => v.n * (v.n - 1) / 2, '\\dfrac{n(n-1)}{2}'), Ex('\\text{diagonales}', ['n'], v => v.n * (v.n - 3) / 2, '\\dfrac{n(n-3)}{2}')],
+    corr: '<p>\\(\\binom n2 = \\dfrac{n!}{2!\\,(n-2)!} = \\dfrac{n(n-1)}{2}\\) (nombre de poignées de main entre \\(n\\) personnes).</p><p>Une diagonale relie deux sommets non voisins : \\(\\binom n2 - n = \\dfrac{n(n-3)}{2}\\).</p>' };
+  const n = g.int(5, 9), k = g.int(1, n - 2), p = g.int(2, 4), m = g.int(3, 6);
+  return { title: 'Identités et somme', q: `<p>1) Calculer \\(\\sum_{k=0}^{${n}}\\binom{${n}}{k}\\). 2) Que vaut \\(\\binom{${n}}{${k}} + \\binom{${n}}{${k + 1}}\\) ? 3) Combien de \\(${p}\\)-uplets d'entiers naturels \\((x_1,\\dots,x_${p})\\) vérifient \\(x_1 + \\dots + x_${p} = ${m}\\) (TD, exercice 8) ?</p>`,
+    items: [Nn('\\sum_k\\binom{' + n + '}{k}', 2 ** n), Nn(`\\binom{${n}}{${k}} + \\binom{${n}}{${k + 1}}`, Cnk(n + 1, k + 1)), Nn('\\text{nombre de }' + p + '\\text{-uplets}', Cnk(m + p - 1, p - 1))],
+    corr: `<p>1) Binôme de Newton avec \\(a = b = 1\\) : \\(2^{${n}} = ${2 ** n}\\) (c'est aussi le nombre de parties).</p><p>2) Formule de Pascal : \\(\\binom{${n + 1}}{${k + 1}} = ${Cnk(n + 1, k + 1)}\\).</p><p>3) « Étoiles et barres » : \\(${m}\\) étoiles et \\(${p - 1}\\) barres, \\(\\binom{${m + p - 1}}{${p - 1}} = ${Cnk(m + p - 1, p - 1)}\\).</p>` };
+};
+
+/* =====================================================================
+   VÉRIFICATION
+   ===================================================================== */
+function check(it, raw) {
+  raw = raw == null ? '' : String(raw);
+  if (CHECKX[it.type]) return CHECKX[it.type](it, raw);
+  if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
+  if (it.type === 'expr') { const r = checkExpr(raw, it); if (r.st === 'sign') return { st: 'bad', msg: 'au signe près : vérifie l\'orientation.' }; return r; }
+  const q = parseNum(raw, it.unit);
+  if (q.err !== undefined) return { st: q.err === '' ? 'empty' : 'err', msg: q.err };
+  const tol = Math.max((it.tol || 0.02) * Math.abs(it.val), 1e-9);
+  if (Math.abs(q.v - it.val) <= tol) return { st: 'ok' };
+  if (Math.abs(q.v + it.val) <= tol) return { st: 'bad', msg: 'attention au signe.' };
+  const ratio = q.v / it.val;
+  if (it.val && [1e3, 1e-3, 1e2, 1e-2, 1e6, 1e-6].some(f => Math.abs(ratio / f - 1) < 0.02)) return { st: 'bad', msg: 'bon nombre, mauvaise puissance de 10 : vérifie les unités.' };
+  return { st: 'bad' };
+}
+const PILL = { ok: '<span class="pill ok">Juste</span>', bad: '<span class="pill bad">Faux</span>', err: '<span class="pill bad">Illisible</span>', empty: '<span class="pill part">Vide</span>' };
+const fbHTML = r => PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '');
+function itemHTML(it, id, val) {
+  if (it.type === 'choice') return `<div class="it full" data-id="${id}"><span class="it-lab w">${it.lab}</span><div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${o.t}</span></label>`).join('')}</div><div class="fb"></div></div>`;
+  const lab = `<span class="it-lab">${tx(it.lab + ' =')}</span>`;
+  if (it.type === 'expr') return `<div class="it ex-expr" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" data-expr="1" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="formule" value="${esc(val || '')}"></div><div class="vh">${varsHint(it.vars)}</div><div class="pv" data-pv="${id}"></div><div class="fb"></div></div>`;
+  return `<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" ${it.type === 'num' ? 'inputmode="decimal" ' : ''}autocomplete="off" spellcheck="false" placeholder="${PH[it.type] || 'valeur'}" value="${esc(val || '')}">${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div><div class="fb"></div></div>`;
+}
+const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); if (r) return r.value; const t = $(`input[type=text][data-id="${id}"]`, root); return t ? t.value : ''; };
+function preview(inp) {
+  const pv = $(`[data-pv="${inp.dataset.id}"]`); if (!pv) return;
+  const it = findItem(inp.dataset.id); if (!it) return;
+  if (!inp.value.trim()) { pv.innerHTML = ''; return; }
+  const P = parseF(inp.value, it.vars, false);
+  pv.innerHTML = P.err !== undefined ? '<span class="fine">' + esc(P.err) + '</span>' : 'lu : ' + tx(texF(P.ast));
+}
+const HELP = '<p class="fine" style="margin-top:12px">Ensembles : <code>{1, 4, 7}</code> ou <code>∅</code>. Intervalles : <code>[0;4]</code>, <code>]-1;1[</code>, <code>]-inf;2]</code>, <code>{0}</code>, avec <code>U</code> pour la réunion. Formules : <code>sin(x)^2</code>, <code>exp(2x)</code>, <code>ln(x+1)</code>, <code>1/(x+1)</code>, <code>x^(1/3)</code> ; l\'aperçu montre comment ta formule est lue.</p>';
+
+/* =====================================================================
+   COMPÉTENCES ET PROGRESSION (mêmes règles que les autres matières)
+   ===================================================================== */
+const PK = 'ms1.path.v1', HK = 'ms1.hist.v1', EK = 'ms1.exam.v1', VAL = 100, MMAX = 130;
+const CH = ['Logique', 'Ensembles', 'Applications', 'Relations', 'Dénombrement'];
+const SK = [
+  { id: 'conn', ch: 0, name: 'Tables de vérité, tautologies', fiche: 0 },
+  { id: 'equiv', ch: 0, name: 'Équivalences et négations', fiche: 0 },
+  { id: 'quant', ch: 0, name: 'Quantificateurs', fiche: 1 },
+  { id: 'raison', ch: 0, name: 'Raisonnements, CN et CS', fiche: 2 },
+  { id: 'ops', ch: 1, name: 'Opérations sur les ensembles', fiche: 3 },
+  { id: 'crible', ch: 1, name: 'Formule du crible', fiche: 3 },
+  { id: 'parties', ch: 1, name: 'Parties, produit cartésien, partitions', fiche: 3 },
+  { id: 'image', ch: 2, name: 'Image directe, image réciproque', fiche: 4 },
+  { id: 'inj', ch: 2, name: 'Injective, surjective, bijective', fiche: 4 },
+  { id: 'compo', ch: 2, name: 'Composition et réciproque', fiche: 4 },
+  { id: 'rel', ch: 3, name: 'Propriétés d\'une relation', fiche: 5 },
+  { id: 'classes', ch: 3, name: 'Classes d\'équivalence', fiche: 5 },
+  { id: 'ordre', ch: 3, name: 'Ordre, majorants, bornes', fiche: 5 },
+  { id: 'perm', ch: 4, name: 'Permutations et anagrammes', fiche: 6 },
+  { id: 'arr', ch: 4, name: 'Arrangements et combinaisons', fiche: 6 },
+  { id: 'binom', ch: 4, name: 'Coefficients binomiaux', fiche: 6 }
+];
+const skById = id => SK.find(k => k.id === id);
+function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
+function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false }); }
+const isVal = s => s.m >= VAL, levelOf = s => s.m < 40 ? 0 : s.m < 80 ? 1 : 2;
+const frontier = P => SK.find(k => !isVal(skS(P, k.id))) || null;
+function pickNext(P) {
+  const f = frontier(P), pool = SK.filter(k => k !== f && skS(P, k.id).ever);
+  const rev = pool.length >= 2 && (P.since >= 6 || (P.since >= 3 && Math.random() < 0.35));
+  if (f && !rev) return { k: f, review: false };
+  if (!pool.length) return f ? { k: f, review: false } : null;
+  const now = Date.now(), W = pool.map(k => { const s = skS(P, k.id); return [k, (MMAX + 20 - s.m) * (1 + Math.min(3, (now - s.last) / 864e5))]; });
+  let r = Math.random() * W.reduce((a, w) => a + w[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) return { k, review: true }; }
+  return { k: W[0][0], review: true };
+}
+function build(id, d, seed) { const ex = GEN[id](d, G(rng(seed))); ex.items.forEach((it, i) => { it.id = `${id}-${seed}-${i}`; }); return ex; }
+
+let CUR = null, EXAM = null;
+function findItem(id) {
+  if (CUR && CUR.ex) { const it = CUR.ex.items.find(x => x.id === id); if (it) return it; }
+  if (EXAM && EXAM.exs) for (const ex of EXAM.exs) for (const p of ex.parts) { const it = p.items.find(x => x.id === id); if (it) return it; }
+  return null;
+}
+function exHTML(ex) {
+  return `<article class="card ex"><h2>${esc(ex.title)}</h2><div class="q">${ex.q}</div>
+    <div class="items">${ex.items.map(it => itemHTML(it, it.id, (CUR && CUR.ans[it.id]) || '')).join('')}</div>
+    ${ex.items.some(it => ['expr', 'set', 'intv'].includes(it.type)) ? HELP : ''}
+    <div class="actions"><button type="button" class="btn btn-primary" data-act="check">Vérifier</button></div>
+    <details class="corr"><summary>Correction</summary><div class="expl">${ex.corr}${ex.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details></article>`;
+}
+function startEx(k, o = {}) {
+  const P = pst(), s = skS(P, k.id), R = o.resume || null;
+  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s), seed = R ? R.seed : newSeed();
+  CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), done: false };
+  CUR.ex = build(k.id, d, seed);
+  if (CUR.mode === 'path' && !R) saveCur(!!o.user);
+  renderEx();
+}
+function saveCur(bump = true) {
+  if (!CUR || CUR.mode !== 'path') return;
+  const P = pst();
+  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek };
+  if (bump) P.curT = Date.now();
+  ls.set(PK, P);
+}
+function renderEx() {
+  const host = $('#exHost'); if (!host || !CUR) return;
+  const k = CUR.k, s = skS(pst(), k.id);
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span><button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
+    + exHTML(CUR.ex);
+  mathIn(host);
+  CUR.ex.items.forEach(it => { if (it.id in CUR.first) { const fb = $(`.it[data-id="${it.id}"] .fb`, host); if (fb) fb.innerHTML = fbHTML(check(it, valOf(host, it.id))); } });
+  $$('input[data-expr]', host).forEach(preview);
+  host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function checkCur() {
+  if (!CUR || CUR.done) return;
+  const host = $('#exHost');
+  CUR.ex.items.forEach(it => {
+    const r = check(it, valOf(host, it.id)), fb = $(`.it[data-id="${it.id}"] .fb`, host);
+    if (fb) fb.innerHTML = fbHTML(r);
+    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? 1 : 0;
+  });
+  saveCur();
+  if (CUR.ex.items.every(it => it.id in CUR.first)) finish(CUR.ex.items.reduce((a, it) => a + CUR.first[it.id], 0) / CUR.ex.items.length);
+}
+function finish(r) {
+  CUR.done = true;
+  const host = $('#exHost');
+  $('details.corr', host).open = true;
+  if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); return; }
+  const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
+  s.n++; if (r === 1) s.ok++;
+  const gain = CUR.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
+  if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
+  s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now(); if (isVal(s)) s.ever = true;
+  P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
+  ls.set(PK, P);
+  const f = frontier(P), now = isVal(s);
+  const title = CUR.review ? (r === 1 ? 'Toujours acquis' : was && !now ? 'Un peu oublié' : 'À surveiller') : !was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
+  const msg = !was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+  host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span></div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
+    <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
+    <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`);
+  if (!was && now && !CUR.review) toast('Compétence validée : ' + k.name);
+  renderPathTop(); renderMap();
+}
+
+/* =====================================================================
+   VUES
+   ===================================================================== */
+let VIEW = 'home';
+function setTab(t) {
+  if (EXAM && EXAM.running && t !== 'blanc') { toast('Un sujet blanc est en cours.'); t = 'blanc'; }
+  VIEW = t;
+  $$('#tabs .tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
+  ({ home: vHome, path: vPath, cours: vCours, exos: vExos, blanc: vBlanc })[t]();
+  if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
+  window.scrollTo(0, 0);
+}
+function nextCC() {
+  const c = ls.get('planning.cache.v1', null), now = Date.now();
+  const ev = c && c.evs ? c.evs.slice().sort((x, y) => x.s - y.s).find(e => e.s > now - 3 * 3600e3 && /(^|[^A-Za-z])MATHS?([^A-Za-z]|$)/.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : null;
+  return ev ? ev.s : Date.parse('2026-11-06T08:45:00Z');
+}
+function vHome() {
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
+  const days = Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
+  const H = ls.get(HK, []), jan = cc > Date.parse('2026-12-01');
+  app.innerHTML = `<div><p class="eyebrow">MATH-S1 · A. Karfoul, M. Bauer</p><h1>Réussir le CC de maths du 6/11</h1>
+    <p class="lede">Le premier CC de MATH-S1 (vendredi 6/11, 1 h 30, sans document ni calculatrice) porte sur la partie d'A. Karfoul et de M. Bauer : <b>logique</b> (tables de vérité, quantificateurs, raisonnements), <b>ensembles</b>, <b>applications</b>, <b>relations</b> et <b>dénombrement</b>. L'analyse de L. Albera (complexes, limites, DL, intégrales, suites) est pour le CC du 6/1.</p></div>
+    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>${jan ? 'Prochain CC de maths (partie analyse, pas encore sur cette page)' : 'CC de maths'} : ${esc(when)}</span></div></section>
+    <div class="grid2">
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Des tables de vérité au dénombrement, avec une progression qui s'adapte à tes résultats.</p>
+        <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
+      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">4 exercices notés sur 20 : logique, ensembles, applications et relations, dénombrement. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
+    </div>
+    <section class="card"><h2>Pas d'annale pour cette partie</h2><p class="sub">Les deux annales 2025-26 sur Moodle portent sur l'analyse (dérivées ; intégrales, DL et limites) : elles serviront pour le CC du 6/1. Pour celui-ci, les exercices reprennent les TD (logique, ensembles, applications, relations, analyse combinatoire), dont les exercices marqués « extrait d'un CC » ou « extrait d'un DS », et les quiz Moodle de M. Bauer.</p></section>`;
+  mathIn(app);
+}
+function renderPathTop() {
+  const el = $('#pathTop'); if (!el) return;
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, f = frontier(P);
+  el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${done}/${SK.length}</b><span>compétences validées</span></div><span class="sp"></span>
+    ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
+    <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+    <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'} · Deux sans-faute d'affilée valident une compétence ; en cas d'erreurs, les exercices se simplifient et les compétences validées reviennent en révision.</p></section>`;
+}
+function renderMap() {
+  const el = $('#pathMap'); if (!el) return;
+  const P = pst(), f = frontier(P);
+  el.innerHTML = CH.map((c, ci) => `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${SK.filter(k => k.ch === ci).map(k => {
+    const s = skS(P, k.id), val = isVal(s), open = val || k === f || s.n > 0, pct = Math.min(100, Math.round(s.m));
+    return `<div class="psk ${val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}${s.ever && !val ? '<small>à revoir</small>' : ''}</span>
+      <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
+  }).join('')}</div>`).join('');
+}
+function nextPath(o = {}) {
+  const P = pst();
+  if (!o.fresh && P.cur && skById(P.cur.id)) { startEx(skById(P.cur.id), { resume: P.cur }); renderPathTop(); renderMap(); return; }
+  const n = pickNext(P); if (!n) return;
+  startEx(n.k, { review: n.review, user: o.user }); renderPathTop(); renderMap();
+}
+function vPath() {
+  app.innerHTML = `<div><p class="eyebrow">Parcours guidé</p><h1>Le parcours</h1></div><div id="pathTop"></div><div id="exHost" style="display:grid;gap:16px"></div><section class="card"><h2>La carte</h2><div id="pathMap"></div></section>`;
+  renderPathTop(); renderMap();
+  if (CUR && CUR.mode === 'path') renderEx(); else if (pst().n || pst().cur) nextPath();
+}
+let FREE = { id: 'conn', d: 0 };
+function vExos() {
+  app.innerHTML = `<div><p class="eyebrow">Entraînement libre</p><h1>Exercices par type</h1><p class="lede">Choisis un type d'exercice et un niveau. Les énoncés et les valeurs changent à chaque fois.</p></div>
+    <section class="card"><div class="seg">${SK.map(k => `<button type="button" data-ft="${k.id}" aria-pressed="${k.id === FREE.id}">${esc(k.name)}</button>`).join('')}</div>
+      <div class="row" style="margin-top:12px"><div class="seg">${[0, 1, 2].map(d => `<button type="button" data-fd="${d}" aria-pressed="${d === FREE.d}">Niveau ${d + 1}</button>`).join('')}</div><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></section>
+    <div id="exHost" style="display:grid;gap:16px"></div>`;
+  startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+}
+
+/* ---------- Cours ---------- */
+const FICHES = [
+  ['1. Calcul propositionnel', 'tables de vérité', `<p>Connecteurs : \\(\\neg\\) (non), \\(\\wedge\\) (et), \\(\\vee\\) (ou, inclusif), \\(\\Rightarrow\\) (implique), \\(\\Leftrightarrow\\) (équivaut). Priorité : \\(\\neg\\) puis \\(\\wedge\\), \\(\\vee\\), puis \\(\\Rightarrow\\), \\(\\Leftrightarrow\\).</p>
+    <table class="t"><tr><th>\\(P\\)</th><th>\\(Q\\)</th><th>\\(P\\wedge Q\\)</th><th>\\(P\\vee Q\\)</th><th>\\(P\\Rightarrow Q\\)</th><th>\\(P\\Leftrightarrow Q\\)</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr></table>
+    <ul><li>\\(P\\Rightarrow Q \\equiv \\neg P\\vee Q \\equiv \\neg Q\\Rightarrow\\neg P\\) (contraposée). La réciproque \\(Q\\Rightarrow P\\) n'est pas équivalente.</li><li>De Morgan : \\(\\neg(P\\wedge Q) \\equiv \\neg P\\vee\\neg Q\\), \\(\\neg(P\\vee Q) \\equiv \\neg P\\wedge\\neg Q\\). Négation : \\(\\neg(P\\Rightarrow Q) \\equiv P\\wedge\\neg Q\\).</li><li>Distributivité : \\(P\\wedge(Q\\vee R) \\equiv (P\\wedge Q)\\vee(P\\wedge R)\\) et inversement.</li><li>Tautologie : toujours vraie ; antilogie : toujours fausse ; sinon neutre.</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Dresser une table de vérité (2 variables : 4 lignes, 3 variables : 8) en ajoutant une colonne par sous-formule ; formaliser une phrase (« si…, alors… », « soit…, soit… » = ou exclusif) ; montrer une équivalence sans table, avec les lois ci-dessus.</div>
+    <div class="box warn"><h5>Pièges</h5>Une implication dont l'hypothèse est fausse est <b>vraie</b> (« si Napoléon était chinois alors 3 − 2 = 2 » est vraie) · le « ou » mathématique est inclusif.</div>`],
+  ['2. Quantificateurs', 'quantificateurs', `<ul><li>\\(\\forall x\\in E,\\ P(x)\\) : pour tout ; \\(\\exists x\\in E,\\ P(x)\\) : il existe au moins un ; \\(\\exists!\\) : il existe un unique.</li><li><b>Négation</b> : \\(\\neg(\\forall x,\\ P(x)) \\equiv \\exists x,\\ \\neg P(x)\\) et \\(\\neg(\\exists x,\\ P(x)) \\equiv \\forall x,\\ \\neg P(x)\\). Les ensembles ne changent pas.</li><li>L'<b>ordre</b> compte : \\(\\forall x,\\ \\exists y\\) (\\(y\\) dépend de \\(x\\)) n'est pas \\(\\exists y,\\ \\forall x\\) (un même \\(y\\) pour tous).</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Nier « \\(f\\) est majorée » : \\(\\neg(\\exists M,\\ \\forall x,\\ f(x)\\leq M) \\equiv \\forall M,\\ \\exists x,\\ f(x) > M\\). Traduire une phrase en quantificateurs et dire si elle est vraie.</div>
+    <div class="box warn"><h5>Pièges</h5>Nier \\(\\leq\\) donne \\(>\\), pas \\(\\geq\\) · la négation de \\(\\forall x,\\ (A\\Rightarrow B)\\) est \\(\\exists x,\\ (A\\wedge\\neg B)\\).</div>`],
+  ['3. Raisonnements', 'raisonnement', `<ul><li><b>Direct</b> : on suppose \\(A\\) et on en déduit \\(B\\).</li><li><b>Contraposée</b> : pour \\(A\\Rightarrow B\\), on montre \\(\\neg B\\Rightarrow\\neg A\\) (ex. « \\(n^2\\) pair \\(\\Rightarrow\\) \\(n\\) pair » via « \\(n\\) impair \\(\\Rightarrow\\) \\(n^2\\) impair »).</li><li><b>Absurde</b> : on suppose \\(\\neg A\\) et on obtient une contradiction (\\(\\sqrt 2\\notin\\mathbb Q\\)).</li><li><b>Contre-exemple</b> : pour montrer qu'un « \\(\\forall\\) » est faux.</li><li><b>Disjonction des cas</b> : \\(n\\) pair / impair…</li><li><b>Récurrence</b> : initialisation \\(P(n_0)\\), hérédité \\(P(n)\\Rightarrow P(n+1)\\).</li></ul>
+    <p>Si \\(A\\Rightarrow B\\) est vraie : \\(A\\) est une condition <b>suffisante</b> pour \\(B\\), \\(B\\) une condition <b>nécessaire</b> pour \\(A\\).</p>
+    <div class="box warn"><h5>Pièges</h5>De \\(A\\Rightarrow B\\) et \\(B\\), on ne peut pas conclure \\(A\\) (affirmation du conséquent) ; de \\(A\\Rightarrow B\\) et \\(\\neg B\\), on conclut \\(\\neg A\\) (modus tollens).</div>`],
+  ['4. Ensembles', 'ensembles, crible', `<ul><li>\\(A\\cup B\\) (ou), \\(A\\cap B\\) (et), \\(\\overline A = E\\setminus A\\), \\(A\\setminus B = A\\cap\\overline B\\), \\(A\\,\\Delta\\,B = (A\\setminus B)\\cup(B\\setminus A)\\).</li><li>De Morgan : \\(\\overline{A\\cup B} = \\overline A\\cap\\overline B\\), \\(\\overline{A\\cap B} = \\overline A\\cup\\overline B\\).</li><li>\\(\\mathbb N\\subset\\mathbb Z\\subset\\mathbb Q\\subset\\mathbb R\\subset\\mathbb C\\), inclusions strictes (\\(-1\\), \\(\\tfrac12\\), \\(\\sqrt2\\), \\(i\\)).</li><li><b>Crible</b> : \\(|A\\cup B| = |A| + |B| - |A\\cap B|\\) ; \\(|A\\cup B\\cup C| = |A| + |B| + |C| - |A\\cap B| - |A\\cap C| - |B\\cap C| + |A\\cap B\\cap C|\\).</li><li>\\(|\\mathcal P(E)| = 2^{|E|}\\) ; \\(|E\\times F| = |E|\\times|F|\\).</li><li>Partition de \\(E\\) : parties non vides, deux à deux disjointes, de réunion \\(E\\).</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Lire une région d'un diagramme de Venn ; résoudre un problème d'effectifs avec le crible (en partant du centre du diagramme).</div>
+    <div class="box warn"><h5>Pièges</h5>\\(E\\times F\\neq F\\times E\\) en général (couples ordonnés) · \\(\\varnothing\\in\\mathcal P(E)\\) et \\(E\\in\\mathcal P(E)\\).</div>`],
+  ['5. Applications', 'applications', `<ul><li>Image directe \\(f(A) = \\{f(x),\\ x\\in A\\}\\) ; image réciproque \\(f^{-1}(B) = \\{x,\\ f(x)\\in B\\}\\) (elle existe même si \\(f\\) n'est pas bijective).</li><li><b>Injective</b> : \\(f(x) = f(x')\\Rightarrow x = x'\\) (au plus un antécédent). <b>Surjective</b> : \\(\\forall y\\in F,\\ \\exists x\\in E,\\ f(x) = y\\) (au moins un). <b>Bijective</b> : exactement un ; alors \\(f^{-1}\\circ f = \\mathrm{Id}_E\\) et \\(f\\circ f^{-1} = \\mathrm{Id}_F\\).</li><li>Composée : \\((g\\circ f)(x) = g(f(x))\\) ; en général \\(g\\circ f\\neq f\\circ g\\).</li><li>Ensembles finis, \\(|E| = n\\), \\(|F| = m\\) : \\(m^n\\) applications, \\(\\frac{m!}{(m-n)!}\\) injections (si \\(n\\leq m\\)), \\(n!\\) bijections de \\(E\\) dans \\(E\\). Injection possible seulement si \\(n\\leq m\\), surjection seulement si \\(n\\geq m\\).</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Lire \\(f(A)\\) et \\(f^{-1}(B)\\) sur la courbe ; restreindre départ et arrivée pour obtenir une bijection et donner sa réciproque (résoudre \\(y = f(x)\\) en \\(x\\)).</div>
+    <div class="box warn"><h5>Pièges</h5>L'injectivité dépend de l'ensemble de départ et la surjectivité de l'ensemble d'arrivée : \\(x\\mapsto x^2\\) n'est ni l'un ni l'autre sur \\(\\mathbb R\\to\\mathbb R\\), mais bijective de \\(\\mathbb R_+\\) sur \\(\\mathbb R_+\\).</div>`],
+  ['6. Relations', 'relations', `<ul><li>Propriétés : réflexive, symétrique, antisymétrique, transitive (définitions dans les corrections).</li><li><b>Équivalence</b> = R + S + T. Classe \\(C(x) = \\{y,\\ x\\mathcal Ry\\}\\) ; les classes forment une <b>partition</b> ; un système de représentants contient un élément par classe. Exemple : congruence modulo \\(n\\), \\(n\\) classes.</li><li><b>Ordre</b> = R + antisymétrique + T ; <b>total</b> si deux éléments sont toujours comparables (\\(\\leq\\) sur \\(\\mathbb R\\)), sinon partiel (divisibilité, inclusion).</li><li>Majorant, minorant ; plus grand élément (= maximum, appartient à la partie) ; borne supérieure = plus petit des majorants (pas forcément atteinte). Pour la divisibilité : sup = PPCM, inf = PGCD.</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Compléter un graphe avec le moins de flèches possible pour obtenir une relation d'équivalence (TD 3.4, 3.5) ; trouver les classes ; montrer qu'une relation « \\(f(x) = f(y)\\) » est une équivalence.</div>
+    <div class="box warn"><h5>Pièges</h5>\\([a\\,;\\,b[\\) a une borne supérieure \\(b\\) mais pas de maximum · « être perpendiculaire » n'est pas transitive.</div>`],
+  ['7. Dénombrement', 'dénombrement', `<table class="t"><tr><th></th><th>Ordre compte</th><th>Ordre ne compte pas</th></tr><tr><td>Sans répétition</td><td>arrangements \\(A_n^k = \\dfrac{n!}{(n-k)!}\\)</td><td>combinaisons \\(\\binom nk = \\dfrac{n!}{k!\\,(n-k)!}\\)</td></tr><tr><td>Avec répétition</td><td>\\(n^k\\) (\\(k\\)-uplets)</td><td>\\(\\binom{n+k-1}{k}\\)</td></tr></table>
+    <ul><li>Principe multiplicatif (plaques : \\(26\\times 25\\times 9\\times 10\\times 10\\)).</li><li>Permutations de \\(n\\) objets : \\(n!\\) ; avec répétitions : \\(\\dfrac{n!}{n_1!\\,n_2!\\cdots}\\) (LILLE : \\(5!/3! = 20\\)).</li><li>\\(\\binom nk = \\binom n{n-k}\\), \\(\\binom nk + \\binom n{k+1} = \\binom{n+1}{k+1}\\) (Pascal), \\(\\sum_k\\binom nk = 2^n\\).</li><li>Tirage simultané = combinaison ; successif sans remise = arrangement ; avec remise = \\(n^k\\).</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Se demander à chaque fois : l'ordre compte-t-il ? y a-t-il répétition ? Pour « au moins un », passer par le complémentaire ; pour « exactement \\(j\\) », multiplier les choix dans chaque groupe.</div>`],
+  ['8. Méthode pour le CC', 'méthode', `<p>CC d'1 h 30, aucun document, calculatrice interdite (comme en 2025-26) : les calculs de dénombrement restent petits, laisse-les sous forme de produits ou de \\(\\binom nk\\) si c'est long.</p>
+    <ol><li>Logique : écris les tables avec une colonne par sous-formule ; pour une négation, nie pas à pas.</li><li>Ensembles et applications : fais un dessin (Venn, courbe, diagramme sagittal) avant d'écrire la réponse.</li><li>Relations : vérifie les propriétés une par une en citant la définition ; un seul contre-exemple suffit pour dire non.</li><li>Dénombrement : justifie le modèle (ordre ? répétition ?) en une phrase, puis calcule.</li></ol>
+    <div class="box warn"><h5>Les « extraits de CC » des TD</h5>Exercice 2.6 (application ni injective ni surjective avec un \\(F\\) minimal), 3.7 (points alignés avec O : relation d'équivalence, classes = droites privées de O), 3.12 (ordre partiel, majorants) : à refaire en priorité.</div>`]
+];
+function vCours(open) {
+  app.innerHTML = `<div><p class="eyebrow">Logique, ensembles, applications, relations, dénombrement · CC du 6/11</p><h1>Le cours utile</h1><p class="lede">Les cours d'A. Karfoul et de M. Bauer condensés en 8 fiches : définitions, formules, méthodes et pièges. Chaque fiche dit à quel type d'exercice elle sert.</p></div>
+    ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
+  mathIn(app);
+  if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
+}
+
+/* ---------- Sujet blanc ---------- */
+let tick = 0;
+const DUR = 5400;
+const EXAM_PLAN = [['Exercice 1 · Logique', [['conn', 1], ['quant', 1]], 5], ['Exercice 2 · Ensembles', [['ops', 1], ['crible', 1]], 4], ['Exercice 3 · Applications et relations', [['image', 0], ['inj', 1], ['rel', 1]], 6], ['Exercice 4 · Dénombrement', [['arr', 1], ['perm', 1]], 5]];
+function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+function vBlanc() {
+  const E = ls.get(EK, null);
+  if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
+  if (EXAM) return renderExam();
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">4 exercices dans le style des TD : logique (5 pts), ensembles (4 pts), applications et relations (6 pts), dénombrement (5 pts).</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button><span class="fine">Sans calculatrice, comme au CC : fais les calculs sur une feuille.</span></div></section>
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+}
+function renderExam() {
+  EXAM.exs = examExos(EXAM.seed);
+  app.innerHTML = `<div><p class="eyebrow">Sujet blanc de maths</p><h1>CC · 1 h 30</h1></div>`
+    + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
+    + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
+      : `<section class="card">${HELP}<div class="row" style="justify-content:center;margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div></section>`);
+  mathIn(app);
+  $$('input[data-expr]', app).forEach(preview);
+  if (EXAM.done && EXAM.fb) Object.entries(EXAM.fb).forEach(([id, h]) => { const fb = $(`.it[data-id="${id}"] .fb`, app); if (fb) fb.innerHTML = h; });
+  startTick();
+}
+function startTick() {
+  clearInterval(tick); const clk = $('#clock');
+  if (!EXAM || EXAM.done) { clk.hidden = true; return; }
+  clk.hidden = false;
+  const upd = () => { const left = DUR - (Date.now() - EXAM.t0) / 1000; clk.textContent = `${Math.floor(Math.max(0, left) / 3600)}:${String(Math.floor(Math.max(0, left) % 3600 / 60)).padStart(2, '0')}:${String(Math.floor(Math.max(0, left) % 60)).padStart(2, '0')}`; clk.classList.toggle('rush', left < 600); if (left <= 0) submitExam(true); };
+  upd(); tick = setInterval(upd, 1000);
+}
+const saveExam = () => { const { exs, ...rest } = EXAM; try { localStorage.setItem(EK, JSON.stringify(rest)); } catch (e) { /* ignore */ } };
+function submitExam(auto) {
+  if (!EXAM || EXAM.done) return;
+  if (!auto && !confirm('Rendre la copie ?')) return;
+  clearInterval(tick);
+  const exs = examExos(EXAM.seed); let note = 0; const fb = {};
+  for (const ex of exs) {
+    const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
+    for (const it of its) { const r = check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += r.st === 'ok' ? 1 : 0; }
+    note += ex.pts * got / its.length;
+  }
+  EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
+  try { localStorage.removeItem(EK); } catch (e) { /* ignore */ }
+  if (auto) toast('Temps écoulé : copie rendue.');
+  renderExam(); window.scrollTo(0, 0);
+}
+
+/* =====================================================================
+   ÉVÉNEMENTS
+   ===================================================================== */
+let saveT = 0;
+document.addEventListener('click', e => {
+  const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab); return; }
+  const fi = e.target.closest('[data-fiche]'); if (fi) { setTab('cours'); vCours(+fi.dataset.fiche); return; }
+  const go = e.target.closest('[data-go]');
+  if (go) { if (CUR && CUR.mode === 'path' && !CUR.done && CUR.k.id === go.dataset.go) { $('#exHost').scrollIntoView({ behavior: 'smooth' }); return; } startEx(skById(go.dataset.go), { user: true }); renderPathTop(); renderMap(); return; }
+  const ft = e.target.closest('[data-ft]'); if (ft) { FREE.id = ft.dataset.ft; vExos(); return; }
+  const fd = e.target.closest('[data-fd]'); if (fd) { FREE.d = +fd.dataset.fd; vExos(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'check') checkCur();
+  else if (act === 'next') nextPath();
+  else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
+  else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
+  else if (act === 'submit') submitExam(false);
+  else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
+});
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.matches('input')) return;
+  const id = t.dataset.id || t.name; if (!id) return;
+  if (t.dataset.expr) preview(t);
+  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; saveExam(); }
+  else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
+});
+document.addEventListener('change', e => { if (e.target.type === 'radio') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); } });
+document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matches && e.target.matches('#exHost details.corr') && e.target.open) { CUR.peek = true; saveCur(); } }, true);
+
+(function () {
+  const ICON = { sun: '☀', moon: '☾', auto: '◐' }, KEY = 'qcm-maths-theme', btn = $('#themeBtn');
+  function apply(t) { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t; btn.textContent = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; btn.dataset.mode = t; btn.title = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t]; }
+  let t = 'auto'; try { t = localStorage.getItem(KEY) || 'auto'; } catch (e) { /* ignore */ }
+  apply(t);
+  btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
+})();
+function wireAccount() {
+  const A = window.SiteAccount; if (!A) return;
+  A.on('data', keys => {
+    if (!keys.some(k => k.startsWith('ms1.'))) return;
+    if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
+    if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();
+  });
+}
+if (window.SiteAccount) wireAccount(); else window.addEventListener('siteaccount', wireAccount, { once: true });
+
+window.__MS1 = { GEN, build, check, parseF, evF, texF, parseNum, parseIntv, normI, SK, VD, FICHES };   // tests
+function boot() { const h = location.hash.slice(1); setTab(['home', 'path', 'cours', 'exos', 'blanc'].includes(h) ? h : 'home'); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+</body>
+</html>

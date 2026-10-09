@@ -65,6 +65,8 @@
   SYNC['phys.hist.v1'] = SYNC['elec.hist.v1'];
   SYNC['meca.path.v1'] = SYNC['elec.path.v1'];
   SYNC['meca.hist.v1'] = SYNC['elec.hist.v1'];
+  SYNC['ms1.path.v1'] = SYNC['elec.path.v1'];
+  SYNC['ms1.hist.v1'] = SYNC['elec.hist.v1'];
   const KEYS = Object.keys(SYNC);
 
   /* ---------- Outils ---------- */

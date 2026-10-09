@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maths S1 Analyse · Entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../presence.js" data-external></script>
+<script defer src="../account.js" data-lazy></script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
+  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
+  --rule:#e4e0d6; --rule-strong:#cdc8bb;
+  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc;
+  --ok:#1f8a4c; --ok-soft:#e6f4ec; --bad:#c2352b; --bad-soft:#fbeceb; --warn:#9a5b00; --warn-soft:#fcf2da;
+  --phys:#7c3aed; --phys-soft:#f0e9fe;
+  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
+  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+    --rule:#2e2d2a; --rule-strong:#45433e;
+    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
+    --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+    --phys:#a78bfa; --phys-soft:#251a3d;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+  --rule:#2e2d2a; --rule-strong:#45433e;
+  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
+  --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+  --phys:#a78bfa; --phys-soft:#251a3d;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+h1,h2,h3,h4,p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+[hidden]{display:none !important}
+code{font-family:var(--mono);font-size:.9em;background:var(--sheet-2);padding:1px 5px;border-radius:5px;border:1px solid var(--rule)}
+.katex{font-size:1.05em}
+.katex-display{margin:.6em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;min-height:64px;padding:8px 24px;background:color-mix(in srgb,var(--paper) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;min-width:0}
+.brand-mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--phys);color:#fff;display:grid;place-items:center;font:italic 700 17px/1 var(--serif)}
+.brand strong{display:block;font:600 15px/1.2 var(--sans)}
+.brand small{display:block;color:var(--muted);font-size:12.5px}
+.tabs{display:flex;gap:4px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
+.tab{height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:500 14px/1 var(--sans);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.tab:hover{background:var(--sheet-2)}
+.tab[aria-current="page"]{background:var(--ink);color:var(--paper)}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer}
+.clock{font:800 22px/1 var(--sans);font-variant-numeric:tabular-nums}
+.clock.rush{color:var(--bad)}
+main{max-width:980px;margin:32px auto 90px;padding:0 24px;display:grid;gap:20px}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--phys);margin-bottom:10px}
+h1{font:600 clamp(28px,4.6vw,42px)/1.08 var(--serif);letter-spacing:-.02em}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:720px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:24px;min-width:0}
+.card h2{font:600 21px/1.25 var(--serif)}
+.sub{color:var(--ink-2);font-size:14.5px;margin-top:4px}
+.fine{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:600 14px/1 var(--sans);cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--pen)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn-primary:hover:not(:disabled){background:var(--pen-hover)}
+.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .sp{flex:1}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font:600 12.5px/1 var(--sans);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.part{background:var(--warn-soft);color:var(--warn)}
+.bar{height:10px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.bar.mid>i{background:var(--warn)} .bar.low>i{background:var(--bad)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600}
+.count{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.count b{font:800 clamp(40px,7vw,58px)/1 var(--sans);letter-spacing:-.04em;color:var(--phys);font-variant-numeric:tabular-nums}
+.count span{color:var(--ink-2)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+/* exercices */
+.ex .q{font:17px/1.6 var(--serif);margin-top:8px}
+.ex .q p+p{margin-top:8px}
+.items{display:grid;gap:12px;margin-top:16px}
+.it{display:grid;grid-template-columns:fit-content(40%) minmax(0,1fr);gap:4px 12px;align-items:center}
+.it-lab{text-align:right;font:16px/1.3 var(--serif);overflow-wrap:anywhere}
+.it-lab.w{font:15px/1.4 var(--sans);text-align:left}
+.it.full{grid-template-columns:minmax(0,1fr)}
+.it.full .fb,.it.full .pv,.it.full .vh{grid-column:1}
+.it-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.it-in input[type=text]{flex:1;min-width:0;width:100%;max-width:340px;font:15px/1.3 var(--mono);font-variant-ligatures:none;color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:42px}
+.it.ex-expr .it-in input[type=text]{max-width:none}
+.unit{font:15px/1 var(--sans);color:var(--ink-2);white-space:nowrap}
+.pv,.vh{grid-column:2;min-width:0;overflow-x:auto;overflow-y:hidden}
+.pv{padding:3px 0}
+.pv{font-size:15px;color:var(--ink-2);min-height:0}
+.pv:empty{display:none}
+.vh{font-size:12.5px;color:var(--muted)}
+.fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto;overflow-y:hidden}
+.fb:empty{display:none}
+.ch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);cursor:pointer;font-size:14.5px}
+.ch:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
+.ch input{accent-color:var(--pen);margin:0}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+details.corr{margin-top:14px}
+details.corr>summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen);padding:6px 0}
+.expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.6 var(--serif);overflow-x:auto}
+.expl p+p,.expl ul{margin-top:8px}
+.expl ul{padding-left:20px}
+.strip{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--phys-soft);border:1px solid color-mix(in srgb,var(--phys) 35%,transparent)}
+.strip b{font:600 17px/1.3 var(--serif)}
+.lvl{display:inline-flex;gap:4px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.lvl i{width:8px;height:8px;border-radius:50%;background:var(--rule-strong)} .lvl i.on{background:var(--phys)}
+.tag-rev{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font:600 11.5px/1 var(--sans)}
+.res{border-color:color-mix(in srgb,var(--pen) 40%,transparent)}
+.psk{display:grid;grid-template-columns:24px minmax(0,1fr) 110px auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--rule)}
+.psk .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 11px/1 var(--sans);background:var(--sheet-2);color:var(--muted);border:1px solid var(--rule)}
+.psk.val .ic{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.psk.cur .ic{background:var(--phys);color:#fff;border-color:transparent}
+.psk.rev .ic{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.psk.lock{opacity:.5}
+.psk .nm small{display:block;color:var(--muted);font-size:12.5px}
+.pch h3{font:600 17px/1.3 var(--serif);margin:16px 0 4px}
+/* cours */
+.fiche{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.fiche>summary{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:16px 22px;cursor:pointer;list-style:none;font:600 18px/1.3 var(--serif)}
+.fiche>summary::-webkit-details-marker{display:none}
+.fiche>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+.fiche[open]>summary::before{transform:rotate(90deg)}
+.fiche>summary .tag{margin-left:auto;font:600 11.5px/1 var(--sans);padding:5px 9px;border-radius:999px;background:var(--phys-soft);color:var(--phys)}
+.fiche .body{padding:4px 24px 22px;border-top:1px solid var(--rule);font:16.5px/1.65 var(--serif);overflow-x:auto}
+.fiche .body p,.fiche .body ul,.fiche .body ol{margin-top:10px}
+.fiche .body ul,.fiche .body ol{padding-left:22px}
+.box{margin-top:12px;padding:12px 16px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
+.box.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.box.key{background:var(--phys-soft);border-color:color-mix(in srgb,var(--phys) 30%,transparent)}
+.box h5{font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;margin:0 0 6px;color:var(--ink-2)}
+table.t{border-collapse:collapse;margin-top:10px;font:14.5px/1.4 var(--sans)}
+table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:left}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);font:500 13.5px/1 var(--sans);color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.score{font:800 clamp(48px,9vw,72px)/1 var(--sans);letter-spacing:-.03em}
+.hist{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+.hist td,.hist th{padding:8px;border-bottom:1px solid var(--rule);text-align:left}
+@media (max-width:760px){
+  .topbar{padding:8px 16px}
+  .brand small{display:none}
+  .tabs{order:3;flex-basis:100%;justify-content:flex-start}
+  main{padding:0 16px;margin-top:22px}
+  .card{padding:18px}
+  .grid2{grid-template-columns:1fr}
+  .it{grid-template-columns:1fr}
+  .it-lab{text-align:left}
+  .fb,.pv,.vh{grid-column:1}
+  .psk{grid-template-columns:24px minmax(0,1fr) auto} .psk .bar{display:none}
+  .fiche .body{padding:4px 16px 18px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">∫</span><div><strong>Maths S1 : analyse</strong><small>Révisions du CC du 6/1</small></div></a>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button type="button" class="tab" data-tab="home">Accueil</button>
+    <button type="button" class="tab" data-tab="path">Parcours</button>
+    <button type="button" class="tab" data-tab="cours">Cours</button>
+    <button type="button" class="tab" data-tab="exos">Exos</button>
+    <button type="button" class="tab" data-tab="blanc">Sujet blanc</button>
+  </nav>
+  <span class="clock" id="clock" hidden></span>
+  <button type="button" class="icon-btn" id="themeBtn" aria-label="Thème"></button>
+</header>
+<main id="app"></main>
+
+<script>
+(function () {
+'use strict';
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const app = $('#app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
+};
+let toastT = 0;
+function toast(t) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500); }
+function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const G = R => ({ int: (a, b) => a + Math.floor(R() * (b - a + 1)), pick: a => a[Math.floor(R() * a.length)], shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }, r: R });
+const newSeed = () => Math.floor(Math.random() * 4294967296);
+function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
+function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
+
+/* ---------- nombres et unités ---------- */
+function nfmt(x, s = 3, tex = false) {
+  if (!isFinite(x)) return '?';
+  if (Math.abs(x) < 1e-12) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)) + 1e-9);
+  if (e >= 6 || e <= -3) {
+    let m = +(x / Math.pow(10, e)).toPrecision(s), ee = e; if (Math.abs(m) >= 10) { m /= 10; ee++; }
+    const ms = String(+m.toPrecision(s)).replace('.', tex ? '{,}' : ',');
+    return tex ? `${ms} \\times 10^{${ee}}` : `${ms} × 10^${ee}`;
+  }
+  return String(+x.toPrecision(s)).replace('.', tex ? '{,}' : ',');
+}
+const tN = (x, s = 3) => nfmt(x, s, true);
+const TU = { 'm': '\\mathrm{m}', 's': '\\mathrm{s}', 'm/s': '\\mathrm{m\\cdot s^{-1}}', 'm/s²': '\\mathrm{m\\cdot s^{-2}}', 'N': '\\mathrm{N}', 'J': '\\mathrm{J}', 'W': '\\mathrm{W}', 'rad/s': '\\mathrm{rad\\cdot s^{-1}}', 's⁻¹': '\\mathrm{s^{-1}}', 'kg': '\\mathrm{kg}', '°': '', 'kg·m²/s': '\\mathrm{kg\\cdot m^2\\cdot s^{-1}}', 'N·m': '\\mathrm{N\\cdot m}', 'kg/s': '\\mathrm{kg\\cdot s^{-1}}', '': '' };
+const Q = (x, u, s = 3) => u === '°' ? tN(x, s) + '^\\circ' : tN(x, s) + (TU[u] ? '\\ ' + TU[u] : '');
+const UN = {
+  'm': { m: 1, cm: .01, mm: 1e-3, km: 1e3, 'µm': 1e-6, 'μm': 1e-6, um: 1e-6 },
+  's': { s: 1, ms: 1e-3, 'µs': 1e-6, 'μs': 1e-6, us: 1e-6, min: 60, mn: 60, h: 3600, j: 86400, jour: 86400, jours: 86400 },
+  'm/s': { 'm/s': 1, 'm.s-1': 1, 'ms-1': 1, 'km/h': 1 / 3.6, 'km.h-1': 1 / 3.6, 'km/s': 1e3, 'km.s-1': 1e3, 'cm/s': .01, 'µm/s': 1e-6, 'μm/s': 1e-6, 'um/s': 1e-6 },
+  'm/s²': { 'm/s2': 1, 'm.s-2': 1, 'ms-2': 1 },
+  'N': { N: 1, kN: 1e3, mN: 1e-3 },
+  'J': { J: 1, kJ: 1e3, mJ: 1e-3, MJ: 1e6, GJ: 1e9 },
+  'W': { W: 1, kW: 1e3 },
+  'rad/s': { 'rad/s': 1, 'rad.s-1': 1, 's-1': 1, '/s': 1, '1/s': 1 },
+  's⁻¹': { 's-1': 1, '/s': 1, '1/s': 1, 'rad/s': 1 },
+  'kg': { kg: 1, g: 1e-3, mg: 1e-6, t: 1e3 },
+  '°': { '°': 1, deg: 1, 'degrés': 1, degres: 1 },
+  'kg·m²/s': { 'kg.m2/s': 1, 'kg.m2.s-1': 1, 'J.s': 1, Js: 1, 'kgm2/s': 1 },
+  'N·m': { 'N.m': 1, Nm: 1, 'm.N': 1 },
+  'kg/s': { 'kg/s': 1, 'kg.s-1': 1 },
+  '': {}
+};
+function parseNum(raw, unit) {
+  const s = String(raw).trim().replace(/[−–]/g, '-').replace(/,/g, '.').replace(/\s+/g, ' ');
+  if (!s) return { err: '' };
+  const m = /^([-+]?(?:\d+\.?\d*|\.\d+))\s*(?:[eE]\s*([-+]?\d+)|(?:\*|x|×|·)\s*10\s*\^?\s*\(?\s*([-+]?\d+)\s*\)?)?\s*(.*)$/.exec(s);
+  if (!m) return { err: 'écris un nombre (ex : 2,5 ou 4,2e-3)' + (unit ? ', éventuellement suivi de l\'unité' : '') };
+  const v = parseFloat(m[1]) * Math.pow(10, +(m[2] || m[3] || 0));
+  const u = m[4].replace(/\s+/g, '').replace(/[·*]/g, '.').replace(/⁻¹/g, '-1').replace(/⁻²/g, '-2').replace(/²/g, '2').replace(/\^/g, '');
+  if (!u) return { v };
+  const f = (UN[unit] || {})[u];
+  if (f === undefined) return { err: unit ? 'unité attendue : ' + unit : 'cette grandeur n\'a pas d\'unité' };
+  return { v: v * f };
+}
+
+/* ---------- formules littérales ---------- */
+// nom : [TeX, min, max (tirage pour la vérification), autres écritures acceptées]
+const VD = { x: ['x', .3, .9], n: ['n', 3, 12, [], 'int'], c: ['c', -1, 1], i: ['i', 0, 0] };
+const FUNCS = { arctan: Math.atan, atan: Math.atan, sqrt: Math.sqrt, '√': Math.sqrt, sin: Math.sin, cos: Math.cos, tan: Math.tan, exp: Math.exp, ln: Math.log };
+const FTEX = { arctan: '\\arctan', atan: '\\arctan', sin: '\\sin', cos: '\\cos', tan: '\\tan', ln: '\\ln' };
+function parseF(src, vars, std) {
+  let s = String(src);
+  if (s.includes('=')) s = s.split('=').pop();
+  s = s.replace(/\\(left|right)/g, '').replace(/\\[,;:! ]/g, '').replace(/[−–—]/g, '-').replace(/[×·∙⋅]/g, '*').replace(/÷/g, '/').replace(/,/g, '.').replace(/²/g, '^2').replace(/³/g, '^3')
+    .replace(/\\(cdot|times)/g, '*');
+  s = s.replace(/\\[dt]?frac\s*(\\[A-Za-z]+|[0-9A-Za-z])\s*(\\[A-Za-z]+|[0-9A-Za-z])/g, '($1)/($2)');
+  for (let k = 0; k < 6 && /[{}]/.test(s); k++) s = s.replace(/\\sqrt\{([^{}]*)\}/g, 'sqrt($1)').replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)').replace(/_\{([^{}]*)\}/g, '$1').replace(/\^\{([^{}]*)\}/g, '^($1)');
+  s = s.replace(/\\/g, '')
+    .replace(/[{\[]/g, '(').replace(/[}\]]/g, ')').replace(/_/g, '').replace(/\s+/g, '');
+  if (!s) return { err: '' };
+  const cands = [];
+  vars.forEach(v => { cands.push([v, 'var', v]); (VD[v][3] || []).forEach(a => cands.push([a, 'var', v])); });
+  Object.keys(FUNCS).forEach(f => cands.push([f, 'fn', f === '√' ? 'sqrt' : f]));
+  cands.push(['pi', 'pi'], ['π', 'pi']); if (!vars.includes('e')) cands.push(['e', 'ec']);
+  cands.sort((a, b) => b[0].length - a[0].length);
+  const toks = []; let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (/[0-9.]/.test(ch)) { let j = i; while (j < s.length && /[0-9.]/.test(s[j])) j++; const t = s.slice(i, j); if (t === '.' || (t.match(/\./g) || []).length > 1) return { err: 'nombre mal écrit : ' + t }; toks.push({ t: 'num', v: parseFloat(t), s: t }); i = j; continue; }
+    if ('+-*/^()'.includes(ch)) { toks.push({ t: ch }); i++; continue; }
+    const c = cands.find(c => c[1] === 'fn' || c[1] === 'pi' ? s.slice(i, i + c[0].length).toLowerCase() === c[0] : s.startsWith(c[0], i));
+    if (!c) return { err: 'lettre inconnue : « ' + ch + ' »' };
+    toks.push(c[1] === 'var' ? { t: 'var', n: c[2] } : c[1] === 'fn' ? { t: 'fn', f: c[2] } : { t: c[1] });
+    i += c[0].length;
+  }
+  let p = 0;
+  const peek = () => toks[p];
+  const start = k => k && (k.t === 'num' || k.t === 'var' || k.t === '(' || k.t === 'fn' || k.t === 'pi' || k.t === 'ec');
+  function expr() { let a = term(); while (peek() && (peek().t === '+' || peek().t === '-')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: term() }; } return a; }
+  function term() {
+    let a = jux();
+    for (;;) {
+      if (peek() && (peek().t === '*' || peek().t === '/')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: jux() }; }
+      else if (std && start(peek())) a = { t: 'bin', op: 'j', a, b: power() };
+      else return a;
+    }
+  }
+  function jux() { let a = unary(); while (!std && start(peek())) a = { t: 'bin', op: 'j', a, b: power() }; return a; }
+  function unary() { const k = peek(); if (k && k.t === '-') { p++; return { t: 'neg', a: unary() }; } if (k && k.t === '+') { p++; return unary(); } return power(); }
+  function power() { let a = atom(); if (peek() && peek().t === '^') { p++; a = { t: 'bin', op: '^', a, b: unary() }; } return a; }
+  function atom() {
+    const k = toks[p++]; if (!k) throw 'formule incomplète';
+    if (k.t === 'num') return { t: 'num', v: k.v, s: k.s };
+    if (k.t === 'var') return { t: 'var', n: k.n };
+    if (k.t === 'pi') return { t: 'pi' }; if (k.t === 'ec') return { t: 'ec' };
+    if (k.t === 'fn') { let e = null; if (peek() && peek().t === '^') { p++; e = atom(); } let a; if (peek() && peek().t === '(') { p++; a = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; } else a = std ? power() : jux(); const f = { t: 'fn', f: k.f, a }; return e ? { t: 'bin', op: '^', a: f, b: e } : f; }
+    if (k.t === '(') { const e = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; return e; }
+    throw 'symbole « ' + k.t + ' » mal placé';
+  }
+  try { const ast = expr(); if (p < toks.length) throw 'symbole « ' + toks[p].t + ' » mal placé'; return { ast }; }
+  catch (e) { return { err: String(e) }; }
+}
+function evF(n, v) {
+  switch (n.t) {
+    case 'num': return n.v;
+    case 'var': return v[n.n];
+    case 'pi': return Math.PI; case 'ec': return Math.E;
+    case 'neg': return -evF(n.a, v);
+    case 'fn': return FUNCS[n.f](evF(n.a, v));
+    default: { const a = evF(n.a, v), b = evF(n.b, v); return n.op === '+' ? a + b : n.op === '-' ? a - b : n.op === '/' ? a / b : n.op === '^' ? Math.pow(a, b) : a * b; }
+  }
+}
+function texF(n) {
+  const isSum = x => x.t === 'neg' || (x.t === 'bin' && (x.op === '+' || x.op === '-'));
+  const wrap = x => isSum(x) ? '\\left(' + texF(x) + '\\right)' : texF(x);
+  switch (n.t) {
+    case 'num': return n.s.replace('.', '{,}');
+    case 'var': return VD[n.n][0];
+    case 'pi': return '\\pi'; case 'ec': return 'e';
+    case 'neg': return '-' + wrap(n.a);
+    case 'fn': return n.f === 'sqrt' ? '\\sqrt{' + texF(n.a) + '}' : n.f === 'exp' ? 'e^{' + texF(n.a) + '}' : FTEX[n.f] + '\\left(' + texF(n.a) + '\\right)';
+    default:
+      if (n.op === '/') return '\\dfrac{' + texF(n.a) + '}{' + texF(n.b) + '}';
+      if (n.op === '+') return texF(n.a) + ' + ' + texF(n.b);
+      if (n.op === '-') return texF(n.a) + ' - ' + wrap(n.b);
+      if (n.op === '^') return '{' + (n.a.t === 'bin' || n.a.t === 'neg' || n.a.t === 'fn' ? '\\left(' + texF(n.a) + '\\right)' : texF(n.a)) + '}^{' + texF(n.b) + '}';
+      { const A = n.a.t === 'neg' ? texF(n.a) : wrap(n.a), B = wrap(n.b); return A + (/^[0-9]/.test(B) ? ' \\times ' : '\\,') + B; }
+  }
+}
+function checkExpr1(P, it) {
+  if (P.err !== undefined) return { st: P.err === '' ? 'empty' : 'err', msg: P.err };
+  let ok = true, opp = true;
+  for (let t = 0, gd = 0; t < 8 && gd < 80; t++, gd++) {
+    const v = {}; it.vars.forEach(k => { const d = VD[k]; v[k] = d[4] === 'int' ? Math.round(d[1] + Math.random() * (d[2] - d[1])) : d[1] + Math.random() * (d[2] - d[1]); });
+    const r = it.ref(v), u = evF(P.ast, v);
+    if (!isFinite(r)) { t--; continue; }
+    if (!isFinite(u)) { ok = opp = false; break; }
+    const tol = 1e-6 * Math.max(1, Math.abs(r));
+    if (Math.abs(u - r) > tol) ok = false;
+    if (Math.abs(u + r) > tol || Math.abs(r) < 1e-9) opp = false;
+  }
+  return { st: ok ? 'ok' : opp ? 'sign' : 'bad' };
+}
+function checkExpr(raw, it) {
+  const a = checkExpr1(parseF(raw, it.vars, false), it);
+  if (a.st === 'ok' || a.st === 'empty' || a.st === 'err') return a;
+  const b = checkExpr1(parseF(raw, it.vars, true), it);   // autre lecture de « v0^2/2g »
+  return b.st === 'ok' ? b : a;
+}
+const varsHint = vs => !vs.length ? '' : 'avec ' + vs.map(v => { const al = (VD[v][3] || [])[0]; return '<code>' + esc(v) + '</code>' + (al && al.length === 1 && /[^a-zA-Z]/.test(al) ? ' ou ' + esc(al) : ''); }).join(', ');
+
+/* =====================================================================
+   OUTILS : fractions, séries, nombres complexes
+   ===================================================================== */
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+const Fq = (p, q = 1) => { if (q < 0) { p = -p; q = -q; } const g = gcd(p, q); return [p / g, q / g]; };
+const fAdd = (a, b) => Fq(a[0] * b[1] + b[0] * a[1], a[1] * b[1]), fMul = (a, b) => Fq(a[0] * b[0], a[1] * b[1]), fV = a => a[0] / a[1];
+const fTex = (a, x = '') => { const [p, q] = a, s = p < 0 ? '-' : '', P = Math.abs(p); if (q === 1) return s + (x && P === 1 ? '' : P) + x; return `${s}\\dfrac{${x && P === 1 ? '' : P}${x}}{${q}}`; };
+const fTyp = a => a[1] === 1 ? String(a[0]) : `(${a[0]}/${a[1]})`;
+const fact = n => { let p = 1; for (let i = 2; i <= n; i++) p *= i; return p; };
+// séries entières tronquées : tableaux de fractions
+const SER = {
+  exp: N => Array.from({ length: N + 1 }, (_, k) => Fq(1, fact(k))),
+  ln1p: N => Array.from({ length: N + 1 }, (_, k) => k ? Fq(k % 2 ? 1 : -1, k) : Fq(0)),
+  inv1m: N => Array.from({ length: N + 1 }, () => Fq(1)),
+  cos: N => Array.from({ length: N + 1 }, (_, k) => k % 2 ? Fq(0) : Fq((k / 2) % 2 ? -1 : 1, fact(k))),
+  sin: N => Array.from({ length: N + 1 }, (_, k) => k % 2 ? Fq(((k - 1) / 2) % 2 ? -1 : 1, fact(k)) : Fq(0)),
+  pow: (N, al) => { const r = [Fq(1)]; let c = Fq(1); for (let k = 1; k <= N; k++) { c = fMul(c, fMul(fAdd(al, Fq(-(k - 1))), Fq(1, k))); r.push(c); } return r; }
+};
+const sScale = (s, a) => s.map((c, k) => { let p = Fq(1); for (let i = 0; i < k; i++) p = fMul(p, a); return fMul(c, p); });
+const sMul = (s, t) => s.map((_, k) => { let c = Fq(0); for (let i = 0; i <= k; i++) c = fAdd(c, fMul(s[i], t[k - i])); return c; });
+const sAdd = (s, t) => s.map((c, k) => fAdd(c, t[k]));
+const xp = k => k === 0 ? '' : k === 1 ? 'x' : `x^{${k}}`;
+function polyTex(s) { const t = s.map((c, k) => [c, k]).filter(([c]) => c[0] !== 0); if (!t.length) return '0'; return t.map(([c, k], i) => { const body = k === 0 ? fTex([Math.abs(c[0]), c[1]]) : fTex([Math.abs(c[0]), c[1]], xp(k)); return (c[0] < 0 ? (i ? ' - ' : '-') : (i ? ' + ' : '')) + body; }).join(''); }
+const polyTyp = s => s.map((c, k) => `${fTyp(c)}*x^${k}`).join(' + ');
+const polyRef = s => v => s.reduce((a, c, k) => a + fV(c) * v.x ** k, 0);
+// complexes [re, im]
+const cMul = (a, b) => [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]], cDiv = (a, b) => { const d = b[0] * b[0] + b[1] * b[1]; return [(a[0] * b[0] + a[1] * b[1]) / d, (a[1] * b[0] - a[0] * b[1]) / d]; };
+const cT = (a, b) => { const im = b === 0 ? '' : (Math.abs(b) === 1 ? '' : Math.abs(b)) + 'i'; if (b === 0) return String(a); if (a === 0) return (b < 0 ? '-' : '') + im; return `${a} ${b < 0 ? '-' : '+'} ${im}`; };
+const cTyp = (a, b) => `${a}${b < 0 ? '-' : '+'}${Math.abs(b)}*i`;
+function evC(n) {
+  switch (n.t) {
+    case 'num': return [n.v, 0]; case 'pi': return [Math.PI, 0]; case 'ec': return [Math.E, 0];
+    case 'var': return n.n === 'i' ? [0, 1] : [NaN, NaN];
+    case 'neg': { const a = evC(n.a); return [-a[0], -a[1]]; }
+    case 'fn': { const a = evC(n.a); if (n.f === 'exp') { const r = Math.exp(a[0]); return [r * Math.cos(a[1]), r * Math.sin(a[1])]; } if (Math.abs(a[1]) > 1e-12) return [NaN, NaN]; return [FUNCS[n.f](a[0]), 0]; }
+    default: { const a = evC(n.a), b = evC(n.b);
+      if (n.op === '+') return [a[0] + b[0], a[1] + b[1]]; if (n.op === '-') return [a[0] - b[0], a[1] - b[1]]; if (n.op === '/') return cDiv(a, b);
+      if (n.op === '^') { if (Math.abs(b[1]) > 1e-12) return [NaN, NaN]; if (Math.abs(a[1]) < 1e-12 && a[0] > 0) return [Math.pow(a[0], b[0]), 0]; const k = Math.round(b[0]); if (Math.abs(k - b[0]) > 1e-12) return [NaN, NaN]; let r = [1, 0]; for (let i = 0; i < Math.abs(k); i++) r = cMul(r, a); return k < 0 ? cDiv([1, 0], r) : r; }
+      return cMul(a, b); }
+  }
+}
+function splitTop(s) { const out = []; let depth = 0, cur = ''; for (const ch of s) { if ('([{'.includes(ch)) depth++; if (')]}'.includes(ch)) depth--; if ((ch === ';' || ch === ',') && depth === 0) { out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out.map(x => x.trim()).filter(Boolean); }
+const CHECKX = {
+  cset(it, raw) {
+    const s = String(raw).trim().replace(/^\{|\}$/g, ''); if (!s) return { st: 'empty' };
+    const vals = [];
+    for (const part of splitTop(s)) { let v = null; for (const std of [false, true]) { const P = parseF(part, ['i'], std); if (P.err !== undefined) { if (!std) return { st: 'err', msg: P.err + ' (dans « ' + part + ' »)' }; continue; } const c = evC(P.ast); if (isFinite(c[0]) && isFinite(c[1])) { v = v || c; } } if (!v) return { st: 'err', msg: 'nombre illisible : ' + part }; vals.push(v); }
+    const exp = it.ans.slice(); if (vals.length !== exp.length) return { st: 'bad', msg: `il faut ${exp.length} solution${exp.length > 1 ? 's' : ''}, séparées par des virgules` };
+    for (const v of vals) { const i = exp.findIndex(e => Math.abs(e[0] - v[0]) < 1e-6 && Math.abs(e[1] - v[1]) < 1e-6); if (i < 0) return { st: 'bad' }; exp.splice(i, 1); }
+    return { st: 'ok' };
+  },
+  arg(it, raw) {
+    for (const std of [false, true]) { const P = parseF(raw, [], std); if (P.err !== undefined) { if (!std) return { st: P.err === '' ? 'empty' : 'err', msg: P.err }; continue; } const u = evF(P.ast, {}), d = (u - it.val) / (2 * Math.PI); if (Math.abs(d - Math.round(d)) < 1e-6) return { st: 'ok' }; }
+    return { st: 'bad' };
+  },
+  prim(it, raw) {
+    if (!String(raw).trim()) return { st: 'empty' };
+    let last = null;
+    for (const std of [false, true]) {
+      const P = parseF(raw, ['x'], std); if (P.err !== undefined) { if (!std) last = { st: 'err', msg: P.err }; continue; }
+      const [lo, hi] = it.xr || [0.3, 0.9]; let ok = true;
+      for (let t = 0; t < 8 && ok; t++) { const x = lo + Math.random() * (hi - lo), h = 1e-5, dv = (evF(P.ast, { x: x + h }) - evF(P.ast, { x: x - h })) / (2 * h), f = it.f(x); if (!isFinite(dv) || Math.abs(dv - f) > 1e-4 * Math.max(1, Math.abs(f))) ok = false; }
+      if (ok) return { st: 'ok' }; last = { st: 'bad' };
+    }
+    return last;
+  },
+  dl(it, raw) { const r = String(raw).replace(/\+?\s*o\s*\(.*$/i, '').replace(/\+?\s*x\s*\^?\s*\{?\d*\}?\s*\*?\s*(ε|epsilon)\s*\(\s*x\s*\).*$/i, ''); return checkExpr(r, it); }
+};
+const PH = { cset: 'ex. 1+2i, 1-2i', arg: 'ex. -pi/4', prim: 'ex. x*exp(x) - exp(x)', dl: 'ex. 1 + x/2 - x^2/8' };
+
+/* =====================================================================
+   GÉNÉRATEURS D'EXERCICES
+   ===================================================================== */
+const Nn = (lab, val, unit, o) => Object.assign({ type: 'num', lab, val, unit: unit || '', tol: 1e-9 }, o || {});
+const Ex = (lab, vars, ref, sol) => ({ type: 'expr', lab, vars, ref, sol });
+const K = (lab, val, sol, typed) => ({ type: 'expr', lab, vars: [], ref: () => val, sol, typed });
+const Ch = (lab, opts, ans) => ({ type: 'choice', lab, opts: opts.map(([v, t]) => ({ v, t })), ans });
+const Cs = (lab, ans, sol, typed) => ({ type: 'cset', lab, ans, sol, typed });
+const Ag = (lab, val, sol) => ({ type: 'arg', lab, val, sol });
+const Pr = (lab, f, sol, xr) => ({ type: 'prim', lab, f, sol, xr });
+const Dl = (lab, s) => ({ type: 'dl', lab, vars: ['x'], ref: polyRef(s), sol: polyTex(s), typed: polyTyp(s) });
+const GEN = {};
+const YN = [['o', 'oui'], ['n', 'non']];
+
+/* ---------- 1. complexes : forme algébrique ---------- */
+const cFr = (re, im) => [Fq(re[0], re[1]), Fq(im[0], im[1])];
+function cDivQ(a, b) { const d = b[0] * b[0] + b[1] * b[1]; return [Fq(a[0] * b[0] + a[1] * b[1], d), Fq(a[1] * b[0] - a[0] * b[1], d)]; }
+GEN.cform = (d, g) => {
+  const r = () => g.pick([-4, -3, -2, -1, 1, 2, 3, 4]);
+  if (d < 2) {
+    const z1 = [r(), r()], z2 = [r(), r()];
+    if (d === 0) { const p = cMul(z1, z2), q = cDivQ(z1, z2);
+      return { title: 'Forme algébrique', q: `<p>Soient \\(z_1 = ${cT(...z1)}\\) et \\(z_2 = ${cT(...z2)}\\). Donner les parties réelle et imaginaire de \\(z_1z_2\\) et de \\(\\dfrac{z_1}{z_2}\\) (fractions acceptées, par exemple <code>-3/5</code>).</p>`,
+        items: [K('\\mathrm{Re}(z_1z_2)', p[0], String(p[0])), K('\\mathrm{Im}(z_1z_2)', p[1], String(p[1])), K('\\mathrm{Re}(z_1/z_2)', fV(q[0]), fTex(q[0])), K('\\mathrm{Im}(z_1/z_2)', fV(q[1]), fTex(q[1]))],
+        corr: `<p>Produit : on développe avec \\(i^2 = -1\\) : \\(z_1z_2 = ${cT(...p)}\\).</p><p>Quotient : on multiplie par le conjugué du dénominateur : \\(\\dfrac{z_1}{z_2} = \\dfrac{z_1\\overline{z_2}}{|z_2|^2} = \\dfrac{(${cT(...z1)})(${cT(z2[0], -z2[1])})}{${z2[0] ** 2 + z2[1] ** 2}}\\), soit \\(${fTex(q[0])} ${q[1][0] < 0 ? '-' : '+'} ${fTex([Math.abs(q[1][0]), q[1][1]])}\\,i\\).</p>` }; }
+    const z3 = [r(), r()], q1 = cDivQ(z1, z2), q2 = cDivQ([1, 0], z3), re = fAdd(q1[0], q2[0]), im = fAdd(q1[1], q2[1]);
+    return { title: 'Somme de quotients', q: `<p>Écrire sous forme algébrique \\(u = \\dfrac{${cT(...z1)}}{${cT(...z2)}} + \\dfrac{1}{${cT(...z3)}}\\).</p>`,
+      items: [K('\\mathrm{Re}(u)', fV(re), fTex(re)), K('\\mathrm{Im}(u)', fV(im), fTex(im))],
+      corr: `<p>\\(\\dfrac{${cT(...z1)}}{${cT(...z2)}} = ${fTex(q1[0])} ${q1[1][0] < 0 ? '-' : '+'} ${fTex([Math.abs(q1[1][0]), q1[1][1]])}\\,i\\) et \\(\\dfrac{1}{${cT(...z3)}} = \\dfrac{${cT(z3[0], -z3[1])}}{${z3[0] ** 2 + z3[1] ** 2}}\\). En additionnant : \\(\\mathrm{Re}(u) = ${fTex(re)}\\), \\(\\mathrm{Im}(u) = ${fTex(im)}\\).</p>` };
+  }
+  const n = g.pick([2, 3, 4]), C = { 2: [[2, 2], [-1, 0]], 3: [[4, 3], [-3, 1]], 4: [[8, 4], [-8, 2], [1, 0]] }[n];
+  const ref = v => C.reduce((a, [c, k]) => a + c * v.c ** k, 0), tex = C.map(([c, k], i) => (c < 0 ? (i ? ' - ' : '-') : (i ? ' + ' : '')) + (Math.abs(c) === 1 && k ? '' : Math.abs(c)) + (k ? (k === 1 ? 'c' : `c^{${k}}`) : '')).join('');
+  return { title: 'Formule de Moivre', q: `<p>À l'aide de la formule de Moivre \\((\\cos\\theta + i\\sin\\theta)^${n} = \\cos(${n}\\theta) + i\\sin(${n}\\theta)\\) et de \\(\\sin^2\\theta = 1 - \\cos^2\\theta\\), exprimer \\(\\cos(${n}\\theta)\\) en fonction de \\(c = \\cos\\theta\\) seulement.</p>`,
+    items: [Ex(`\\cos(${n}\\theta)`, ['c'], ref, tex)],
+    corr: `<p>On développe \\((c + is)^${n}\\) (binôme de Newton), on garde la partie réelle, puis on remplace \\(s^2\\) par \\(1 - c^2\\) : \\(\\cos(${n}\\theta) = ${tex}\\).</p>` };
+};
+
+/* ---------- 2. module et argument ---------- */
+const ZP = [['-2 + 2\\sqrt3\\,i', '-2+2*sqrt(3)*i', 4, '4', 2 * Math.PI / 3, '\\dfrac{2\\pi}{3}'], ['1 + i', '1+i', Math.SQRT2, '\\sqrt2', Math.PI / 4, '\\dfrac{\\pi}{4}'], ['\\sqrt3 - i', 'sqrt(3)-i', 2, '2', -Math.PI / 6, '-\\dfrac{\\pi}{6}'], ['-1 - i', '-1-i', Math.SQRT2, '\\sqrt2', -3 * Math.PI / 4, '-\\dfrac{3\\pi}{4}'], ['3 - 3i', '3-3*i', 3 * Math.SQRT2, '3\\sqrt2', -Math.PI / 4, '-\\dfrac{\\pi}{4}'], ['-5', '-5', 5, '5', Math.PI, '\\pi'], ['2i', '2*i', 2, '2', Math.PI / 2, '\\dfrac{\\pi}{2}'], ['-\\sqrt3 + i', '-sqrt(3)+i', 2, '2', 5 * Math.PI / 6, '\\dfrac{5\\pi}{6}'], ['1 - \\sqrt3\\,i', '1-sqrt(3)*i', 2, '2', -Math.PI / 3, '-\\dfrac{\\pi}{3}'], ['-3i', '-3*i', 3, '3', -Math.PI / 2, '-\\dfrac{\\pi}{2}']];
+const rad = t => { let x = t; while (x > Math.PI + 1e-12) x -= 2 * Math.PI; while (x <= -Math.PI + 1e-12) x += 2 * Math.PI; return x; };
+const piTex = t => { for (const q of [1, 2, 3, 4, 6, 12]) { const p = Math.round(t / Math.PI * q); if (Math.abs(p / q * Math.PI - t) < 1e-9) { const g0 = gcd(p, q), P = p / g0, Qd = q / g0; if (P === 0) return '0'; const num = (Math.abs(P) === 1 ? '' : Math.abs(P)) + '\\pi'; return (P < 0 ? '-' : '') + (Qd === 1 ? num : `\\dfrac{${num}}{${Qd}}`); } } return tN(t); };
+const sqTex = v => { for (const k of [1, 2, 3, 4, 6, 8]) for (const s of [1, 2, 3, 6]) if (Math.abs(k * Math.sqrt(s) - v) < 1e-9) return (k === 1 && s > 1 ? '' : k) + (s > 1 ? `\\sqrt{${s}}` : ''); return tN(v); };
+const radOf = v => { for (const s of [1, 2, 3]) for (let k = 1; k <= 6; k++) if (Math.abs(k * Math.sqrt(s) - v) < 1e-9) return [k, s]; return [v, 1]; };
+const simp = (k, s) => { for (const f of [3, 2]) while (s % (f * f) === 0) { s /= f * f; k *= f; } return [k, s]; };
+const radFrac = (k, s, den) => { const num = (k === 1 && s > 1 ? '' : k) + (s > 1 ? `\\sqrt{${s}}` : ''); return den === 1 ? num : `\\dfrac{${num}}{${den}}`; };
+const half = (r, s, sg) => (sg < 0 ? '-' : '') + (r % 2 === 0 ? radFrac(r / 2, s, 1) : radFrac(r, s, 2));
+GEN.cexp = (d, g) => {
+  const MOD = '<p>\\(|a + ib| = \\sqrt{a^2 + b^2}\\). L\'argument \\(\\theta\\) vérifie \\(\\cos\\theta = \\dfrac{a}{|z|}\\) et \\(\\sin\\theta = \\dfrac{b}{|z|}\\) : on lit l\'angle sur le cercle trigonométrique (attention au quadrant). Forme exponentielle : \\(z = |z|e^{i\\theta}\\).</p>';
+  if (d === 0) { const z = g.pick(ZP);
+    return { title: 'Module et argument', q: `<p>Déterminer le module et un argument de \\(z = ${z[0]}\\) (tape par exemple <code>2sqrt(3)</code>, <code>-3pi/4</code>).</p>`,
+      items: [K('|z|', z[2], z[3]), Ag('\\arg z', z[4], z[5])], corr: MOD + `<p>\\(|z| = ${z[3]}\\) et \\(\\arg z = ${z[5]}\\ [2\\pi]\\), donc \\(z = ${z[3] === '1' ? '' : z[3]}\\,e^{i${z[5]}}\\).</p>` }; }
+  if (d === 1) { const [a, b] = g.shuffle(ZP).slice(0, 2), m = a[2] * b[2], t = rad(a[4] + b[4]), mq = a[2] / b[2], tq = rad(a[4] - b[4]);
+    const ra = radOf(a[2]), rb = radOf(b[2]), pm = simp(ra[0] * rb[0], ra[1] * rb[1]), qn = simp(ra[0], ra[1] * rb[1]), qd = rb[0] * rb[1], gq = gcd(qn[0], qd), mT = radFrac(pm[0], pm[1], 1), mqT = radFrac(qn[0] / gq, qn[1], qd / gq);
+    return { title: 'Produit et quotient en forme exponentielle', q: `<p>Soient \\(z_1 = ${a[0]}\\) et \\(z_2 = ${b[0]}\\). Donner le module et un argument de \\(z_1z_2\\) et de \\(z_1/z_2\\).</p>`,
+      items: [K('|z_1z_2|', m, mT), Ag('\\arg(z_1z_2)', t, piTex(t)), K('|z_1/z_2|', mq, mqT), Ag('\\arg(z_1/z_2)', tq, piTex(tq))],
+      corr: MOD + `<p>\\(|z_1| = ${a[3]}\\), \\(\\arg z_1 = ${a[5]}\\) ; \\(|z_2| = ${b[3]}\\), \\(\\arg z_2 = ${b[5]}\\).</p><p>Les modules se multiplient (divisent), les arguments s'ajoutent (se soustraient) : \\(|z_1z_2| = ${mT}\\), \\(\\arg(z_1z_2) = ${piTex(t)}\\) ; \\(|z_1/z_2| = ${mqT}\\), \\(\\arg(z_1/z_2) = ${piTex(tq)}\\ [2\\pi]\\).</p>` }; }
+  // [θ, TeX, (radical, signe) du cosinus, (radical, signe) du sinus] : cos = signe·√radical/2
+  const r = g.pick([2, 3, 4]), t = g.pick([[Math.PI / 3, '\\dfrac{\\pi}{3}', [1, 1], [3, 1]], [5 * Math.PI / 6, '\\dfrac{5\\pi}{6}', [3, -1], [1, 1]], [-Math.PI / 4, '-\\dfrac{\\pi}{4}', [2, 1], [2, -1]], [2 * Math.PI / 3, '\\dfrac{2\\pi}{3}', [1, -1], [3, 1]], [-Math.PI / 6, '-\\dfrac{\\pi}{6}', [3, 1], [1, -1]]]);
+  const reT = half(r, t[2][0], t[2][1]), imT = half(r, t[3][0], t[3][1]);
+  const n = g.pick([4, 6, 8]), w = rad(n * Math.PI / 4);
+  return { title: 'Forme exponentielle et puissances', q: `<p>1) Écrire sous forme algébrique le nombre de module \\(${r}\\) et d'argument \\(${t[1]}\\). 2) Donner le module et un argument de \\((1 + i)^{${n}}\\).</p>`,
+    items: [K('\\mathrm{Re}', r * Math.cos(t[0]), reT), K('\\mathrm{Im}', r * Math.sin(t[0]), imT), K(`|(1+i)^{${n}}|`, 2 ** (n / 2), String(2 ** (n / 2))), Ag(`\\arg(1+i)^{${n}}`, w, piTex(w))],
+    corr: `<p>1) \\(${r}e^{i${t[1]}} = ${r}\\cos(${t[1]}) + i\\,${r}\\sin(${t[1]})\\) : partie réelle \\(${reT}\\), partie imaginaire \\(${imT}\\) (tape par exemple <code>3sqrt(3)/2</code>).</p><p>2) \\(1 + i = \\sqrt2\\,e^{i\\pi/4}\\), donc \\((1+i)^{${n}} = (\\sqrt2)^{${n}}e^{i${n}\\pi/4}\\) : module \\(${2 ** (n / 2)}\\), argument \\(${piTex(w)}\\ [2\\pi]\\).</p>` };
+};
+
+/* ---------- 3. racines et équations ---------- */
+const CUBE = [['-8', [[-2, 0], [1, Math.sqrt(3)], [1, -Math.sqrt(3)]], '-2,\\ 1 + i\\sqrt3,\\ 1 - i\\sqrt3', '-2, 1+i*sqrt(3), 1-i*sqrt(3)', '-8 = 8e^{i\\pi}'], ['8i', [[Math.sqrt(3), 1], [-Math.sqrt(3), 1], [0, -2]], '\\sqrt3 + i,\\ -\\sqrt3 + i,\\ -2i', 'sqrt(3)+i, -sqrt(3)+i, -2*i', '8i = 8e^{i\\pi/2}'], ['27', [[3, 0], [-1.5, 1.5 * Math.sqrt(3)], [-1.5, -1.5 * Math.sqrt(3)]], '3,\\ -\\tfrac32 + \\tfrac{3\\sqrt3}{2}i,\\ -\\tfrac32 - \\tfrac{3\\sqrt3}{2}i', '3, -3/2+3*sqrt(3)/2*i, -3/2-3*sqrt(3)/2*i', '27 = 27e^{i0}'], ['-i', [[0, 1], [Math.sqrt(3) / 2, -0.5], [-Math.sqrt(3) / 2, -0.5]], 'i,\\ \\tfrac{\\sqrt3}{2} - \\tfrac i2,\\ -\\tfrac{\\sqrt3}{2} - \\tfrac i2', 'i, sqrt(3)/2-i/2, -sqrt(3)/2-i/2', '-i = e^{-i\\pi/2}'], ['1', [[1, 0], [-0.5, Math.sqrt(3) / 2], [-0.5, -Math.sqrt(3) / 2]], '1,\\ j = -\\tfrac12 + \\tfrac{\\sqrt3}{2}i,\\ \\bar j', '1, -1/2+sqrt(3)/2*i, -1/2-sqrt(3)/2*i', '1 = e^{i0}']];
+GEN.cracines = (d, g) => {
+  if (d === 0) { const p = g.int(-3, 3), q = g.int(1, 4), b = -2 * p, c = p * p + q * q;
+    return { title: 'Équation du second degré dans ℂ', q: `<p>Résoudre dans \\(\\mathbb C\\) : \\(z^2 ${b ? (b < 0 ? '- ' : '+ ') + (Math.abs(b) === 1 ? '' : Math.abs(b)) + 'z ' : ''}+ ${c} = 0\\). Écris les solutions séparées par une virgule, par exemple <code>1+2i, 1-2i</code>.</p>`,
+      items: [Cs('S', [[p, q], [p, -q]], `${cT(p, q)},\\ ${cT(p, -q)}`, `${cTyp(p, q)}, ${cTyp(p, -q)}`)],
+      corr: `<p>\\(\\Delta = b^2 - 4ac = ${b * b - 4 * c} < 0\\). On écrit \\(\\Delta = (${2 * q}i)^2\\), d'où \\(z = \\dfrac{-b\\pm ${2 * q}i}{2}\\) : \\(z_1 = ${cT(p, q)}\\) et \\(z_2 = ${cT(p, -q)}\\) (conjuguées, car les coefficients sont réels).</p>` }; }
+  if (d === 1) { const x = g.pick([1, 2, 3, 4]), y = g.pick([-3, -2, -1, 1, 2, 3]), a = x * x - y * y, b = 2 * x * y;
+    return { title: 'Racines carrées d\'un complexe', q: `<p>Déterminer les racines carrées de \\(${cT(a, b)}\\), c'est-à-dire les \\(z\\) tels que \\(z^2 = ${cT(a, b)}\\).</p>`,
+      items: [Cs('z', [[x, y], [-x, -y]], `${cT(x, y)},\\ ${cT(-x, -y)}`, `${cTyp(x, y)}, ${cTyp(-x, -y)}`)],
+      corr: `<p>On pose \\(z = x + iy\\) : \\(z^2 = ${cT(a, b)}\\) donne \\(x^2 - y^2 = ${a}\\) et \\(2xy = ${b}\\) ; l'égalité des modules donne \\(x^2 + y^2 = \\sqrt{${a}^2 + ${b}^2} = ${x * x + y * y}\\).</p><p>Donc \\(x^2 = ${x * x}\\), \\(y^2 = ${y * y}\\), et \\(xy\\) est du signe de \\(${b}\\) : \\(z = \\pm(${cT(x, y)})\\).</p>` }; }
+  if (g.r() < .5) { const c = g.pick(CUBE);
+    return { title: 'Racines cubiques', q: `<p>Résoudre dans \\(\\mathbb C\\) : \\(z^3 = ${c[0]}\\) (racines exactes : tape par exemple <code>1+i*sqrt(3)</code>).</p>`, items: [Cs('S', c[1], c[2], c[3])],
+      corr: `<p>Forme exponentielle : \\(${c[4]}\\). Si \\(z = re^{i\\theta}\\), alors \\(r^3\\) est le module et \\(3\\theta\\) un argument, à \\(2\\pi\\) près : il y a trois solutions, d'arguments espacés de \\(\\dfrac{2\\pi}{3}\\) : \\(${c[2]}\\).</p>` }; }
+  const r1 = [g.int(-2, 2), g.int(-2, 2)], r2 = [g.int(-2, 2), g.int(-2, 2)]; if (r1[0] === r2[0] && r1[1] === r2[1]) r2[0] += 1;
+  const S = [r1[0] + r2[0], r1[1] + r2[1]], P = cMul(r1, r2);
+  return { title: 'Équation à coefficients complexes', q: `<p>Résoudre dans \\(\\mathbb C\\) : \\(z^2 - (${cT(...S)})z + (${cT(...P)}) = 0\\).</p>`, items: [Cs('S', [r1, r2], `${cT(...r1)},\\ ${cT(...r2)}`, `${cTyp(...r1)}, ${cTyp(...r2)}`)],
+    corr: `<p>\\(\\Delta = (${cT(...S)})^2 - 4(${cT(...P)}) = ${cT(...(() => { const s2 = cMul(S, S); return [s2[0] - 4 * P[0], s2[1] - 4 * P[1]]; })())}\\). On cherche une racine carrée \\(\\delta\\) de \\(\\Delta\\) (méthode précédente), puis \\(z = \\dfrac{${cT(...S)}\\pm\\delta}{2}\\) : \\(z_1 = ${cT(...r1)}\\), \\(z_2 = ${cT(...r2)}\\).</p><p class="fine">Vérification : somme \\(= ${cT(...S)}\\), produit \\(= ${cT(...P)}\\).</p>` };
+};
+
+/* ---------- 4. dérivées ---------- */
+// [f TeX, f'(x), f' TeX]
+const DER = [
+  [['x^2\\ln x', x => 2 * x * Math.log(x) + x, '2x\\ln x + x'], ['x e^{-2x}', x => (1 - 2 * x) * Math.exp(-2 * x), '(1 - 2x)e^{-2x}'], ['\\ln(1 + x^2)', x => 2 * x / (1 + x * x), '\\dfrac{2x}{1 + x^2}'], ['\\sin(x^2)', x => 2 * x * Math.cos(x * x), '2x\\cos(x^2)'], ['\\sqrt{1 + x^2}', x => x / Math.sqrt(1 + x * x), '\\dfrac{x}{\\sqrt{1 + x^2}}'], ['\\dfrac{2x + 1}{x + 3}', x => 5 / (x + 3) ** 2, '\\dfrac{5}{(x + 3)^2}']],
+  [['x^2\\ln x - x^2', x => 2 * x * Math.log(x) - x, '2x\\ln x - x'], ['e^{\\arctan x}', x => Math.exp(Math.atan(x)) / (1 + x * x), '\\dfrac{e^{\\arctan x}}{1 + x^2}'], ['\\dfrac{x}{1 + x^2}', x => (1 - x * x) / (1 + x * x) ** 2, '\\dfrac{1 - x^2}{(1 + x^2)^2}'], ['\\dfrac{\\ln x}{x}', x => (1 - Math.log(x)) / (x * x), '\\dfrac{1 - \\ln x}{x^2}'], ['\\arctan(2x)', x => 2 / (1 + 4 * x * x), '\\dfrac{2}{1 + 4x^2}'], ['x^2e^{3x}', x => (2 * x + 3 * x * x) * Math.exp(3 * x), '(3x^2 + 2x)e^{3x}'], ['e^{-x}\\cos x', x => -Math.exp(-x) * (Math.cos(x) + Math.sin(x)), '-e^{-x}(\\cos x + \\sin x)']],
+  [['\\dfrac{x^2\\ln(x)\\cos(x)}{1 + x^2} + e^{\\arctan x}', x => ((2 * x * Math.log(x) * Math.cos(x) + x * Math.cos(x) - x * x * Math.log(x) * Math.sin(x)) * (1 + x * x) - 2 * x ** 3 * Math.log(x) * Math.cos(x)) / (1 + x * x) ** 2 + Math.exp(Math.atan(x)) / (1 + x * x), '\\dfrac{(2x\\ln x\\cos x + x\\cos x - x^2\\ln x\\sin x)(1 + x^2) - 2x^3\\ln x\\cos x}{(1 + x^2)^2} + \\dfrac{e^{\\arctan x}}{1 + x^2}'], ['\\ln\\left(x + \\sqrt{1 + x^2}\\right)', x => 1 / Math.sqrt(1 + x * x), '\\dfrac{1}{\\sqrt{1 + x^2}}'], ['\\dfrac{e^x\\sin(x^2)}{x}', x => Math.exp(x) * (Math.sin(x * x) * (x - 1) + 2 * x * x * Math.cos(x * x)) / (x * x), '\\dfrac{e^x\\left((x - 1)\\sin(x^2) + 2x^2\\cos(x^2)\\right)}{x^2}'], ['\\arctan\\left(\\dfrac1x\\right)', x => -1 / (1 + x * x), '-\\dfrac{1}{1 + x^2}'], ['x^x = e^{x\\ln x}', x => x ** x * (Math.log(x) + 1), 'x^x(\\ln x + 1)']]
+];
+GEN.deriv = (d, g) => {
+  const fs = g.shuffle(DER[d]).slice(0, d === 2 ? 1 : 2);
+  return { title: 'Calculer une dérivée', q: `<p>Calculer la dérivée des fonctions suivantes sur \\(]0\\,;+\\infty[\\) (tape par exemple <code>2x*ln(x)+x</code>, <code>exp(arctan(x))/(1+x^2)</code>).</p>`,
+    items: fs.map((f, i) => Ex(`f_${i + 1}'(x)`, ['x'], v => f[1](v.x), f[2])).map((it, i) => Object.assign(it, { lab: `\\left(${fs[i][0]}\\right)'` })),
+    corr: `<p>Règles : \\((uv)' = u'v + uv'\\), \\(\\left(\\dfrac uv\\right)' = \\dfrac{u'v - uv'}{v^2}\\), \\((g\\circ u)' = u'\\times g'\\circ u\\) ; \\((\\ln u)' = \\dfrac{u'}{u}\\), \\((e^u)' = u'e^u\\), \\((\\arctan u)' = \\dfrac{u'}{1 + u^2}\\), \\((\\sqrt u)' = \\dfrac{u'}{2\\sqrt u}\\).</p><ul>${fs.map(f => `<li>\\(\\left(${f[0]}\\right)' = ${f[2]}\\)</li>`).join('')}</ul>${d === 2 ? '<p class="fine">C\'est l\'exercice 1 du CC de 2025-26 (13 points sur 20) : décomposer en somme, quotient et produit, puis assembler.</p>' : ''}` };
+};
+
+/* ---------- 5. étude de fonction ---------- */
+GEN.etude = (d, g) => {
+  const fam = d === 0 ? 'B' : d === 1 ? 'A' : g.pick(['A', 'C']);
+  if (fam === 'A') { const a = g.pick([0, 1, 2]), x0 = Math.exp((2 * a - 1) / 2), m = -Math.exp(2 * a - 1) / 2, x0t = { 0: '\\dfrac{1}{\\sqrt e}', 1: '\\sqrt e', 2: 'e^{3/2}' }[a], mt = { 0: '-\\dfrac{1}{2e}', 1: '-\\dfrac{e}{2}', 2: '-\\dfrac{e^3}{2}' }[a];
+    return { title: 'Étude de fonction (CC 2025-26)', q: `<p>Soit \\(f(x) = x^2\\ln(x)${a ? ` - ${a === 1 ? '' : a}x^2` : ''}\\) sur \\(]0\\,;+\\infty[\\). Calculer \\(f'\\), trouver où elle s'annule, et donner l'extremum de \\(f\\) (tape <code>sqrt(e)</code>, <code>-e/2</code>…).</p>`,
+      items: [Ex("f'(x)", ['x'], v => 2 * v.x * Math.log(v.x) + v.x - 2 * a * v.x, `2x\\ln x ${{ 0: '+ x', 1: '- x', 2: '- 3x' }[a]}`), K('x_0', x0, x0t), Ch('En \\(x_0\\), \\(f\\) admet', [['m', 'un minimum'], ['M', 'un maximum']], 'm'), K('f(x_0)', m, mt)],
+      corr: `<p>\\(f'(x) = 2x\\ln x + x${a ? ` - ${2 * a}x` : ''} = x(2\\ln x + ${1 - 2 * a})\\). Comme \\(x > 0\\), \\(f'\\) a le signe de \\(2\\ln x + ${1 - 2 * a}\\) : négative pour \\(x < x_0\\), positive après, avec \\(\\ln x_0 = ${fTex(Fq(2 * a - 1, 2))}\\), soit \\(x_0 = ${x0t}\\).</p><p>\\(f\\) décroît puis croît : minimum \\(f(x_0) = x_0^2(\\ln x_0 - ${a}) = ${mt}\\).</p>` }; }
+  if (fam === 'B') { const a = g.pick([1, 2, 3]), x0 = 1 / a, M = 1 / (a * Math.E);
+    return { title: 'Étude de fonction', q: `<p>Soit \\(f(x) = x\\,e^{-${a === 1 ? '' : a}x}\\) sur \\(\\mathbb R\\). Calculer \\(f'\\), le point \\(x_0\\) où elle s'annule et l'extremum de \\(f\\).</p>`,
+      items: [Ex("f'(x)", ['x'], v => (1 - a * v.x) * Math.exp(-a * v.x), `(1 - ${a === 1 ? '' : a}x)e^{-${a === 1 ? '' : a}x}`), K('x_0', x0, fTex(Fq(1, a))), Ch('En \\(x_0\\), \\(f\\) admet', [['m', 'un minimum'], ['M', 'un maximum']], 'M'), K('f(x_0)', M, `\\dfrac{1}{${a === 1 ? '' : a}e}`)],
+      corr: `<p>\\(f'(x) = e^{-${a}x} - ${a}xe^{-${a}x} = (1 - ${a}x)e^{-${a}x}\\), du signe de \\(1 - ${a}x\\) car l'exponentielle est positive : positive puis négative, nulle en \\(x_0 = ${fTex(Fq(1, a))}\\).</p><p>\\(f\\) croît puis décroît : maximum \\(f(x_0) = \\dfrac{1}{${a}}e^{-1} = \\dfrac{1}{${a === 1 ? '' : a}e}\\).</p>` }; }
+  const k = g.pick([1, 2]), x0 = Math.exp(1 / k), M = 1 / (k * Math.E);
+  return { title: 'Étude de fonction', q: `<p>Soit \\(f(x) = \\dfrac{\\ln x}{x^{${k}}}\\) sur \\(]0\\,;+\\infty[\\). Calculer \\(f'\\), le point \\(x_0\\) où elle s'annule et l'extremum de \\(f\\).</p>`,
+    items: [Ex("f'(x)", ['x'], v => (1 - k * Math.log(v.x)) / v.x ** (k + 1), `\\dfrac{1 - ${k === 1 ? '' : k}\\ln x}{x^{${k + 1}}}`), K('x_0', x0, k === 1 ? 'e' : '\\sqrt e'), Ch('En \\(x_0\\), \\(f\\) admet', [['m', 'un minimum'], ['M', 'un maximum']], 'M'), K('f(x_0)', M, `\\dfrac{1}{${k === 1 ? '' : k}e}`)],
+    corr: `<p>Quotient : \\(f'(x) = \\dfrac{\\frac1x\\,x^{${k}} - ${k}x^{${k - 1}}\\ln x}{x^{${2 * k}}} = \\dfrac{1 - ${k}\\ln x}{x^{${k + 1}}}\\), du signe de \\(1 - ${k}\\ln x\\) : nulle en \\(x_0 = ${k === 1 ? 'e' : '\\sqrt e'}\\), positive avant, négative après.</p><p>Maximum \\(f(x_0) = \\dfrac{1}{${k === 1 ? '' : k}e}\\).</p>` };
+};
+
+/* ---------- 6. limites ---------- */
+GEN.limites = (d, g) => {
+  const a = g.int(2, 5), b = g.int(1, a - 1);
+  const P = d === 0 ? [[`\\lim_{x\\to0}\\dfrac{\\sin(${a}x)}{x}`, a, String(a)], [`\\lim_{x\\to0}\\dfrac{e^{${a}x} - 1}{x}`, a, String(a)], [`\\lim_{x\\to0}\\dfrac{\\ln(1 + ${a}x)}{x}`, a, String(a)], ['\\lim_{x\\to0}\\dfrac{1 - \\cos x}{x^2}', .5, '\\dfrac12'], ['\\lim_{x\\to+\\infty}\\dfrac{\\ln x}{x}', 0, '0'], ['\\lim_{x\\to0^+}x\\ln x', 0, '0']]
+    : d === 1 ? [[`\\lim_{x\\to+\\infty}\\left(1 + \\dfrac{${a}}{x}\\right)^x`, Math.exp(a), `e^{${a}}`], [`\\lim_{x\\to0}\\dfrac{e^{${a}x} - e^{${b}x}}{\\tan(2x)}`, (a - b) / 2, fTex(Fq(a - b, 2))], [`\\lim_{x\\to0}\\dfrac{\\sqrt{1 + ${a}x} - 1}{x}`, a / 2, fTex(Fq(a, 2))], [`\\lim_{x\\to+\\infty}\\dfrac{${a}x^2 + 1}{${b}x^2 + x}`, a / b, fTex(Fq(a, b))], ['\\lim_{x\\to+\\infty}x^2e^{-x}', 0, '0']]
+      : [[`\\lim_{x\\to${a}}\\dfrac{x^2 - ${a * a}}{x - ${a}}`, 2 * a, String(2 * a)], [`\\lim_{x\\to0}\\dfrac{\\sin(${a}x)}{\\sin(${b}x)}`, a / b, fTex(Fq(a, b))], [`\\lim_{x\\to+\\infty}\\left(\\sqrt{x^2 + ${a}x} - x\\right)`, a / 2, fTex(Fq(a, 2))], [`\\lim_{x\\to0}\\dfrac{\\ln(\\cos x)}{x^2}`, -0.5, '-\\dfrac12']];
+  const qs = g.shuffle(P).slice(0, 3);
+  return { title: 'Calculs de limites', q: '<p>Calculer les limites suivantes (tape <code>e^2</code>, <code>1/2</code>, <code>0</code>…).</p>', items: qs.map(([t, v, s]) => K(t, v, s)),
+    corr: `<p>Limites de référence : \\(\\dfrac{\\sin x}{x}\\to1\\), \\(\\dfrac{e^x - 1}{x}\\to1\\), \\(\\dfrac{\\ln(1+x)}{x}\\to1\\), \\(\\dfrac{1 - \\cos x}{x^2}\\to\\dfrac12\\) en 0 ; croissances comparées : \\(\\dfrac{\\ln x}{x}\\to0\\), \\(x^ne^{-x}\\to0\\) en \\(+\\infty\\), \\(x\\ln x\\to0\\) en \\(0^+\\). Pour une forme \\(\\infty - \\infty\\) avec une racine : quantité conjuguée. Pour \\(1^\\infty\\) : écrire \\(e^{x\\ln(1 + a/x)}\\).</p><ul>${qs.map(([t, , s]) => `<li>\\(${t} = ${s}\\)</li>`).join('')}</ul>` };
+};
+
+/* ---------- 7. DL usuels et opérations ---------- */
+GEN.dlusuels = (d, g) => {
+  if (d === 0) { const N = g.pick([3, 4]), f = g.pick([['e^x', SER.exp(N)], ['\\ln(1 + x)', SER.ln1p(N)], ['\\dfrac{1}{1 - x}', SER.inv1m(N)], ['\\cos x', SER.cos(N)], ['\\sin x', SER.sin(N)], ['\\sqrt{1 + x}', SER.pow(N, Fq(1, 2))]]);
+    return { title: 'DL usuels', q: `<p>Donner le développement limité à l'ordre ${N} en 0 de \\(${f[0]}\\) (la partie polynomiale ; le \\(o(x^${N})\\) est facultatif).</p>`, items: [Dl(f[0], f[1])],
+      corr: `<p>\\(${f[0]} = ${polyTex(f[1])} + o(x^{${N}})\\).</p><p class="fine">À connaître par cœur : \\(e^x\\), \\(\\ln(1+x)\\), \\(\\dfrac1{1-x}\\), \\((1+x)^\\alpha\\), \\(\\cos x\\), \\(\\sin x\\).</p>` }; }
+  if (d === 1) { const N = 3, a = g.pick([2, 3, -2]), f = g.pick([[`e^{${a}x}`, sScale(SER.exp(N), Fq(a)), `X = ${a}x`], [`\\ln(1 + ${a}x)`, sScale(SER.ln1p(N), Fq(a)), `X = ${a}x`], ['\\dfrac{1}{1 + x}', sScale(SER.inv1m(N), Fq(-1)), 'X = -x'], [`\\cos(${a}x)`, sScale(SER.cos(4), Fq(a)).slice(0, 4), `X = ${a}x`], ['\\dfrac{1}{\\sqrt{1 + x}}', SER.pow(N, Fq(-1, 2)), '\\alpha = -\\tfrac12']]);
+    return { title: 'DL par substitution', q: `<p>Donner le DL à l'ordre 3 en 0 de \\(${f[0]}\\).</p>`, items: [Dl(f[0], f[1])], corr: `<p>On part du DL usuel et on remplace (${'\\(' + f[2] + '\\)'}) : \\(${f[0]} = ${polyTex(f[1])} + o(x^3)\\).</p>` }; }
+  const N = 3, f = g.pick([['e^x\\ln(1 + x)', sMul(SER.exp(N), SER.ln1p(N))], ['e^x\\cos x', sMul(SER.exp(N), SER.cos(N))], ['\\dfrac{1 + x}{1 - x}', sMul(sAdd(SER.inv1m(N).map((c, k) => k < 2 ? Fq(1) : Fq(0)), SER.inv1m(N).map(() => Fq(0))), SER.inv1m(N))], ['e^x\\sin x', sMul(SER.exp(N), SER.sin(N))], ['\\dfrac{\\ln(1 + x)}{1 - x}', sMul(SER.ln1p(N), SER.inv1m(N))]]);
+  return { title: 'DL d\'un produit', q: `<p>Donner le DL à l'ordre 3 en 0 de \\(${f[0]}\\).</p>`, items: [Dl(f[0], f[1])], corr: `<p>On multiplie les DL à l'ordre 3 des deux facteurs et on ne garde que les termes de degré \\(\\leq 3\\) : \\(${f[0]} = ${polyTex(f[1])} + o(x^3)\\).</p>` };
+};
+
+/* ---------- 8. DL par la formule de Taylor ---------- */
+GEN.dltaylor = (d, g) => {
+  const al = g.pick([Fq(1, 2), Fq(-1), Fq(1, 3), Fq(-1, 2), Fq(3, 2)]), a = g.pick([2, 3]);
+  const f = d === 0 ? ['\\sqrt{1 + x}', SER.pow(3, Fq(1, 2)), '(1 + x)^{1/2}'] : d === 1 ? [`(1 + x)^{${fTex(al)}}`, SER.pow(3, al), `(1 + x)^{${fTex(al)}}`] : g.pick([[`e^{${a}x}`, sScale(SER.exp(3), Fq(a)), `e^{${a}x}`], [`\\ln(1 + ${a}x)`, sScale(SER.ln1p(3), Fq(a)), `\\ln(1 + ${a}x)`], [`\\dfrac{1}{1 + ${a}x}`, sScale(SER.inv1m(3), Fq(-a)), `(1 + ${a}x)^{-1}`]]);
+  const N = d === 0 ? 2 : 3, s = f[1].slice(0, N + 1), der = k => fMul(s[k], Fq(fact(k)));
+  return { title: 'DL par la formule de Taylor-Young', q: `<p>Soit \\(g(x) = ${f[0]}\\), de classe \\(C^\\infty\\) au voisinage de 0. Calculer \\(g'(0)\\) et \\(g''(0)\\), puis en déduire le DL d'ordre ${N} de \\(g\\) en 0 (CC de rattrapage 2025-26, exercice 2).</p>`,
+    items: [K("g'(0)", fV(der(1)), fTex(der(1))), K("g''(0)", fV(der(2)), fTex(der(2))), Dl('g(x)', s)],
+    corr: `<p>Formule de Taylor-Young : \\(g(x) = g(0) + g'(0)x + \\dfrac{g''(0)}{2!}x^2${N === 3 ? ' + \\dfrac{g\'\'\'(0)}{3!}x^3' : ''} + o(x^{${N}})\\).</p><p>On dérive \\(${f[2]}\\) : \\(g(0) = ${fTex(s[0])}\\), \\(g'(0) = ${fTex(der(1))}\\), \\(g''(0) = ${fTex(der(2))}\\)${N === 3 ? `, \\(g'''(0) = ${fTex(der(3))}\\)` : ''}.</p><p>D'où \\(g(x) = ${polyTex(s)} + o(x^{${N}})\\).</p>` };
+};
+
+/* ---------- 9. limites par DL ---------- */
+GEN.dllim = (d, g) => {
+  const a = g.int(1, 4), b = g.int(1, 3), al = g.pick([2, 3, -1]);
+  const P = [
+    [`\\lim_{n\\to+\\infty} n\\left(\\sqrt{1 + \\tfrac{${a}}{n}} - 1\\right)`, a / 2, fTex(Fq(a, 2)), `\\sqrt{1 + u} = 1 + \\tfrac u2 + o(u)\\) avec \\(u = \\tfrac{${a}}{n}`],
+    ['\\lim_{x\\to0}\\dfrac{e^x - 1 - x}{x^2}', .5, '\\dfrac12', 'e^x = 1 + x + \\tfrac{x^2}{2} + o(x^2)'],
+    ['\\lim_{x\\to0}\\dfrac{\\ln(1 + x) - x}{x^2}', -.5, '-\\dfrac12', '\\ln(1+x) = x - \\tfrac{x^2}{2} + o(x^2)'],
+    ['\\lim_{x\\to0}\\dfrac{\\sin x - x}{x^3}', -1 / 6, '-\\dfrac16', '\\sin x = x - \\tfrac{x^3}{6} + o(x^3)'],
+    [`\\lim_{n\\to+\\infty} n\\left(e^{${a}/n} - 1\\right)`, a, String(a), `e^u = 1 + u + o(u)\\) avec \\(u = \\tfrac{${a}}{n}`],
+    ['\\lim_{n\\to+\\infty} n^2\\left(\\cos\\tfrac1n - 1\\right)', -.5, '-\\dfrac12', '\\cos u = 1 - \\tfrac{u^2}{2} + o(u^2)'],
+    ['\\lim_{x\\to0}\\dfrac{x - \\ln(1 + x)}{1 - \\cos x}', 1, '1', 'x - \\ln(1+x) = \\tfrac{x^2}{2} + o(x^2)\\) et \\(1 - \\cos x = \\tfrac{x^2}{2} + o(x^2)'],
+    [`\\lim_{x\\to0}\\dfrac{(1 + x)^{${al}} - 1 - ${al}x}{x^2}`, al * (al - 1) / 2, String(al * (al - 1) / 2), `(1 + x)^\\alpha = 1 + \\alpha x + \\tfrac{\\alpha(\\alpha - 1)}{2}x^2 + o(x^2)`],
+    [`\\lim_{x\\to0}\\dfrac{e^{${a + b}x} - e^{${b}x}}{\\tan(2x)}`, a / 2, fTex(Fq(a, 2)), `e^{cx} = 1 + cx + o(x)\\) et \\(\\tan(2x) = 2x + o(x)`]
+  ];
+  const qs = g.shuffle(d === 0 ? P.slice(0, 5) : d === 1 ? P : P.slice(3)).slice(0, 2);
+  return { title: 'Lever une indétermination avec un DL', q: '<p>Calculer les limites suivantes à l\'aide de développements limités.</p>', items: qs.map(([t, v, s]) => K(t, v, s)),
+    corr: `<p>Méthode : on développe numérateur et dénominateur jusqu'au premier terme non nul, puis on simplifie.</p><ul>${qs.map(([t, , s, w]) => `<li>\\(${w}\\) : \\(${t} = ${s}\\).</li>`).join('')}</ul>` };
+};
+
+/* ---------- 10. primitives ---------- */
+const PRIM = [
+  [['x e^{3x^2}', x => x * Math.exp(3 * x * x), '\\dfrac{e^{3x^2}}{6}'], ['\\dfrac{x}{1 + x^2}', x => x / (1 + x * x), '\\dfrac12\\ln(1 + x^2)'], ['\\cos(3x)', x => Math.cos(3 * x), '\\dfrac{\\sin(3x)}{3}'], ['\\dfrac{1}{2x + 1}', x => 1 / (2 * x + 1), '\\dfrac12\\ln(2x + 1)'], ['\\dfrac{\\ln x}{x}', x => Math.log(x) / x, '\\dfrac{(\\ln x)^2}{2}'], ['e^{-2x}', x => Math.exp(-2 * x), '-\\dfrac{e^{-2x}}{2}'], ['\\sin x\\cos x', x => Math.sin(x) * Math.cos(x), '\\dfrac{\\sin^2x}{2}'], ['\\dfrac{1}{1 + x^2}', x => 1 / (1 + x * x), '\\arctan x']],
+  [['x e^x', x => x * Math.exp(x), '(x - 1)e^x'], ['\\ln x', Math.log, 'x\\ln x - x'], ['x\\cos x', x => x * Math.cos(x), 'x\\sin x + \\cos x'], ['x^2e^x', x => x * x * Math.exp(x), '(x^2 - 2x + 2)e^x'], ['\\arctan x', Math.atan, 'x\\arctan x - \\dfrac12\\ln(1 + x^2)'], ['x\\ln x', x => x * Math.log(x), '\\dfrac{x^2}{2}\\ln x - \\dfrac{x^2}{4}']],
+  [['\\dfrac{\\cos(\\ln x)}{x}', x => Math.cos(Math.log(x)) / x, '\\sin(\\ln x)'], ['\\dfrac{1}{x\\ln x}', x => 1 / (x * Math.log(x)), '\\ln(\\ln x)', [1.5, 3]], ['(3x^3 + 2x^2 + 4x - 1)e^x', x => (3 * x ** 3 + 2 * x * x + 4 * x - 1) * Math.exp(x), '(3x^3 - 7x^2 + 18x - 19)e^x'], ['\\dfrac{1}{(x + 1)(x + 2)}', x => 1 / ((x + 1) * (x + 2)), '\\ln\\left(\\dfrac{x + 1}{x + 2}\\right)'], ['\\dfrac{\\arctan x}{1 + x^2}', x => Math.atan(x) / (1 + x * x), '\\dfrac{(\\arctan x)^2}{2}'], ['\\dfrac{\\cos(3x)}{\\cos^2(\\sin(3x))}', x => Math.cos(3 * x) / Math.cos(Math.sin(3 * x)) ** 2, '\\dfrac{\\tan(\\sin(3x))}{3}']]
+];
+GEN.prim = (d, g) => {
+  const fs = g.shuffle(PRIM[d]).slice(0, 2);
+  return { title: d === 1 ? 'Primitives par intégration par parties' : 'Calculer une primitive', q: `<p>Donner une primitive de chacune des fonctions suivantes (sur un intervalle où elles sont définies, avec \\(x > 0\\)). La constante est inutile.</p>`,
+    items: fs.map(f => Pr(`\\displaystyle\\int ${f[0]}\\,dx`, f[1], f[2], f[3])),
+    corr: `<p>${d === 1 ? 'Intégration par parties : \\(\\int u\'v = uv - \\int uv\'\\), en dérivant le polynôme ou le logarithme (\\(v\\)) et en intégrant l\'exponentielle ou le cosinus (\\(u\'\\)).' : 'Reconnaître une forme \\(u\'g\'(u)\\) : \\(\\int u\'e^u = e^u\\), \\(\\int\\dfrac{u\'}{u} = \\ln|u|\\), \\(\\int u\'u^n = \\dfrac{u^{n+1}}{n+1}\\), \\(\\int\\dfrac{u\'}{1+u^2} = \\arctan u\\).'}</p><ul>${fs.map(f => `<li>\\(\\int ${f[0]}\\,dx = ${f[2]} + C\\)</li>`).join('')}</ul><p class="fine">Vérification : on dérive la primitive trouvée.</p>` };
+};
+
+/* ---------- 11. intégrales définies ---------- */
+const METH = [['u', 'reconnaître une dérivée (\\(u\'e^u\\), \\(u\'/u\\)…)'], ['ipp', 'intégration par parties'], ['cv', 'changement de variable'], ['es', 'décomposition en éléments simples / astuce algébrique']];
+const INTG = [
+  [['\\int_0^1 x e^{-4x^2}\\,dx', (1 - Math.exp(-4)) / 8, '\\dfrac{1 - e^{-4}}{8}', 'u'], ['\\int_0^1 \\dfrac{dx}{x^2 + 2x + 1}', .5, '\\dfrac12', 'u'], ['\\int_1^e \\dfrac{\\ln x}{x}\\,dx', .5, '\\dfrac12', 'u'], ['\\int_0^{\\pi/2}\\sin x\\cos^2x\\,dx', 1 / 3, '\\dfrac13', 'u'], ['\\int_0^1\\dfrac{x}{1 + x^2}\\,dx', Math.LN2 / 2, '\\dfrac{\\ln 2}{2}', 'u'], ['\\int_e^{e^2}\\dfrac{\\ln(x^3)}{x\\ln x}\\,dx', 3, '3', 'u']],
+  [['\\int_0^1 x e^x\\,dx', 1, '1', 'ipp'], ['\\int_1^e \\ln x\\,dx', 1, '1', 'ipp'], ['\\int_0^{\\pi/2} x\\cos x\\,dx', Math.PI / 2 - 1, '\\dfrac\\pi2 - 1', 'ipp'], ['\\int_0^1 x^2e^x\\,dx', Math.E - 2, 'e - 2', 'ipp'], ['\\int_1^e x\\ln x\\,dx', (Math.E ** 2 + 1) / 4, '\\dfrac{e^2 + 1}{4}', 'ipp'], ['\\int_0^\\pi x\\sin x\\,dx', Math.PI, '\\pi', 'ipp']],
+  [['\\int_0^{\\pi/4}\\dfrac{\\cos x}{\\cos x + \\sin x}\\,dx', Math.PI / 8 + Math.LN2 / 4, '\\dfrac\\pi8 + \\dfrac{\\ln 2}{4}', 'es'], ['\\int_0^1\\dfrac{\\arctan x}{1 + x^2}\\,dx', Math.PI ** 2 / 32, '\\dfrac{\\pi^2}{32}', 'u'], ['\\int_1^e\\dfrac{dx}{x(1 + (\\ln x)^2)}', Math.PI / 4, '\\dfrac\\pi4', 'cv'], ['\\int_{1/2}^{2}\\dfrac{\\ln x}{1 + x^2}\\,dx', 0, '0', 'cv'], ['\\int_0^{\\pi/2} e^x\\cos x\\,dx', (Math.exp(Math.PI / 2) - 1) / 2, '\\dfrac{e^{\\pi/2} - 1}{2}', 'ipp'], ['\\int_{-1}^{2}|x - 1|\\,dx', 2.5, '\\dfrac52', 'es']]
+];
+const INTC = { '\\int_0^{\\pi/4}\\dfrac{\\cos x}{\\cos x + \\sin x}\\,dx': 'On écrit \\(\\cos x = \\tfrac12(\\cos x + \\sin x) + \\tfrac12(\\cos x - \\sin x)\\) : l\'intégrande vaut \\(\\tfrac12 + \\tfrac12\\dfrac{\\cos x - \\sin x}{\\cos x + \\sin x}\\), et la deuxième fraction est \\(u\'/u\\) (rattrapage 2025-26).', '\\int_{1/2}^{2}\\dfrac{\\ln x}{1 + x^2}\\,dx': 'Avec \\(x = 1/t\\) on retrouve \\(-I\\), donc \\(I = 0\\) (rattrapage 2025-26).', '\\int_1^e\\dfrac{dx}{x(1 + (\\ln x)^2)}': 'Avec \\(t = \\ln x\\), \\(dt = dx/x\\) : \\(\\int_0^1\\dfrac{dt}{1 + t^2} = \\arctan 1\\).', '\\int_0^{\\pi/2} e^x\\cos x\\,dx': 'Deux intégrations par parties ramènent à l\'intégrale de départ (TD 4, exercice 3).', '\\int_{-1}^{2}|x - 1|\\,dx': 'On coupe en \\(x = 1\\) (relation de Chasles) : \\(\\int_{-1}^1(1 - x)dx + \\int_1^2(x - 1)dx = 2 + \\tfrac12\\).' };
+GEN.integ = (d, g) => {
+  const qs = g.shuffle(INTG[d]).slice(0, d === 2 ? 1 : 2);
+  const items = []; qs.forEach(([t, v, s, m]) => { items.push(Ch(`Méthode pour \\(\\displaystyle ${t}\\)`, METH, m)); items.push(K(`\\displaystyle ${t}`, v, s)); });
+  return { title: 'Calculer une intégrale', q: '<p>Choisir la méthode, puis calculer (valeurs exactes : <code>(1-e^(-4))/8</code>, <code>pi/2-1</code>, <code>ln(2)/2</code>…).</p>', items,
+    corr: `<p>Ces fonctions sont continues sur un segment, donc intégrables au sens de Riemann ; on calcule avec une primitive : \\(\\int_a^b f = F(b) - F(a)\\).</p><ul>${qs.map(([t, , s, m]) => `<li>\\(${t} = ${s}\\) — ${INTC[t] || METH.find(x => x[0] === m)[1].replace(/\\\(.*\\\)/, '')}.</li>`).join('')}</ul>` };
+};
+
+/* ---------- 12. éléments simples ---------- */
+GEN.elts = (d, g) => {
+  let a = g.int(-3, 3), b = g.int(-3, 3); while (b === a) b = g.int(-3, 3);
+  const al = g.pick([1, 2, 3]); let be = g.int(-4, 4); while (al * a + be === 0 || al * b + be === 0) be++; const num = x => al * x + be, A = Fq(num(a), a - b), B = Fq(num(b), b - a);
+  const den = `(x ${a < 0 ? '+' : '-'} ${Math.abs(a)})(x ${b < 0 ? '+' : '-'} ${Math.abs(b)})`.replace(/x - 0/g, 'x').replace(/x \+ 0/g, 'x'), xa = a === 0 ? 'x' : `x ${a < 0 ? '+' : '-'} ${Math.abs(a)}`, xb = b === 0 ? 'x' : `x ${b < 0 ? '+' : '-'} ${Math.abs(b)}`;
+  const nt = `${al === 1 ? '' : al}x ${be < 0 ? '-' : '+'} ${Math.abs(be)}`.replace(/ \+ 0$/, '');
+  const meth = `<p>Pôles simples : \\(\\dfrac{${nt}}{${den}} = \\dfrac{A}{${xa}} + \\dfrac{B}{${xb}}\\). On multiplie par \\(${xa}\\) puis on fait \\(x = ${a}\\) : \\(A = ${fTex(A)}\\) ; de même \\(B = ${fTex(B)}\\).</p>`;
+  if (d === 0) return { title: 'Décomposition en éléments simples', q: `<p>Décomposer \\(f(x) = \\dfrac{${nt}}{${den}}\\) sous la forme \\(\\dfrac{A}{${xa}} + \\dfrac{B}{${xb}}\\).</p>`, items: [K('A', fV(A), fTex(A)), K('B', fV(B), fTex(B))], corr: meth };
+  if (d === 1) { const lo = Math.max(a, b) + 1;
+    return { title: 'Éléments simples et primitive', q: `<p>Décomposer \\(f(x) = \\dfrac{${nt}}{${den}}\\) en éléments simples, puis donner une primitive de \\(f\\) sur \\(]${lo - 1}\\,;+\\infty[\\).</p>`,
+      items: [K('A', fV(A), fTex(A)), K('B', fV(B), fTex(B)), Pr('\\displaystyle\\int f(x)\\,dx', x => num(x) / ((x - a) * (x - b)), `${fTex(A)}\\ln(${xa}) + ${fTex(B)}\\ln(${xb})`, [lo + 0.2, lo + 2])],
+      corr: meth + `<p>Une primitive : \\(${fTex(A)}\\ln|${xa}| + ${fTex(B)}\\ln|${xb}|\\).</p>` }; }
+  const p = g.int(-3, 3), q = g.int(-4, 4), r1 = p + a + b, r0 = q - a * b, A2 = Fq(r1 * a + r0, a - b), B2 = Fq(r1 * b + r0, b - a);
+  return { title: 'Fraction avec partie entière', q: `<p>Soit \\(h(x) = \\dfrac{x^2 ${p < 0 ? '-' : '+'} ${Math.abs(p)}x ${q < 0 ? '-' : '+'} ${Math.abs(q)}}{${den}}\\). Écrire \\(h(x) = 1 + \\dfrac{A}{${xa}} + \\dfrac{B}{${xb}}\\) (TD 4).</p>`,
+    items: [K('A', fV(A2), fTex(A2)), K('B', fV(B2), fTex(B2))],
+    corr: `<p>Degré du numérateur = degré du dénominateur : on divise d'abord. \\(x^2 ${p < 0 ? '-' : '+'} ${Math.abs(p)}x ${q < 0 ? '-' : '+'} ${Math.abs(q)} = ${den} + (${r1}x ${r0 < 0 ? '-' : '+'} ${Math.abs(r0)})\\), donc \\(h(x) = 1 + \\dfrac{${r1}x ${r0 < 0 ? '-' : '+'} ${Math.abs(r0)}}{${den}}\\).</p><p>Puis comme avant : \\(A = ${fTex(A2)}\\), \\(B = ${fTex(B2)}\\).</p>` };
+};
+
+/* ---------- 13. intégrale de Riemann : intégrabilité ---------- */
+const RIEM = [['\\(x^2e^{-2x}\\) sur \\([0\\,;1]\\)', 'o', 'continue sur un segment.'], ['\\(x^2e^{-2x}\\) sur \\([0\\,;+\\infty[\\)', 'n', 'l\'intégrale de Riemann est définie sur un segment \\([a\\,;b]\\) borné.'], ['\\(\\dfrac1x\\) sur \\(]0\\,;1]\\)', 'n', 'non bornée au voisinage de 0.'], ['\\(\\dfrac{\\ln x}{1 + x^2}\\) sur \\([\\tfrac12\\,;2]\\)', 'o', 'quotient de fonctions continues, dénominateur non nul : continue sur un segment.'], ['\\(\\dfrac{\\cos x}{\\cos x + \\sin x}\\) sur \\([0\\,;\\tfrac\\pi4]\\)', 'o', 'le dénominateur est strictement positif sur ce segment.'], ['partie entière \\(\\lfloor x\\rfloor\\) sur \\([0\\,;3]\\)', 'o', 'bornée, continue par morceaux (en escalier).'], ['\\(|x|\\) sur \\([-1\\,;1]\\)', 'o', 'continue sur un segment.'], ['\\(\\dfrac{1}{x - 1}\\) sur \\([0\\,;2]\\)', 'n', 'non bornée au voisinage de 1.'], ['\\(\\sqrt x\\) sur \\([0\\,;1]\\)', 'o', 'continue sur un segment.'], ['\\(\\dfrac{1}{\\sqrt x}\\) sur \\(]0\\,;1]\\)', 'n', 'non bornée en 0.']];
+GEN.riemann = (d, g) => {
+  const qs = g.shuffle(RIEM).slice(0, d === 0 ? 3 : 2), items = qs.map(([t, a]) => Ch(`${t} est intégrable au sens de Riemann ?`, YN, a));
+  const RAP = '<p>Toute fonction <b>continue</b> (ou continue par morceaux) sur un <b>segment</b> \\([a\\,;b]\\) est intégrable au sens de Riemann. Une fonction non bornée, ou un intervalle non borné, sort du cadre de Riemann.</p>';
+  if (d === 0) return { title: 'Intégrable au sens de Riemann ?', q: '<p>Les fonctions suivantes sont-elles intégrables au sens de Riemann sur l\'intervalle indiqué ?</p>', items, corr: RAP + `<ul>${qs.map(([t, a, w]) => `<li>${t} : ${a === 'o' ? 'oui' : 'non'}, ${w}</li>`).join('')}</ul>` };
+  const a = g.int(1, 3), k = g.pick([1, 2]), mv = k === 1 ? a / 2 : a * a / 3;
+  items.push(K(`\\text{valeur moyenne de }x^{${k}}\\text{ sur }[0\\,;${a}]`, mv, fTex(Fq(k === 1 ? a : a * a, k === 1 ? 2 : 3))));
+  if (d === 2) items.push(Ch('Pour \\(f\\) continue sur \\([a\\,;b]\\), il existe \\(c\\in[a\\,;b]\\) tel que \\(f(c) = \\frac{1}{b-a}\\int_a^b f\\). C\'est', [['m', 'le théorème de la moyenne (inégalité de la moyenne + valeurs intermédiaires)'], ['r', 'le théorème de Rolle'], ['t', 'la formule de Taylor']], 'm'));
+  return { title: 'Riemann et valeur moyenne', q: '<p>Intégrabilité, puis valeur moyenne \\(\\dfrac{1}{b - a}\\int_a^b f(x)\\,dx\\).</p>', items,
+    corr: RAP + `<ul>${qs.map(([t, a2, w]) => `<li>${t} : ${a2 === 'o' ? 'oui' : 'non'}, ${w}</li>`).join('')}</ul><p>Valeur moyenne : \\(\\dfrac{1}{${a}}\\int_0^{${a}}x^{${k}}dx = \\dfrac{${a}^{${k}}}{${k + 1}} = ${fTex(Fq(k === 1 ? a : a * a, k === 1 ? 2 : 3))}\\).</p>` };
+};
+
+/* ---------- 14. suites ---------- */
+GEN.suites = (d, g) => {
+  if (d === 0) { const a = g.int(1, 5), b = g.int(1, 5), c = g.int(1, 4), e = g.int(1, 4), k = g.pick([['\\dfrac{n}{n + 1}', 'c', 'croissante : \\(u_{n+1} - u_n = \\dfrac{1}{(n+1)(n+2)} > 0\\)'], ['\\dfrac{1}{n + 1}', 'd', 'décroissante'], ['\\dfrac{(-1)^n}{n + 1}', 'x', 'ni croissante ni décroissante (signe alterné), mais elle tend vers 0'], ['n^2 - 4n', 'x', 'décroissante puis croissante (\\(u_{n+1} - u_n = 2n - 3\\))']]);
+    return { title: 'Limites et monotonie', q: `<p>1) Calculer \\(\\lim\\dfrac{${a}n^2 + ${b}}{${c}n^2 + ${e}n}\\) et \\(\\lim\\dfrac{${a}n + ${b}}{n^2 + 1}\\). 2) Sens de variation de \\(u_n = ${k[0]}\\) (\\(n\\in\\mathbb N\\)).</p>`,
+      items: [K(`\\lim\\dfrac{${a}n^2 + ${b}}{${c}n^2 + ${e}n}`, a / c, fTex(Fq(a, c))), K(`\\lim\\dfrac{${a}n + ${b}}{n^2 + 1}`, 0, '0'), Ch(`\\((u_n) = \\left(${k[0]}\\right)\\) est`, [['c', 'croissante'], ['d', 'décroissante'], ['x', 'ni l\'un ni l\'autre']], k[1])],
+      corr: `<p>On factorise par le terme dominant : \\(\\dfrac{n^2(${a} + ${b}/n^2)}{n^2(${c} + ${e}/n)}\\to${fTex(Fq(a, c))}\\) ; \\(\\dfrac{${a}n + ${b}}{n^2 + 1}\\sim\\dfrac{${a}}{n}\\to0\\).</p><p>Sens de variation : étudier le signe de \\(u_{n+1} - u_n\\) (ou comparer \\(u_{n+1}/u_n\\) à 1 si \\(u_n > 0\\)). Ici ${k[2]}.</p>` }; }
+  if (d === 1) { const q = g.pick([Fq(1, 2), Fq(1, 3), Fq(2, 3), Fq(-1, 2)]), r = g.int(1, 6), u0 = g.int(-3, 8), l = fMul(Fq(r), Fq(q[1], q[1] - q[0])), ql = fV(q), lv = fV(l);
+    const mono = ql < 0 ? 'x' : u0 > lv ? 'd' : u0 < lv ? 'c' : 'k';
+    return { title: 'Suite arithmético-géométrique', q: `<p>Soit \\(u_0 = ${u0}\\) et \\(u_{n+1} = ${fTex(q)}\\,u_n + ${r}\\). Trouver le point fixe \\(\\ell\\) (\\(\\ell = ${fTex(q)}\\ell + ${r}\\)), exprimer \\(u_n\\) en fonction de \\(n\\), donner la limite et le sens de variation.</p>`,
+      items: [K('\\ell', lv, fTex(l)), Ex('u_n', ['n'], v => lv + ql ** v.n * (u0 - lv), `${fTex(l)} + \\left(${fTex(q)}\\right)^n\\left(${u0} - ${fTex(l)}\\right)`), K('\\lim u_n', lv, fTex(l)), Ch('\\((u_n)\\) est', [['c', 'croissante'], ['d', 'décroissante'], ['k', 'constante'], ['x', 'ni l\'un ni l\'autre']], mono)],
+      corr: `<p>\\(v_n = u_n - \\ell\\) est géométrique de raison \\(${fTex(q)}\\) : \\(v_{n+1} = ${fTex(q)}\\,v_n\\). Donc \\(u_n = \\ell + (${fTex(q)})^n(u_0 - \\ell)\\) avec \\(\\ell = ${fTex(l)}\\).</p><p>Comme \\(|${fTex(q)}| < 1\\), \\((${fTex(q)})^n\\to0\\) et \\(u_n\\to${fTex(l)}\\). ${ql < 0 ? 'La raison est négative : \\(v_n\\) change de signe, la suite oscille autour de \\(\\ell\\).' : u0 > lv ? '\\(u_0 > \\ell\\) et la raison est positive : \\(v_n\\) décroît vers 0, la suite est décroissante.' : u0 < lv ? '\\(u_0 < \\ell\\) : \\(v_n < 0\\) croît vers 0, la suite est croissante.' : '\\(u_0 = \\ell\\) : suite constante.'}</p>` }; }
+  const q = g.pick([2, 3, Fq(1, 2)]), qq = Array.isArray(q) ? q : Fq(q), qv = fV(qq);
+  return { title: 'Sommes géométriques', q: `<p>Exprimer \\(S_n = \\sum_{k=0}^{n}\\left(${fTex(qq)}\\right)^k\\) en fonction de \\(n\\)${qv < 1 ? ', puis sa limite' : ''}.</p>`,
+    items: [Ex('S_n', ['n'], v => (1 - qv ** (v.n + 1)) / (1 - qv), `\\dfrac{1 - (${fTex(qq)})^{n+1}}{1 - ${fTex(qq)}}`)].concat(qv < 1 ? [K('\\lim S_n', 1 / (1 - qv), fTex(Fq(qq[1], qq[1] - qq[0])))] : [Ch('\\((S_n)\\)', [['d', 'diverge vers \\(+\\infty\\)'], ['c', 'converge']], 'd')]),
+    corr: `<p>\\(\\sum_{k=0}^n q^k = \\dfrac{1 - q^{n+1}}{1 - q}\\) pour \\(q\\neq 1\\). ${qv < 1 ? `Si \\(|q| < 1\\), \\(q^{n+1}\\to0\\) et \\(S_n\\to\\dfrac{1}{1 - q} = ${fTex(Fq(qq[1], qq[1] - qq[0]))}\\).` : 'Si \\(q > 1\\), \\(q^{n+1}\\to+\\infty\\) : la somme diverge.'}</p>` };
+};
+
+/* =====================================================================
+   VÉRIFICATION
+   ===================================================================== */
+function check(it, raw) {
+  raw = raw == null ? '' : String(raw);
+  if (CHECKX[it.type]) return CHECKX[it.type](it, raw);
+  if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
+  if (it.type === 'expr') { const r = checkExpr(raw, it); if (r.st === 'sign') return { st: 'bad', msg: 'au signe près : vérifie l\'orientation.' }; return r; }
+  const q = parseNum(raw, it.unit);
+  if (q.err !== undefined) return { st: q.err === '' ? 'empty' : 'err', msg: q.err };
+  const tol = Math.max((it.tol || 0.02) * Math.abs(it.val), 1e-9);
+  if (Math.abs(q.v - it.val) <= tol) return { st: 'ok' };
+  if (Math.abs(q.v + it.val) <= tol) return { st: 'bad', msg: 'attention au signe.' };
+  const ratio = q.v / it.val;
+  if (it.val && [1e3, 1e-3, 1e2, 1e-2, 1e6, 1e-6].some(f => Math.abs(ratio / f - 1) < 0.02)) return { st: 'bad', msg: 'bon nombre, mauvaise puissance de 10 : vérifie les unités.' };
+  return { st: 'bad' };
+}
+const PILL = { ok: '<span class="pill ok">Juste</span>', bad: '<span class="pill bad">Faux</span>', err: '<span class="pill bad">Illisible</span>', empty: '<span class="pill part">Vide</span>' };
+const fbHTML = r => PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '');
+function itemHTML(it, id, val) {
+  if (it.type === 'choice') return `<div class="it full" data-id="${id}"><span class="it-lab w">${it.lab}</span><div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${o.t}</span></label>`).join('')}</div><div class="fb"></div></div>`;
+  const lab = `<span class="it-lab">${tx(it.lab + ' =')}</span>`;
+  if (it.type === 'expr' || it.type === 'dl') return `<div class="it ex-expr" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" data-expr="1" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="formule" value="${esc(val || '')}"></div><div class="vh">${varsHint(it.vars)}</div><div class="pv" data-pv="${id}"></div><div class="fb"></div></div>`;
+  return `<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" ${it.type === 'num' ? 'inputmode="decimal" ' : ''}autocomplete="off" spellcheck="false" placeholder="${PH[it.type] || (it.type === 'expr' ? 'formule' : 'valeur')}" value="${esc(val || '')}">${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div><div class="fb"></div></div>`;
+}
+const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); if (r) return r.value; const t = $(`input[type=text][data-id="${id}"]`, root); return t ? t.value : ''; };
+function preview(inp) {
+  const pv = $(`[data-pv="${inp.dataset.id}"]`); if (!pv) return;
+  const it = findItem(inp.dataset.id); if (!it) return;
+  if (!inp.value.trim()) { pv.innerHTML = ''; return; }
+  const P = parseF(it.type === 'dl' ? inp.value.replace(/\+?\s*o\s*\(.*$/i, '') : inp.value, it.vars, false);
+  pv.innerHTML = P.err !== undefined ? '<span class="fine">' + esc(P.err) + '</span>' : 'lu : ' + tx(texF(P.ast));
+}
+const HELP = '<p class="fine" style="margin-top:12px">Écriture : <code>sqrt(2)</code>, <code>pi/4</code>, <code>e^2</code> ou <code>exp(2)</code>, <code>ln(2)/2</code>, <code>arctan(x)</code>, <code>(1-e^(-4))/8</code>. Complexes : <code>1+2i</code>, <code>-sqrt(3)/2+i/2</code>, plusieurs solutions séparées par des virgules. DL : la partie polynomiale, le <code>o(x^n)</code> est facultatif. Primitives : n\'importe laquelle, sans la constante.</p>';
+
+/* =====================================================================
+   COMPÉTENCES ET PROGRESSION (mêmes règles que les autres matières)
+   ===================================================================== */
+const PK = 'ma2.path.v1', HK = 'ma2.hist.v1', EK = 'ma2.exam.v1', VAL = 100, MMAX = 130;
+const CH = ['Nombres complexes', 'Dérivées et limites', 'Développements limités', 'Intégrales', 'Suites'];
+const SK = [
+  { id: 'cform', ch: 0, name: 'Forme algébrique, Moivre', fiche: 0 },
+  { id: 'cexp', ch: 0, name: 'Module, argument, forme exponentielle', fiche: 0 },
+  { id: 'cracines', ch: 0, name: 'Racines et équations dans ℂ', fiche: 0 },
+  { id: 'deriv', ch: 1, name: 'Calculer une dérivée', fiche: 1 },
+  { id: 'etude', ch: 1, name: 'Étude de fonction, extremum', fiche: 1 },
+  { id: 'limites', ch: 1, name: 'Limites classiques', fiche: 2 },
+  { id: 'dlusuels', ch: 2, name: 'DL usuels et opérations', fiche: 3 },
+  { id: 'dltaylor', ch: 2, name: 'DL par la formule de Taylor', fiche: 3 },
+  { id: 'dllim', ch: 2, name: 'Lever une indétermination avec un DL', fiche: 3 },
+  { id: 'riemann', ch: 3, name: 'Intégrabilité au sens de Riemann', fiche: 4 },
+  { id: 'prim', ch: 3, name: 'Primitives (dont IPP)', fiche: 4 },
+  { id: 'integ', ch: 3, name: 'Intégrales définies', fiche: 4 },
+  { id: 'elts', ch: 3, name: 'Décomposition en éléments simples', fiche: 5 },
+  { id: 'suites', ch: 4, name: 'Suites : limites et variations', fiche: 6 }
+];
+const skById = id => SK.find(k => k.id === id);
+function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
+function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false }); }
+const isVal = s => s.m >= VAL, levelOf = s => s.m < 40 ? 0 : s.m < 80 ? 1 : 2;
+const frontier = P => SK.find(k => !isVal(skS(P, k.id))) || null;
+function pickNext(P) {
+  const f = frontier(P), pool = SK.filter(k => k !== f && skS(P, k.id).ever);
+  const rev = pool.length >= 2 && (P.since >= 6 || (P.since >= 3 && Math.random() < 0.35));
+  if (f && !rev) return { k: f, review: false };
+  if (!pool.length) return f ? { k: f, review: false } : null;
+  const now = Date.now(), W = pool.map(k => { const s = skS(P, k.id); return [k, (MMAX + 20 - s.m) * (1 + Math.min(3, (now - s.last) / 864e5))]; });
+  let r = Math.random() * W.reduce((a, w) => a + w[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) return { k, review: true }; }
+  return { k: W[0][0], review: true };
+}
+function build(id, d, seed) { const ex = GEN[id](d, G(rng(seed))); ex.items.forEach((it, i) => { it.id = `${id}-${seed}-${i}`; }); return ex; }
+
+let CUR = null, EXAM = null;
+function findItem(id) {
+  if (CUR && CUR.ex) { const it = CUR.ex.items.find(x => x.id === id); if (it) return it; }
+  if (EXAM && EXAM.exs) for (const ex of EXAM.exs) for (const p of ex.parts) { const it = p.items.find(x => x.id === id); if (it) return it; }
+  return null;
+}
+function exHTML(ex) {
+  return `<article class="card ex"><h2>${esc(ex.title)}</h2><div class="q">${ex.q}</div>
+    <div class="items">${ex.items.map(it => itemHTML(it, it.id, (CUR && CUR.ans[it.id]) || '')).join('')}</div>
+    ${ex.items.some(it => it.type !== 'choice') ? HELP : ''}
+    <div class="actions"><button type="button" class="btn btn-primary" data-act="check">Vérifier</button></div>
+    <details class="corr"><summary>Correction</summary><div class="expl">${ex.corr}${ex.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details></article>`;
+}
+function startEx(k, o = {}) {
+  const P = pst(), s = skS(P, k.id), R = o.resume || null;
+  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s), seed = R ? R.seed : newSeed();
+  CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), done: false };
+  CUR.ex = build(k.id, d, seed);
+  if (CUR.mode === 'path' && !R) saveCur(!!o.user);
+  renderEx();
+}
+function saveCur(bump = true) {
+  if (!CUR || CUR.mode !== 'path') return;
+  const P = pst();
+  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek };
+  if (bump) P.curT = Date.now();
+  ls.set(PK, P);
+}
+function renderEx() {
+  const host = $('#exHost'); if (!host || !CUR) return;
+  const k = CUR.k, s = skS(pst(), k.id);
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span><button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
+    + exHTML(CUR.ex);
+  mathIn(host);
+  CUR.ex.items.forEach(it => { if (it.id in CUR.first) { const fb = $(`.it[data-id="${it.id}"] .fb`, host); if (fb) fb.innerHTML = fbHTML(check(it, valOf(host, it.id))); } });
+  $$('input[data-expr]', host).forEach(preview);
+  host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function checkCur() {
+  if (!CUR || CUR.done) return;
+  const host = $('#exHost');
+  CUR.ex.items.forEach(it => {
+    const r = check(it, valOf(host, it.id)), fb = $(`.it[data-id="${it.id}"] .fb`, host);
+    if (fb) fb.innerHTML = fbHTML(r);
+    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? 1 : 0;
+  });
+  saveCur();
+  if (CUR.ex.items.every(it => it.id in CUR.first)) finish(CUR.ex.items.reduce((a, it) => a + CUR.first[it.id], 0) / CUR.ex.items.length);
+}
+function finish(r) {
+  CUR.done = true;
+  const host = $('#exHost');
+  $('details.corr', host).open = true;
+  if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); return; }
+  const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
+  s.n++; if (r === 1) s.ok++;
+  const gain = CUR.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
+  if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
+  s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now(); if (isVal(s)) s.ever = true;
+  P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
+  ls.set(PK, P);
+  const f = frontier(P), now = isVal(s);
+  const title = CUR.review ? (r === 1 ? 'Toujours acquis' : was && !now ? 'Un peu oublié' : 'À surveiller') : !was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
+  const msg = !was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+  host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span></div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
+    <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
+    <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`);
+  if (!was && now && !CUR.review) toast('Compétence validée : ' + k.name);
+  renderPathTop(); renderMap();
+}
+
+/* =====================================================================
+   VUES
+   ===================================================================== */
+let VIEW = 'home';
+function setTab(t) {
+  if (EXAM && EXAM.running && t !== 'blanc') { toast('Un sujet blanc est en cours.'); t = 'blanc'; }
+  VIEW = t;
+  $$('#tabs .tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
+  ({ home: vHome, path: vPath, cours: vCours, exos: vExos, blanc: vBlanc })[t]();
+  if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
+  window.scrollTo(0, 0);
+}
+function nextCC() {
+  const c = ls.get('planning.cache.v1', null), now = Date.now();
+  const ev = c && c.evs ? c.evs.slice().sort((x, y) => x.s - y.s).find(e => e.s > Date.parse('2026-12-01') && e.s > now - 3 * 3600e3 && /(^|[^A-Za-z])MATHS?([^A-Za-z]|$)/.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : null;
+  return ev ? ev.s : Date.parse('2027-01-06T07:00:00Z');
+}
+function vHome() {
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
+  const days = Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">MATH-S1 · Analyse · L. Albera</p><h1>Réussir le CC d'analyse du 6/1</h1>
+    <p class="lede">Le second CC de MATH-S1 (mercredi 6/1, 1 h 30, sans calculatrice) porte sur la partie de L. Albera. Son programme de révision : <b>nombres complexes</b> (forme algébrique, module et argument, racines carrées et cubiques, équation du second degré), <b>DL</b> d'une fonction de classe \(C^n\) et calcul de limites, <b>intégrale de Riemann</b> (intégrabilité, IPP, changement de variable, éléments simples), <b>suites</b>. Les dérivées (CC de 2025-26) sont aussi travaillées.</p></div>
+    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC d'analyse : ${esc(when)}</span></div></section>
+    <div class="grid2">
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Des complexes aux suites, avec une progression qui s'adapte à tes résultats.</p>
+        <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
+      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">4 exercices notés sur 20 : complexes, dérivée et étude, DL et limites, intégrales. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
+    </div>
+    <section class="card"><h2>Les annales 2025-26</h2><p class="sub">Deux sujets corrigés sur Moodle, repris ici : le CC « dérivées » (dérivée d'une grosse fonction, 13 pts, puis étude de \(x^2\ln x - x^2\) et son minimum \(-e/2\)) et le rattrapage d'1 h (intégrale de \(\frac{\cos x}{\cos x + \sin x}\), DL de \(\sqrt{1+x}\) par Taylor et limite de \(n(\sqrt{1 + 1/n} - 1)\), changement de variable \(x = 1/t\)). La partie logique et ensembles est sur la page <a href="../maths-s1/">Maths S1</a>.</p></section>`;
+  mathIn(app);
+}
+function renderPathTop() {
+  const el = $('#pathTop'); if (!el) return;
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, f = frontier(P);
+  el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${done}/${SK.length}</b><span>compétences validées</span></div><span class="sp"></span>
+    ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
+    <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+    <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'} · Deux sans-faute d'affilée valident une compétence ; en cas d'erreurs, les exercices se simplifient et les compétences validées reviennent en révision.</p></section>`;
+}
+function renderMap() {
+  const el = $('#pathMap'); if (!el) return;
+  const P = pst(), f = frontier(P);
+  el.innerHTML = CH.map((c, ci) => `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${SK.filter(k => k.ch === ci).map(k => {
+    const s = skS(P, k.id), val = isVal(s), open = val || k === f || s.n > 0, pct = Math.min(100, Math.round(s.m));
+    return `<div class="psk ${val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}${s.ever && !val ? '<small>à revoir</small>' : ''}</span>
+      <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
+  }).join('')}</div>`).join('');
+}
+function nextPath(o = {}) {
+  const P = pst();
+  if (!o.fresh && P.cur && skById(P.cur.id)) { startEx(skById(P.cur.id), { resume: P.cur }); renderPathTop(); renderMap(); return; }
+  const n = pickNext(P); if (!n) return;
+  startEx(n.k, { review: n.review, user: o.user }); renderPathTop(); renderMap();
+}
+function vPath() {
+  app.innerHTML = `<div><p class="eyebrow">Parcours guidé</p><h1>Le parcours</h1></div><div id="pathTop"></div><div id="exHost" style="display:grid;gap:16px"></div><section class="card"><h2>La carte</h2><div id="pathMap"></div></section>`;
+  renderPathTop(); renderMap();
+  if (CUR && CUR.mode === 'path') renderEx(); else if (pst().n || pst().cur) nextPath();
+}
+let FREE = { id: 'cform', d: 0 };
+function vExos() {
+  app.innerHTML = `<div><p class="eyebrow">Entraînement libre</p><h1>Exercices par type</h1><p class="lede">Choisis un type d'exercice et un niveau. Les énoncés et les valeurs changent à chaque fois.</p></div>
+    <section class="card"><div class="seg">${SK.map(k => `<button type="button" data-ft="${k.id}" aria-pressed="${k.id === FREE.id}">${esc(k.name)}</button>`).join('')}</div>
+      <div class="row" style="margin-top:12px"><div class="seg">${[0, 1, 2].map(d => `<button type="button" data-fd="${d}" aria-pressed="${d === FREE.d}">Niveau ${d + 1}</button>`).join('')}</div><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></section>
+    <div id="exHost" style="display:grid;gap:16px"></div>`;
+  startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+}
+
+/* ---------- Cours ---------- */
+const FICHES = [
+  ['1. Nombres complexes', 'complexes', `<ul><li>Forme algébrique \\(z = a + ib\\), conjugué \\(\\bar z = a - ib\\), \\(z\\bar z = |z|^2 = a^2 + b^2\\). Pour un quotient : multiplier par le conjugué du dénominateur.</li><li>Forme exponentielle \\(z = re^{i\\theta}\\), \\(r = |z|\\), \\(\\cos\\theta = a/r\\), \\(\\sin\\theta = b/r\\). Les modules se multiplient, les arguments s'ajoutent.</li><li>Moivre : \\((\\cos\\theta + i\\sin\\theta)^n = \\cos(n\\theta) + i\\sin(n\\theta)\\) ; Euler : \\(\\cos\\theta = \\dfrac{e^{i\\theta} + e^{-i\\theta}}{2}\\).</li><li>Racines carrées de \\(a + ib\\) : \\(z = x + iy\\) avec \\(x^2 - y^2 = a\\), \\(2xy = b\\), \\(x^2 + y^2 = \\sqrt{a^2 + b^2}\\).</li><li>\\(az^2 + bz + c = 0\\) : \\(\\Delta = b^2 - 4ac\\), \\(z = \\dfrac{-b\\pm\\delta}{2a}\\) avec \\(\\delta^2 = \\Delta\\) (si \\(\\Delta < 0\\) réel : \\(\\delta = i\\sqrt{-\\Delta}\\)).</li><li>Racines \\(n\\)-ièmes de \\(Re^{i\\varphi}\\) : \\(R^{1/n}e^{i(\\varphi + 2k\\pi)/n}\\), \\(k = 0,\\dots,n-1\\).</li></ul>
+    <div class="box warn"><h5>Pièges</h5>L'argument dépend du quadrant : \\(\\arctan(b/a)\\) ne suffit pas si \\(a < 0\\) · une équation à coefficients complexes n'a pas forcément des racines conjuguées.</div>`],
+  ['2. Dérivées et étude de fonction', 'dérivées', `<p>\\((uv)' = u'v + uv'\\) ; \\(\\left(\\dfrac uv\\right)' = \\dfrac{u'v - uv'}{v^2}\\) ; \\((g\\circ u)' = u'\\,g'(u)\\).</p>
+    <table class="t"><tr><th>\\(f\\)</th><th>\\(f'\\)</th><th>\\(f\\)</th><th>\\(f'\\)</th></tr><tr><td>\\(\\ln u\\)</td><td>\\(u'/u\\)</td><td>\\(e^u\\)</td><td>\\(u'e^u\\)</td></tr><tr><td>\\(\\sqrt u\\)</td><td>\\(\\dfrac{u'}{2\\sqrt u}\\)</td><td>\\(u^n\\)</td><td>\\(nu'u^{n-1}\\)</td></tr><tr><td>\\(\\arctan u\\)</td><td>\\(\\dfrac{u'}{1 + u^2}\\)</td><td>\\(\\tan u\\)</td><td>\\(u'(1 + \\tan^2u)\\)</td></tr><tr><td>\\(\\sin u\\)</td><td>\\(u'\\cos u\\)</td><td>\\(\\cos u\\)</td><td>\\(-u'\\sin u\\)</td></tr></table>
+    <div class="box key"><h5>Méthode du CC 2025-26</h5>1. Domaine de dérivabilité (ln : \\(x > 0\\), dénominateur non nul…). 2. Découper : somme, produit, quotient, composée ; dériver chaque morceau. 3. Assembler. Étude : factoriser \\(f'\\), étudier son signe, tableau de variations, extremum.</div>
+    <div class="box warn"><h5>Pièges</h5>Oublier le facteur \\(u'\\) d'une composée · le carré au dénominateur du quotient.</div>`],
+  ['3. Limites et continuité', 'limites', `<ul><li>Limites de référence en 0 : \\(\\dfrac{\\sin x}{x}\\to1\\), \\(\\dfrac{e^x - 1}{x}\\to1\\), \\(\\dfrac{\\ln(1+x)}{x}\\to1\\), \\(\\dfrac{1 - \\cos x}{x^2}\\to\\dfrac12\\).</li><li>Croissances comparées : \\(\\dfrac{\\ln x}{x^a}\\to0\\) et \\(\\dfrac{x^a}{e^x}\\to0\\) en \\(+\\infty\\) ; \\(x^a\\ln x\\to0\\) en \\(0^+\\).</li><li>Formes indéterminées \\(\\infty - \\infty\\), \\(0\\times\\infty\\), \\(\\frac00\\), \\(\\frac\\infty\\infty\\), \\(1^\\infty\\) : factoriser le terme dominant, quantité conjuguée, \\(u^v = e^{v\\ln u}\\), ou un DL.</li><li>Continuité en \\(a\\) : \\(\\lim_a f = f(a)\\) ; dérivabilité : le taux d'accroissement a une limite finie.</li></ul>`],
+  ['4. Développements limités', 'DL', `<p><b>Taylor-Young</b> (\\(f\\) de classe \\(C^n\\)) : \\(f(x) = \\sum_{k=0}^n\\dfrac{f^{(k)}(0)}{k!}x^k + o(x^n)\\).</p>
+    <table class="t"><tr><td>\\(e^x\\)</td><td>\\(1 + x + \\frac{x^2}{2} + \\frac{x^3}{6} + \\dots + \\frac{x^n}{n!}\\)</td></tr><tr><td>\\(\\ln(1+x)\\)</td><td>\\(x - \\frac{x^2}{2} + \\frac{x^3}{3} - \\dots\\)</td></tr><tr><td>\\(\\frac{1}{1-x}\\)</td><td>\\(1 + x + x^2 + \\dots + x^n\\)</td></tr><tr><td>\\((1+x)^\\alpha\\)</td><td>\\(1 + \\alpha x + \\frac{\\alpha(\\alpha-1)}{2}x^2 + \\dots\\)</td></tr><tr><td>\\(\\cos x\\)</td><td>\\(1 - \\frac{x^2}{2} + \\frac{x^4}{24} - \\dots\\)</td></tr><tr><td>\\(\\sin x\\)</td><td>\\(x - \\frac{x^3}{6} + \\frac{x^5}{120} - \\dots\\)</td></tr></table>
+    <ul><li>Substitution (\\(x\\to ax\\), \\(x\\to -x\\)), somme, produit (tronquer au bon ordre).</li><li>Limite : développer jusqu'au premier terme non nul en haut et en bas.</li></ul>
+    <div class="box key"><h5>Au programme de révision</h5>Calculer le DL d'une fonction non trigonométrique de classe \\(C^n\\) (planche 38 : dériver, évaluer en 0, appliquer Taylor), et s'en servir pour lever une indétermination (exemple du rattrapage : \\(n(\\sqrt{1 + 1/n} - 1)\\to\\frac12\\)).</div>`],
+  ['5. Intégrale de Riemann', 'intégrales', `<ul><li>Une fonction <b>continue (par morceaux) sur un segment</b> \\([a\\,;b]\\) est intégrable au sens de Riemann. Justification type : « quotient de fonctions continues dont le dénominateur ne s'annule pas, donc continue sur le compact \\([a\\,;b]\\) ».</li><li>Propriétés : linéarité, Chasles, positivité, inégalité de la moyenne \\(m(b-a)\\leq\\int_a^b f\\leq M(b-a)\\), valeur moyenne \\(\\frac{1}{b-a}\\int_a^b f\\).</li><li>Si \\(F\\) est une primitive de \\(f\\) continue : \\(\\int_a^b f = F(b) - F(a)\\) ; \\(x\\mapsto\\int_a^x f\\) est la primitive qui s'annule en \\(a\\).</li><li><b>IPP</b> : \\(\\int_a^b u'v = [uv]_a^b - \\int_a^b uv'\\).</li><li><b>Changement de variable</b> \\(x = \\varphi(t)\\) : \\(dx = \\varphi'(t)dt\\), changer les bornes.</li></ul>
+    <div class="box key"><h5>Astuces des annales</h5>\\(\\cos x = \\tfrac12(\\cos x + \\sin x) + \\tfrac12(\\cos x - \\sin x)\\) pour faire apparaître \\(u'/u\\) ; le changement \\(x = 1/t\\) qui renvoie \\(-I\\) donne \\(I = 0\\).</div>
+    <div class="box warn"><h5>Pièges</h5>Oublier de changer les bornes · \\(\\int\\frac{dx}{x}\\) donne \\(\\ln|x|\\).</div>`],
+  ['6. Éléments simples', 'fractions rationnelles', `<p>Pour \\(\\dfrac{P(x)}{(x - a)(x - b)}\\) avec \\(a\\neq b\\) :</p><ol><li>Si \\(\\deg P\\geq 2\\), division euclidienne d'abord (partie entière).</li><li>\\(\\dfrac{R(x)}{(x-a)(x-b)} = \\dfrac{A}{x-a} + \\dfrac{B}{x-b}\\), avec \\(A = \\dfrac{R(a)}{a - b}\\) (multiplier par \\(x - a\\), faire \\(x = a\\)) et \\(B = \\dfrac{R(b)}{b - a}\\).</li><li>Primitive : \\(A\\ln|x - a| + B\\ln|x - b|\\).</li></ol><p>Racine double \\((x-a)^2\\) : \\(\\dfrac{A}{x-a} + \\dfrac{B}{(x-a)^2}\\), primitive de \\(\\frac{1}{(x-a)^2}\\) : \\(-\\frac{1}{x-a}\\). Discriminant négatif : se ramener à \\(\\arctan\\).</p>`],
+  ['7. Suites numériques', 'suites', `<ul><li>Croissante : \\(u_{n+1}\\geq u_n\\) ; majorée : \\(\\exists M,\\ \\forall n,\\ u_n\\leq M\\) ; convergente : \\(\\forall\\varepsilon > 0,\\ \\exists N,\\ \\forall n\\geq N,\\ |u_n - \\ell|\\leq\\varepsilon\\).</li><li>Théorèmes : toute suite croissante majorée converge ; gendarmes ; suites adjacentes ; une suite convergente est bornée.</li><li>Arithmétique \\(u_n = u_0 + nr\\) ; géométrique \\(u_n = u_0q^n\\), \\(\\sum_{k=0}^n q^k = \\frac{1 - q^{n+1}}{1 - q}\\) ; \\(q^n\\to0\\) si \\(|q| < 1\\).</li><li>Arithmético-géométrique \\(u_{n+1} = qu_n + r\\) : point fixe \\(\\ell = \\frac{r}{1-q}\\), \\(u_n - \\ell\\) est géométrique.</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Étudier le sens de variation (signe de \\(u_{n+1} - u_n\\)), calculer une limite (terme dominant, DL), utiliser les définitions dans une démonstration.</div>`],
+  ['8. Méthode pour le CC', 'méthode', `<p>CC d'1 h 30, sans calculatrice (en 2025-26 : aucun document au 1<sup>er</sup> CC, une feuille A4 manuscrite au rattrapage). Les points vont à la <b>justification</b> : domaine, continuité sur un segment avant d'intégrer, formule de Taylor écrite avant le calcul.</p>
+    <ol><li>Complexes : vérifie toujours ton résultat (somme et produit des racines, module au carré).</li><li>Dérivées : écris \\(u\\), \\(v\\), \\(u'\\), \\(v'\\) séparément, comme dans le corrigé.</li><li>DL : précise l'ordre et le \\(o(x^n)\\).</li><li>Intégrales : justifie l'intégrabilité en une phrase, puis donne la méthode.</li></ol>`]
+];
+function vCours(open) {
+  app.innerHTML = `<div><p class="eyebrow">Analyse · L. Albera · CC du 6/1</p><h1>Le cours utile</h1><p class="lede">Le cours d'analyse condensé en 8 fiches, centrées sur le programme de révision donné pour le second CC.</p></div>
+    ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
+  mathIn(app);
+  if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
+}
+
+/* ---------- Sujet blanc ---------- */
+let tick = 0;
+const DUR = 5400;
+const EXAM_PLAN = [['Exercice 1 · Nombres complexes', [['cform', 0], ['cracines', 0]], 5], ['Exercice 2 · Dérivée et étude de fonction', [['deriv', 1], ['etude', 1]], 5], ['Exercice 3 · DL et limites', [['dltaylor', 0], ['dllim', 0]], 5], ['Exercice 4 · Intégrales', [['riemann', 0], ['integ', 1], ['elts', 0]], 5]];
+function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+function vBlanc() {
+  const E = ls.get(EK, null);
+  if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
+  if (EXAM) return renderExam();
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">4 exercices de 5 points dans le style des annales : complexes, dérivée et étude de fonction, DL et limites, intégrales. Valeurs exactes attendues (racines, π, e, ln).</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button><span class="fine">Sans calculatrice, comme au CC : rédige sur une feuille, puis reporte les résultats.</span></div></section>
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+}
+function renderExam() {
+  EXAM.exs = examExos(EXAM.seed);
+  app.innerHTML = `<div><p class="eyebrow">Sujet blanc d'analyse</p><h1>CC · 1 h 30</h1></div>`
+    + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
+    + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
+      : `<section class="card">${HELP}<div class="row" style="justify-content:center;margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div></section>`);
+  mathIn(app);
+  $$('input[data-expr]', app).forEach(preview);
+  if (EXAM.done && EXAM.fb) Object.entries(EXAM.fb).forEach(([id, h]) => { const fb = $(`.it[data-id="${id}"] .fb`, app); if (fb) fb.innerHTML = h; });
+  startTick();
+}
+function startTick() {
+  clearInterval(tick); const clk = $('#clock');
+  if (!EXAM || EXAM.done) { clk.hidden = true; return; }
+  clk.hidden = false;
+  const upd = () => { const left = DUR - (Date.now() - EXAM.t0) / 1000; clk.textContent = `${Math.floor(Math.max(0, left) / 3600)}:${String(Math.floor(Math.max(0, left) % 3600 / 60)).padStart(2, '0')}:${String(Math.floor(Math.max(0, left) % 60)).padStart(2, '0')}`; clk.classList.toggle('rush', left < 600); if (left <= 0) submitExam(true); };
+  upd(); tick = setInterval(upd, 1000);
+}
+const saveExam = () => { const { exs, ...rest } = EXAM; try { localStorage.setItem(EK, JSON.stringify(rest)); } catch (e) { /* ignore */ } };
+function submitExam(auto) {
+  if (!EXAM || EXAM.done) return;
+  if (!auto && !confirm('Rendre la copie ?')) return;
+  clearInterval(tick);
+  const exs = examExos(EXAM.seed); let note = 0; const fb = {};
+  for (const ex of exs) {
+    const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
+    for (const it of its) { const r = check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += r.st === 'ok' ? 1 : 0; }
+    note += ex.pts * got / its.length;
+  }
+  EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
+  try { localStorage.removeItem(EK); } catch (e) { /* ignore */ }
+  if (auto) toast('Temps écoulé : copie rendue.');
+  renderExam(); window.scrollTo(0, 0);
+}
+
+/* =====================================================================
+   ÉVÉNEMENTS
+   ===================================================================== */
+let saveT = 0;
+document.addEventListener('click', e => {
+  const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab); return; }
+  const fi = e.target.closest('[data-fiche]'); if (fi) { setTab('cours'); vCours(+fi.dataset.fiche); return; }
+  const go = e.target.closest('[data-go]');
+  if (go) { if (CUR && CUR.mode === 'path' && !CUR.done && CUR.k.id === go.dataset.go) { $('#exHost').scrollIntoView({ behavior: 'smooth' }); return; } startEx(skById(go.dataset.go), { user: true }); renderPathTop(); renderMap(); return; }
+  const ft = e.target.closest('[data-ft]'); if (ft) { FREE.id = ft.dataset.ft; vExos(); return; }
+  const fd = e.target.closest('[data-fd]'); if (fd) { FREE.d = +fd.dataset.fd; vExos(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'check') checkCur();
+  else if (act === 'next') nextPath();
+  else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
+  else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
+  else if (act === 'submit') submitExam(false);
+  else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
+});
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.matches('input')) return;
+  const id = t.dataset.id || t.name; if (!id) return;
+  if (t.dataset.expr) preview(t);
+  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; saveExam(); }
+  else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
+});
+document.addEventListener('change', e => { if (e.target.type === 'radio') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); } });
+document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matches && e.target.matches('#exHost details.corr') && e.target.open) { CUR.peek = true; saveCur(); } }, true);
+
+(function () {
+  const ICON = { sun: '☀', moon: '☾', auto: '◐' }, KEY = 'qcm-maths-theme', btn = $('#themeBtn');
+  function apply(t) { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t; btn.textContent = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; btn.dataset.mode = t; btn.title = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t]; }
+  let t = 'auto'; try { t = localStorage.getItem(KEY) || 'auto'; } catch (e) { /* ignore */ }
+  apply(t);
+  btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
+})();
+function wireAccount() {
+  const A = window.SiteAccount; if (!A) return;
+  A.on('data', keys => {
+    if (!keys.some(k => k.startsWith('ma2.'))) return;
+    if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
+    if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();
+  });
+}
+if (window.SiteAccount) wireAccount(); else window.addEventListener('siteaccount', wireAccount, { once: true });
+
+window.__MA2 = { GEN, build, check, parseF, evF, evC, texF, SK, VD, FICHES };   // tests
+function boot() { const h = location.hash.slice(1); setTab(['home', 'path', 'cours', 'exos', 'blanc'].includes(h) ? h : 'home'); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+</body>
+</html>

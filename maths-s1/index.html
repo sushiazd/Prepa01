@@ -919,8 +919,8 @@ function vHome() {
   const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []), jan = cc > Date.parse('2026-12-01');
   app.innerHTML = `<div><p class="eyebrow">MATH-S1 · A. Karfoul, M. Bauer</p><h1>Réussir le CC de maths du 6/11</h1>
-    <p class="lede">Le premier CC de MATH-S1 (vendredi 6/11, 1 h 30, sans document ni calculatrice) porte sur la partie d'A. Karfoul et de M. Bauer : <b>logique</b> (tables de vérité, quantificateurs, raisonnements), <b>ensembles</b>, <b>applications</b>, <b>relations</b> et <b>dénombrement</b>. L'analyse de L. Albera (complexes, limites, DL, intégrales, suites) est pour le CC du 6/1.</p></div>
-    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>${jan ? 'Prochain CC de maths (partie analyse, pas encore sur cette page)' : 'CC de maths'} : ${esc(when)}</span></div></section>
+    <p class="lede">Le premier CC de MATH-S1 (vendredi 6/11, 1 h 30, sans document ni calculatrice) porte sur la partie d'A. Karfoul et de M. Bauer : <b>logique</b> (tables de vérité, quantificateurs, raisonnements), <b>ensembles</b>, <b>applications</b>, <b>relations</b> et <b>dénombrement</b>. L'analyse de L. Albera (complexes, limites, DL, intégrales, suites) est pour le CC du 6/1 : elle a sa propre page, <a href="../maths-s1-analyse/">Maths S1 : analyse</a>.</p></div>
+    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>${jan ? 'Prochain CC de maths : partie analyse, voir la page Analyse' : 'CC de maths'} : ${esc(when)}</span></div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Des tables de vérité au dénombrement, avec une progression qui s'adapte à tes résultats.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>

@@ -50,6 +50,8 @@
   const SUBJ = { ELECA: 'Électronique analogique', ELECN: 'Électronique numérique', MATH: 'Maths', MATHS: 'Maths', PHYS: 'Physique',
     ALGO: 'Algorithmique', MECA: 'Mécanique', ANG: 'Anglais', ATO: 'Atomistique' };
   const LINKS = { ELECA: 'elec/', MATH: 'maths-s1/', MATHS: 'maths-s1/', ATO: 'ato/', ALGO: 'algo/', PHYS: 'phys/', MECA: 'meca/' };
+  // second CC de maths (janvier) : partie analyse
+  const linkOf = e => { const sj = subjOf(e); return (sj === 'MATH' || sj === 'MATHS') && e.s > Date.parse('2026-12-01') ? 'maths-s1-analyse/' : LINKS[sj]; };
   const isTiers = e => /tiers[\s-]*temps/i.test(e.t);
   const isRatt = e => /rattrapage/i.test(e.t);
   const isEval = e => /(?:^|[^A-Za-zÀ-ÿ])(CC|QCM|DS|EXAMEN|EXAM|PARTIEL|CONTR[ÔO]LE|INTERRO|TOEIC|TOIEC|ORAUX|ORAL|SOUTENANCE|[ÉE]VALUATION)(?![A-Za-zÀ-ÿ])/i.test(e.t);
@@ -125,7 +127,7 @@
     return evs.filter(e => isEval(e) && !isRatt(e) && (p.tiers || !isTiers(e)) && dayKey(e.s) >= today);
   }
   function evalRow(e) {
-    const sj = subjOf(e), n = daysUntil(e.s), link = LINKS[sj];
+    const sj = subjOf(e), n = daysUntil(e.s), link = linkOf(e);
     const name = sj ? SUBJ[sj] : '', k = kindOf(e);
     return `<li class="pl-ev${n <= 3 ? ' soon' : n <= 10 ? ' near' : ''}">
       <div class="pl-when"><b>${esc(relDay(n))}</b><span>${esc(dayLong(e.s))}</span></div>
@@ -188,7 +190,7 @@
     const e = ev[0], sj = subjOf(e), n = daysUntil(e.s);
     el.hidden = false;
     el.innerHTML = `<div><p class="eyebrow" style="margin-bottom:6px">Prochaine évaluation</p><b>${esc(kindOf(e))}${sj ? ' · ' + esc(SUBJ[sj]) : ''}</b> <span>${esc(relDay(n))}, ${esc(dayLong(e.s))} à ${esc(hm(e.s))}</span></div>
-      <span class="sp"></span>${LINKS[sj] ? `<a class="btn btn-primary" href="${LINKS[sj]}">Réviser</a>` : ''}<button type="button" class="btn" data-ht="plan">Tout le planning</button>`;
+      <span class="sp"></span>${linkOf(e) ? `<a class="btn btn-primary" href="${linkOf(e)}">Réviser</a>` : ''}<button type="button" class="btn" data-ht="plan">Tout le planning</button>`;
   }
 
   /* ---------- Événements ---------- */

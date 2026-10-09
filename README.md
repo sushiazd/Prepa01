@@ -9,6 +9,7 @@ Le site regroupe plusieurs outils de révision :
 | `maths/index.html` | le QCM de maths (QCM, import de PDF, catalogue, comptes, groupes) |
 | `elec/index.html` | l'entraînement au CC1 d'électronique (cours, démos, exos générés, annales, sujets blancs) |
 | `ato/index.html` | l'entraînement au CC d'atomistique (partie 1 « L'atome ») : parcours guidé, cours résumé, exercices générés corrigés, sujet blanc d'1 h |
+| `algo/index.html` | l'entraînement au DS d'algorithmique (chapitres 1 à 4 : bases de Python, fonctions, complexité, tableaux, dictionnaires) : parcours guidé, fonctions à écrire testées en Python dans le navigateur (Pyodide, dans un Worker), cours résumé, sujet blanc d'1 h 30 |
 | `duel/index.html` | le multijoueur : 1v1 (défis et duels en direct) et FFA (salle jusqu'à 8 joueurs, le dernier survivant gagne) sur le QCM de maths |
 | `streak/index.html` | le mode Streak : des questions du QCM de maths à la suite jusqu'à la première erreur, avec records (tout le programme, nouveaux types, format du QCM) |
 | `planning.js` | l'onglet Planning de l'accueil : emploi du temps ADE (lien d'export `.shu` enregistré dans le compte), prochaines évaluations repérées automatiquement |

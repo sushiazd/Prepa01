@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Algorithmique · Entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<script defer src="../presence.js" data-external></script>
+<script defer src="../account.js" data-lazy></script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
+  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
+  --rule:#e4e0d6; --rule-strong:#cdc8bb;
+  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc; --pen-line:#bccaf5;
+  --ok:#1f8a4c; --ok-soft:#e6f4ec; --bad:#c2352b; --bad-soft:#fbeceb; --warn:#9a5b00; --warn-soft:#fcf2da;
+  --algo:#7c3aed; --algo-soft:#f1eafe;
+  --code-bg:#f6f4ee;
+  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
+  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+    --rule:#2e2d2a; --rule-strong:#45433e;
+    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340; --pen-line:#34437a;
+    --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+    --algo:#a78bfa; --algo-soft:#241b3a; --code-bg:#16161a;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+  --rule:#2e2d2a; --rule-strong:#45433e;
+  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340; --pen-line:#34437a;
+  --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+  --algo:#a78bfa; --algo-soft:#241b3a; --code-bg:#16161a;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+h1,h2,h3,h4,p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+[hidden]{display:none !important}
+code,.mono{font-family:var(--mono);font-size:.92em}
+p code,li code,.sub code{background:var(--code-bg);padding:1px 5px;border-radius:5px;border:1px solid var(--rule)}
+pre.code{margin:12px 0 0;padding:12px 14px;border-radius:10px;background:var(--code-bg);border:1px solid var(--rule);overflow-x:auto;font:14px/1.55 var(--mono);white-space:pre}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;min-height:64px;padding:8px 24px;background:color-mix(in srgb,var(--paper) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;min-width:0}
+.brand-mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--algo);color:#fff;display:grid;place-items:center;font:700 14px/1 var(--mono)}
+.brand strong{display:block;font:600 15px/1.2 var(--sans)}
+.brand small{display:block;color:var(--muted);font-size:12.5px}
+.tabs{display:flex;gap:4px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
+.tab{height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:500 14px/1 var(--sans);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.tab:hover{background:var(--sheet-2)}
+.tab[aria-current="page"]{background:var(--ink);color:var(--paper)}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer}
+.clock{font:800 22px/1 var(--sans);font-variant-numeric:tabular-nums}
+.clock.rush{color:var(--bad)}
+main{max-width:980px;margin:32px auto 90px;padding:0 24px;display:grid;gap:20px}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--algo);margin-bottom:10px}
+h1{font:600 clamp(28px,4.6vw,42px)/1.08 var(--serif);letter-spacing:-.02em}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:700px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:24px;min-width:0}
+.card h2{font:600 21px/1.25 var(--serif)}
+.sub{color:var(--ink-2);font-size:14.5px;margin-top:4px}
+.fine{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:600 14px/1 var(--sans);cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--pen)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn-primary:hover:not(:disabled){background:var(--pen-hover)}
+.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .sp{flex:1}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font:600 12.5px/1 var(--sans);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.part{background:var(--warn-soft);color:var(--warn)}
+.bar{height:10px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.bar.mid>i{background:var(--warn)} .bar.low>i{background:var(--bad)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600}
+.count{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.count b{font:800 clamp(40px,7vw,58px)/1 var(--sans);letter-spacing:-.04em;color:var(--algo);font-variant-numeric:tabular-nums}
+.count span{color:var(--ink-2)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+/* exercices */
+.ex .q{font:17px/1.6 var(--serif);margin-top:8px}
+.items{display:grid;gap:12px;margin-top:16px}
+.it{display:grid;grid-template-columns:fit-content(45%) minmax(0,1fr);gap:4px 12px;align-items:center}
+.it-lab{text-align:right;font:15px/1.3 var(--mono);overflow-wrap:anywhere}
+.it-lab.w{font:15px/1.3 var(--sans)}
+.it-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.it-in input[type=text]{flex:1;min-width:0;width:100%;font:15px/1.3 var(--mono);color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:42px}
+.it.full{grid-template-columns:minmax(0,1fr)}
+.it.full .fb{grid-column:1}
+textarea.codein{width:100%;min-height:190px;resize:vertical;font:14px/1.55 var(--mono);color:var(--ink);background:var(--code-bg);border:1px solid var(--rule-strong);border-radius:10px;padding:12px 14px;tab-size:4;white-space:pre;overflow-wrap:normal;overflow-x:auto}
+textarea.out{min-height:70px}
+.fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto}
+.fb:empty{display:none}
+.tests{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px;font:13px/1.4 var(--mono)}
+.tests li{padding:6px 10px;border-radius:8px;background:var(--sheet-2);border:1px solid var(--rule);overflow-x:auto;white-space:pre}
+.tests li.ok{border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
+.tests li.ko{border-color:color-mix(in srgb,var(--bad) 40%,transparent);background:var(--bad-soft)}
+.ch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);cursor:pointer;font-family:var(--mono);font-size:14px}
+.ch:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
+.ch input{accent-color:var(--pen);margin:0}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+details.corr{margin-top:14px}
+details.corr>summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen);padding:6px 0}
+.expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.6 var(--serif);overflow-x:auto}
+.expl p+p{margin-top:8px}
+.strip{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--algo-soft);border:1px solid color-mix(in srgb,var(--algo) 35%,transparent)}
+.strip b{font:600 17px/1.3 var(--serif)}
+.lvl{display:inline-flex;gap:4px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.lvl i{width:8px;height:8px;border-radius:50%;background:var(--rule-strong)} .lvl i.on{background:var(--algo)}
+.tag-rev{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font:600 11.5px/1 var(--sans)}
+.res{border-color:color-mix(in srgb,var(--pen) 40%,transparent)}
+.psk{display:grid;grid-template-columns:24px minmax(0,1fr) 110px auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--rule)}
+.psk .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 11px/1 var(--sans);background:var(--sheet-2);color:var(--muted);border:1px solid var(--rule)}
+.psk.val .ic{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.psk.cur .ic{background:var(--algo);color:#fff;border-color:transparent}
+.psk.rev .ic{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.psk.lock{opacity:.5}
+.psk .nm small{display:block;color:var(--muted);font-size:12.5px}
+.pch h3{font:600 17px/1.3 var(--serif);margin:16px 0 4px}
+/* cours */
+.fiche{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.fiche>summary{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:16px 22px;cursor:pointer;list-style:none;font:600 18px/1.3 var(--serif)}
+.fiche>summary::-webkit-details-marker{display:none}
+.fiche>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+.fiche[open]>summary::before{transform:rotate(90deg)}
+.fiche>summary .tag{margin-left:auto;font:600 11.5px/1 var(--sans);padding:5px 9px;border-radius:999px;background:var(--algo-soft);color:var(--algo)}
+.fiche .body{padding:4px 24px 22px;border-top:1px solid var(--rule);font:16.5px/1.65 var(--serif)}
+.fiche .body p,.fiche .body ul{margin-top:10px}
+.fiche .body ul{padding-left:22px}
+.fiche h4{font:700 11.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:20px}
+.box{margin-top:12px;padding:12px 16px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
+.box.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.box.key{background:var(--algo-soft);border-color:color-mix(in srgb,var(--algo) 30%,transparent)}
+.box h5{font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;margin:0 0 6px;color:var(--ink-2)}
+table.t{border-collapse:collapse;margin-top:10px;font:14px/1.4 var(--sans)}
+table.t td,table.t th{border:1px solid var(--rule);padding:5px 10px;text-align:left}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);font:500 13.5px/1 var(--sans);color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.score{font:800 clamp(48px,9vw,72px)/1 var(--sans);letter-spacing:-.03em}
+.hist{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+.hist td,.hist th{padding:8px;border-bottom:1px solid var(--rule);text-align:left}
+.pyload{font-size:13.5px;color:var(--ink-2)}
+code,pre,.mono,.it-lab,.ch,textarea,input,.tests{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+@media (max-width:760px){
+  .topbar{padding:8px 16px}
+  .brand small{display:none}
+  .tabs{order:3;flex-basis:100%;justify-content:flex-start}
+  main{padding:0 16px;margin-top:22px}
+  .card{padding:18px}
+  .grid2{grid-template-columns:1fr}
+  .it{grid-template-columns:1fr}
+  .it-lab{text-align:left}
+  .fb{grid-column:1}
+  .psk{grid-template-columns:24px minmax(0,1fr) auto} .psk .bar{display:none}
+  pre.code{font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">&gt;_</span><div><strong>Algorithmique</strong><small>Révisions du DS</small></div></a>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button type="button" class="tab" data-tab="home">Accueil</button>
+    <button type="button" class="tab" data-tab="path">Parcours</button>
+    <button type="button" class="tab" data-tab="cours">Cours</button>
+    <button type="button" class="tab" data-tab="exos">Exos</button>
+    <button type="button" class="tab" data-tab="blanc">Sujet blanc</button>
+  </nav>
+  <span class="clock" id="clock" hidden></span>
+  <button type="button" class="icon-btn" id="themeBtn" aria-label="Thème"></button>
+</header>
+<main id="app"></main>
+
+<script>
+(function () {
+'use strict';
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const app = $('#app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
+};
+let toastT = 0;
+function toast(t) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500); }
+function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const G = R => ({ int: (a, b) => a + Math.floor(R() * (b - a + 1)), pick: a => a[Math.floor(R() * a.length)], shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }, r: R });
+const newSeed = () => Math.floor(Math.random() * 4294967296);
+const pre = code => `<pre class="code"><code>${esc(code)}</code></pre>`;
+const ic = s => `<code>${esc(s)}</code>`;
+
+/* =====================================================================
+   VALEURS PYTHON : représentation, affichage, lecture d'une réponse
+   ===================================================================== */
+class PF { constructor(v) { this.v = v; } }            // un float Python (2.0 s'affiche « 2.0 »)
+const ERR = { err: true };                               // « le programme s'arrête sur une erreur »
+const pyStr = s => "'" + String(s).replace(/'/g, "\\'") + "'";
+function pyRepr(v) {
+  if (v === ERR) return 'Erreur';
+  if (v instanceof PF) return Number.isInteger(v.v) ? v.v.toFixed(1) : String(+v.v.toPrecision(12));
+  if (typeof v === 'number') return String(v);
+  if (typeof v === 'string') return pyStr(v);
+  if (typeof v === 'boolean') return v ? 'True' : 'False';
+  if (v === null || v === undefined) return 'None';
+  if (Array.isArray(v)) return '[' + v.map(pyRepr).join(', ') + ']';
+  return '{' + Object.keys(v).map(k => pyStr(k) + ': ' + pyRepr(v[k])).join(', ') + '}';
+}
+const pyType = v => v === ERR ? 'Erreur' : v instanceof PF ? 'float' : typeof v === 'number' ? 'int' : typeof v === 'string' ? 'str' : typeof v === 'boolean' ? 'bool' : Array.isArray(v) ? 'list' : 'dict';
+// lecture d'une valeur Python tapée par l'élève : [1, 2], {'a': 3}, 'mot', 2.5, True
+function pyParse(src) {
+  const s = String(src).trim(); let i = 0;
+  const ws = () => { while (i < s.length && /\s/.test(s[i])) i++; };
+  function val() {
+    ws(); const c = s[i];
+    if (c === '[' || c === '(') { const close = c === '[' ? ']' : ')'; i++; const a = []; ws(); if (s[i] === close) { i++; return a; } for (;;) { a.push(val()); ws(); if (s[i] === ',') { i++; ws(); if (s[i] === close) { i++; return a; } continue; } if (s[i] === close) { i++; return a; } throw 0; } }
+    if (c === '{') { i++; const o = {}; ws(); if (s[i] === '}') { i++; return o; } for (;;) { const k = val(); ws(); if (s[i] !== ':') throw 0; i++; o[String(k instanceof PF ? k.v : k)] = val(); ws(); if (s[i] === ',') { i++; ws(); if (s[i] === '}') { i++; return o; } continue; } if (s[i] === '}') { i++; return o; } throw 0; } }
+    if (c === "'" || c === '"') { i++; let r = ''; while (i < s.length && s[i] !== c) { if (s[i] === '\\') { i++; } r += s[i++]; } if (s[i] !== c) throw 0; i++; return r; }
+    const m = /^-?\d+(\.\d*)?([eE]-?\d+)?/.exec(s.slice(i)); if (m) { i += m[0].length; return m[1] || m[2] ? new PF(parseFloat(m[0])) : parseInt(m[0], 10); }
+    for (const [w, v] of [['True', true], ['False', false], ['None', null]]) if (s.startsWith(w, i)) { i += w.length; return v; }
+    throw 0;
+  }
+  try { const v = val(); ws(); if (i !== s.length) return undefined; return v; } catch (e) { return undefined; }
+}
+function same(a, b) {
+  if (a instanceof PF) a = a.v; if (b instanceof PF) b = b.v;
+  if (typeof a === 'number' && typeof b === 'number') return Math.abs(a - b) < 1e-9;
+  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, k) => same(x, b[k]));
+  if (a && b && typeof a === 'object' && typeof b === 'object') { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => k in b && same(a[k], b[k])); }
+  return a === b;
+}
+const isErrWord = s => /^\s*(erreur|error|\w*error)\b/i.test(s);
+const normOut = s => String(s).replace(/\r/g, '').split('\n').map(l => l.trim().replace(/\s+/g, ' ')).filter((l, k, a) => l || k < a.length - 1).join('\n').trim();
+
+/* =====================================================================
+   GÉNÉRATEURS D'EXERCICES (prédire, puis écrire du code)
+   item : { type: 'choice'|'int'|'val'|'out'|'code', label, ... }
+   ===================================================================== */
+const TYPE_OPTS = ['int', 'float', 'bool', 'str', 'Erreur'].map(x => ({ v: x, t: x }));
+const WORDS = ['chat', 'chien', 'lion', 'zebre', 'algo', 'python', 'abc', 'abd', 'Bob', 'bob', 'pomme', 'poire'];
+const GEN = {};
+const fdiv = (a, b) => Math.floor(a / b), fmod = (a, b) => ((a % b) + b) % b;
+
+GEN.types = (d, g) => {
+  const a = g.int(2, 30), b = g.pick([2, 4, 5]), c = g.int(2, 9), w1 = g.pick(WORDS), w2 = g.pick(WORDS.filter(x => x !== w1));
+  const T0 = [
+    () => [`${a * b + g.pick([0, 1, 2, 3])} // ${b}`, null], () => [`${a} % ${c}`, a % c], () => [`${a * b} / ${b}`, new PF(a)], () => [`${a + 1} / ${b}`, new PF((a + 1) / b)],
+    () => [`float(${a})`, new PF(a)], () => [`${a} > ${c * 3}`, a > c * 3], () => [`str(${a})`, String(a)], () => [`'${w1}' + '${w2}'`, w1 + w2]
+  ];
+  const T1 = [
+    () => [`str(${a}+${c})`, String(a + c)], () => [`str(${a})+str(${c})`, String(a) + String(c)], () => [`int(${a}.${c})`, a], () => [`${c} * '${w1.slice(0, 2)}'`, w1.slice(0, 2).repeat(c)],
+    () => [`(${a} < ${c}) and (${c} < ${a})`, false], () => [`((${c}<${a}) and (${a}<${c})) or ${a} != ${c}`, a !== c], () => [`len('${w1}')`, w1.length], () => [`'${w1}' < '${w2}'`, w1 < w2], () => [`'${a}' < '${c}'`, String(a) < String(c)]
+  ];
+  const T2 = [
+    () => [`'${a}' + ${c}`, ERR], () => [`int('${a}') + ${c}`, a + c], () => [`${a * 3} / 3`, new PF(a)], () => [`${a} // int(${c}.${g.int(1, 9)})`, fdiv(a, c)], () => [`float('0${c}.5')`, new PF(c + 0.5)],
+    () => [`not (${a} >= ${c}) or ${a} % 2 == 0`, !(a >= c) || a % 2 === 0], () => [`'${w1}' * 2 + str(${c})`, w1 + w1 + c], () => [`len(str(${a * 100 + c}))`, String(a * 100 + c).length], () => [`'${w1}' + ${c}`, ERR]
+  ];
+  const pool = d === 0 ? T0 : d === 1 ? T1 : T2.concat(T1.slice(0, 3));
+  const exprs = g.shuffle(pool).slice(0, 3).map(f => { let [e, v] = f(); if (v === null) { const m = /^(\d+) \/\/ (\d+)$/.exec(e); v = fdiv(+m[1], +m[2]); } return [e, v]; });
+  const items = [];
+  exprs.forEach(([e, v], k) => {
+    items.push({ type: 'choice', label: `type de ${e}`, opts: TYPE_OPTS, ans: pyType(v), wide: true });
+    if (v !== ERR) items.push({ type: 'val', label: `valeur`, exp: v });
+  });
+  const why = ([e, v]) => v === ERR ? `${ic(e)} : <b>erreur</b> (TypeError) — on ne peut pas additionner une chaîne et un entier.` : `${ic(e)} vaut ${ic(pyRepr(v))}, de type ${ic(pyType(v))}.`;
+  return { title: 'Type et valeur d\'expressions', q: 'Donner le type (<code>int</code>, <code>float</code>, <code>bool</code>, <code>str</code>) et la valeur de chacune des expressions suivantes, ou « Erreur » si elle provoque une erreur. Pour une chaîne, tu peux taper la valeur avec ou sans guillemets.',
+    items, corr: `<ul>${exprs.map(x => `<li>${why(x)}</li>`).join('')}</ul><p class="fine">Rappels : <code>/</code> donne toujours un <code>float</code> ; <code>//</code> et <code>%</code> sur des entiers donnent un <code>int</code> ; les chaînes se comparent dans l'ordre du dictionnaire, chiffre par chiffre (<code>'10' &lt; '9'</code>), les majuscules avant les minuscules.</p>` };
+};
+
+GEN.trace = (d, g) => {
+  if (d < 2) {
+    const a = g.int(2, 9), b = g.int(1, 9), ops = [['+', (x, y) => x + y], ['-', (x, y) => x - y], ['*', (x, y) => x * y]];
+    const o1 = g.pick(ops), o2 = g.pick(ops), o3 = g.pick(ops.slice(0, 2));
+    const env = { x: a }; const lines = [`x = ${a}`];
+    env.y = o1[1](b, env.x); lines.push(`y = ${b} ${o1[0]} x`);
+    env.z = o2[1](env.x, env.y); lines.push(`z = x ${o2[0]} y`);
+    if (d === 1) {
+      const k = g.int(2, 4), m = g.int(5, 20);
+      lines.push(`if z * ${k} > ${m}:`, `    x = x - ${b}`, `else:`, `    x = x + ${b}`);
+      env.x = env.z * k > m ? env.x - b : env.x + b;
+      lines.push('t = x', 'x = y', 'y = t'); const t = env.x; env.x = env.y; env.y = t;
+    }
+    env.y = o3[1](env.y, env.z); lines.push(`y = y ${o3[0]} z`);
+    const code = lines.join('\n');
+    return { title: 'Suivre l\'exécution', q: 'Donner les valeurs de <code>x</code>, <code>y</code> et <code>z</code> à la fin de l\'exécution :' + pre(code),
+      items: ['x', 'y', 'z'].map(v => ({ type: 'int', label: v, val: env[v] })),
+      corr: `<p>On exécute ligne par ligne en tenant un tableau des valeurs. À la fin : <code>x = ${env.x}</code>, <code>y = ${env.y}</code>, <code>z = ${env.z}</code>.</p>${d === 1 ? '<p class="fine">Les trois lignes <code>t = x</code>, <code>x = y</code>, <code>y = t</code> échangent x et y (variable auxiliaire).</p>' : ''}` };
+  }
+  // programme mystère (exercice 8 du poly)
+  const s1 = g.int(2, 4), s2 = s1 + g.int(1, 2), A = g.int(2, 3), B = g.int(3, 6);
+  const code = `def f(n):\n    y = 0\n    if n >= ${s1}:\n        y = n * n\n        if n <= ${s2}:\n            y = y - 1\n            y = ${A} * y\n        else:\n            y += 1\n    else:\n        if n % 2 == 0:\n            y = ${B} * n\n        else:\n            y = n - 5\n            y = 3 * y\n    return y`;
+  const f = n => { let y = 0; if (n >= s1) { y = n * n; if (n <= s2) { y = A * (y - 1); } else y += 1; } else { if (n % 2 === 0) y = B * n; else y = 3 * (n - 5); } return y; };
+  const ns = g.shuffle([...new Set([0, 1, s1 - 1, s1, s2, s2 + 1, s2 + 3])]).slice(0, 3).sort((x, y) => x - y);
+  return { title: 'Programme mystère', q: 'Que renvoie cette fonction pour les valeurs suivantes ?' + pre(code), items: ns.map(n => ({ type: 'int', label: `f(${n})`, val: f(n) })),
+    corr: `<ul>${ns.map(n => `<li><code>f(${n})</code> : ${n >= s1 ? `n ≥ ${s1}, y = ${n * n} puis ${n <= s2 ? `n ≤ ${s2} : y = ${A} × (${n * n} − 1)` : `n > ${s2} : y = ${n * n} + 1`}` : `n &lt; ${s1}, ${n % 2 === 0 ? `n pair : y = ${B} × ${n}` : `n impair : y = 3 × (${n} − 5)`}`} = <b>${f(n)}</b></li>`).join('')}</ul><p class="fine">Méthode : repère les deux grands cas (le premier <code>if</code>), puis les sous-cas. L'indentation dit à quel <code>if</code> appartient chaque <code>else</code>.</p>` };
+};
+
+const LOOPS = [
+  g => { const a = g.int(0, 3), k = g.int(1, 3), N = g.int(5, 9); let s = 0; for (let i = a; i < N; i++) s += i * k; return { code: `def f(n):\n    s = 0\n    for i in range(${a}, n):\n        s = s + i * ${k}\n    return s`, call: `f(${N})`, val: s, what: `${k === 1 ? '' : k + ' × '}la somme des entiers de ${a} à n − 1`, why: `i prend les valeurs ${a}, ${a + 1}, …, ${N - 1} (la borne ${N} est exclue)` }; },
+  g => { const A = g.int(10, 60); let b = 0; while (b * b < A) b++; return { code: `def f(a):\n    b = 0\n    while b * b < a:\n        b = b + 1\n    return b`, call: `f(${A})`, val: b, what: 'le plus petit entier b tel que b² ≥ a', why: `b augmente tant que b² < ${A} : on s'arrête à b = ${b} car ${b}² = ${b * b} ≥ ${A}` }; },
+  g => { const N = g.int(100, 99999); return { code: `def f(n):\n    c = 0\n    while n > 0:\n        n = n // 10\n        c = c + 1\n    return c`, call: `f(${N})`, val: String(N).length, what: 'le nombre de chiffres de n', why: `chaque tour enlève le dernier chiffre (division entière par 10)` }; },
+  g => { const N = g.int(100, 9999); return { code: `def f(n):\n    s = 0\n    while n > 0:\n        s = s + n % 10\n        n = n // 10\n    return s`, call: `f(${N})`, val: String(N).split('').reduce((a, c) => a + +c, 0), what: 'la somme des chiffres de n', why: `n % 10 est le dernier chiffre, n // 10 l'enlève` }; },
+  g => { const N = g.pick([12, 20, 24, 40, 48, 56, 72, 80, 96, 104, 112]); let n = N; while (n % 2 === 0) n /= 2; return { code: `def f(n):\n    while n % 2 == 0:\n        n = n // 2\n    return n`, call: `f(${N})`, val: n, what: 'le plus grand diviseur impair de n', why: `on divise par 2 tant que n est pair : ${N} → … → ${n}` }; },
+  g => { const N = g.int(4, 10); const F = [0, 1]; for (let i = 2; i <= N + 1; i++) F.push(F[i - 1] + F[i - 2]); return { code: `def f(n):\n    f = 0\n    a = 1\n    while n > 0:\n        b = a + f\n        f = a\n        a = b\n        n = n - 1\n    return f`, call: `f(${N})`, val: F[N], what: 'le terme F(n) de la suite de Fibonacci', why: `(f, a) avance d'un cran à chaque tour : (F0, F1) → (F1, F2) → …, après ${N} tours f = F(${N})` }; },
+  g => { const N = g.int(10, 30), m = g.int(2, 5); let c = 0; for (let i = 0; i < N; i++) if (i % m === 0) c++; return { code: `def f(n):\n    c = 0\n    for i in range(n):\n        if i % ${m} == 0:\n            c = c + 1\n    return c`, call: `f(${N})`, val: c, what: `le nombre de multiples de ${m} entre 0 et n − 1`, why: `0, ${m}, ${2 * m}, … < ${N}` }; },
+  g => { const N = g.int(4, 9); return { code: `def f(n):\n    c = 0\n    for i in range(n):\n        for j in range(i):\n            c = c + 1\n    return c`, call: `f(${N})`, val: N * (N - 1) / 2, what: 'n(n − 1)/2 (le nombre de couples j < i)', why: `0 + 1 + … + ${N - 1} = ${N * (N - 1) / 2}` }; },
+  g => { const N = g.int(3, 7); let p = 1; for (let k = 1; k <= N; k++) p *= k; return { code: `def f(n):\n    p = 1\n    for k in range(1, n + 1):\n        p = p * k\n    return p`, call: `f(${N})`, val: p, what: 'n! (factorielle de n)', why: `1 × 2 × … × ${N}` }; },
+  g => { const L = g.int(20, 500); let x = 1, c = 0; while (x < L) { x *= 2; c++; } return { code: `def f(limite):\n    x = 1\n    c = 0\n    while x < limite:\n        x = x * 2\n        c = c + 1\n    return c`, call: `f(${L})`, val: c, what: 'le plus petit c tel que 2^c ≥ limite', why: `x vaut 1, 2, 4, 8, … : on s'arrête à 2^${c} = ${2 ** c} ≥ ${L}` }; }
+];
+GEN.boucles = (d, g) => {
+  const pool = d === 0 ? [0, 6, 8, 2] : d === 1 ? [1, 2, 3, 4, 7, 9] : [1, 3, 4, 5, 7, 9];
+  const k = g.pick(pool), L = LOOPS[k](g);
+  const items = [{ type: 'int', label: L.call, val: L.val }];
+  if (d === 2) { const others = g.shuffle(LOOPS.map((f, i) => i).filter(i => i !== k)).slice(0, 2).map(i => LOOPS[i](g).what); items.push({ type: 'choice', label: 'en général, f calcule', opts: g.shuffle([L.what, ...others]).map(x => ({ v: x, t: x })), ans: L.what, wide: true }); }
+  return { title: 'Que renvoie cette fonction ?', q: `Que renvoie ${ic(L.call)} ?${d === 2 ? ' Que calcule la fonction en général ?' : ''}` + pre(L.code), items,
+    corr: `<p>${ic(L.call)} renvoie <b>${L.val}</b> : ${L.why}.</p><p>En général, la fonction calcule ${L.what}.</p><p class="fine">Méthode : fais un tableau avec une colonne par variable et une ligne par tour de boucle.</p>` };
+};
+
+GEN.fonc = (d, g) => {
+  const y = g.int(2, 9), v = g.int(2, 9), k = g.int(1, 5), A = g.int(1, 9);
+  const P = [
+    () => { const glob = g.r() < 0.5; const tgt = g.pick(['a', 'b', 'c']); const code = `${glob ? `a = ${A}\n` : ''}def g(a):\n    b = a * a\n    return b\n\nc = g(${y})\nprint(${tgt})`; const out = tgt === 'c' ? String(y * y) : tgt === 'a' ? (glob ? String(A) : ERR) : ERR;
+      return [code, out, tgt === 'c' ? `c reçoit la valeur renvoyée par g(${y}) = ${y * y}.` : tgt === 'a' ? (glob ? `le paramètre a de g est local : la variable globale a vaut toujours ${A}.` : `a n'existe que dans g (paramètre local) : NameError.`) : 'b est locale à g : elle n\'existe plus après l\'appel, NameError.']; },
+    () => { const code = `def ajoute(x):\n    x = x + ${k}\n    return x\n\nn = ${v}\nm = ajoute(n)\nprint(n, m)`; return [code, `${v} ${v + k}`, `la fonction modifie sa copie locale x, pas n : n vaut toujours ${v}, m reçoit ${v + k}.`]; },
+    () => { const t = [g.int(1, 9), g.int(1, 9)]; const code = `def ajoute(t):\n    t.append(${k})\n\nl = [${t.join(', ')}]\najoute(l)\nprint(l)`; return [code, pyRepr([...t, k]), 'une liste est passée par référence : append modifie la liste de l\'appelant.']; },
+    () => { const code = `def f(x):\n    print(x * 2)\n\nr = f(${v})\nprint(r)`; return [code, `${2 * v}\nNone`, `f affiche ${2 * v} mais ne renvoie rien (pas de return) : r vaut None.`]; },
+    () => { const code = `def f(x):\n    y = x + 1\n\nprint(f(${v}))`; return [code, 'None', 'pas de return : la fonction renvoie None, c\'est ce qu\'affiche print.']; },
+    () => { const code = `b = ${A}\ndef g(a):\n    b = a * a\n    return b\n\nc = g(${y})\nprint(b, c)`; return [code, `${A} ${y * y}`, `le b de g est une variable locale différente de la variable globale b, qui vaut toujours ${A}.`]; }
+  ];
+  const pool = d === 0 ? [0, 1, 3] : d === 1 ? [0, 2, 4, 5] : [0, 1, 2, 3, 4, 5];
+  const [code, out, why] = P[g.pick(pool)]();
+  return { title: 'Fonctions et portée des variables', q: 'Qu\'affiche ce programme ? (une ligne par <code>print</code> ; écris « Erreur » si le programme s\'arrête sur une erreur)' + pre(code),
+    items: [{ type: 'out', label: 'affichage', exp: out }], corr: `<p>Affichage : ${out === ERR ? '<b>Erreur</b> (NameError)' : `<code>${esc(out).replace(/\n/g, '<br>')}</code>`}.</p><p>${why}</p>` };
+};
+
+const CPLX = [
+  ['for i in range(n):\n    s = s + i', 'O(n)', 'une boucle de n tours, chaque tour en temps constant.'],
+  ['for i in range(n):\n    for j in range(n):\n        c = c + 1', 'O(n²)', 'deux boucles imbriquées de n tours : n × n.'],
+  ['i = 1\nwhile i < n:\n    i = i * 2', 'O(log n)', 'i double à chaque tour : il faut log₂(n) tours.'],
+  ['x = n * n + 3\ny = x // 2', 'O(1)', 'un nombre fixe d\'opérations, quel que soit n.'],
+  ['for i in range(n):\n    for j in range(i):\n        c = c + 1', 'O(n²)', '0 + 1 + … + (n − 1) = n(n − 1)/2 tours.'],
+  ['for i in range(n):\n    for j in range(n):\n        for k in range(n):\n            c = c + 1', 'O(n³)', 'trois boucles imbriquées.'],
+  ['while n > 0:\n    n = n // 2', 'O(log n)', 'n est divisé par 2 à chaque tour.'],
+  ['for i in range(n):\n    s = s + i\nfor j in range(n):\n    s = s - j', 'O(n)', 'deux boucles l\'une APRÈS l\'autre : n + n = 2n.'],
+  ['for i in range(100):\n    s = s + i', 'O(1)', '100 tours, mais ce nombre ne dépend pas de n.'],
+  ['for i in range(n):\n    for j in range(5):\n        c = c + 1', 'O(n)', 'la boucle intérieure fait toujours 5 tours : 5n.'],
+  ['def u(k):\n    r = 1\n    for i in range(k):\n        r = r * 2\n    return r\n\ns = 0\nfor k in range(n):\n    s = s + u(k)', 'O(n²)', 'u(k) coûte k opérations, et on l\'appelle pour k = 0 … n − 1 : n(n − 1)/2 (exemple du cours).'],
+  ['t = n * [0]\nfor i in range(n):\n    t[i] = i * i', 'O(n)', 'créer le tableau coûte n, la boucle aussi.']
+];
+const CPLX_OPTS = ['O(1)', 'O(log n)', 'O(n)', 'O(n²)', 'O(n³)', 'O(2ⁿ)'].map(x => ({ v: x, t: x }));
+GEN.cplx = (d, g) => {
+  const pool = d === 0 ? [0, 1, 3, 5] : d === 1 ? [2, 4, 6, 7, 1] : [7, 8, 9, 10, 11, 4];
+  const ks = g.shuffle(pool).slice(0, 2);
+  return { title: 'Complexité', q: 'Donner la complexité (en fonction de n, dans le pire cas) de chacun des morceaux de code suivants.' + ks.map((k, i) => `<p style="margin-top:12px"><b>(${'ab'[i]})</b></p>` + pre(CPLX[k][0])).join(''),
+    items: ks.map((k, i) => ({ type: 'choice', label: `(${'ab'[i]})`, opts: CPLX_OPTS, ans: CPLX[k][1] })),
+    corr: `<ul>${ks.map((k, i) => `<li>(${'ab'[i]}) <b>${CPLX[k][1]}</b> : ${CPLX[k][2]}</li>`).join('')}</ul><p class="fine">On compte les opérations élémentaires (affectations, calculs, comparaisons) et on ne garde que le terme dominant, sans les constantes.</p>` };
+};
+
+GEN.list = (d, g) => {
+  const t = Array.from({ length: g.int(4, 6) }, () => g.int(0, 9)), n = t.length;
+  const Q = [];
+  if (d === 0) {
+    const i = g.int(0, n - 1), x = g.int(0, 9);
+    Q.push([`t[${i}]`, t[i]], [`len(t)`, n], [`${x} in t`, t.includes(x)], [`t + [${x}]`, [...t, x]], [`2 * [${t[0]}, ${t[1]}]`, [t[0], t[1], t[0], t[1]]]);
+  } else if (d === 1) {
+    const a = g.int(0, 2), b = g.int(a + 1, n);
+    Q.push([`t[${a}:${b}]`, t.slice(a, b)], [`t[${a + 1}:]`, t.slice(a + 1)], [`t[:${b}]`, t.slice(0, b)], [`t[-1]`, t[n - 1]]);
+  } else {
+    const k = g.int(2, 5);
+    Q.push([`[i ** 2 for i in range(${k})]`, Array.from({ length: k }, (_, i) => i * i)], [`[2 * i + 1 for i in range(${k})]`, Array.from({ length: k }, (_, i) => 2 * i + 1)], [`[x * ${k} for x in t]`, t.map(x => x * k)], [`list(range(${k}, ${k + 4}))`, [k, k + 1, k + 2, k + 3]]);
+  }
+  const qs = g.shuffle(Q).slice(0, 2);
+  // une suite de modifications de la liste
+  const u = t.slice(), x = g.int(10, 20), i = g.int(0, n - 2), ops = [];
+  ops.push(`t.append(${x})`); u.push(x);
+  if (d >= 1) { ops.push(`del t[${i}]`); u.splice(i, 1); }
+  ops.push(`t.extend([${x + 1}, ${x + 2}])`); u.push(x + 1, x + 2);
+  if (d === 2) { ops.push(`t[0] = t[1] + t[2]`); u[0] = u[1] + u[2]; }
+  const code = `t = ${pyRepr(t)}\n` + qs.map(([e]) => `print(${e})`).join('\n') + '\n' + ops.join('\n') + '\nprint(t)';
+  return { title: 'Opérations sur les listes', q: 'Qu\'affichent les trois <code>print</code> de ce programme ?' + pre(code),
+    items: [...qs.map(([e, v]) => ({ type: 'val', label: `print(${e})`, exp: v })), { type: 'val', label: 'print(t) final', exp: u }],
+    corr: `<ul>${qs.map(([e, v]) => `<li>${ic(e)} → ${ic(pyRepr(v))}</li>`).join('')}<li>Après ${ops.map(ic).join(', ')} : ${ic(pyRepr(u))}</li></ul><p class="fine">Rappels : les indices commencent à 0 ; <code>t[a:b]</code> va de a à b − 1 ; <code>append</code> ajoute UN élément, <code>extend</code> ajoute les éléments d'une liste ; <code>del t[i]</code> supprime l'élément d'indice i.</p>` };
+};
+
+GEN.alias = (d, g) => {
+  const x = [g.int(1, 9), g.int(1, 9), g.int(1, 9)], v = g.int(10, 30);
+  if (d < 2) {
+    const how = d === 0 ? 'y = x' : g.pick(['y = x', 'y = list(x)', 'y = x[:]']), shared = how === 'y = x';
+    const mod = g.pick([[`y.append(${v})`, a => a.push(v)], [`y[0] = ${v}`, a => { a[0] = v; }], [`y += [${v}]`, a => a.push(v)]]);
+    const y = x.slice(); mod[1](y); const xf = shared ? y.slice() : x.slice();
+    return { title: 'Copies et références', q: 'Qu\'affiche ce programme ?' + pre(`x = ${pyRepr(x)}\n${how}\n${mod[0]}\nprint(x)\nprint(y)`),
+      items: [{ type: 'val', label: 'print(x)', exp: xf }, { type: 'val', label: 'print(y)', exp: y }],
+      corr: `<p>${shared ? '<code>y = x</code> copie seulement l\'adresse : x et y désignent la <b>même</b> liste. Modifier y modifie x.' : `${ic(how)} crée une <b>nouvelle</b> liste : modifier y ne change pas x.`}</p><p>x = ${ic(pyRepr(xf))}, y = ${ic(pyRepr(y))}.</p>` };
+  }
+  const m = [[g.int(1, 9), g.int(1, 9)], [g.int(1, 9), g.int(1, 9)]], how = g.pick(['y = list(x)', 'y = x[:]']);
+  const y = m.map(r => r); y[1] = y[1].slice(); y[1][1] = v; const xf = [m[0], y[1]];
+  return { title: 'Copies de listes de listes', q: 'Qu\'affiche ce programme ?' + pre(`x = ${pyRepr(m)}\n${how}\nx[1][1] = ${v}\nprint(y)`),
+    items: [{ type: 'val', label: 'print(y)', exp: xf }, { type: 'choice', label: 'pour une vraie copie', opts: [{ v: 'a', t: 'y = [list(l) for l in x]' }, { v: 'b', t: 'y = x' }, { v: 'c', t: 'y = list(x)' }], ans: 'a', wide: true }],
+    corr: `<p>${ic(how)} ne copie que la liste « extérieure » : y[1] et x[1] sont la <b>même</b> sous-liste. Modifier x[1][1] modifie donc aussi y : y = ${ic(pyRepr(xf))}.</p><p>Il faut copier chaque sous-liste : <code>y = [list(l) for l in x]</code> (exercice 29 du poly).</p>` };
+};
+
+GEN.str = (d, g) => {
+  const w = g.pick(['python', 'algorithme', 'esir', 'rennes', 'tableau', 'variable']), k = g.int(2, 3), a = g.int(0, 2), b = g.int(a + 2, w.length);
+  const Q = d === 0 ? [[`len('${w}')`, w.length], [`'${w}'[${a}]`, w[a]], [`'${w}'[${a}:${b}]`, w.slice(a, b)], [`'ab' * ${k}`, 'ab'.repeat(k)]]
+    : d === 1 ? [[`'${w}'[-1]`, w[w.length - 1]], [`'${w}'[:${b}] + '!'`, w.slice(0, b) + '!'], [`len('${w}' * ${k})`, w.length * k], [`'-'.join(['a', 'b', 'c'])`, 'a-b-c'], [`'un,deux,trois'.split(',')`, ['un', 'deux', 'trois']]]
+    : [[`list('${w.slice(0, 4)}')`, w.slice(0, 4).split('')], [`('mon' + 2*'dou' + ' ' + 2*'nou' + 'rs')[1:6]`, ('mon' + 'doudou' + ' ' + 'nounou' + 'rs').slice(1, 6)], [`'${w}'.split('e')`, w.split('e')], [`len('a' * 2 + 'a' * 2 + 'a')`, 5], [`' '.join(['le', 'lac'])`, 'le lac']];
+  const qs = g.shuffle(Q).slice(0, 3);
+  return { title: 'Chaînes de caractères', q: 'Donner la valeur de chaque expression (avec ou sans guillemets pour une chaîne).',
+    items: qs.map(([e, v]) => ({ type: 'val', label: e, exp: v })), corr: `<ul>${qs.map(([e, v]) => `<li>${ic(e)} → ${ic(pyRepr(v))}</li>`).join('')}</ul><p class="fine">Une chaîne se comporte comme un tuple de lettres : indices, tranches, <code>len</code>, <code>+</code> et <code>*</code>, mais on ne peut pas la modifier.</p>` };
+};
+
+GEN.dict = (d, g) => {
+  const names = g.shuffle(['Julien', 'Virginie', 'Mateo', 'Chloe', 'Ines', 'Gabin']).slice(0, 3), ages = names.map(() => g.int(17, 22));
+  const dd = {}; names.forEach((nm, i) => { dd[nm] = ages[i]; });
+  if (d === 0) {
+    const nw = 'Emma', v = g.int(17, 22), fin = Object.assign({}, dd, { [nw]: v }); fin[names[0]] += 1;
+    return { title: 'Dictionnaires', q: 'Qu\'affiche ce programme ?' + pre(`d = ${pyRepr(dd)}\nprint(d['${names[1]}'])\nd['${nw}'] = ${v}\nd['${names[0]}'] = d['${names[0]}'] + 1\nprint(len(d))\nprint('${names[2]}' in d)\nprint(d)`),
+      items: [{ type: 'val', label: `d['${names[1]}']`, exp: ages[1] }, { type: 'int', label: 'len(d)', val: 4 }, { type: 'val', label: `'${names[2]}' in d`, exp: true }, { type: 'val', label: 'print(d)', exp: fin }],
+      corr: `<p><code>d[c]</code> donne la valeur associée à la clé c ; <code>d[c] = v</code> ajoute (ou remplace) une association ; <code>c in d</code> teste la présence d'une <b>clé</b>. À la fin, d = ${ic(pyRepr(fin))}.</p>` };
+  }
+  if (d === 1) {
+    const s = ages.reduce((a, b) => a + b, 0), mx = names[ages.indexOf(Math.max(...ages))];
+    return { title: 'Parcourir un dictionnaire', q: 'Que renvoient ces deux fonctions pour le dictionnaire <code>d</code> ?' + pre(`d = ${pyRepr(dd)}\n\ndef total(d):\n    s = 0\n    for c in d:\n        s = s + d[c]\n    return s\n\ndef plus_grand(d):\n    meilleur = None\n    for c in d:\n        if meilleur == None or d[c] > d[meilleur]:\n            meilleur = c\n    return meilleur`),
+      items: [{ type: 'int', label: 'total(d)', val: s }, { type: 'val', label: 'plus_grand(d)', exp: mx }],
+      corr: `<p><code>for c in d</code> parcourt les <b>clés</b>. total additionne les valeurs : ${ages.join(' + ')} = ${s}. plus_grand renvoie la clé de plus grande valeur : ${ic(pyRepr(mx))}.</p>` };
+  }
+  const t = Array.from({ length: g.int(6, 8) }, () => g.pick(['a', 'b', 'c'])), cnt = {}; t.forEach(x => { cnt[x] = (cnt[x] || 0) + 1; });
+  return { title: 'Compter avec un dictionnaire', q: 'Que renvoie <code>compte(t)</code> ?' + pre(`t = ${pyRepr(t)}\n\ndef compte(t):\n    d = {}\n    for x in t:\n        if x in d:\n            d[x] = d[x] + 1\n        else:\n            d[x] = 1\n    return d`),
+    items: [{ type: 'val', label: 'compte(t)', exp: cnt }],
+    corr: `<p>Le dictionnaire associe à chaque valeur son nombre d'apparitions : ${ic(pyRepr(cnt))}. C'est LE schéma à connaître : tester <code>if x in d</code> avant d'incrémenter, sinon KeyError.</p>` };
+};
+
+/* ---------- Exercices d'écriture de code (corrigés par des tests, Python dans le navigateur) ---------- */
+const CODE = [
+  // niveau, compétence, nom, signature, énoncé, tests [appel, attendu], solution
+  [0, 'code1', 'valeur_absolue', 'valeur_absolue(x)', 'renvoie la valeur absolue de l\'entier x, sans utiliser abs.', [['valeur_absolue(-7)', '7'], ['valeur_absolue(5)', '5'], ['valeur_absolue(0)', '0']], 'def valeur_absolue(x):\n    if x < 0:\n        return -x\n    return x'],
+  [0, 'code1', 'minimum3', 'minimum3(a, b, c)', 'renvoie le plus petit des trois nombres, en n\'utilisant que des comparaisons < (pas de min).', [['minimum3(3, 1, 2)', '1'], ['minimum3(5, 9, 7)', '5'], ['minimum3(4, 4, 2)', '2'], ['minimum3(8, 6, 6)', '6']], 'def minimum3(a, b, c):\n    m = a\n    if b < m:\n        m = b\n    if c < m:\n        m = c\n    return m'],
+  [0, 'code1', 'somme_carres', 'somme_carres(n)', 'renvoie 1² + 2² + … + n² (0 si n = 0).', [['somme_carres(0)', '0'], ['somme_carres(1)', '1'], ['somme_carres(4)', '30'], ['somme_carres(10)', '385']], 'def somme_carres(n):\n    s = 0\n    for k in range(1, n + 1):\n        s = s + k * k\n    return s'],
+  [1, 'code1', 'prix_total', 'prix_total(n)', 'renvoie le prix payé par un groupe de n ≥ 1 passagers : 10 € le ticket pour 1 passager, 8 € entre 2 et 3, 7 € entre 4 et 5, 6 € à partir de 6 (exercice 7 du poly).', [['prix_total(1)', '10'], ['prix_total(3)', '24'], ['prix_total(4)', '28'], ['prix_total(5)', '35'], ['prix_total(6)', '36'], ['prix_total(10)', '60']], 'def prix_total(n):\n    if n == 1:\n        prix = 10\n    elif n <= 3:\n        prix = 8\n    elif n <= 5:\n        prix = 7\n    else:\n        prix = 6\n    return n * prix'],
+  [1, 'code1', 'nb_chiffres', 'nb_chiffres(n)', 'renvoie le nombre de chiffres de l\'entier n ≥ 1, avec une boucle while (pas de str).', [['nb_chiffres(7)', '1'], ['nb_chiffres(10)', '2'], ['nb_chiffres(4096)', '4'], ['nb_chiffres(100000)', '6']], 'def nb_chiffres(n):\n    c = 0\n    while n > 0:\n        n = n // 10\n        c = c + 1\n    return c'],
+  [1, 'code1', 'est_premier', 'est_premier(n)', 'renvoie True si l\'entier n ≥ 2 est premier, False sinon.', [['est_premier(2)', 'True'], ['est_premier(9)', 'False'], ['est_premier(13)', 'True'], ['est_premier(91)', 'False'], ['est_premier(97)', 'True']], 'def est_premier(n):\n    for d in range(2, n):\n        if n % d == 0:\n            return False\n    return True'],
+  [2, 'code1', 'somme_k', 'somme_k(n)', 'renvoie la somme des entiers naturels k tels que k² + 3k < n, avec une boucle while (exercice 14 du poly). Exemple : somme_k(20) = 0 + 1 + 2 + 3 = 6.', [['somme_k(20)', '6'], ['somme_k(1)', '0'], ['somme_k(0)', '0'], ['somme_k(100)', '36']], 'def somme_k(n):\n    s = 0\n    k = 0\n    while k * k + 3 * k < n:\n        s = s + k\n        k = k + 1\n    return s'],
+  [2, 'code1', 'fibo', 'fibo(n)', 'renvoie F(n), avec F(0) = 0, F(1) = 1 et F(n+2) = F(n+1) + F(n).', [['fibo(0)', '0'], ['fibo(1)', '1'], ['fibo(2)', '1'], ['fibo(10)', '55'], ['fibo(20)', '6765']], 'def fibo(n):\n    a = 0\n    b = 1\n    for i in range(n):\n        a, b = b, a + b\n    return a'],
+  [0, 'code2', 'somme_tab', 'somme_tab(t)', 'renvoie la somme des éléments du tableau t (0 s\'il est vide), sans utiliser sum.', [['somme_tab([3, 1, 4])', '8'], ['somme_tab([])', '0'], ['somme_tab([-2, 2, 5])', '5']], 'def somme_tab(t):\n    s = 0\n    for x in t:\n        s = s + x\n    return s'],
+  [0, 'code2', 'maximum', 'maximum(t)', 'renvoie le plus grand élément du tableau non vide t, sans utiliser max (exercice 21.3).', [['maximum([5, 6, 8, 3])', '8'], ['maximum([-4, -2, -9])', '-2'], ['maximum([7])', '7']], 'def maximum(t):\n    m = t[0]\n    for x in t:\n        if x > m:\n            m = x\n    return m'],
+  [0, 'code2', 'compte_elements', 'compte_elements(t, x)', 'renvoie le nombre de fois que x apparaît dans t (exercice 21.7), sans utiliser count.', [['compte_elements([2, 3, 2, 1, 3, 5, 2, 2], 2)', '4'], ['compte_elements([1, 2], 7)', '0'], ['compte_elements([], 1)', '0']], 'def compte_elements(t, x):\n    c = 0\n    for e in t:\n        if e == x:\n            c = c + 1\n    return c'],
+  [1, 'code2', 'indice_maximum', 'indice_maximum(t)', 'renvoie l\'indice du maximum du tableau non vide t (le premier s\'il y en a plusieurs). Exemple : indice_maximum([5, 6, 8, 3, 17, 1, 2]) = 4.', [['indice_maximum([5, 6, 8, 3, 17, 1, 2])', '4'], ['indice_maximum([9, 1])', '0'], ['indice_maximum([1, 2, 3])', '2'], ['indice_maximum([4, 7, 7])', '1']], 'def indice_maximum(t):\n    im = 0\n    for i in range(len(t)):\n        if t[i] > t[im]:\n            im = i\n    return im'],
+  [1, 'code2', 'miroir', 'miroir(t)', 'renvoie un NOUVEAU tableau contenant les éléments de t dans l\'ordre inverse (exercice 21.5).', [['miroir([3, 1, 4, 6])', '[6, 4, 1, 3]'], ['miroir([])', '[]'], ['miroir([8])', '[8]']], 'def miroir(t):\n    res = []\n    for i in range(len(t) - 1, -1, -1):\n        res.append(t[i])\n    return res'],
+  [1, 'code2', 'elim_occur', 'elim_occur(l, x)', 'renvoie la liste l sans les occurrences de x (exercice 25). Exemple : elim_occur([2, 6, 2, 2, 4], 2) = [6, 4].', [['elim_occur([2, 6, 2, 2, 4, 5, 2, 3], 2)', '[6, 4, 5, 3]'], ['elim_occur([1, 2], 9)', '[1, 2]'], ['elim_occur([3, 3], 3)', '[]']], 'def elim_occur(l, x):\n    res = []\n    for e in l:\n        if e != x:\n            res.append(e)\n    return res'],
+  [1, 'code2', 'maximum_tab', 'maximum_tab(t1, t2)', 'reçoit deux tableaux de même taille et renvoie le tableau dont la case i contient le maximum de t1[i] et t2[i] (exercice 21.6).', [['maximum_tab([1, 4, 5, 6], [7, 1, 2, 8])', '[7, 4, 5, 8]'], ['maximum_tab([], [])', '[]'], ['maximum_tab([3], [3])', '[3]']], 'def maximum_tab(t1, t2):\n    res = []\n    for i in range(len(t1)):\n        if t1[i] > t2[i]:\n            res.append(t1[i])\n        else:\n            res.append(t2[i])\n    return res'],
+  [2, 'code2', 'est_palindrome', 'est_palindrome(l)', 'renvoie True si la liste se lit pareil dans les deux sens (exercice 27).', [['est_palindrome([3, 4, 4, 3])', 'True'], ['est_palindrome([4, 7, 4])', 'True'], ['est_palindrome([1, 2])', 'False'], ['est_palindrome([])', 'True']], 'def est_palindrome(l):\n    n = len(l)\n    for i in range(n // 2):\n        if l[i] != l[n - 1 - i]:\n            return False\n    return True'],
+  [2, 'code2', 'second_min', 'second_min(l)', 'reçoit une liste d\'au moins deux entiers distincts et renvoie le second plus petit élément (exercice 28), sans trier.', [['second_min([5, 1, 4, 2])', '2'], ['second_min([9, 3])', '9'], ['second_min([1, 2, 3])', '2'], ['second_min([7, 8, 6, 5])', '6']], 'def second_min(l):\n    a, b = min(l[0], l[1]), max(l[0], l[1])\n    for x in l[2:]:\n        if x < a:\n            a, b = x, a\n        elif x < b:\n            b = x\n    return b'],
+  [2, 'code2', 'sommes_colonnes', 'sommes_colonnes(m)', 'reçoit une matrice (liste de lignes, toutes de même longueur, au moins une ligne) et renvoie la liste des sommes de chaque colonne (exercice 32.4).', [['sommes_colonnes([[2, 3, 7], [1, 2, 0]])', '[3, 5, 7]'], ['sommes_colonnes([[1, 2]])', '[1, 2]'], ['sommes_colonnes([[1], [2], [3]])', '[6]']], 'def sommes_colonnes(m):\n    res = []\n    for j in range(len(m[0])):\n        s = 0\n        for i in range(len(m)):\n            s = s + m[i][j]\n        res.append(s)\n    return res'],
+  [0, 'code3', 'ajoute_produit', 'ajoute_produit(d, nom, quantite)', 'ajoute une quantité d\'un produit au dictionnaire de stock d : si le produit existe déjà, on ajoute à la quantité existante (exercice 37). La fonction modifie d et ne renvoie rien.', [["(lambda d: (ajoute_produit(d, 'Laptop', 5), d)[1])({'Laptop': 10})", "{'Laptop': 15}"], ["(lambda d: (ajoute_produit(d, 'Casque', 3), d)[1])({'Laptop': 10})", "{'Laptop': 10, 'Casque': 3}"]], 'def ajoute_produit(d, nom, quantite):\n    if nom in d:\n        d[nom] = d[nom] + quantite\n    else:\n        d[nom] = quantite'],
+  [0, 'code3', 'total_stock', 'total_stock(d)', 'renvoie la somme de toutes les quantités du dictionnaire d (0 s\'il est vide).', [["total_stock({'a': 3, 'b': 4})", '7'], ['total_stock({})', '0']], 'def total_stock(d):\n    s = 0\n    for c in d:\n        s = s + d[c]\n    return s'],
+  [1, 'code3', 'compte', 'compte(t)', 'renvoie un dictionnaire qui associe à chaque élément de la liste t son nombre d\'apparitions.', [["compte(['a', 'b', 'a'])", "{'a': 2, 'b': 1}"], ['compte([])', '{}'], ['compte([1, 1, 1])', '{1: 3}']], 'def compte(t):\n    d = {}\n    for x in t:\n        if x in d:\n            d[x] = d[x] + 1\n        else:\n            d[x] = 1\n    return d'],
+  [1, 'code3', 'meilleur', 'meilleur(d)', 'reçoit un dictionnaire non vide nom → note et renvoie le nom qui a la meilleure note (le premier rencontré en cas d\'égalité).', [["meilleur({'Ana': 12, 'Bo': 15, 'Cy': 9})", "'Bo'"], ["meilleur({'Zed': 3})", "'Zed'"], ["meilleur({'A': 10, 'B': 10})", "'A'"]], 'def meilleur(d):\n    best = None\n    for nom in d:\n        if best is None or d[nom] > d[best]:\n            best = nom\n    return best'],
+  [2, 'code3', 'inverse', 'inverse(d)', 'reçoit un dictionnaire dont les valeurs sont toutes différentes et renvoie le dictionnaire inverse (valeur → clé).', [["inverse({'a': 1, 'b': 2})", "{1: 'a', 2: 'b'}"], ['inverse({})', '{}']], 'def inverse(d):\n    res = {}\n    for c in d:\n        res[d[c]] = c\n    return res'],
+  [2, 'code3', 'frequences', 'frequences(texte)', 'renvoie un dictionnaire qui associe à chaque lettre du texte (espaces ignorés) son nombre d\'apparitions.', [["frequences('le lac')", "{'l': 2, 'e': 1, 'a': 1, 'c': 1}"], ["frequences('')", '{}'], ["frequences('aa a')", "{'a': 3}"]], 'def frequences(texte):\n    d = {}\n    for c in texte:\n        if c != \' \':\n            if c in d:\n                d[c] = d[c] + 1\n            else:\n                d[c] = 1\n    return d']
+];
+function codeGen(skill) {
+  return (d, g) => {
+    let pool = CODE.filter(c => c[1] === skill && c[0] === d); if (!pool.length) pool = CODE.filter(c => c[1] === skill);
+    const [, , name, sig, txt, tests, sol] = g.pick(pool);
+    return { title: `Écrire la fonction ${name}`, q: `Écrire une fonction ${ic(sig)} qui ${esc(txt).replace(/\b(sum|max|min|abs|count|str)\b/g, '<code>$1</code>')}<p class="fine" style="margin-top:8px">Ta fonction est testée sur ${tests.length} cas. Au DS, ce sera sur papier : entraîne-toi aussi à l'écrire sans l'ordinateur.</p>`,
+      items: [{ type: 'code', label: name, sig, tests, sol }],
+      corr: `<p>Une solution possible :</p>${pre(sol)}<p class="fine">Pense aux cas limites (tableau vide, 0, un seul élément) et utilise <code>return</code>, pas <code>print</code>.</p>` };
+  };
+}
+GEN.code1 = codeGen('code1'); GEN.code2 = codeGen('code2'); GEN.code3 = codeGen('code3');
+
+/* =====================================================================
+   PYTHON DANS LE NAVIGATEUR (Pyodide, dans un Worker : une boucle infinie ne bloque pas la page)
+   ===================================================================== */
+const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+const HARNESS = [
+  'import json, io, contextlib',
+  '__ns = {}',
+  '__err = None',
+  'try:',
+  '    with contextlib.redirect_stdout(io.StringIO()):',
+  '        exec(__user_code, __ns)',
+  'except Exception as e:',
+  '    __err = type(e).__name__ + ": " + str(e)',
+  '__res = []',
+  'if __err is None:',
+  '    for t in json.loads(__tests_json):',
+  '        try:',
+  '            with contextlib.redirect_stdout(io.StringIO()):',
+  '                got = eval(t[0], __ns)',
+  '            exp = eval(t[1])',
+  '            ok = (abs(got - exp) < 1e-9) if isinstance(exp, float) and isinstance(got, (int, float)) else (got == exp and type(got) == type(exp))',
+  '            __res.append([t[0], ok, repr(got), repr(exp)])',
+  '        except Exception as e:',
+  '            __res.append([t[0], False, type(e).__name__ + ": " + str(e), t[1]])',
+  'json.dumps({"err": __err, "tests": __res})'
+].join('\n');
+const WORKER_SRC = `importScripts('${PYODIDE}pyodide.js');
+let ready = null;
+self.onmessage = async (e) => {
+  const { id, code, tests, harness } = e.data;
+  try {
+    if (!ready) ready = loadPyodide({ indexURL: '${PYODIDE}' });
+    const py = await ready;
+    py.globals.set('__user_code', code); py.globals.set('__tests_json', JSON.stringify(tests));
+    const out = py.runPython(harness);
+    self.postMessage({ id, ok: true, res: JSON.parse(out) });
+  } catch (err) { self.postMessage({ id, ok: false, err: String(err) }); }
+};`;
+let worker = null, pyWarm = false, reqId = 0;
+const pending = new Map();
+function makeWorker() {
+  worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' })));
+  worker.onmessage = e => { const p = pending.get(e.data.id); if (p) { pending.delete(e.data.id); clearTimeout(p.t); pyWarm = true; p.resolve(e.data); } };
+}
+function runPy(code, tests) {
+  if (!worker) makeWorker();
+  const id = ++reqId, limit = pyWarm ? 8000 : 90000;
+  return new Promise(resolve => {
+    const t = setTimeout(() => { const warm = pyWarm; pending.delete(id); worker.terminate(); worker = null; pyWarm = false; resolve({ ok: false, err: warm ? 'LONG' : 'TIMEOUT' }); }, limit);
+    pending.set(id, { resolve, t });
+    worker.postMessage({ id, code, tests, harness: HARNESS });
+  });
+}
+
+/* =====================================================================
+   VÉRIFICATION DES RÉPONSES
+   ===================================================================== */
+function checkSync(it, raw) {
+  raw = raw == null ? '' : String(raw);
+  if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
+  if (it.type === 'int') { const s = raw.trim().replace(/\s/g, '').replace('−', '-'); if (!s) return { st: 'empty' }; if (!/^[-+]?\d+$/.test(s)) return { st: 'err', msg: 'écris un nombre entier' }; return { st: +s === it.val ? 'ok' : 'bad' }; }
+  if (it.type === 'out') {
+    if (!raw.trim()) return { st: 'empty' };
+    if (it.exp === ERR) return { st: isErrWord(raw) ? 'ok' : 'bad' };
+    return { st: normOut(raw) === normOut(it.exp) ? 'ok' : 'bad', msg: isErrWord(raw) ? 'ce programme ne provoque pas d\'erreur.' : '' };
+  }
+  if (it.type === 'val') {
+    if (!raw.trim()) return { st: 'empty' };
+    const e = it.exp;
+    if (typeof e === 'string') { const r = raw.trim(), un = /^(['"])([\s\S]*)\1$/.exec(r); if ((un ? un[2] : r) === e) return { st: 'ok' }; }
+    if (typeof e === 'boolean') return { st: /^(true|vrai)$/i.test(raw.trim()) === e && /^(true|false|vrai|faux)$/i.test(raw.trim()) ? 'ok' : 'bad' };
+    const v = pyParse(raw);
+    if (v === undefined) return typeof e === 'string' ? { st: 'bad' } : { st: 'err', msg: 'écris une valeur Python, par exemple [1, 2], {\'a\': 3} ou 4.5' };
+    return { st: same(v, e) ? 'ok' : 'bad' };
+  }
+  return { st: 'empty' };
+}
+async function check(it, raw) {
+  if (it.type !== 'code') return checkSync(it, raw);
+  if (!/def[^\n]*:[ \t]*\n[ \t]*\S/.test(String(raw || ''))) return { st: 'empty' };
+  if (!new RegExp('def\\s+' + it.label + '\\s*\\(').test(raw)) return { st: 'err', msg: `écris une fonction qui commence par def ${it.label}(…):` };
+  const r = await runPy(raw, it.tests);
+  if (!r.ok) return r.err === 'LONG' ? { st: 'bad', msg: 'trop long : ta fonction tourne sans fin (boucle infinie ?).' } : { st: 'err', msg: 'Python n\'a pas pu se charger (connexion ?). Réessaie.', retry: true };
+  if (r.res.err) return { st: 'bad', msg: 'ton code ne s\'exécute pas : ' + r.res.err, tests: [] };
+  const n = r.res.tests.filter(t => t[1]).length;
+  return { st: n === it.tests.length ? 'ok' : 'bad', tests: r.res.tests, frac: n / it.tests.length };
+}
+const PILL = { ok: '<span class="pill ok">Juste</span>', bad: '<span class="pill bad">Faux</span>', err: '<span class="pill bad">Illisible</span>', empty: '<span class="pill part">Vide</span>' };
+function fbHTML(r) {
+  let h = PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '');
+  if (r.tests && r.tests.length) h += ` <span class="fine">${r.tests.filter(t => t[1]).length}/${r.tests.length} tests réussis</span><ul class="tests">${r.tests.map(t => `<li class="${t[1] ? 'ok' : 'ko'}">${t[1] ? '✓' : '✗'} ${esc(t[0])}${t[1] ? '' : `\n   attendu : ${esc(t[3])}\n   obtenu  : ${esc(t[2])}`}</li>`).join('')}</ul>`;
+  return h;
+}
+
+function itemHTML(it, id, val) {
+  const word = it.type === 'choice' && !/[()[\]'.=]/.test(it.label) && !/^type de/.test(it.label) || /^(valeur|affichage|en général|pour une vraie)/.test(it.label);
+  const lab = `<span class="it-lab${word ? ' w' : ''}">${esc(it.label)}</span>`;
+  if (it.type === 'choice') return `<div class="it${it.wide ? ' full' : ''}" data-id="${id}">${it.wide ? lab.replace('class="it-lab', 'style="text-align:left" class="it-lab') : lab}<div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${esc(o.t)}</span></label>`).join('')}</div><div class="fb"></div></div>`;
+  if (it.type === 'code') return `<div class="it full" data-id="${id}"><textarea class="codein" data-id="${id}" spellcheck="false" autocapitalize="off" autocomplete="off">${esc(val || `def ${it.sig}:\n    `)}</textarea><div class="fb"></div></div>`;
+  if (it.type === 'out') return `<div class="it" data-id="${id}">${lab}<div class="it-in"><textarea class="codein out" data-id="${id}" spellcheck="false" placeholder="une ligne par print">${esc(val || '')}</textarea></div><div class="fb"></div></div>`;
+  return `<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="${it.type === 'int' ? 'nombre entier' : 'valeur Python'}" value="${esc(val || '')}"></div><div class="fb"></div></div>`;
+}
+const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); if (r) return r.value; const t = $(`[data-id="${id}"]:is(input[type=text],textarea)`, root); return t ? t.value : ''; };
+
+/* =====================================================================
+   COMPÉTENCES ET PROGRESSION (mêmes règles que l'élec et l'atomistique)
+   ===================================================================== */
+const PK = 'algo.path.v1', HK = 'algo.hist.v1', VAL = 100, MMAX = 130;
+const CH = ['Bases de Python', 'Fonctions', 'Complexité', 'Tableaux et chaînes', 'Dictionnaires'];
+const SK = [
+  { id: 'types', ch: 0, name: 'Types et valeurs d\'expressions', fiche: 0 },
+  { id: 'trace', ch: 0, name: 'Suivre l\'exécution d\'un programme', fiche: 1 },
+  { id: 'boucles', ch: 0, name: 'Boucles : que renvoie la fonction ?', fiche: 1 },
+  { id: 'fonc', ch: 1, name: 'Fonctions et portée des variables', fiche: 2 },
+  { id: 'code1', ch: 1, name: 'Écrire une fonction (conditions, boucles)', fiche: 7 },
+  { id: 'cplx', ch: 2, name: 'Complexité d\'un algorithme', fiche: 3 },
+  { id: 'list', ch: 3, name: 'Opérations sur les listes', fiche: 4 },
+  { id: 'alias', ch: 3, name: 'Copies et références', fiche: 4 },
+  { id: 'str', ch: 3, name: 'Chaînes de caractères', fiche: 5 },
+  { id: 'code2', ch: 3, name: 'Écrire une fonction sur des tableaux', fiche: 7 },
+  { id: 'dict', ch: 4, name: 'Dictionnaires', fiche: 6 },
+  { id: 'code3', ch: 4, name: 'Écrire une fonction avec un dictionnaire', fiche: 7 }
+];
+const skById = id => SK.find(k => k.id === id);
+function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
+function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false }); }
+const isVal = s => s.m >= VAL, levelOf = s => s.m < 40 ? 0 : s.m < 80 ? 1 : 2;
+const frontier = P => SK.find(k => !isVal(skS(P, k.id))) || null;
+function pickNext(P) {
+  const f = frontier(P), pool = SK.filter(k => k !== f && skS(P, k.id).ever);
+  const rev = pool.length >= 2 && (P.since >= 6 || (P.since >= 3 && Math.random() < 0.35));
+  if (f && !rev) return { k: f, review: false };
+  if (!pool.length) return f ? { k: f, review: false } : null;
+  const now = Date.now(), W = pool.map(k => { const s = skS(P, k.id); return [k, (MMAX + 20 - s.m) * (1 + Math.min(3, (now - s.last) / 864e5))]; });
+  let r = Math.random() * W.reduce((a, w) => a + w[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) return { k, review: true }; }
+  return { k: W[0][0], review: true };
+}
+function build(id, d, seed) { const ex = GEN[id](d, G(rng(seed))); ex.items.forEach((it, i) => { it.id = `${id}-${seed}-${i}`; }); return ex; }
+
+let CUR = null, busy = false;
+function exHTML(ex) {
+  return `<article class="card ex"><h2>${esc(ex.title)}</h2><div class="q">${ex.q}</div>
+    <div class="items">${ex.items.map(it => itemHTML(it, it.id, (CUR && CUR.ans[it.id]) || '')).join('')}</div>
+    <div class="actions"><button type="button" class="btn btn-primary" data-act="check">Vérifier</button><span class="fine pyload" id="pyNote"></span></div>
+    <details class="corr"><summary>Correction</summary><div class="expl">${ex.corr}</div></details></article>`;
+}
+function startEx(k, o = {}) {
+  const P = pst(), s = skS(P, k.id), R = o.resume || null;
+  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s), seed = R ? R.seed : newSeed();
+  CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), done: false };
+  CUR.ex = build(k.id, d, seed);
+  if (CUR.mode === 'path' && !R) saveCur(!!o.user);
+  renderEx();
+}
+function saveCur(bump = true) {
+  if (!CUR || CUR.mode !== 'path') return;
+  const P = pst();
+  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek };
+  if (bump) P.curT = Date.now();
+  ls.set(PK, P);
+}
+function renderEx() {
+  const host = $('#exHost'); if (!host || !CUR) return;
+  const k = CUR.k, s = skS(pst(), k.id);
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span><button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
+    + exHTML(CUR.ex);
+  CUR.ex.items.forEach(it => { if (it.id in CUR.first && it.type !== 'code') { const fb = $(`.it[data-id="${it.id}"] .fb`, host); if (fb) fb.innerHTML = fbHTML(checkSync(it, valOf(host, it.id))); } });
+  if (CUR.ex.items.some(it => it.type === 'code') && !pyWarm) $('#pyNote').textContent = 'Le premier test charge Python dans le navigateur (≈ 10 Mo, une seule fois) : ça peut prendre 10 à 30 secondes.';
+  host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+async function checkCur() {
+  if (!CUR || CUR.done || busy) return;
+  const host = $('#exHost'), btn = $('[data-act="check"]', host), cur = CUR;
+  busy = true; if (btn) { btn.disabled = true; btn.textContent = CUR.ex.items.some(it => it.type === 'code') ? 'Tests en cours…' : 'Vérification…'; }
+  for (const it of CUR.ex.items) {
+    const r = await check(it, valOf(host, it.id));
+    if (CUR !== cur) { busy = false; return; }
+    const fb = $(`.it[data-id="${it.id}"] .fb`, host);
+    if (fb) fb.innerHTML = fbHTML(r);
+    if (r.retry) continue;
+    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? 1 : (r.frac && !CUR.peek ? r.frac : 0);
+  }
+  busy = false; if (btn) { btn.disabled = false; btn.textContent = 'Vérifier'; }
+  if ($('#pyNote')) $('#pyNote').textContent = '';
+  saveCur();
+  if (CUR.ex.items.every(it => it.id in CUR.first)) finish(CUR.ex.items.reduce((a, it) => a + CUR.first[it.id], 0) / CUR.ex.items.length);
+}
+function finish(r) {
+  CUR.done = true;
+  const host = $('#exHost');
+  $('details.corr', host).open = true;
+  if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); return; }
+  const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
+  s.n++; if (r === 1) s.ok++;
+  const gain = CUR.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
+  if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
+  s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now(); if (isVal(s)) s.ever = true;
+  P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
+  ls.set(PK, P);
+  const f = frontier(P), now = isVal(s);
+  const title = CUR.review ? (r === 1 ? 'Toujours acquis' : was && !now ? 'Un peu oublié' : 'À surveiller') : !was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
+  const msg = !was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+  host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span></div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
+    <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
+    <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`);
+  if (!was && now && !CUR.review) toast('Compétence validée : ' + k.name);
+  renderPathTop(); renderMap();
+}
+
+/* =====================================================================
+   VUES
+   ===================================================================== */
+let VIEW = 'home';
+function setTab(t) {
+  if (EXAM && EXAM.running && t !== 'blanc') { toast('Un sujet blanc est en cours.'); t = 'blanc'; }
+  VIEW = t;
+  $$('#tabs .tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
+  ({ home: vHome, path: vPath, cours: vCours, exos: vExos, blanc: vBlanc })[t]();
+  if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
+  window.scrollTo(0, 0);
+}
+function nextDS() {
+  const c = ls.get('planning.cache.v1', null), now = Date.now();
+  const all = c && c.evs ? c.evs.slice().sort((x, y) => x.s - y.s).filter(e => /ALGO/i.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : [];
+  const ev = all.find(e => e.s > now - 3 * 3600e3);
+  return ev ? { ts: ev.s, oral: /oraux/i.test(ev.t) } : { ts: Date.parse('2026-10-23T07:45:00Z'), oral: false };
+}
+function vHome() {
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, ds = nextDS();
+  const days = Math.round((new Date(new Date(ds.ts).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(ds.ts);
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Informatique · Algorithmique · P. Rannou</p><h1>Réussir le DS d'algorithmique</h1>
+    <p class="lede">Le DS de mi-semestre du vendredi 23/10 dure 1 h 30. D'après l'avancement du cours (3 CM), il porte sur les chapitres 1 à 4 : <b>bases de Python</b> (types, conditions, boucles), <b>fonctions</b>, <b>complexité</b>, <b>tableaux et dictionnaires</b>. Le 2<sup>e</sup> DS (7/12) ajoutera récursivité, graphes, piles et files ; l'oral (6-7/01) se passe sur machine.</p></div>
+    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>${ds.oral ? 'Oral' : 'DS'} d'algorithmique : ${esc(when)}</span></div></section>
+    <div class="grid2">
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Des types de base jusqu'à l'écriture de fonctions sur les tableaux et les dictionnaires, avec une progression qui s'adapte à tes résultats.</p>
+        <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
+      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">5 exercices au format des TD du poly, notés sur 20, dont deux fonctions à écrire, testées automatiquement. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
+    </div>
+    <section class="card"><h2>Pas d'annales sur Moodle</h2><p class="sub">Le prof n'a pas mis de DS des années précédentes. Les exercices reprennent les trois formes du poly de TD (TD 1 à 3) : « donner le type et la valeur », « que calcule / qu'affiche ce programme », « écrire une fonction qui… ». Les fonctions à écrire sont testées ici avec du vrai Python, mais le DS est sur papier : entraîne-toi aussi à les écrire à la main, sans ordinateur.</p></section>`;
+}
+function renderPathTop() {
+  const el = $('#pathTop'); if (!el) return;
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, f = frontier(P);
+  el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${done}/${SK.length}</b><span>compétences validées</span></div><span class="sp"></span>
+    ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
+    <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+    <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'} · Deux sans-faute d'affilée valident une compétence ; en cas d'erreurs, les exercices se simplifient et les compétences validées reviennent en révision.</p></section>`;
+}
+function renderMap() {
+  const el = $('#pathMap'); if (!el) return;
+  const P = pst(), f = frontier(P);
+  el.innerHTML = CH.map((c, ci) => `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${SK.filter(k => k.ch === ci).map(k => {
+    const s = skS(P, k.id), val = isVal(s), open = val || k === f || s.n > 0, pct = Math.min(100, Math.round(s.m));
+    return `<div class="psk ${val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}${s.ever && !val ? '<small>à revoir</small>' : ''}</span>
+      <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
+  }).join('')}</div>`).join('');
+}
+function nextPath(o = {}) {
+  const P = pst();
+  if (!o.fresh && P.cur && skById(P.cur.id)) { startEx(skById(P.cur.id), { resume: P.cur }); renderPathTop(); renderMap(); return; }
+  const n = pickNext(P); if (!n) return;
+  startEx(n.k, { review: n.review, user: o.user }); renderPathTop(); renderMap();
+}
+function vPath() {
+  app.innerHTML = `<div><p class="eyebrow">Parcours guidé</p><h1>Le parcours</h1></div><div id="pathTop"></div><div id="exHost" style="display:grid;gap:16px"></div><section class="card"><h2>La carte</h2><div id="pathMap"></div></section>`;
+  renderPathTop(); renderMap();
+  if (CUR && CUR.mode === 'path') renderEx(); else if (pst().n || pst().cur) nextPath();
+}
+let FREE = { id: 'types', d: 0 };
+function vExos() {
+  app.innerHTML = `<div><p class="eyebrow">Entraînement libre</p><h1>Exercices par type</h1><p class="lede">Choisis un type d'exercice et un niveau. Les programmes et les valeurs changent à chaque fois.</p></div>
+    <section class="card"><div class="seg">${SK.map(k => `<button type="button" data-ft="${k.id}" aria-pressed="${k.id === FREE.id}">${esc(k.name)}</button>`).join('')}</div>
+      <div class="row" style="margin-top:12px"><div class="seg">${[0, 1, 2].map(d => `<button type="button" data-fd="${d}" aria-pressed="${d === FREE.d}">Niveau ${d + 1}</button>`).join('')}</div><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div>
+      <details class="corr"><summary>Comment écrire mes réponses ?</summary><div class="expl"><p>Valeurs : comme Python les afficherait, par exemple <code>[1, 4, 9]</code>, <code>{'a': 2}</code>, <code>2.5</code>, <code>True</code>. Pour une chaîne, avec ou sans guillemets. Affichages : une ligne par <code>print</code> ; « Erreur » si le programme plante. Fonctions : écris le code complet, à partir de <code>def</code> ; la touche Tab insère 4 espaces.</p></div></details></section>
+    <div id="exHost" style="display:grid;gap:16px"></div>`;
+  startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+}
+
+/* ---------- Cours ---------- */
+const FICHES = [
+  ['1. Types, opérateurs et conversions', 'type et valeur', `<p>Quatre types de base : <code>int</code> (entiers), <code>float</code> (réels), <code>bool</code> (<code>True</code> / <code>False</code>, avec majuscule), <code>str</code> (chaînes). En Python on ne déclare pas le type : il dépend de la valeur.</p>
+    <table class="t"><tr><th>Opération</th><th>Exemple</th><th>Résultat</th></tr><tr><td>division</td><td><code>9 / 3</code></td><td><code>3.0</code> (toujours un float)</td></tr><tr><td>division entière</td><td><code>13 // 2</code></td><td><code>6</code></td></tr><tr><td>reste (modulo)</td><td><code>13 % 2</code></td><td><code>1</code></td></tr><tr><td>puissance</td><td><code>2 ** 10</code></td><td><code>1024</code></td></tr><tr><td>concaténation</td><td><code>'Le' + 'chat'</code></td><td><code>'Lechat'</code></td></tr><tr><td>répétition</td><td><code>3 * 'ab'</code></td><td><code>'ababab'</code></td></tr></table>
+    <ul><li>Conversions : <code>float(3)</code> → <code>3.0</code>, <code>int(5.6)</code> → <code>5</code> (tronque), <code>int('35')</code> → <code>35</code>, <code>str(9.64)</code> → <code>'9.64'</code>.</li><li>Logique : <code>and</code>, <code>or</code>, <code>not</code> ; comparaisons <code>==</code>, <code>!=</code>, <code>&lt;</code>…</li><li>Chaînes comparées dans l'ordre du dictionnaire, caractère par caractère : <code>'zebre' &lt; 'lion'</code> est <code>False</code>, <code>'10' &lt; '9'</code> est <code>True</code>, majuscules avant minuscules.</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Pour chaque expression : évaluer de l'intérieur vers l'extérieur, noter le type à chaque étape. <code>str(4+5)</code> = <code>'9'</code> mais <code>str(4)+str(5)</code> = <code>'45'</code>.</div>
+    <div class="box warn"><h5>Pièges</h5><code>'3+3=' + 6</code> → erreur (on n'additionne pas une chaîne et un entier) · <code>/</code> donne un float même si la division tombe juste · ne jamais tester l'égalité de deux floats avec <code>==</code>.</div>`],
+  ['2. Conditions, boucles et entrées-sorties', 'trace, boucles', `<ul><li><code>input()</code> renvoie toujours une <b>chaîne</b> : <code>x = int(input())</code> pour un entier. <code>print(a, b)</code> affiche plusieurs valeurs séparées par un espace.</li><li><code>if</code> / <code>elif</code> / <code>else</code> : le bloc est défini par l'<b>indentation</b> (4 espaces), après les <code>:</code>.</li><li><code>while condition:</code> répète tant que la condition est vraie : le corps doit finir par la rendre fausse, sinon boucle infinie.</li><li><code>for i in range(deb, fin):</code> → i = deb, deb + 1, …, <b>fin − 1</b> (borne exclue). <code>range(n)</code> = 0 … n − 1.</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Suivre un programme à la main : un tableau avec une colonne par variable et une ligne par instruction (ou par tour de boucle). C'est la question « que calcule / qu'affiche » du poly (exercices 8 à 13).</div>
+    <div class="box warn"><h5>Pièges</h5>L'échange de deux variables a besoin d'une variable auxiliaire (<code>c = a ; a = b ; b = c</code>), sinon on perd une valeur · une boucle <code>while</code> sur <code>n % 2 == 0</code> ne s'arrête jamais si n vaut 0 (exercice 13).</div>`],
+  ['3. Fonctions et portée des variables', 'fonctions', `<pre class="code"><code>def perimetre(rayon):
+    """Périmètre d'un cercle de rayon donné (rayon ≥ 0)."""
+    p = 2 * 3.14 * rayon
+    return p</code></pre>
+    <ul><li>Une fonction a une <b>signature</b> (nom + paramètres formels) et un <b>corps</b>. À l'appel, on lui passe des paramètres effectifs : <code>peri = perimetre(5)</code>.</li><li><code>return</code> renvoie une valeur à l'appelant ; sans <code>return</code>, la fonction renvoie <code>None</code>.</li><li>Les variables créées dans une fonction (et ses paramètres) sont <b>locales</b> : elles n'existent pas dehors (NameError).</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Distinguer « afficher » (<code>print</code>) et « renvoyer » (<code>return</code>) : quand on demande une fonction qui renvoie, on n'affiche rien.</div>
+    <div class="box warn"><h5>Pièges</h5>Un paramètre entier modifié dans la fonction ne change pas la variable de l'appelant ; une <b>liste</b> modifiée (<code>append</code>, <code>t[i] = …</code>) l'est, car c'est la même liste · ne jamais utiliser de variable globale dans une fonction.</div>`],
+  ['4. Complexité', 'complexité', `<p>On compte les opérations élémentaires (affectations, calculs, comparaisons) en fonction de la taille n de l'entrée, dans le <b>pire cas</b>, et on ne garde que le terme dominant sans constante : T(n) = 3n² + 5n + 2 → <b>O(n²)</b>.</p>
+    <table class="t"><tr><th>Code typique</th><th>Complexité</th></tr><tr><td>quelques instructions, pas de boucle dépendant de n</td><td>O(1) constante</td></tr><tr><td><code>while n &gt; 0: n = n // 2</code></td><td>O(log n) logarithmique</td></tr><tr><td>une boucle de n tours</td><td>O(n) linéaire</td></tr><tr><td>deux boucles imbriquées</td><td>O(n²) quadratique</td></tr><tr><td>trois boucles imbriquées</td><td>O(n³)</td></tr><tr><td>essayer tous les sous-ensembles</td><td>O(2ⁿ) exponentielle</td></tr></table>
+    <div class="box key"><h5>À savoir faire</h5>Boucles <b>imbriquées</b> : on multiplie. Boucles <b>successives</b> : on additionne (donc on garde la plus grosse). Une fonction appelée dans une boucle compte avec son propre coût (exemple du cours : appeler <code>u(k)</code>, qui coûte k, pour k = 0 … n donne O(n²)).</div>
+    <div class="box warn"><h5>Pièges</h5><code>for j in range(i)</code> dans <code>for i in range(n)</code> : n(n − 1)/2, c'est quand même O(n²) · une boucle de 100 tours fixes est O(1).</div>`],
+  ['5. Tableaux (listes)', 'listes, copies', `<ul><li>Création : <code>t = [1, 3, 5]</code>, <code>t = n * [0]</code>, <code>t = []</code> puis <code>t.append(x)</code>, ou en compréhension <code>[i ** 2 for i in range(n)]</code>.</li><li>Accès : <code>t[i]</code> pour i de 0 à <code>len(t) − 1</code> ; <code>t[-1]</code> = dernier élément.</li><li>Tranches : <code>t[a:b]</code> = indices a à b − 1 ; <code>t[a:]</code>, <code>t[:b]</code>. Une tranche est une nouvelle liste.</li><li><code>t1 + t2</code> concatène ; <code>x in t</code> teste l'appartenance ; <code>del t[i]</code> supprime ; <code>t.append(x)</code> ajoute un élément ; <code>t.extend([…])</code> ajoute plusieurs éléments.</li><li>Parcours : <code>for x in t</code> (valeurs), <code>for i in range(len(t))</code> (indices), <code>for i, x in enumerate(t)</code> (les deux).</li><li>Matrice = liste de lignes : <code>m[i][j]</code>, <code>len(m)</code> lignes, <code>len(m[0])</code> colonnes.</li></ul>
+    <div class="box warn"><h5>Piège n° 1 : les copies</h5><code>y = x</code> ne copie pas la liste, seulement son adresse : modifier y modifie x. Copier : <code>y = list(x)</code> ou <code>y = x[:]</code>. Pour une liste de listes, il faut copier chaque ligne : <code>[list(l) for l in x]</code> (exercice 29).</div>`],
+  ['6. Chaînes de caractères et tuples', 'chaînes', `<ul><li>Une chaîne se manipule comme une liste de lettres (<code>s[i]</code>, <code>s[a:b]</code>, <code>len(s)</code>, <code>for c in s</code>) mais on ne peut pas la modifier.</li><li><code>'sep'.join(liste)</code> recolle une liste de chaînes ; <code>s.split(',')</code> découpe ; <code>list(s)</code> donne la liste des lettres.</li><li>Caractères spéciaux : <code>\\n</code> (saut de ligne), <code>\\t</code> (tabulation), <code>\\'</code>.</li><li>Tuple : <code>(7, 2, 9)</code>, non modifiable ; pratique pour renvoyer plusieurs valeurs : <code>return (a, b)</code>.</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Pour « modifier » une chaîne : <code>l = list(s)</code>, modifier l, puis <code>''.join(l)</code>.</div>`],
+  ['7. Dictionnaires', 'dictionnaires', `<pre class="code"><code>d = {"Julien": 18, "Virginie": 19}
+d["Chloe"] = 21          # ajout
+d["Julien"] = d["Julien"] + 1   # modification
+print(len(d), "Chloe" in d)     # 3 True
+for c in d:              # parcourt les CLÉS
+    print(c, d[c])</code></pre>
+    <ul><li>Une table clé → valeur : les clés sont non modifiables (int, str, tuple, mais pas list).</li><li>Accès en temps constant (table de hachage), contrairement à la recherche dans une liste.</li><li>Copie : <code>d2 = d1</code> partage le même dictionnaire ; utiliser <code>copy</code>.</li></ul>
+    <div class="box key"><h5>Le schéma à connaître : compter</h5><code>if x in d: d[x] = d[x] + 1</code> sinon <code>d[x] = 1</code>.</div>
+    <div class="box warn"><h5>Pièges</h5><code>d[c]</code> pour une clé absente → KeyError : tester <code>c in d</code> avant · <code>in</code> teste les clés, pas les valeurs.</div>`],
+  ['8. Méthode : écrire une fonction au DS', 'écrire une fonction', `<ol style="padding-left:22px;margin-top:10px"><li>Recopier la <b>signature</b> demandée (nom, paramètres) ; ajouter une courte docstring.</li><li>Choisir la structure : un <b>accumulateur</b> (<code>s = 0</code>, <code>c = 0</code>, <code>res = []</code>, <code>d = {}</code>) puis une boucle qui le met à jour.</li><li><code>return</code> le résultat à la fin (pas de <code>print</code>).</li><li>Tester à la main sur l'exemple de l'énoncé et sur un cas limite (liste vide, 0, un seul élément).</li></ol>
+    <pre class="code"><code>def indice_maximum(t):
+    """Indice du maximum du tableau non vide t."""
+    im = 0
+    for i in range(len(t)):
+        if t[i] &gt; t[im]:
+            im = i
+    return im</code></pre>
+    <div class="box warn"><h5>Pièges</h5>Ne pas utiliser <code>max</code>, <code>min</code>, <code>sum</code>, <code>count</code> quand l'énoncé l'interdit · renvoyer une <b>nouvelle</b> liste si on le demande, au lieu de modifier celle reçue · indentation : tout ce qui est dans la boucle est décalé.</div>`]
+];
+function vCours(open) {
+  app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS du 23/10</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 8 fiches : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
+    ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}
+    <section class="card"><h2>Après le DS du 23/10</h2><p class="sub">Récursivité (cas de base + appel sur un problème plus petit), graphes (matrice et listes d'adjacence), piles et files, parcours en profondeur et en largeur, graphes pondérés, preuves de programmes : ce sera pour le DS du 7/12 et l'oral de janvier.</p></section>`;
+  if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
+}
+
+/* ---------- Sujet blanc ---------- */
+let EXAM = null, tick = 0;
+const DUR = 5400;
+const EXAM_PLAN = [['Exercice 1 · Types et valeurs', [['types', 1]], 4], ['Exercice 2 · Que calcule ce programme ?', [['boucles', 2], ['trace', 2]], 4], ['Exercice 3 · Fonctions, listes et copies', [['fonc', 1], ['alias', 2], ['list', 1]], 4], ['Exercice 4 · Complexité', [['cplx', 1]], 2], ['Exercice 5 · Écrire des fonctions', [['code2', 1], ['code3', 1]], 6]];
+function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+function vBlanc() {
+  const E = ls.get('algo.exam.v1', null);
+  if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
+  if (EXAM) return renderExam();
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">5 exercices dans le style des TD : types et valeurs (4 pts), programme à suivre (4 pts), fonctions, listes et copies (4 pts), complexité (2 pts), deux fonctions à écrire (6 pts, notées sur les tests réussis).</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button><span class="fine">Pour être au plus près du DS, écris d'abord tes fonctions sur papier, puis recopie-les.</span></div></section>
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+}
+function renderExam() {
+  const exs = examExos(EXAM.seed);
+  app.innerHTML = `<div><p class="eyebrow">Sujet blanc d'algorithmique</p><h1>DS · 1 h 30</h1></div>`
+    + exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
+    + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
+      : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button><span class="fine pyload" id="pyNote"></span></div>`);
+  if (EXAM.done && EXAM.fb) Object.entries(EXAM.fb).forEach(([id, h]) => { const fb = $(`.it[data-id="${id}"] .fb`, app); if (fb) fb.innerHTML = h; });
+  startTick();
+}
+function startTick() {
+  clearInterval(tick); const clk = $('#clock');
+  if (!EXAM || EXAM.done) { clk.hidden = true; return; }
+  clk.hidden = false;
+  const upd = () => { const left = DUR - (Date.now() - EXAM.t0) / 1000; clk.textContent = `${Math.floor(Math.max(0, left) / 3600)}:${String(Math.floor(Math.max(0, left) % 3600 / 60)).padStart(2, '0')}:${String(Math.floor(Math.max(0, left) % 60)).padStart(2, '0')}`; clk.classList.toggle('rush', left < 600); if (left <= 0) submitExam(true); };
+  upd(); tick = setInterval(upd, 1000);
+}
+async function submitExam(auto) {
+  if (!EXAM || EXAM.done || busy) return;
+  if (!auto && !confirm('Rendre la copie ?')) return;
+  busy = true; clearInterval(tick);
+  const note0 = $('#pyNote'); if (note0) note0.textContent = 'Correction en cours (les fonctions sont exécutées en Python, la première fois peut prendre 30 s)…';
+  const exs = examExos(EXAM.seed); let note = 0; const fb = {};
+  for (const ex of exs) {
+    const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
+    for (const it of its) { const r = await check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += r.st === 'ok' ? 1 : (r.frac || 0); }
+    note += ex.pts * got / its.length;
+  }
+  busy = false;
+  EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
+  try { localStorage.removeItem('algo.exam.v1'); } catch (e) { /* ignore */ }
+  if (auto) toast('Temps écoulé : copie rendue.');
+  renderExam(); window.scrollTo(0, 0);
+}
+
+/* =====================================================================
+   ÉVÉNEMENTS
+   ===================================================================== */
+let saveT = 0;
+document.addEventListener('click', e => {
+  const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab); return; }
+  const fi = e.target.closest('[data-fiche]'); if (fi) { setTab('cours'); vCours(+fi.dataset.fiche); return; }
+  const go = e.target.closest('[data-go]');
+  if (go) { if (CUR && CUR.mode === 'path' && !CUR.done && CUR.k.id === go.dataset.go) { $('#exHost').scrollIntoView({ behavior: 'smooth' }); return; } startEx(skById(go.dataset.go), { user: true }); renderPathTop(); renderMap(); return; }
+  const ft = e.target.closest('[data-ft]'); if (ft) { FREE.id = ft.dataset.ft; vExos(); return; }
+  const fd = e.target.closest('[data-fd]'); if (fd) { FREE.d = +fd.dataset.fd; vExos(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'check') checkCur();
+  else if (act === 'next') nextPath();
+  else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
+  else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; ls.set('algo.exam.v1', EXAM); renderExam(); }
+  else if (act === 'submit') submitExam(false);
+  else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
+});
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.matches('input, textarea')) return;
+  const id = t.dataset.id || t.name; if (!id) return;
+  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; try { localStorage.setItem('algo.exam.v1', JSON.stringify(EXAM)); } catch (err) { /* ignore */ } }
+  else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
+});
+document.addEventListener('change', e => { if (e.target.type === 'radio') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (e.key === 'Tab' && t.matches('textarea.codein')) {   // la tabulation indente au lieu de quitter la zone
+    e.preventDefault(); const s = t.selectionStart; t.value = t.value.slice(0, s) + '    ' + t.value.slice(t.selectionEnd); t.selectionStart = t.selectionEnd = s + 4; t.dispatchEvent(new Event('input', { bubbles: true }));
+  } else if (e.key === 'Enter' && t.matches('textarea.codein:not(.out)')) {   // garde l'indentation de la ligne précédente
+    e.preventDefault(); const s = t.selectionStart, line = t.value.slice(0, s).split('\n').pop(), ind = (/^\s*/.exec(line)[0]) + (/:\s*$/.test(line) ? '    ' : '');
+    t.value = t.value.slice(0, s) + '\n' + ind + t.value.slice(t.selectionEnd); t.selectionStart = t.selectionEnd = s + 1 + ind.length; t.dispatchEvent(new Event('input', { bubbles: true }));
+  } else if (e.key === 'Enter' && t.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); }
+});
+document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matches && e.target.matches('#exHost details.corr') && e.target.open) { CUR.peek = true; saveCur(); } }, true);
+
+(function () {
+  const ICON = { sun: '☀', moon: '☾', auto: '◐' }, KEY = 'qcm-maths-theme', btn = $('#themeBtn');
+  function apply(t) { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t; btn.textContent = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; btn.dataset.mode = t; btn.title = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t]; }
+  let t = 'auto'; try { t = localStorage.getItem(KEY) || 'auto'; } catch (e) { /* ignore */ }
+  apply(t);
+  btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
+})();
+function wireAccount() {
+  const A = window.SiteAccount; if (!A) return;
+  A.on('data', keys => {
+    if (!keys.some(k => k.startsWith('algo.'))) return;
+    if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
+    if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();
+  });
+}
+if (window.SiteAccount) wireAccount(); else window.addEventListener('siteaccount', wireAccount, { once: true });
+
+window.__ALGO = { GEN, build, checkSync, check, pyParse, pyRepr, same, SK, CODE, runPy };   // tests
+function boot() { const h = location.hash.slice(1); setTab(['home', 'path', 'cours', 'exos', 'blanc'].includes(h) ? h : 'home'); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+</body>
+</html>

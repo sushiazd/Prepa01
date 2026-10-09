@@ -10,6 +10,7 @@ Le site regroupe plusieurs outils de révision :
 | `elec/index.html` | l'entraînement au CC1 d'électronique (cours, démos, exos générés, annales, sujets blancs) |
 | `ato/index.html` | l'entraînement au CC d'atomistique (partie 1 « L'atome ») : parcours guidé, cours résumé, exercices générés corrigés, sujet blanc d'1 h |
 | `algo/index.html` | l'entraînement au DS d'algorithmique (chapitres 1 à 4 : bases de Python, fonctions, complexité, tableaux, dictionnaires) : parcours guidé, fonctions à écrire testées en Python dans le navigateur (Pyodide, dans un Worker), cours résumé, sujet blanc d'1 h 30 |
+| `meca/index.html` | l'entraînement au CC d'ingénierie mécanique (statique : vecteurs, moments, torseurs, liaisons, PFS) : parcours guidé avec schémas SVG générés, exercices du DS 2023-24, cours résumé, sujet blanc d'1 h 30 |
 | `phys/index.html` | l'entraînement au CC de mécanique du point (chapitres II à V : PFD, énergie, oscillateurs, moment cinétique) : parcours guidé, formules littérales vérifiées par tirage de valeurs, cours résumé + démos à savoir refaire, sujet blanc d'1 h 30 |
 | `duel/index.html` | le multijoueur : 1v1 (défis et duels en direct) et FFA (salle jusqu'à 8 joueurs, le dernier survivant gagne) sur le QCM de maths |
 | `streak/index.html` | le mode Streak : des questions du QCM de maths à la suite jusqu'à la première erreur, avec records (tout le programme, nouveaux types, format du QCM) |

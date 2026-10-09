@@ -225,6 +225,14 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
       <span class="meta" id="physMeta"></span>
       <span class="go">Ouvrir →</span>
     </a>
+    <a class="tool" href="meca/">
+      <span class="ic" aria-hidden="true">Σ</span>
+      <span class="kind">Ingénierie mécanique · Statique · CC du 9/12</span>
+      <h2>Ingénierie mécanique</h2>
+      <p>Vecteurs, moments, torseurs, liaisons et PFS : parcours guidé avec un schéma par exercice, les deux exercices du DS corrigé, cours résumé, sujet blanc d'1 h 30.</p>
+      <span class="meta" id="mecaMeta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
     <a class="tool duel streak" href="streak/">
       <span class="ic" aria-hidden="true">∞</span>
       <div>
@@ -301,6 +309,8 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   document.getElementById('algoMeta').innerHTML = [gSk ? `<b>${gSk}/12</b> compétences validées` : '', gH.length ? `dernier sujet blanc : <b>${String(gH[gH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   const pp = get('phys.path.v1', null), pSk = pp && pp.sk ? Object.values(pp.sk).filter(s => s.m >= 100).length : 0, pH = get('phys.hist.v1', []);
   document.getElementById('physMeta').innerHTML = [pSk ? `<b>${pSk}/14</b> compétences validées` : '', pH.length ? `dernier sujet blanc : <b>${String(pH[pH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
+  const mp = get('meca.path.v1', null), mSk = mp && mp.sk ? Object.values(mp.sk).filter(s => s.m >= 100).length : 0, mH = get('meca.hist.v1', []);
+  document.getElementById('mecaMeta').innerHTML = [mSk ? `<b>${mSk}/11</b> compétences validées` : '', mH.length ? `dernier sujet blanc : <b>${String(mH[mH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   document.getElementById('atoMeta').innerHTML = [aSk ? `<b>${aSk}/12</b> compétences validées` : '', aH.length ? `dernier sujet blanc : <b>${String(aH[aH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   const sk = get('streak.v1', null), best = sk && sk.best ? Math.max(0, ...Object.values(sk.best).map(b => b.n || 0)) : 0;
   document.getElementById('streakMeta').innerHTML = sk && sk.cur ? `Série en cours : <b>${sk.cur.n}</b> d'affilée · record <b>${best}</b>` : best ? `Record : <b>${best}</b> d'affilée` : '';

@@ -49,7 +49,7 @@
   /* ---------- Classement des événements ---------- */
   const SUBJ = { ELECA: 'Électronique analogique', ELECN: 'Électronique numérique', MATH: 'Maths', MATHS: 'Maths', PHYS: 'Physique',
     ALGO: 'Algorithmique', MECA: 'Mécanique', ANG: 'Anglais', ATO: 'Atomistique' };
-  const LINKS = { ELECA: 'elec/', MATH: 'maths/', MATHS: 'maths/', ATO: 'ato/', ALGO: 'algo/', PHYS: 'phys/' };
+  const LINKS = { ELECA: 'elec/', MATH: 'maths/', MATHS: 'maths/', ATO: 'ato/', ALGO: 'algo/', PHYS: 'phys/', MECA: 'meca/' };
   const isTiers = e => /tiers[\s-]*temps/i.test(e.t);
   const isRatt = e => /rattrapage/i.test(e.t);
   const isEval = e => /(?:^|[^A-Za-zÀ-ÿ])(CC|QCM|DS|EXAMEN|EXAM|PARTIEL|CONTR[ÔO]LE|INTERRO|TOEIC|TOIEC|ORAUX|ORAL|SOUTENANCE|[ÉE]VALUATION)(?![A-Za-zÀ-ÿ])/i.test(e.t);

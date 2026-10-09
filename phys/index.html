@@ -273,7 +273,9 @@ function parseF(src, vars, std) {
   let s = String(src);
   if (s.includes('=')) s = s.split('=').pop();
   s = s.replace(/\\(left|right)/g, '').replace(/\\[,;:! ]/g, '').replace(/[−–—]/g, '-').replace(/[×·∙⋅]/g, '*').replace(/÷/g, '/').replace(/,/g, '.').replace(/²/g, '^2').replace(/³/g, '^3')
-    .replace(/\\(cdot|times)/g, '*').replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)').replace(/_\{([^{}]*)\}/g, '$1').replace(/\\/g, '')
+    .replace(/\\(cdot|times)/g, '*');
+  for (let k = 0; k < 6 && /[{}]/.test(s); k++) s = s.replace(/\\sqrt\{([^{}]*)\}/g, 'sqrt($1)').replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)').replace(/_\{([^{}]*)\}/g, '$1').replace(/\^\{([^{}]*)\}/g, '^($1)');
+  s = s.replace(/\\/g, '')
     .replace(/[{\[]/g, '(').replace(/[}\]]/g, ')').replace(/_/g, '').replace(/\s+/g, '');
   if (!s) return { err: '' };
   const cands = [];

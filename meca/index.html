@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ingénierie mécanique · Entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../presence.js" data-external></script>
+<script defer src="../account.js" data-lazy></script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
+  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
+  --rule:#e4e0d6; --rule-strong:#cdc8bb;
+  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc;
+  --ok:#1f8a4c; --ok-soft:#e6f4ec; --bad:#c2352b; --bad-soft:#fbeceb; --warn:#9a5b00; --warn-soft:#fcf2da;
+  --phys:#c2410c; --phys-soft:#fdeee4;
+  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
+  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+    --rule:#2e2d2a; --rule-strong:#45433e;
+    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
+    --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+    --phys:#fb923c; --phys-soft:#3a2214;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+  --rule:#2e2d2a; --rule-strong:#45433e;
+  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
+  --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+  --phys:#fb923c; --phys-soft:#3a2214;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+h1,h2,h3,h4,p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+[hidden]{display:none !important}
+code{font-family:var(--mono);font-size:.9em;background:var(--sheet-2);padding:1px 5px;border-radius:5px;border:1px solid var(--rule)}
+.katex{font-size:1.05em}
+.katex-display{margin:.6em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;min-height:64px;padding:8px 24px;background:color-mix(in srgb,var(--paper) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;min-width:0}
+.brand-mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--phys);color:#fff;display:grid;place-items:center;font:italic 700 17px/1 var(--serif)}
+.brand strong{display:block;font:600 15px/1.2 var(--sans)}
+.brand small{display:block;color:var(--muted);font-size:12.5px}
+.tabs{display:flex;gap:4px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
+.tab{height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:500 14px/1 var(--sans);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.tab:hover{background:var(--sheet-2)}
+.tab[aria-current="page"]{background:var(--ink);color:var(--paper)}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer}
+.clock{font:800 22px/1 var(--sans);font-variant-numeric:tabular-nums}
+.clock.rush{color:var(--bad)}
+main{max-width:980px;margin:32px auto 90px;padding:0 24px;display:grid;gap:20px}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--phys);margin-bottom:10px}
+h1{font:600 clamp(28px,4.6vw,42px)/1.08 var(--serif);letter-spacing:-.02em}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:720px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:24px;min-width:0}
+.card h2{font:600 21px/1.25 var(--serif)}
+.sub{color:var(--ink-2);font-size:14.5px;margin-top:4px}
+.fine{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:600 14px/1 var(--sans);cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--pen)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn-primary:hover:not(:disabled){background:var(--pen-hover)}
+.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .sp{flex:1}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font:600 12.5px/1 var(--sans);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.part{background:var(--warn-soft);color:var(--warn)}
+.bar{height:10px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.bar.mid>i{background:var(--warn)} .bar.low>i{background:var(--bad)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600}
+.count{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.count b{font:800 clamp(40px,7vw,58px)/1 var(--sans);letter-spacing:-.04em;color:var(--phys);font-variant-numeric:tabular-nums}
+.count span{color:var(--ink-2)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+/* exercices */
+.ex .q{font:17px/1.6 var(--serif);margin-top:8px}
+.ex .q p+p{margin-top:8px}
+.items{display:grid;gap:12px;margin-top:16px}
+.it{display:grid;grid-template-columns:fit-content(40%) minmax(0,1fr);gap:4px 12px;align-items:center}
+.it-lab{text-align:right;font:16px/1.3 var(--serif);overflow-wrap:anywhere}
+.it-lab.w{font:15px/1.4 var(--sans);text-align:left}
+.it.full{grid-template-columns:minmax(0,1fr)}
+.it.full .fb,.it.full .pv,.it.full .vh{grid-column:1}
+.it-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.it-in input[type=text]{flex:1;min-width:0;width:100%;max-width:340px;font:15px/1.3 var(--mono);font-variant-ligatures:none;color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:42px}
+.it.ex-expr .it-in input[type=text]{max-width:none}
+.unit{font:15px/1 var(--sans);color:var(--ink-2);white-space:nowrap}
+.pv,.vh{grid-column:2;min-width:0;overflow-x:auto;overflow-y:hidden}
+.pv{padding:3px 0}
+.pv{font-size:15px;color:var(--ink-2);min-height:0}
+.pv:empty{display:none}
+.vh{font-size:12.5px;color:var(--muted)}
+.fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto;overflow-y:hidden}
+.fb:empty{display:none}
+.ch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);cursor:pointer;font-size:14.5px}
+.ch:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
+.ch input{accent-color:var(--pen);margin:0}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+details.corr{margin-top:14px}
+details.corr>summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen);padding:6px 0}
+.expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.6 var(--serif);overflow-x:auto}
+.expl p+p,.expl ul{margin-top:8px}
+.expl ul{padding-left:20px}
+.strip{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--phys-soft);border:1px solid color-mix(in srgb,var(--phys) 35%,transparent)}
+.strip b{font:600 17px/1.3 var(--serif)}
+.lvl{display:inline-flex;gap:4px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.lvl i{width:8px;height:8px;border-radius:50%;background:var(--rule-strong)} .lvl i.on{background:var(--phys)}
+.tag-rev{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font:600 11.5px/1 var(--sans)}
+.res{border-color:color-mix(in srgb,var(--pen) 40%,transparent)}
+.psk{display:grid;grid-template-columns:24px minmax(0,1fr) 110px auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--rule)}
+.psk .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 11px/1 var(--sans);background:var(--sheet-2);color:var(--muted);border:1px solid var(--rule)}
+.psk.val .ic{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.psk.cur .ic{background:var(--phys);color:#fff;border-color:transparent}
+.psk.rev .ic{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.psk.lock{opacity:.5}
+.psk .nm small{display:block;color:var(--muted);font-size:12.5px}
+.pch h3{font:600 17px/1.3 var(--serif);margin:16px 0 4px}
+/* cours */
+.fiche{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.fiche>summary{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:16px 22px;cursor:pointer;list-style:none;font:600 18px/1.3 var(--serif)}
+.fiche>summary::-webkit-details-marker{display:none}
+.fiche>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+.fiche[open]>summary::before{transform:rotate(90deg)}
+.fiche>summary .tag{margin-left:auto;font:600 11.5px/1 var(--sans);padding:5px 9px;border-radius:999px;background:var(--phys-soft);color:var(--phys)}
+.fiche .body{padding:4px 24px 22px;border-top:1px solid var(--rule);font:16.5px/1.65 var(--serif);overflow-x:auto}
+.fiche .body p,.fiche .body ul,.fiche .body ol{margin-top:10px}
+.fiche .body ul,.fiche .body ol{padding-left:22px}
+.box{margin-top:12px;padding:12px 16px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
+.box.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.box.key{background:var(--phys-soft);border-color:color-mix(in srgb,var(--phys) 30%,transparent)}
+.box h5{font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;margin:0 0 6px;color:var(--ink-2)}
+table.t{border-collapse:collapse;margin-top:10px;font:14.5px/1.4 var(--sans)}
+table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:left}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);font:500 13.5px/1 var(--sans);color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.score{font:800 clamp(48px,9vw,72px)/1 var(--sans);letter-spacing:-.03em}
+.hist{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+.hist td,.hist th{padding:8px;border-bottom:1px solid var(--rule);text-align:left}
+.fig{display:block;width:100%;max-width:440px;height:auto;margin:14px auto 0}
+.fig .st{stroke:var(--ink);stroke-width:3.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.fig .cab{stroke:var(--ink-2);stroke-width:2;fill:none}
+.fig .thin{stroke:var(--muted);stroke-width:1.1;fill:none}
+.fig .thin2{stroke:var(--ink-2);stroke-width:2;fill:none}
+.fig .dash{stroke-dasharray:5 4}
+.fig .fo{stroke:var(--bad);stroke-width:2.6;fill:none}
+.fig .mkf{fill:var(--bad)} .fig .mkk{fill:var(--muted)}
+.fig .dm{stroke:var(--muted);stroke-width:1}
+.fig .ax{stroke:var(--ink-2);stroke-width:1.4}
+.fig .ang{stroke:var(--pen);stroke-width:1.5;fill:none}
+.fig .sup{fill:var(--sheet);stroke:var(--ink);stroke-width:2}
+.fig .beam{fill:var(--sheet-2);stroke:var(--ink);stroke-width:2.4}
+.fig .pt{fill:var(--ink)}
+.fig text{fill:var(--ink);font:600 14px/1 var(--sans)}
+.fig text.fl{fill:var(--bad);font-weight:700}
+.fig text.dt{fill:var(--muted);font-weight:500;font-size:13px}
+.fig text.at{fill:var(--pen)}
+@media (max-width:760px){
+  .topbar{padding:8px 16px}
+  .brand small{display:none}
+  .tabs{order:3;flex-basis:100%;justify-content:flex-start}
+  main{padding:0 16px;margin-top:22px}
+  .card{padding:18px}
+  .grid2{grid-template-columns:1fr}
+  .it{grid-template-columns:1fr}
+  .it-lab{text-align:left}
+  .fb,.pv,.vh{grid-column:1}
+  .psk{grid-template-columns:24px minmax(0,1fr) auto} .psk .bar{display:none}
+  .fiche .body{padding:4px 16px 18px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">Σ</span><div><strong>Ingénierie mécanique</strong><small>Révisions du CC de statique</small></div></a>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button type="button" class="tab" data-tab="home">Accueil</button>
+    <button type="button" class="tab" data-tab="path">Parcours</button>
+    <button type="button" class="tab" data-tab="cours">Cours</button>
+    <button type="button" class="tab" data-tab="exos">Exos</button>
+    <button type="button" class="tab" data-tab="blanc">Sujet blanc</button>
+  </nav>
+  <span class="clock" id="clock" hidden></span>
+  <button type="button" class="icon-btn" id="themeBtn" aria-label="Thème"></button>
+</header>
+<main id="app"></main>
+
+<script>
+(function () {
+'use strict';
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const app = $('#app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
+};
+let toastT = 0;
+function toast(t) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500); }
+function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const G = R => ({ int: (a, b) => a + Math.floor(R() * (b - a + 1)), pick: a => a[Math.floor(R() * a.length)], shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }, r: R });
+const newSeed = () => Math.floor(Math.random() * 4294967296);
+function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
+function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
+
+/* ---------- nombres et unités ---------- */
+function nfmt(x, s = 3, tex = false) {
+  if (!isFinite(x)) return '?';
+  if (Math.abs(x) < 1e-12) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)) + 1e-9);
+  if (e >= 6 || e <= -3) {
+    let m = +(x / Math.pow(10, e)).toPrecision(s), ee = e; if (Math.abs(m) >= 10) { m /= 10; ee++; }
+    const ms = String(+m.toPrecision(s)).replace('.', tex ? '{,}' : ',');
+    return tex ? `${ms} \\times 10^{${ee}}` : `${ms} × 10^${ee}`;
+  }
+  return String(+x.toPrecision(s)).replace('.', tex ? '{,}' : ',');
+}
+const tN = (x, s = 3) => nfmt(x, s, true);
+const TU = { 'm': '\\mathrm{m}', 's': '\\mathrm{s}', 'm/s': '\\mathrm{m\\cdot s^{-1}}', 'm/s²': '\\mathrm{m\\cdot s^{-2}}', 'N': '\\mathrm{N}', 'J': '\\mathrm{J}', 'W': '\\mathrm{W}', 'rad/s': '\\mathrm{rad\\cdot s^{-1}}', 's⁻¹': '\\mathrm{s^{-1}}', 'kg': '\\mathrm{kg}', '°': '', 'kg·m²/s': '\\mathrm{kg\\cdot m^2\\cdot s^{-1}}', 'N·m': '\\mathrm{N\\cdot m}', 'kg/s': '\\mathrm{kg\\cdot s^{-1}}', '': '' };
+const Q = (x, u, s = 3) => u === '°' ? tN(x, s) + '^\\circ' : tN(x, s) + (TU[u] ? '\\ ' + TU[u] : '');
+const UN = {
+  'm': { m: 1, cm: .01, mm: 1e-3, km: 1e3, 'µm': 1e-6, 'μm': 1e-6, um: 1e-6 },
+  's': { s: 1, ms: 1e-3, 'µs': 1e-6, 'μs': 1e-6, us: 1e-6, min: 60, mn: 60, h: 3600, j: 86400, jour: 86400, jours: 86400 },
+  'm/s': { 'm/s': 1, 'm.s-1': 1, 'ms-1': 1, 'km/h': 1 / 3.6, 'km.h-1': 1 / 3.6, 'km/s': 1e3, 'km.s-1': 1e3, 'cm/s': .01, 'µm/s': 1e-6, 'μm/s': 1e-6, 'um/s': 1e-6 },
+  'm/s²': { 'm/s2': 1, 'm.s-2': 1, 'ms-2': 1 },
+  'N': { N: 1, kN: 1e3, daN: 10, mN: 1e-3 },
+  'J': { J: 1, kJ: 1e3, mJ: 1e-3, MJ: 1e6, GJ: 1e9 },
+  'W': { W: 1, kW: 1e3 },
+  'rad/s': { 'rad/s': 1, 'rad.s-1': 1, 's-1': 1, '/s': 1, '1/s': 1 },
+  's⁻¹': { 's-1': 1, '/s': 1, '1/s': 1, 'rad/s': 1 },
+  'kg': { kg: 1, g: 1e-3, mg: 1e-6, t: 1e3 },
+  '°': { '°': 1, deg: 1, 'degrés': 1, degres: 1 },
+  'kg·m²/s': { 'kg.m2/s': 1, 'kg.m2.s-1': 1, 'J.s': 1, Js: 1, 'kgm2/s': 1 },
+  'N·m': { 'N.m': 1, Nm: 1, 'm.N': 1, 'kN.m': 1e3, kNm: 1e3 },
+  'kg/s': { 'kg/s': 1, 'kg.s-1': 1 },
+  '': {}
+};
+function parseNum(raw, unit) {
+  const s = String(raw).trim().replace(/[−–]/g, '-').replace(/,/g, '.').replace(/\s+/g, ' ');
+  if (!s) return { err: '' };
+  const m = /^([-+]?(?:\d+\.?\d*|\.\d+))\s*(?:[eE]\s*([-+]?\d+)|(?:\*|x|×|·)\s*10\s*\^?\s*\(?\s*([-+]?\d+)\s*\)?)?\s*(.*)$/.exec(s);
+  if (!m) return { err: 'écris un nombre (ex : 2,5 ou 4,2e-3)' + (unit ? ', éventuellement suivi de l\'unité' : '') };
+  const v = parseFloat(m[1]) * Math.pow(10, +(m[2] || m[3] || 0));
+  const u = m[4].replace(/\s+/g, '').replace(/[·*]/g, '.').replace(/⁻¹/g, '-1').replace(/⁻²/g, '-2').replace(/²/g, '2').replace(/\^/g, '');
+  if (!u) return { v };
+  const f = (UN[unit] || {})[u];
+  if (f === undefined) return { err: unit ? 'unité attendue : ' + unit : 'cette grandeur n\'a pas d\'unité' };
+  return { v: v * f };
+}
+
+/* ---------- formules littérales ---------- */
+// nom : [TeX, min, max (tirage pour la vérification), autres écritures acceptées]
+const VD = {
+  F: ['F', 1, 5], F1: ['F_1', 1, 5], F2: ['F_2', 1, 5], P: ['P', 1, 5], Q: ['Q', 1, 5], a: ['a', .5, 3], d: ['d', .5, 3], e: ['e', .5, 3],
+  L: ['L', 1, 2], l: ['\\ell', 1.2, 3, ['ℓ', 'ell']], h: ['h', .5, 3], H: ['H', .5, 3],
+  alpha: ['\\alpha', .2, 1.3, ['α', 'a']], beta: ['\\beta', .1, 1.2, ['β', 'b']], theta: ['\\theta', .2, 1.3, ['θ', 't']], theta1: ['\\theta_1', .2, 1.3, ['θ1', 't1']], theta2: ['\\theta_2', .2, 1.3, ['θ2', 't2']]
+};
+const FUNCS = { sqrt: Math.sqrt, '√': Math.sqrt, sin: Math.sin, cos: Math.cos, tan: Math.tan, exp: Math.exp, ln: Math.log };
+const FTEX = { sin: '\\sin', cos: '\\cos', tan: '\\tan', ln: '\\ln' };
+function parseF(src, vars, std) {
+  let s = String(src);
+  if (s.includes('=')) s = s.split('=').pop();
+  s = s.replace(/\\(left|right)/g, '').replace(/\\[,;:! ]/g, '').replace(/[−–—]/g, '-').replace(/[×·∙⋅]/g, '*').replace(/÷/g, '/').replace(/,/g, '.').replace(/²/g, '^2').replace(/³/g, '^3')
+    .replace(/\\(cdot|times)/g, '*');
+  for (let k = 0; k < 6 && /[{}]/.test(s); k++) s = s.replace(/\\sqrt\{([^{}]*)\}/g, 'sqrt($1)').replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)').replace(/_\{([^{}]*)\}/g, '$1').replace(/\^\{([^{}]*)\}/g, '^($1)');
+  s = s.replace(/\\/g, '')
+    .replace(/[{\[]/g, '(').replace(/[}\]]/g, ')').replace(/_/g, '').replace(/\s+/g, '');
+  if (!s) return { err: '' };
+  const cands = [];
+  vars.forEach(v => { cands.push([v, 'var', v]); (VD[v][3] || []).filter(a => !vars.includes(a)).forEach(a => cands.push([a, 'var', v])); });
+  Object.keys(FUNCS).forEach(f => cands.push([f, 'fn', f === '√' ? 'sqrt' : f]));
+  cands.push(['pi', 'pi'], ['π', 'pi']);
+  cands.sort((a, b) => b[0].length - a[0].length);
+  const toks = []; let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (/[0-9.]/.test(ch)) { let j = i; while (j < s.length && /[0-9.]/.test(s[j])) j++; const t = s.slice(i, j); if (t === '.' || (t.match(/\./g) || []).length > 1) return { err: 'nombre mal écrit : ' + t }; toks.push({ t: 'num', v: parseFloat(t), s: t }); i = j; continue; }
+    if ('+-*/^()'.includes(ch)) { toks.push({ t: ch }); i++; continue; }
+    const c = cands.find(c => c[1] === 'fn' || c[1] === 'pi' ? s.slice(i, i + c[0].length).toLowerCase() === c[0] : s.startsWith(c[0], i));
+    if (!c) return { err: 'lettre inconnue : « ' + ch + ' »' };
+    toks.push(c[1] === 'var' ? { t: 'var', n: c[2] } : c[1] === 'fn' ? { t: 'fn', f: c[2] } : { t: 'pi' });
+    i += c[0].length;
+  }
+  let p = 0;
+  const peek = () => toks[p];
+  const start = k => k && (k.t === 'num' || k.t === 'var' || k.t === '(' || k.t === 'fn' || k.t === 'pi');
+  function expr() { let a = term(); while (peek() && (peek().t === '+' || peek().t === '-')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: term() }; } return a; }
+  function term() {
+    let a = jux();
+    for (;;) {
+      if (peek() && (peek().t === '*' || peek().t === '/')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: jux() }; }
+      else if (std && start(peek())) a = { t: 'bin', op: 'j', a, b: power() };
+      else return a;
+    }
+  }
+  function jux() { let a = unary(); while (!std && start(peek())) a = { t: 'bin', op: 'j', a, b: power() }; return a; }
+  function unary() { const k = peek(); if (k && k.t === '-') { p++; return { t: 'neg', a: unary() }; } if (k && k.t === '+') { p++; return unary(); } return power(); }
+  function power() { let a = atom(); if (peek() && peek().t === '^') { p++; a = { t: 'bin', op: '^', a, b: unary() }; } return a; }
+  function atom() {
+    const k = toks[p++]; if (!k) throw 'formule incomplète';
+    if (k.t === 'num') return { t: 'num', v: k.v, s: k.s };
+    if (k.t === 'var') return { t: 'var', n: k.n };
+    if (k.t === 'pi') return { t: 'pi' };
+    if (k.t === 'fn') { let e = null; if (peek() && peek().t === '^') { p++; e = atom(); } let a; if (peek() && peek().t === '(') { p++; a = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; } else a = std ? power() : jux(); const f = { t: 'fn', f: k.f, a }; return e ? { t: 'bin', op: '^', a: f, b: e } : f; }
+    if (k.t === '(') { const e = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; return e; }
+    throw 'symbole « ' + k.t + ' » mal placé';
+  }
+  try { const ast = expr(); if (p < toks.length) throw 'symbole « ' + toks[p].t + ' » mal placé'; return { ast }; }
+  catch (e) { return { err: String(e) }; }
+}
+function evF(n, v) {
+  switch (n.t) {
+    case 'num': return n.v;
+    case 'var': return v[n.n];
+    case 'pi': return Math.PI;
+    case 'neg': return -evF(n.a, v);
+    case 'fn': return FUNCS[n.f](evF(n.a, v));
+    default: { const a = evF(n.a, v), b = evF(n.b, v); return n.op === '+' ? a + b : n.op === '-' ? a - b : n.op === '/' ? a / b : n.op === '^' ? Math.pow(a, b) : a * b; }
+  }
+}
+function texF(n) {
+  const isSum = x => x.t === 'neg' || (x.t === 'bin' && (x.op === '+' || x.op === '-'));
+  const wrap = x => isSum(x) ? '\\left(' + texF(x) + '\\right)' : texF(x);
+  switch (n.t) {
+    case 'num': return n.s.replace('.', '{,}');
+    case 'var': return VD[n.n][0];
+    case 'pi': return '\\pi';
+    case 'neg': return '-' + wrap(n.a);
+    case 'fn': return n.f === 'sqrt' ? '\\sqrt{' + texF(n.a) + '}' : n.f === 'exp' ? 'e^{' + texF(n.a) + '}' : FTEX[n.f] + '\\left(' + texF(n.a) + '\\right)';
+    default:
+      if (n.op === '/') return '\\dfrac{' + texF(n.a) + '}{' + texF(n.b) + '}';
+      if (n.op === '+') return texF(n.a) + ' + ' + texF(n.b);
+      if (n.op === '-') return texF(n.a) + ' - ' + wrap(n.b);
+      if (n.op === '^') return '{' + (n.a.t === 'bin' || n.a.t === 'neg' || n.a.t === 'fn' ? '\\left(' + texF(n.a) + '\\right)' : texF(n.a)) + '}^{' + texF(n.b) + '}';
+      { const A = n.a.t === 'neg' ? texF(n.a) : wrap(n.a), B = wrap(n.b); return A + (/^[0-9]/.test(B) ? ' \\times ' : '\\,') + B; }
+  }
+}
+function checkExpr1(P, it) {
+  if (P.err !== undefined) return { st: P.err === '' ? 'empty' : 'err', msg: P.err };
+  let ok = true, opp = true;
+  for (let t = 0; t < 8; t++) {
+    const v = {}; it.vars.forEach(k => { const d = VD[k]; v[k] = d[1] + Math.random() * (d[2] - d[1]); });
+    const r = it.ref(v), u = evF(P.ast, v);
+    if (!isFinite(r)) { t--; continue; }
+    if (!isFinite(u)) { ok = opp = false; break; }
+    const tol = 1e-6 * Math.max(1, Math.abs(r));
+    if (Math.abs(u - r) > tol) ok = false;
+    if (Math.abs(u + r) > tol || Math.abs(r) < 1e-9) opp = false;
+  }
+  return { st: ok ? 'ok' : opp ? 'sign' : 'bad' };
+}
+function checkExpr(raw, it) {
+  const a = checkExpr1(parseF(raw, it.vars, false), it);
+  if (a.st === 'ok' || a.st === 'empty' || a.st === 'err') return a;
+  const b = checkExpr1(parseF(raw, it.vars, true), it);   // autre lecture de « v0^2/2g »
+  return b.st === 'ok' ? b : a;
+}
+const varsHint = vs => 'avec ' + vs.map(v => { const al = (VD[v][3] || [])[0]; return '<code>' + esc(v) + '</code>' + (al && al.length === 1 && /[^a-zA-Z]/.test(al) ? ' ou ' + esc(al) : ''); }).join(', ');
+
+/* =====================================================================
+   SCHÉMAS (SVG générés : repère écran, y vers le bas)
+   ===================================================================== */
+const fx1 = x => Math.round(x * 10) / 10;
+const FIG_DEFS = '<defs><marker id="mkF" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" class="mkf"/></marker><marker id="mkK" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="mkk"/></marker></defs>';
+const fig = (body, h = 230) => `<svg class="fig" viewBox="0 0 400 ${h}" role="img" aria-label="Schéma de l'exercice">${FIG_DEFS}${body}</svg>`;
+const sv = {
+  line: (x1, y1, x2, y2, c = 'st') => `<line class="${c}" x1="${fx1(x1)}" y1="${fx1(y1)}" x2="${fx1(x2)}" y2="${fx1(y2)}"/>`,
+  poly: (pts, c = 'st') => `<polyline class="${c}" points="${pts.map(p => fx1(p[0]) + ',' + fx1(p[1])).join(' ')}"/>`,
+  text: (x, y, s, a = 'middle', c = '') => `<text x="${fx1(x)}" y="${fx1(y)}" text-anchor="${a}" class="${c}">${s}</text>`,
+  // force : flèche de (x1,y1) vers (x2,y2), étiquette près de la pointe
+  force(x1, y1, x2, y2, lab, dx = 10, dy = -6) { return `<line class="fo" x1="${fx1(x1)}" y1="${fx1(y1)}" x2="${fx1(x2)}" y2="${fx1(y2)}" marker-end="url(#mkF)"/>` + (lab ? sv.text(x2 + dx, y2 + dy, lab, dx < 0 ? 'end' : 'start', 'fl') : ''); },
+  // force d'angle phi (degrés, sens trigo) qui ARRIVE au point (x,y) ou en PART (from = true)
+  forceAt(x, y, phi, len, lab, from) { const ux = Math.cos(phi * Math.PI / 180), uy = -Math.sin(phi * Math.PI / 180); return from ? sv.force(x, y, x + ux * len, y + uy * len, lab, ux < -0.3 ? -10 : 10, uy > 0.3 ? 14 : -6) : sv.force(x - ux * len, y - uy * len, x, y, '') + (lab ? sv.text(x - ux * (len + 14), y - uy * (len + 14) + 5, lab, 'middle', 'fl') : ''); },
+  dot: (x, y) => `<circle cx="${fx1(x)}" cy="${fx1(y)}" r="3.2" class="pt"/>`,
+  wall(x, y, h, side = -1) { let s = sv.line(x, y - h / 2, x, y + h / 2, 'thin2'); for (let i = 0; i <= h; i += 9) s += sv.line(x, y - h / 2 + i, x + side * 8, y - h / 2 + i + 8, 'thin'); return s; },
+  ground(x, y, w) { let s = sv.line(x - w / 2, y, x + w / 2, y, 'thin2'); for (let i = 0; i <= w; i += 9) s += sv.line(x - w / 2 + i, y, x - w / 2 + i - 8, y + 8, 'thin'); return s; },
+  pin: (x, y) => `<path class="sup" d="M${fx1(x)},${fx1(y)} L${fx1(x - 11)},${fx1(y + 18)} L${fx1(x + 11)},${fx1(y + 18)} Z"/><circle class="sup" cx="${fx1(x)}" cy="${fx1(y)}" r="4.5"/>` + sv.ground(x, y + 18, 34),
+  roller: (x, y) => `<path class="sup" d="M${fx1(x)},${fx1(y)} L${fx1(x - 11)},${fx1(y + 14)} L${fx1(x + 11)},${fx1(y + 14)} Z"/><circle class="sup" cx="${fx1(x - 6)}" cy="${fx1(y + 18)}" r="3.5"/><circle class="sup" cx="${fx1(x + 6)}" cy="${fx1(y + 18)}" r="3.5"/>` + sv.ground(x, y + 22, 34),
+  dimH(x1, x2, y, lab) { return `<line class="dm" x1="${fx1(x1)}" y1="${fx1(y)}" x2="${fx1(x2)}" y2="${fx1(y)}" marker-start="url(#mkK)" marker-end="url(#mkK)"/>` + sv.text((x1 + x2) / 2, y - 5, lab, 'middle', 'dt'); },
+  dimV(x, y1, y2, lab) { return `<line class="dm" x1="${fx1(x)}" y1="${fx1(y1)}" x2="${fx1(x)}" y2="${fx1(y2)}" marker-start="url(#mkK)" marker-end="url(#mkK)"/>` + sv.text(x - 6, (y1 + y2) / 2 + 4, lab, 'end', 'dt'); },
+  arc(cx, cy, r, a1, a2, lab) {   // angles en degrés, sens trigo
+    const P = a => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)], p1 = P(a1), p2 = P(a2), m = (a1 + a2) / 2, q = [cx + (r + 13) * Math.cos(m * Math.PI / 180), cy - (r + 13) * Math.sin(m * Math.PI / 180) + 5];
+    return `<path class="ang" d="M${fx1(p1[0])},${fx1(p1[1])} A${r},${r} 0 0 ${a2 > a1 ? 0 : 1} ${fx1(p2[0])},${fx1(p2[1])}"/>` + (lab ? sv.text(q[0], q[1], lab, 'middle', 'at') : '');
+  },
+  axes(x, y, lx = 'x', ly = 'y') { return `<line class="ax" x1="${x}" y1="${y}" x2="${x + 38}" y2="${y}" marker-end="url(#mkK)"/><line class="ax" x1="${x}" y1="${y}" x2="${x}" y2="${y - 38}" marker-end="url(#mkK)"/>` + sv.text(x + 44, y + 4, lx, 'start', 'dt') + sv.text(x, y - 44, ly, 'middle', 'dt') + `<circle class="thin" cx="${x}" cy="${y}" r="4"/>` + sv.text(x - 8, y + 14, 'z', 'end', 'dt'); }
+};
+
+/* =====================================================================
+   GÉNÉRATEURS D'EXERCICES
+   items : num (valeur + unité) · expr (formule littérale) · choice
+   ===================================================================== */
+const gE = 9.81, D2R = Math.PI / 180;
+const Nn = (lab, val, unit, o) => Object.assign({ type: 'num', lab, val, unit }, o || {});
+const Ex = (lab, vars, ref, sol) => ({ type: 'expr', lab, vars, ref, sol });
+const Ch = (lab, opts, ans) => ({ type: 'choice', lab, opts: opts.map(([v, t]) => ({ v, t })), ans });
+const GEN = {};
+const sinD = a => Math.sin(a * D2R), cosD = a => Math.cos(a * D2R);
+const sgn = (x, first) => x < 0 ? (first ? '-' : ' - ') : (first ? '' : ' + ');
+const cross = (u, v) => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+const vtex = v => `\\begin{pmatrix} ${v.map(x => tN(x)).join(' \\\\ ')} \\end{pmatrix}`;
+const tor = (R, M, P) => `\\begin{Bmatrix} ${R[0]} & ${M[0]} \\\\ ${R[1]} & ${M[1]} \\\\ ${R[2]} & ${M[2]} \\end{Bmatrix}_{${P}}`;
+
+/* ---------- 1. projection d'une force ---------- */
+// cas : [direction de référence (degrés), sens] ; direction de F = ref + s·α
+const PC = [[0, 1, 'entre \\(\\vec x\\) et \\(\\vec F\\)'], [0, -1, 'entre \\(\\vec x\\) et \\(\\vec F\\) (sous l\'axe)'], [90, -1, 'entre \\(\\vec y\\) et \\(\\vec F\\)'], [90, 1, 'entre \\(\\vec y\\) et \\(\\vec F\\)'], [-90, 1, 'entre \\(-\\vec y\\) et \\(\\vec F\\)'], [180, -1, 'entre \\(-\\vec x\\) et \\(\\vec F\\)']];
+const cosT = (ref, s) => ref === 0 ? ['', 'cos'] : ref === 180 ? ['-', 'cos'] : ref === 90 ? [s > 0 ? '-' : '', 'sin'] : [s > 0 ? '' : '-', 'sin'];
+const sinT = (ref, s) => ref === 0 ? [s > 0 ? '' : '-', 'sin'] : ref === 180 ? [s > 0 ? '-' : '', 'sin'] : ref === 90 ? ['', 'cos'] : ['-', 'cos'];
+const trig = ([sg, f], F, a) => `${sg}${F}\\${f}${a}`;
+function projFig(cases) {
+  const ox = 200, oy = 125; let s = '';
+  s += sv.line(ox - 100, oy, ox + 110, oy, 'thin') + sv.line(ox, oy + 95, ox, oy - 100, 'thin') + sv.text(ox + 114, oy + 4, 'x', 'start', 'dt') + sv.text(ox, oy - 104, 'y', 'middle', 'dt');
+  cases.forEach(([ref, sgn1, av, lab, alab], i) => { const phi = ref + sgn1 * av; s += (ref === 180 || ref === -90 ? sv.line(ox, oy, ox + 70 * Math.cos(ref * D2R), oy - 70 * Math.sin(ref * D2R), 'thin dash') : '') + sv.forceAt(ox, oy, phi, 92, lab, true) + sv.arc(ox, oy, 36 + 18 * i, ref, phi, alab); });
+  return fig(s, 240);
+}
+GEN.proj = (d, g) => {
+  if (d < 2) {
+    const k = g.pick(d === 0 ? [0, 1, 2] : [3, 4, 5]), [ref, s] = PC[k], av = g.int(28, 52);
+    return { title: 'Projeter une force dans la base', fig: projFig([[ref, s, av, 'F', 'α']]),
+      q: `<p>Exprimer les composantes de \\(\\vec F\\) dans la base \\((\\vec x, \\vec y)\\) en fonction de sa norme \\(F\\) et de l'angle \\(\\alpha\\) (angle ${PC[k][2]}).</p>`,
+      items: [Ex('F_x', ['F', 'alpha'], v => v.F * Math.cos((ref + s * v.alpha / D2R) * D2R), 'F_x = ' + trig(cosT(ref, s), 'F', '\\alpha')), Ex('F_y', ['F', 'alpha'], v => v.F * Math.sin((ref + s * v.alpha / D2R) * D2R), 'F_y = ' + trig(sinT(ref, s), 'F', '\\alpha'))],
+      corr: `<p>On projette sur chaque axe : la composante sur l'axe <b>adjacent</b> à l'angle \\(\\alpha\\) porte le \\(\\cos\\alpha\\), l'autre le \\(\\sin\\alpha\\). Le signe se lit sur la figure (la flèche va-t-elle vers les \\(x\\) positifs ? vers les \\(y\\) positifs ?).</p><p>\\(\\vec F = ${trig(cosT(ref, s), 'F', '\\alpha')}\\,\\vec x ${sinT(ref, s)[0] === '-' ? '' : '+'} ${trig(sinT(ref, s), 'F', '\\alpha')}\\,\\vec y\\).</p><p class="fine">Vérification : \\(F_x^2 + F_y^2 = F^2\\).</p>` };
+  }
+  const [k1, k2] = g.shuffle([0, 1, 2, 3, 4, 5]).slice(0, 2), F1 = g.pick([100, 200, 300, 500]), F2 = g.pick([100, 200, 400]), a1 = g.pick([20, 30, 40, 50]), a2 = g.pick([30, 45, 60]);
+  const c1 = [F1 * cosD(PC[k1][0] + PC[k1][1] * a1), F1 * sinD(PC[k1][0] + PC[k1][1] * a1)], c2 = [F2 * cosD(PC[k2][0] + PC[k2][1] * a2), F2 * sinD(PC[k2][0] + PC[k2][1] * a2)], R = [c1[0] + c2[0], c1[1] + c2[1]];
+  return { title: 'Résultante de deux forces', fig: projFig([[PC[k1][0], PC[k1][1], a1, 'F₁', 'α₁'], [PC[k2][0], PC[k2][1], a2, 'F₂', 'α₂']]),
+    q: `<p>Deux forces s'appliquent au même point : \\(F_1 = ${F1}\\ \\mathrm{N}\\), \\(\\alpha_1 = ${a1}^\\circ\\) (angle ${PC[k1][2].replace(/F\\\)/g, 'F_1\\)')}) et \\(F_2 = ${F2}\\ \\mathrm{N}\\), \\(\\alpha_2 = ${a2}^\\circ\\) (angle ${PC[k2][2].replace(/F\\\)/g, 'F_2\\)')}). Calculer les composantes de la résultante \\(\\vec R = \\vec F_1 + \\vec F_2\\) et sa norme.</p>`,
+    items: [Nn('R_x', R[0], 'N'), Nn('R_y', R[1], 'N'), Nn('\\|\\vec R\\|', Math.hypot(R[0], R[1]), 'N')],
+    corr: `<p>\\(\\vec F_1 = (${tN(c1[0])},\\ ${tN(c1[1])})\\ \\mathrm{N}\\) et \\(\\vec F_2 = (${tN(c2[0])},\\ ${tN(c2[1])})\\ \\mathrm{N}\\).</p><p>\\(\\vec R = (${tN(R[0])},\\ ${tN(R[1])})\\ \\mathrm{N}\\), \\(\\|\\vec R\\| = \\sqrt{R_x^2 + R_y^2} = ${Q(Math.hypot(R[0], R[1]), 'N')}\\).</p>` };
+};
+
+/* ---------- 2. produit vectoriel ---------- */
+const BV = { x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1] }, BOPT = [['x', '\\(\\vec x\\)'], ['-x', '\\(-\\vec x\\)'], ['y', '\\(\\vec y\\)'], ['-y', '\\(-\\vec y\\)'], ['z', '\\(\\vec z\\)'], ['-z', '\\(-\\vec z\\)'], ['0', '\\(\\vec 0\\)']];
+GEN.pvec = (d, g) => {
+  if (d === 0) {
+    const pairs = g.shuffle([['x', 'y'], ['y', 'z'], ['z', 'x'], ['y', 'x'], ['z', 'y'], ['x', 'z'], ['x', 'x'], ['z', 'z']]).slice(0, 3);
+    const res = ([u, v]) => { const c = cross(BV[u], BV[v]), i = c.findIndex(t => t !== 0); return i < 0 ? '0' : (c[i] < 0 ? '-' : '') + 'xyz'[i]; };
+    return { title: 'Produits vectoriels des vecteurs de base', q: '<p>La base \\((\\vec x, \\vec y, \\vec z)\\) est orthonormée directe. Donner les produits vectoriels suivants.</p>',
+      items: pairs.map(p => Ch(`\\(\\vec ${p[0]}\\wedge\\vec ${p[1]} =\\)`, BOPT, res(p))),
+      corr: `<p>Base directe : \\(\\vec x\\wedge\\vec y = \\vec z\\), \\(\\vec y\\wedge\\vec z = \\vec x\\), \\(\\vec z\\wedge\\vec x = \\vec y\\) (ordre circulaire x → y → z → x). Dans l'autre ordre on change le signe, et \\(\\vec u\\wedge\\vec u = \\vec 0\\).</p><ul>${pairs.map(p => `<li>\\(\\vec ${p[0]}\\wedge\\vec ${p[1]} = ${res(p) === '0' ? '\\vec 0' : res(p).replace(/^(-?)(.)$/, '$1\\vec $2')}\\)</li>`).join('')}</ul>` };
+  }
+  if (d === 1) {
+    const r = () => g.pick([-3, -2, -1, 1, 2, 3, 0]), u = [r(), r(), r()], v = [r(), r(), r()], c = cross(u, v);
+    return { title: 'Calculer un produit vectoriel', q: `<p>Calculer \\(\\vec u\\wedge\\vec v\\) avec \\(\\vec u = ${vtex(u)}\\) et \\(\\vec v = ${vtex(v)}\\) dans une base orthonormée directe.</p>`,
+      items: [Nn('(\\vec u\\wedge\\vec v)_x', c[0], ''), Nn('(\\vec u\\wedge\\vec v)_y', c[1], ''), Nn('(\\vec u\\wedge\\vec v)_z', c[2], '')],
+      corr: `<p>\\(\\vec u\\wedge\\vec v = \\begin{pmatrix} u_y v_z - u_z v_y \\\\ u_z v_x - u_x v_z \\\\ u_x v_y - u_y v_x \\end{pmatrix} = ${vtex(c)}\\)</p><p class="fine">Astuce : on recopie les deux premières lignes sous les vecteurs et on fait les « produits en croix » en partant de la 2<sup>e</sup> ligne.</p>` };
+  }
+  return { title: 'Produit vectoriel littéral', fig: (() => { const ox = 160, oy = 120; return fig(sv.line(ox - 20, oy, ox + 130, oy, 'thin') + sv.text(ox + 134, oy + 4, 'x', 'start', 'dt') + sv.line(ox, oy + 20, ox, oy - 100, 'thin') + sv.text(ox, oy - 104, 'y', 'middle', 'dt') + sv.forceAt(ox, oy, 38, 100, 'F₁', true) + sv.forceAt(ox, oy, -90, 80, 'F₂', true) + sv.arc(ox, oy, 40, 0, 38, 'α'), 230); })(),
+    q: '<p>\\(\\vec F_1\\) fait l\'angle \\(\\alpha\\) avec \\(\\vec x\\) dans le plan \\((\\vec x, \\vec y)\\), et \\(\\vec F_2 = -F_2\\,\\vec y\\) (TD 1, exercice 2). Donner les composantes demandées.</p>',
+    items: [Ex('(\\vec F_1\\wedge\\vec x)\\cdot\\vec z', ['F1', 'alpha'], v => -v.F1 * Math.sin(v.alpha), '-F_1\\sin\\alpha'), Ex('(\\vec F_1\\wedge\\vec z)\\cdot\\vec y', ['F1', 'alpha'], v => -v.F1 * Math.cos(v.alpha), '-F_1\\cos\\alpha'), Ex('(\\vec F_1\\wedge\\vec F_2)\\cdot\\vec z', ['F1', 'F2', 'alpha'], v => -v.F1 * v.F2 * Math.cos(v.alpha), '-F_1F_2\\cos\\alpha')],
+    corr: '<p>\\(\\vec F_1 = F_1\\cos\\alpha\\,\\vec x + F_1\\sin\\alpha\\,\\vec y\\).</p><p>\\(\\vec F_1\\wedge\\vec x = F_1\\cos\\alpha\\,(\\vec x\\wedge\\vec x) + F_1\\sin\\alpha\\,(\\vec y\\wedge\\vec x) = -F_1\\sin\\alpha\\,\\vec z\\).</p><p>\\(\\vec F_1\\wedge\\vec z = F_1\\cos\\alpha\\,(\\vec x\\wedge\\vec z) + F_1\\sin\\alpha\\,(\\vec y\\wedge\\vec z) = -F_1\\cos\\alpha\\,\\vec y + F_1\\sin\\alpha\\,\\vec x\\).</p><p>\\(\\vec F_1\\wedge\\vec F_2 = -F_1F_2\\cos\\alpha\\,(\\vec x\\wedge\\vec y) - F_1F_2\\sin\\alpha\\,(\\vec y\\wedge\\vec y) = -F_1F_2\\cos\\alpha\\,\\vec z\\).</p>' };
+};
+
+/* ---------- 3. moment d'une force ---------- */
+GEN.moment = (d, g) => {
+  if (d === 0) {
+    const av = g.int(35, 60), A = [60, 150], B = [300, 150];
+    const f = sv.line(A[0], A[1], B[0], B[1]) + sv.text(A[0], A[1] + 20, 'A') + sv.text(B[0], B[1] + 20, 'B') + sv.line(B[0], B[1], B[0] + 70, B[1], 'thin') + sv.forceAt(B[0], B[1], av, 85, 'F', true) + sv.arc(B[0], B[1], 34, 0, av, 'α') + sv.dimH(A[0], B[0], 195, 'L') + sv.axes(20, 90);
+    return { title: 'Moment d\'une force par rapport à un point', fig: fig(f, 215),
+      q: '<p>Une poutre [AB] de longueur \\(L\\), orientée selon \\(\\vec x\\), reçoit en B une force \\(\\vec F\\) de norme \\(F\\) faisant l\'angle \\(\\alpha\\) avec \\(\\vec x\\) (TD 1, exercice 3). Donner le moment de \\(\\vec F\\) en B, puis la composante sur \\(\\vec z\\) du moment en A.</p>',
+      items: [Ch('\\(\\vec{\\mathcal M}_B(\\vec F) =\\)', [['0', '\\(\\vec 0\\)'], ['l', '\\(LF\\sin\\alpha\\,\\vec z\\)'], ['m', '\\(-LF\\cos\\alpha\\,\\vec z\\)']], '0'), Ex('\\mathcal M_{A,z}', ['L', 'F', 'alpha'], v => v.L * v.F * Math.sin(v.alpha), 'LF\\sin\\alpha')],
+      corr: '<p>\\(\\vec{\\mathcal M}_B(\\vec F) = \\vec{BB}\\wedge\\vec F = \\vec 0\\) : le moment d\'une force est nul en tout point de sa ligne d\'action.</p><p>\\(\\vec{\\mathcal M}_A(\\vec F) = \\vec{AB}\\wedge\\vec F = L\\vec x\\wedge(F\\cos\\alpha\\,\\vec x + F\\sin\\alpha\\,\\vec y) = LF\\sin\\alpha\\,\\vec z\\).</p><p>Sens physique : le moment mesure la capacité de la force à faire <b>tourner</b> le solide autour de A. Sa norme vaut \\(F\\times d\\), où \\(d = L\\sin\\alpha\\) est le bras de levier (distance de A à la ligne d\'action).</p>' };
+  }
+  if (d === 1) {
+    const h = g.pick([0.5, 1, 2]), F = g.pick([100, 200, 500]), k = g.int(0, 2), P = { A: [0, 0], B: [0, h], C: [h, h], D: [h, 0] };
+    const FS = [{ at: 'C', v: [0, -F], n: 'F_1', d: 'verticale vers le bas', ph: -90 }, { at: 'A', v: [F * Math.SQRT1_2, F * Math.SQRT1_2], n: 'F_2', d: 'dirigée selon la diagonale AC (\\(\\alpha = 45^\\circ\\))', ph: 45 }, { at: 'B', v: [-F, 0], n: 'F_3', d: 'horizontale vers la gauche', ph: 180 }][k];
+    const pts = ['A', 'B', 'C', 'D'].filter(p => p !== FS.at), M = p => (P[FS.at][0] - P[p][0]) * FS.v[1] - (P[FS.at][1] - P[p][1]) * FS.v[0];
+    const S = { A: [130, 185], B: [130, 55], C: [260, 55], D: [260, 185] };
+    let f = sv.poly([S.A, S.B, S.C, S.D, S.A]) + sv.line(S.A[0], S.A[1], S.C[0], S.C[1]) + sv.text(S.A[0] - 12, S.A[1] + 14, 'A') + sv.text(S.B[0] - 12, S.B[1] - 4, 'B') + sv.text(S.C[0] + 12, S.C[1] - 4, 'C') + sv.text(S.D[0] + 12, S.D[1] + 14, 'D') + sv.dimH(S.A[0], S.D[0], 210, 'h') + sv.dimV(110, S.B[1], S.A[1], 'h') + sv.axes(30, 200);
+    f += k === 1 ? sv.forceAt(S.A[0], S.A[1], 45, 70, 'F₂', true) : k === 0 ? sv.force(S.C[0], S.C[1], S.C[0], S.C[1] + 65, 'F₁', 10, 0) : sv.forceAt(S.B[0], S.B[1], 180, 70, 'F₃', true);
+    return { title: 'Moments d\'une force en plusieurs points', fig: fig(f, 225),
+      q: `<p>Le treillis carré ABCD a pour côté \\(h = ${tN(h)}\\ \\mathrm{m}\\) (TD 2, exercice 1). La force \\(\\vec ${FS.n}\\), de norme \\(${F}\\ \\mathrm{N}\\), s'applique en ${FS.at} et est ${FS.d}. Calculer la composante sur \\(\\vec z\\) de son moment aux trois autres sommets.</p>`,
+      items: pts.map(p => Nn(`\\mathcal M_{${p},z}(\\vec ${FS.n})`, M(p), 'N·m')),
+      corr: `<p>\\(\\vec{\\mathcal M}_P(\\vec F) = \\vec{P${FS.at}}\\wedge\\vec F\\). Dans le plan, la composante sur \\(\\vec z\\) vaut \\(x_{P${FS.at}}F_y - y_{P${FS.at}}F_x\\) ; elle est positive si la force fait tourner dans le sens trigonométrique autour de P.</p><ul>${pts.map(p => `<li>En ${p} : \\(\\vec{${p}${FS.at}} = (${tN(P[FS.at][0] - P[p][0])},\\ ${tN(P[FS.at][1] - P[p][1])})\\), \\(\\mathcal M_{${p},z} = ${Q(M(p), 'N·m')}\\)${Math.abs(M(p)) < 1e-9 ? ' (le point est sur la ligne d\'action)' : ''}.</li>`).join('')}</ul>` };
+  }
+  const a = [g.int(1, 3), g.int(1, 3), g.int(1, 3)], e = [g.int(1, 5), g.int(1, 5), g.int(1, 5)], Fv = [-e[1], e[2], e[0]];
+  const Pt = { A: [0, 0, 0] }; Pt.B = [0, 0, -a[0]]; Pt.C = [0, a[1], -a[0]]; Pt.D = [-a[2], a[1], -a[0]];
+  const p = g.pick(['B', 'C', 'D']), PA = [Pt.A[0] - Pt[p][0], Pt.A[1] - Pt[p][1], Pt.A[2] - Pt[p][2]], M = cross(PA, Fv);
+  return { title: 'Moment d\'une force dans l\'espace', q: `<p>Structure ABCD avec \\(\\vec{AB} = -${a[0]}\\,\\vec z\\), \\(\\vec{BC} = ${a[1]}\\,\\vec y\\), \\(\\vec{CD} = -${a[2]}\\,\\vec x\\) (en m). La force \\(\\vec F = ${e[0]}\\,\\vec z + ${e[2]}\\,\\vec y - ${e[1]}\\,\\vec x\\) (en N) s'exerce en A (TD 2, exercice 2). Calculer les composantes de son moment en ${p}.</p>`,
+    items: [Nn(`\\mathcal M_{${p},x}`, M[0], 'N·m'), Nn(`\\mathcal M_{${p},y}`, M[1], 'N·m'), Nn(`\\mathcal M_{${p},z}`, M[2], 'N·m')],
+    corr: `<p>\\(\\vec{${p}A} = -\\vec{A${p}}\\) : on additionne les vecteurs du chemin de A à ${p}, puis on change le signe : \\(\\vec{${p}A} = ${vtex(PA)}\\). \\(\\vec F = ${vtex(Fv)}\\).</p><p>\\(\\vec{\\mathcal M}_${p}(\\vec F) = \\vec{${p}A}\\wedge\\vec F = ${vtex(M)}\\ \\mathrm{N\\cdot m}\\).</p>` };
+};
+
+/* ---------- 4. torseurs : transport et réduction ---------- */
+GEN.transport = (d, g) => {
+  const meth = '<p>Formule de transport (« BABAR ») : \\(\\vec{\\mathcal M}_B = \\vec{\\mathcal M}_A + \\vec{BA}\\wedge\\vec R\\). La résultante \\(\\vec R\\) ne dépend pas du point.</p>';
+  if (d === 0) {
+    const X = g.pick([-400, -200, 100, 300, 500]), Y = g.pick([-300, -100, 200, 400]), NA = g.pick([-150, -50, 100, 200]), bx = g.pick([-2, -1, 1, 2, 3]), by = g.pick([-1, 0, 1, 2]), NB = NA - bx * Y + by * X;
+    return { title: 'Transport d\'un moment (plan)', q: `<p>Un torseur d'actions mécaniques a pour éléments de réduction en A : \\(\\vec R = ${X}\\,\\vec x ${sgn(Y)}${Math.abs(Y)}\\,\\vec y\\) (N) et \\(\\vec{\\mathcal M}_A = ${NA}\\,\\vec z\\) (N·m). Avec \\(\\vec{AB} = ${bx}\\,\\vec x ${sgn(by)}${Math.abs(by)}\\,\\vec y\\) (m), donner la résultante en B et la composante \\(N_B\\) du moment en B.</p>`,
+      items: [Ch('La résultante en B', [['s', 'est la même qu\'en A'], ['t', 'dépend de \\(\\vec{AB}\\)'], ['z', 'est nulle']], 's'), Nn('N_B', NB, 'N·m')],
+      corr: meth + `<p>\\(\\vec{BA} = ${-bx}\\,\\vec x ${sgn(-by)}${Math.abs(by)}\\,\\vec y\\) ; \\((\\vec{BA}\\wedge\\vec R)\\cdot\\vec z = (${-bx})(${Y}) - (${-by})(${X}) = ${NB - NA}\\).</p><p>\\(N_B = ${NA} + (${NB - NA}) = ${NB}\\ \\mathrm{N\\cdot m}\\).</p>` };
+  }
+  if (d === 1) {
+    const r = () => g.pick([-3, -2, -1, 1, 2, 3]), R = [r(), r(), r()].map(x => 100 * x), MA = [r(), r(), r()].map(x => 50 * x), AB = [g.pick([0, 1, 2]), g.pick([-1, 0, 1, 2]), g.pick([0, 1, -2])], BA = AB.map(x => -x), c = cross(BA, R), MB = MA.map((m, i) => m + c[i]);
+    return { title: 'Transport d\'un moment (espace)', q: `<p>En A, un torseur a pour éléments de réduction \\(${tor(R.map(String), MA.map(String), 'A')}\\) (N et N·m, base \\((\\vec x, \\vec y, \\vec z)\\)). Avec \\(\\vec{AB} = ${vtex(AB)}\\) (m), calculer le moment en B.</p>`,
+      items: [Nn('L_B', MB[0], 'N·m'), Nn('M_B', MB[1], 'N·m'), Nn('N_B', MB[2], 'N·m')],
+      corr: meth + `<p>\\(\\vec{BA}\\wedge\\vec R = ${vtex(BA)}\\wedge${vtex(R)} = ${vtex(c)}\\), donc \\(\\vec{\\mathcal M}_B = ${vtex(MB)}\\ \\mathrm{N\\cdot m}\\) et \\(\\{\\mathcal T\\} = ${tor(R.map(String), MB.map(String), 'B')}\\).</p>` };
+  }
+  const p1 = [g.int(0, 3), g.int(0, 2)], p2 = [g.int(1, 4), g.int(-2, 2)], f1 = [g.pick([-200, 0, 100, 300]), g.pick([-300, -100, 200])], f2 = [g.pick([-100, 0, 200]), g.pick([-200, 100, 400])];
+  const R = [f1[0] + f2[0], f1[1] + f2[1]], M = p1[0] * f1[1] - p1[1] * f1[0] + p2[0] * f2[1] - p2[1] * f2[0];
+  return { title: 'Réduire un système de forces', q: `<p>Deux forces s'appliquent sur un solide plan : \\(\\vec F_1 = (${f1[0]},\\ ${f1[1]})\\ \\mathrm{N}\\) en \\(P_1(${p1[0]},\\ ${p1[1]})\\) et \\(\\vec F_2 = (${f2[0]},\\ ${f2[1]})\\ \\mathrm{N}\\) en \\(P_2(${p2[0]},\\ ${p2[1]})\\) (coordonnées en m). Donner les éléments de réduction du torseur de ces actions au point O(0, 0).</p>`,
+    items: [Nn('R_x', R[0], 'N'), Nn('R_y', R[1], 'N'), Nn('N_O', M, 'N·m')],
+    corr: `<p>Résultante : somme des forces, \\(\\vec R = (${R[0]},\\ ${R[1]})\\ \\mathrm{N}\\).</p><p>Moment en O : somme des moments, \\(N_O = (x_1F_{1y} - y_1F_{1x}) + (x_2F_{2y} - y_2F_{2x}) = ${M}\\ \\mathrm{N\\cdot m}\\).</p><p class="fine">On ne peut additionner deux torseurs que s'ils sont écrits au même point.</p>` };
+};
+
+/* ---------- 5. liaisons ---------- */
+const LIA = [
+  ['Encastrement', 6, ['X', 'Y', 'Z'], ['L', 'M', 'N']],
+  ['Pivot d\'axe \\((A,\\vec x)\\)', 5, ['X', 'Y', 'Z'], ['0', 'M', 'N']],
+  ['Glissière de direction \\(\\vec x\\)', 5, ['0', 'Y', 'Z'], ['L', 'M', 'N']],
+  ['Pivot glissant d\'axe \\((A,\\vec x)\\)', 4, ['0', 'Y', 'Z'], ['0', 'M', 'N']],
+  ['Rotule (sphérique) de centre A', 3, ['X', 'Y', 'Z'], ['0', '0', '0']],
+  ['Appui plan de normale \\(\\vec z\\)', 3, ['0', '0', 'Z'], ['L', 'M', '0']],
+  ['Linéaire annulaire (sphère-cylindre) d\'axe \\((A,\\vec x)\\)', 2, ['0', 'Y', 'Z'], ['0', '0', '0']],
+  ['Linéaire rectiligne de normale \\(\\vec z\\), de ligne \\((A,\\vec x)\\)', 2, ['0', '0', 'Z'], ['0', 'M', '0']],
+  ['Ponctuelle (sphère-plan) de normale \\(\\vec z\\)', 1, ['0', '0', 'Z'], ['0', '0', '0']]
+];
+const PLAN = [['une liaison pivot d\'axe \\(\\vec z\\)', 2, '\\(X\\) et \\(Y\\)'], ['un encastrement', 3, '\\(X\\), \\(Y\\) et \\(N\\)'], ['un appui ponctuel de normale \\(\\vec y\\)', 1, '\\(Y\\) seulement'], ['une glissière de direction \\(\\vec x\\)', 2, '\\(Y\\) et \\(N\\)']];
+const liaTor = l => `\\(${tor(l[2], l[3], 'A')}\\)`;
+GEN.liaisons = (d, g) => {
+  const i = g.int(0, LIA.length - 1), l = LIA[i], nums = [1, 2, 3, 4, 5, 6].map(n => [String(n), String(n)]);
+  const tab = `<p>Une liaison transmet une action dans chaque direction où elle <b>empêche</b> un mouvement : composante de force pour une translation bloquée, de moment pour une rotation bloquée. Inconnues statiques + degrés de liberté = 6.</p><p>${l[0]} : \\(${tor(l[2], l[3], 'A')}\\), soit ${l[1]} inconnue${l[1] > 1 ? 's' : ''} et ${6 - l[1]} degré${6 - l[1] > 1 ? 's' : ''} de liberté.</p>`;
+  if (d === 0) return { title: 'Inconnues statiques d\'une liaison', q: `<p>Liaison : <b>${l[0]}</b>. Combien d'inconnues statiques son torseur transmissible comporte-t-il ? Combien de degrés de liberté (mobilités) autorise-t-elle ?</p>`,
+    items: [Ch('Inconnues statiques', nums, String(l[1])), Ch('Degrés de liberté', [0, 1, 2, 3, 4, 5].map(n => [String(n), String(n)]), String(6 - l[1]))], corr: tab };
+  const others = g.shuffle(LIA.filter((x, j) => j !== i && liaTor(x) !== liaTor(l))).slice(0, 3), pl = g.pick(PLAN);
+  if (d === 1) return { title: 'Torseur transmissible d\'une liaison', q: `<p>Quel est le torseur des actions transmissibles par la liaison <b>${l[0]}</b>, écrit en A dans la base \\((\\vec x, \\vec y, \\vec z)\\) ? Dans un problème plan \\((\\vec x, \\vec y)\\), combien d'inconnues reste-t-il pour ${pl[0]} ?</p>`,
+    items: [Ch('Torseur', g.shuffle([l, ...others]).map(x => [x === l ? 'ok' : x[0], liaTor(x)]), 'ok'), Ch('Inconnues en problème plan', [1, 2, 3, 4].map(n => [String(n), String(n)]), String(pl[1]))],
+    corr: tab + `<p>Problème plan \\((\\vec x, \\vec y)\\) : on ne garde que \\(X\\), \\(Y\\) et \\(N\\). Pour ${pl[0]}, il reste ${pl[2]}.</p>` };
+  return { title: 'Reconnaître une liaison', q: `<p>Une liaison transmet le torseur \\(${tor(l[2], l[3], 'A')}\\) (forme valable en tout point de l'axe ou au centre). De quelle liaison s'agit-il ? Combien de degrés de liberté autorise-t-elle ?</p>`,
+    items: [Ch('Liaison', g.shuffle([l, ...others]).map(x => [x === l ? 'ok' : x[0], x[0]]), 'ok'), Ch('Degrés de liberté', [0, 1, 2, 3, 4, 5].map(n => [String(n), String(n)]), String(6 - l[1]))], corr: tab };
+};
+
+/* ---------- 6. câbles (DS 2023-24, exercice 1) ---------- */
+function cableFig(th, labs) {
+  const A = [90, 160], B = [310, 160], hp = 110 * Math.tan(th * D2R), C = [200, 160 - Math.min(hp, 120)];
+  return fig(`<rect class="beam" x="70" y="160" width="260" height="12" rx="2"/>` + sv.line(A[0], A[1], C[0], C[1], 'cab') + sv.line(B[0], B[1], C[0], C[1], 'cab') + sv.line(C[0], C[1], C[0], C[1] - 26, 'cab') + `<circle class="sup" cx="${C[0]}" cy="${fx1(C[1])}" r="5"/>` + sv.text(C[0] + 12, C[1] - 6, 'C', 'start') + sv.text(A[0] - 6, A[1] - 6, 'A', 'end') + sv.text(B[0] + 6, B[1] - 6, 'B', 'start') + sv.text(200, 156, 'G') + sv.arc(A[0], A[1], 30, 0, th, labs ? 'θ' : '') + sv.force(200, 172, 200, 226, 'P', 10, 0) + sv.forceAt(A[0], A[1], th, 52, 'F<tspan dy="4" font-size="11">A</tspan>', true), 240);
+}
+GEN.cables = (d, g) => {
+  if (d === 0) {
+    const P = g.pick([500, 1000, 2000]), th = g.pick([30, 40, 45, 50, 60]), FA = P / (2 * sinD(th));
+    return { title: 'Tension dans des câbles', fig: cableFig(th, true), q: `<p>Une poutre de poids \\(P = ${P}\\ \\mathrm{N}\\) est soulevée par deux câbles symétriques AC et BC faisant l'angle \\(\\theta = ${th}^\\circ\\) avec la poutre. Exprimer puis calculer la tension \\(F_A\\) du câble AC.</p>`,
+      items: [Ex('F_A', ['P', 'theta'], v => v.P / (2 * Math.sin(v.theta)), 'F_A = \\dfrac{P}{2\\sin\\theta}'), Nn('F_A', FA, 'N')],
+      corr: `<p>On isole la poutre : trois forces, \\(\\vec F_A = (F_A\\cos\\theta,\\ F_A\\sin\\theta)\\), \\(\\vec F_B = (-F_B\\cos\\theta,\\ F_B\\sin\\theta)\\), \\(\\vec P = (0,\\ -P)\\).</p><p>Théorème de la résultante statique : \\(F_A\\cos\\theta - F_B\\cos\\theta = 0\\) et \\(F_A\\sin\\theta + F_B\\sin\\theta - P = 0\\), donc \\(F_A = F_B = \\dfrac{P}{2\\sin\\theta} = ${Q(FA, 'N')}\\).</p><p class="fine">Plus les câbles sont à plat (θ petit), plus la tension est grande.</p>` };
+  }
+  if (d === 1) {
+    const P = g.pick([800, 1000, 1500, 2000]), L = g.pick([2, 2.4, 3]), l = g.pick([1.5, 1.8, 2, 2.5].filter(x => x > L / 2 + 0.2)), h = Math.sqrt(l * l - L * L / 4), FA = P * l / (2 * h);
+    return { title: 'Câbles : expressions géométriques', fig: cableFig(Math.atan(h / (L / 2)) / D2R, true), q: `<p>Même dispositif (DS 2023-24) : les câbles ont la longueur \\(\\ell = AC = BC\\), la poutre la longueur \\(L = AB\\), et \\(h = CG\\). On a montré que \\(F_A = \\dfrac{P}{2\\sin\\theta}\\).</p><p>Exprimer \\(h\\) en fonction de \\(\\ell\\) et \\(L\\), puis \\(F_A\\) en fonction de \\(P\\), \\(\\ell\\) et \\(L\\). A.N. : \\(P = ${P}\\ \\mathrm{N}\\), \\(L = ${tN(L)}\\ \\mathrm{m}\\), \\(\\ell = ${tN(l)}\\ \\mathrm{m}\\).</p>`,
+      items: [Ex('h', ['l', 'L'], v => Math.sqrt(v.l * v.l - v.L * v.L / 4), 'h = \\sqrt{\\ell^2 - \\dfrac{L^2}{4}}'), Ex('F_A', ['P', 'l', 'L'], v => v.P * v.l / (2 * Math.sqrt(v.l * v.l - v.L * v.L / 4)), 'F_A = \\dfrac{P\\ell}{2\\sqrt{\\ell^2 - L^2/4}}'), Nn('F_A', FA, 'N')],
+      corr: `<p>Le triangle AGC est rectangle en G : \\(\\sin\\theta = \\dfrac{h}{\\ell}\\) et (Pythagore) \\(\\left(\\dfrac L2\\right)^2 + h^2 = \\ell^2\\), donc \\(h = \\sqrt{\\ell^2 - \\dfrac{L^2}{4}}\\).</p><p>\\(F_A = \\dfrac{P}{2\\sin\\theta} = \\dfrac{P\\ell}{2h} = \\dfrac{P\\ell}{2\\sqrt{\\ell^2 - L^2/4}}\\). A.N. : \\(h = ${Q(h, 'm')}\\), \\(F_A = ${Q(FA, 'N')}\\).</p>` };
+  }
+  const P = g.pick([200, 500, 1000]), t1 = g.pick([30, 40, 45, 60]), t2 = g.pick([20, 30, 50, 60].filter(x => x !== t1)), TA = P * cosD(t2) / sinD(t1 + t2), TB = P * cosD(t1) / sinD(t1 + t2);
+  const Ax = 60, Bx = 340, top = 40, dx = (Bx - Ax) * Math.tan(t2 * D2R) / (Math.tan(t1 * D2R) + Math.tan(t2 * D2R)), C = [Ax + dx, Math.min(top + dx * Math.tan(t1 * D2R), 170)];
+  const f = sv.ground(200, top, 320).replace(/y1="([\d.]+)" x2="([\d.-]+)" y2="([\d.]+)"/g, (m, a, b, c) => `y1="${a}" x2="${b}" y2="${2 * top - +c}"`) + sv.line(Ax, top, C[0], C[1], 'cab') + sv.line(Bx, top, C[0], C[1], 'cab') + `<circle class="sup" cx="${fx1(C[0])}" cy="${fx1(C[1])}" r="4"/>` + sv.text(Ax, top + 18, 'A') + sv.text(Bx, top + 18, 'B') + sv.text(C[0] + 12, C[1] + 4, 'C', 'start') + sv.arc(Ax, top, 34, 0, -t1, 'θ₁') + sv.arc(Bx, top, 34, 180, 180 + t2, 'θ₂') + sv.force(C[0], C[1], C[0], C[1] + 50, 'P', 10, 0);
+  return { title: 'Charge suspendue à deux câbles', fig: fig(f, 240), q: `<p>Une charge de poids \\(P = ${P}\\ \\mathrm{N}\\) est suspendue au nœud C, retenu par deux câbles fixés au plafond en A et B. Le câble CA fait l'angle \\(\\theta_1 = ${t1}^\\circ\\) avec l'horizontale, le câble CB l'angle \\(\\theta_2 = ${t2}^\\circ\\). Exprimer la tension \\(T_A\\), puis calculer \\(T_A\\) et \\(T_B\\).</p>`,
+    items: [Ex('T_A', ['P', 'theta1', 'theta2'], v => v.P * Math.cos(v.theta2) / Math.sin(v.theta1 + v.theta2), 'T_A = \\dfrac{P\\cos\\theta_2}{\\sin(\\theta_1 + \\theta_2)}'), Nn('T_A', TA, 'N'), Nn('T_B', TB, 'N')],
+    corr: `<p>On isole le nœud C : \\(\\vec T_A = (-T_A\\cos\\theta_1,\\ T_A\\sin\\theta_1)\\), \\(\\vec T_B = (T_B\\cos\\theta_2,\\ T_B\\sin\\theta_2)\\), \\(\\vec P = (0,\\ -P)\\).</p><p>Sur \\(\\vec x\\) : \\(T_A\\cos\\theta_1 = T_B\\cos\\theta_2\\). Sur \\(\\vec y\\) : \\(T_A\\sin\\theta_1 + T_B\\sin\\theta_2 = P\\). En remplaçant \\(T_B\\) : \\(T_A = \\dfrac{P\\cos\\theta_2}{\\sin(\\theta_1+\\theta_2)} = ${Q(TA, 'N')}\\) et \\(T_B = \\dfrac{P\\cos\\theta_1}{\\sin(\\theta_1+\\theta_2)} = ${Q(TB, 'N')}\\).</p>` };
+};
+
+/* ---------- 7. poutre ou poteau encastré ---------- */
+GEN.encastre = (d, g) => {
+  const pfs = '<p>Le torseur d\'un encastrement en A, en problème plan, a trois inconnues : \\(\\{\\mathcal T_A\\} = \\{X_A\\,\\vec x + Y_A\\,\\vec y\\ ;\\ N_A\\,\\vec z\\}\\). PFS : somme des forces nulle (2 équations) et somme des moments en A nulle (1 équation).</p>';
+  if (d === 0) {
+    const a = g.pick([0.5, 1, 2]), F1 = g.pick([100, 200, 300, 400]), F2 = g.pick([50, 100, 150, 250]), YA = F1 - F2, NA = a * F1 - 2 * a * F2;
+    const f = sv.wall(60, 120, 80) + sv.line(60, 120, 330, 120) + sv.text(70, 140, 'A', 'start') + sv.text(195, 142, 'B') + sv.text(330, 142, 'C') + sv.force(195, 60, 195, 118, 'F₁', 10, -30) + sv.force(330, 180, 330, 122, 'F₂', 10, 30) + sv.dimH(60, 195, 200, 'a') + sv.dimH(195, 330, 200, 'a') + sv.axes(20, 210);
+    return { title: 'Poutre encastrée', fig: fig(f, 225), q: `<p>La poutre AC (\\(AB = BC = a = ${tN(a)}\\ \\mathrm{m}\\)) est encastrée en A. Elle reçoit \\(\\vec F_1 = -${F1}\\,\\vec y\\) (N) en B et \\(\\vec F_2 = ${F2}\\,\\vec y\\) (N) en C (TD 2, exercice 3). Déterminer les actions de l'encastrement : \\(X_A\\), \\(Y_A\\) et le moment \\(N_A\\) (composantes algébriques).</p>`,
+      items: [Nn('X_A', 0, 'N'), Nn('Y_A', YA, 'N'), Nn('N_A', NA, 'N·m')],
+      corr: pfs + `<p>Forces : \\(X_A = 0\\) ; \\(Y_A - F_1 + F_2 = 0\\), donc \\(Y_A = ${YA}\\ \\mathrm{N}\\).</p><p>Moments en A : \\(N_A + a\\,(-F_1) + 2a\\,F_2 = 0\\), donc \\(N_A = aF_1 - 2aF_2 = ${Q(NA, 'N·m')}\\).</p>` };
+  }
+  if (d === 1) {
+    const H = g.pick([1, 1.5, 2, 3]), F = g.pick([200, 500, 1000]), al = g.pick([30, 45, 60]), XA = F * cosD(al), YA = F * sinD(al), NA = -H * F * cosD(al);
+    const f = sv.ground(200, 200, 90) + sv.line(200, 200, 200, 90) + sv.text(188, 196, 'A', 'end') + sv.text(188, 94, 'B', 'end') + sv.line(200, 90, 270, 90, 'thin') + sv.forceAt(200, 90, 180 + al, 66, 'F') + sv.arc(200, 90, 30, 0, al, 'α') + sv.dimV(150, 90, 200, 'H') + sv.axes(40, 210);
+    return { title: 'Poteau encastré', fig: fig(f, 225), q: `<p>Un poteau vertical AB de hauteur \\(H = ${tN(H)}\\ \\mathrm{m}\\) est encastré dans le sol en A. En B s'exerce une force \\(\\vec F\\) de norme \\(F = ${F}\\ \\mathrm{N}\\), dirigée vers le bas et vers la gauche, faisant l'angle \\(\\alpha = ${al}^\\circ\\) avec l'horizontale (TD 3, système 2). Déterminer \\(X_A\\), \\(Y_A\\) et \\(N_A\\).</p>`,
+      items: [Nn('X_A', XA, 'N'), Nn('Y_A', YA, 'N'), Nn('N_A', NA, 'N·m')],
+      corr: pfs + `<p>\\(\\vec F = -F\\cos\\alpha\\,\\vec x - F\\sin\\alpha\\,\\vec y\\), appliquée en B avec \\(\\vec{AB} = H\\vec y\\).</p><p>Forces : \\(X_A = F\\cos\\alpha = ${Q(XA, 'N')}\\), \\(Y_A = F\\sin\\alpha = ${Q(YA, 'N')}\\).</p><p>Moments en A : \\(\\vec{AB}\\wedge\\vec F = H\\vec y\\wedge(-F\\cos\\alpha\\,\\vec x) = HF\\cos\\alpha\\,\\vec z\\), donc \\(N_A = -HF\\cos\\alpha = ${Q(NA, 'N·m')}\\).</p>` };
+  }
+  const al = g.int(30, 50);
+  const D = [170, 205], B = [170, 120], A = [170, 35], C = [250, 120];
+  const f = sv.ground(D[0], D[1], 80) + sv.line(D[0], D[1], A[0], A[1]) + sv.line(B[0], B[1], C[0], C[1]) + sv.text(D[0] - 12, D[1] - 4, 'D', 'end') + sv.text(B[0] - 12, B[1] + 4, 'B', 'end') + sv.text(A[0] + 10, A[1] + 14, 'A', 'start') + sv.text(C[0], C[1] - 10, 'C') + sv.force(A[0] - 80, A[1], A[0], A[1], 'F₁', -40, -10) + sv.line(C[0], C[1], C[0], C[1] + 70, 'thin') + sv.forceAt(C[0], C[1], 90 + al, 75, 'F₂') + sv.arc(C[0], C[1], 30, -90, -90 + al, 'α') + sv.dimV(120, A[1], B[1], 'H') + sv.dimV(120, B[1], D[1], 'H') + sv.dimH(B[0], C[0], 100, 'L') + sv.axes(320, 210);
+  return { title: 'Structure encastrée : expressions littérales', fig: fig(f, 230), q: '<p>La structure ADC est encastrée en D (\\(\\vec{DB} = H\\vec y\\), \\(\\vec{BA} = H\\vec y\\), \\(\\vec{BC} = L\\vec x\\)). En A s\'exerce \\(\\vec F_1 = F_1\\vec x\\) ; en C, \\(\\vec F_2\\) de norme \\(F_2\\), dirigée vers le haut et vers la gauche, fait l\'angle \\(\\alpha\\) avec la verticale (TD 3, système 3). Exprimer les actions de l\'encastrement \\(X_D\\), \\(Y_D\\), \\(N_D\\).</p>',
+    items: [Ex('X_D', ['F1', 'F2', 'alpha'], v => v.F2 * Math.sin(v.alpha) - v.F1, 'X_D = F_2\\sin\\alpha - F_1'), Ex('Y_D', ['F2', 'alpha'], v => -v.F2 * Math.cos(v.alpha), 'Y_D = -F_2\\cos\\alpha'), Ex('N_D', ['H', 'L', 'F1', 'F2', 'alpha'], v => 2 * v.H * v.F1 - v.L * v.F2 * Math.cos(v.alpha) - v.H * v.F2 * Math.sin(v.alpha), 'N_D = 2HF_1 - F_2(L\\cos\\alpha + H\\sin\\alpha)')],
+    corr: pfs.replace(/A\\\)/g, 'D\\)').replace(/_A/g, '_D').replace(/ en A/g, ' en D') + '<p>\\(\\vec F_2 = -F_2\\sin\\alpha\\,\\vec x + F_2\\cos\\alpha\\,\\vec y\\).</p><p>Forces : \\(X_D + F_1 - F_2\\sin\\alpha = 0\\) et \\(Y_D + F_2\\cos\\alpha = 0\\).</p><p>Moments en D : \\(\\vec{DA}\\wedge\\vec F_1 = 2H\\vec y\\wedge F_1\\vec x = -2HF_1\\vec z\\) ; \\(\\vec{DC}\\wedge\\vec F_2 = (L\\vec x + H\\vec y)\\wedge\\vec F_2 = (LF_2\\cos\\alpha + HF_2\\sin\\alpha)\\vec z\\). Donc \\(N_D = 2HF_1 - F_2(L\\cos\\alpha + H\\sin\\alpha)\\).</p>' };
+};
+
+/* ---------- 8. appuis : poutre, chargeur, basculement ---------- */
+function loaderFig(xs, labs) {   // xs : positions en m de B, G1, A, G3, G2
+  const s0 = 50, k = 290 / xs[4], X = x => s0 + k * x, y0 = 175;
+  let f = sv.line(20, y0, 385, y0, 'thin2') + `<rect class="beam" x="${fx1(X(-0.4))}" y="95" width="${fx1(k * (xs[2] + 0.6))}" height="45" rx="6"/>` + sv.line(X(xs[2]), 110, X(xs[4]) - 10, 80, 'st') + `<path class="sup" d="M${fx1(X(xs[4]) - 22)},70 L${fx1(X(xs[4]) + 22)},70 L${fx1(X(xs[4]) + 10)},100 L${fx1(X(xs[4]) - 10)},100 Z"/>`;
+  f += `<circle class="sup" cx="${fx1(X(0))}" cy="${y0 - 22}" r="22"/><circle class="sup" cx="${fx1(X(xs[2]))}" cy="${y0 - 22}" r="22"/>` + sv.text(X(0), y0 + 16, 'B') + sv.text(X(xs[2]), y0 + 16, 'A');
+  [[1, 'P₁'], [3, 'P₃'], [4, 'P₂']].forEach(([i, l]) => { f += sv.force(X(xs[i]), i === 4 ? 100 : 60, X(xs[i]), i === 4 ? 160 : 140, l, 6, i === 4 ? 0 : -46); });
+  for (let i = 0; i < 4; i++) f += sv.dimH(X(xs[i]), X(xs[i + 1]), 205, labs[i]);
+  return fig(f, 220);
+}
+GEN.appuis = (d, g) => {
+  if (d === 0) {
+    const L = g.pick([2, 4, 5, 6]), dd = g.pick([0.25, 0.4, 0.5, 0.6, 0.75]) * L, F = g.pick([200, 400, 600, 1000]), YB = F * dd / L, YA = F - YB;
+    const xA = 60, xB = 340, xF = xA + (xB - xA) * dd / L;
+    const f = sv.line(xA, 110, xB, 110) + sv.pin(xA, 110) + sv.roller(xB, 110) + sv.text(xA - 14, 104, 'A', 'end') + sv.text(xB + 14, 104, 'B', 'start') + sv.force(xF, 40, xF, 108, 'F', 10, -30) + sv.dimH(xA, xF, 175, 'd') + sv.dimH(xA, xB, 200, 'L') + sv.axes(20, 60);
+    return { title: 'Poutre sur deux appuis', fig: fig(f, 215), q: `<p>Une poutre AB de longueur \\(L = ${L}\\ \\mathrm{m}\\) repose sur une liaison pivot en A et un appui simple (ponctuel, de normale \\(\\vec y\\)) en B. Elle porte une charge verticale \\(F = ${F}\\ \\mathrm{N}\\) à la distance \\(d = ${tN(dd)}\\ \\mathrm{m}\\) de A. Déterminer les actions des appuis.</p>`,
+      items: [Nn('X_A', 0, 'N'), Nn('Y_A', YA, 'N'), Nn('Y_B', YB, 'N')],
+      corr: `<p>Inconnues : \\(X_A\\), \\(Y_A\\) (pivot) et \\(Y_B\\) (appui ponctuel). On écrit les moments en A, le point qui a le plus d'inconnues : \\(L\\,Y_B - d\\,F = 0\\), donc \\(Y_B = \\dfrac{d}{L}F = ${Q(YB, 'N')}\\).</p><p>Forces : \\(X_A = 0\\) et \\(Y_A + Y_B - F = 0\\), donc \\(Y_A = ${Q(YA, 'N')}\\).</p><p class="fine">Vérification : l'appui le plus proche de la charge porte le plus.</p>` };
+  }
+  const x1 = g.pick([1, 1.3, 1.5]), xA = x1 + g.pick([1.8, 2]), x3 = xA + g.pick([0.6, 0.9]), x2 = x3 + g.pick([1.2, 1.5]), P1 = g.pick([80, 100, 120]), P3 = g.pick([20, 25]), P2 = g.pick([30, 40, 50]);
+  const NA = (P1 * x1 + P3 * x3 + P2 * x2) / xA, NB = P1 + P2 + P3 - NA, P2l = (P1 * (xA - x1) - P3 * (x3 - xA)) / (x2 - xA);
+  const labs = [x1, xA - x1, x3 - xA, x2 - x3].map(v => nfmt(v) + ' m'), fg = loaderFig([0, x1, xA, x3, x2], labs);
+  const st = `<p>Un chargeur repose sur le sol par ses roues en B (arrière) et A (avant) (TD 5). Poids : châssis \\(P_1 = ${P1}\\ \\mathrm{kN}\\) en \\(G_1\\), flèche \\(P_3 = ${P3}\\ \\mathrm{kN}\\) en \\(G_3\\), godet chargé \\(P_2\\) en \\(G_2\\) ; distances sur la figure. Les actions du sol sont verticales.</p>`;
+  if (d === 1) return { title: 'Actions du sol sur un chargeur', fig: fg, q: st + `<p>Avec \\(P_2 = ${P2}\\ \\mathrm{kN}\\), déterminer les actions du sol \\(N_A\\) et \\(N_B\\).</p>`,
+    items: [Nn('N_A', NA * 1000, 'N'), Nn('N_B', NB * 1000, 'N')],
+    corr: `<p>Moments en B (axe \\(\\vec z\\)) : \\(${tN(xA)}\\,N_A - ${tN(x1)}\\,P_1 - ${tN(x3)}\\,P_3 - ${tN(x2)}\\,P_2 = 0\\), donc \\(N_A = ${Q(NA, '')}\\ \\mathrm{kN}\\).</p><p>Forces : \\(N_A + N_B = P_1 + P_2 + P_3\\), donc \\(N_B = ${Q(NB, '')}\\ \\mathrm{kN}\\).</p>` };
+  return { title: 'Basculement d\'un chargeur', fig: fg, q: st + '<p>Quelle est la valeur limite de \\(P_2\\) avant basculement ? Quelle roue décolle ?</p>',
+    items: [Nn('P_{2,lim}', P2l * 1000, 'N'), Ch('Au basculement', [['B', 'la roue B (arrière) décolle : \\(N_B = 0\\)'], ['A', 'la roue A (avant) décolle : \\(N_A = 0\\)']], 'B')],
+    corr: `<p>Le chargeur bascule vers l'avant autour de A : à la limite, la roue arrière ne touche plus, \\(N_B = 0\\).</p><p>Moments en A avec \\(N_B = 0\\) : \\(P_1\\times${tN(xA - x1)} - P_3\\times${tN(x3 - xA)} - P_{2}\\times${tN(x2 - xA)} = 0\\), donc \\(P_{2,lim} = ${Q(P2l, '')}\\ \\mathrm{kN}\\).</p><p class="fine">Choisir le point A élimine l'inconnue \\(N_A\\) : on écrit les moments au point qui porte le plus d'inconnues.</p>` };
+};
+
+/* ---------- 9. trois appuis ponctuels (moto à trois roues) ---------- */
+GEN.contact3 = (d, g) => {
+  let c = 6, xa = 3, ya = 10, xg = 2, yg = 2, M = 200;
+  if (d > 0) for (let t = 0; t < 40; t++) {
+    c = g.pick([4, 5, 6]); xa = g.pick([2, 3]); ya = g.pick([6, 8, 10]); xg = g.int(1, c - 1); yg = g.int(1, ya - 1); M = g.pick([150, 200, 250, 300]);
+    const W = 1, ZA = yg / ya, ZC = (xg - xa * ZA) / c, ZB = W - ZA - ZC; if (ZA > .05 && ZB > .05 && ZC > .05) break;
+  }
+  const W = M * gE, ZA = W * yg / ya, ZC = (xg * W - xa * ZA) / c, ZB = W - ZA - ZC;
+  const k = 260 / Math.max(c, ya), B = [80, 200], P = (x, y) => [B[0] + k * x, B[1] - k * y * 0.7];
+  const pA = P(xa, ya), pC = P(c, 0), pG = P(xg, yg);
+  const f = `<path class="thin dash" d="M${B[0]},${B[1]} L${fx1(pC[0])},${fx1(pC[1])} L${fx1(pA[0])},${fx1(pA[1])} Z"/>` + [[B, 'B'], [pA, 'A'], [pC, 'C']].map(([p, l]) => `<circle class="sup" cx="${fx1(p[0])}" cy="${fx1(p[1])}" r="5"/>` + sv.text(p[0] + 10, p[1] + 16, l, 'start')).join('') + `<circle class="thin" cx="${fx1(pG[0])}" cy="${fx1(pG[1])}" r="7"/>` + sv.line(pG[0] - 5, pG[1] - 5, pG[0] + 5, pG[1] + 5, 'fo') + sv.line(pG[0] - 5, pG[1] + 5, pG[0] + 5, pG[1] - 5, 'fo') + sv.text(pG[0] + 12, pG[1] - 8, 'G (poids)', 'start', 'fl') + sv.axes(20, 215);
+  return { title: 'Trois appuis ponctuels (moto à trois roues)', fig: fig(f, 230), q: `<p>Une moto à trois roues de masse \\(M = ${M}\\ \\mathrm{kg}\\) est à l'arrêt sur un sol horizontal. Les contacts en A, B, C sont des liaisons ponctuelles de normale \\(\\vec z\\) (vue de dessus ci-dessus). \\(\\vec{BC} = ${c}a\\,\\vec x\\), \\(\\vec{BA} = ${xa}a\\,\\vec x + ${ya}a\\,\\vec y\\), \\(\\vec{BG} = ${xg}a\\,\\vec x + ${yg}a\\,\\vec y + h\\,\\vec z\\), poids \\(-Mg\\,\\vec z\\) en G (\\(g = 9{,}81\\)) (TD 3). Déterminer les actions \\(Z_A\\), \\(Z_B\\), \\(Z_C\\) du sol.</p>`,
+    items: [Nn('Z_A', ZA, 'N'), Nn('Z_B', ZB, 'N'), Nn('Z_C', ZC, 'N')],
+    corr: `<p>Trois inconnues \\(Z_A\\), \\(Z_B\\), \\(Z_C\\) (verticales) ; on écrit le PFS en B.</p><p>Résultante sur \\(\\vec z\\) : \\(Z_A + Z_B + Z_C = Mg = ${Q(W, 'N')}\\).</p><p>Moment en B : \\(\\vec{BA}\\wedge Z_A\\vec z + \\vec{BC}\\wedge Z_C\\vec z + \\vec{BG}\\wedge(-Mg\\vec z) = \\vec 0\\). Avec \\(\\vec u\\wedge\\vec z = (u_y,\\ -u_x,\\ 0)\\) :</p><p>sur \\(\\vec x\\) : \\(${ya}a\\,Z_A - ${yg}a\\,Mg = 0\\), donc \\(Z_A = \\dfrac{${yg}}{${ya}}Mg = ${Q(ZA, 'N')}\\) ;</p><p>sur \\(\\vec y\\) : \\(-${xa}a\\,Z_A - ${c}a\\,Z_C + ${xg}a\\,Mg = 0\\), donc \\(Z_C = ${Q(ZC, 'N')}\\) ; enfin \\(Z_B = ${Q(ZB, 'N')}\\).</p><p class="fine">Le résultat ne dépend ni de \\(a\\) ni de \\(h\\).</p>` };
+};
+
+/* ---------- 10. couple de levage (DS 2023-24, exercice 2) ---------- */
+GEN.moteur = (d, g) => {
+  const p = g.int(1, 3), q = g.int(1, 3), r = g.int(1, 3), s = g.int(1, Math.min(2, q + 1)), xg = p + r, yg = q - s;
+  const k = 230 / Math.max(xg, 3), O = [70, 175], Dp = [O[0] + k * p, O[1] - k * q * 0.6], Ep = [Dp[0] + k * r, Dp[1]], Gp = [Ep[0], Ep[1] + k * s * 0.6];
+  const f = `<circle class="sup" cx="${O[0]}" cy="${O[1]}" r="8"/>` + sv.wall(50, O[1], 50) + sv.line(50, O[1], O[0] - 8, O[1], 'thin2') + sv.poly([O, Dp, Ep, Gp]) + sv.text(O[0] + 4, O[1] + 26, 'O') + sv.text(Dp[0], Dp[1] - 10, 'D') + sv.text(Ep[0], Ep[1] - 10, 'E') + sv.text(Gp[0] + 12, Gp[1] + 4, 'G', 'start') + sv.force(Gp[0], Gp[1], Gp[0], Gp[1] + 45, 'P', 10, 0) + `<path class="ang" d="M${O[0] - 18},${O[1]} A18,18 0 1 0 ${O[0]},${O[1] + 18}" marker-end="url(#mkK)"/>` + sv.text(O[0] - 26, O[1] + 26, 'C', 'end', 'at') + sv.axes(30, 70);
+  const geo = `\\(\\vec{OD} = ${p === 1 ? '' : p}a\\,\\vec x + ${q === 1 ? '' : q}a\\,\\vec y\\), \\(\\vec{DE} = ${r === 1 ? '' : r}a\\,\\vec x\\), \\(\\vec{EG} = -${s === 1 ? '' : s}a\\,\\vec y\\)`;
+  const meth = `<p>Torseurs en O : pivot d'axe \\((O,\\vec z)\\) \\(\\{X,\\ Y,\\ Z\\ ;\\ L,\\ M,\\ 0\\}\\), couple \\(\\{\\vec 0\\ ;\\ C_\\ell\\,\\vec z\\}\\), poids \\(\\{-P\\vec y\\ ;\\ \\vec{OG}\\wedge(-P\\vec y)\\}\\) avec \\(\\vec{OG} = \\vec{OD} + \\vec{DE} + \\vec{EG} = ${xg}a\\,\\vec x ${sgn(yg)}${Math.abs(yg)}a\\,\\vec y\\) : \\(\\vec{OG}\\wedge(-P\\vec y) = -${xg}aP\\,\\vec z\\).</p><p>PFS, moment sur \\(\\vec z\\) : \\(C_\\ell - ${xg}aP = 0\\), donc \\(C_\\ell = ${xg}aP\\). Résultante : \\(X = 0\\), \\(Y = P\\).</p>`;
+  if (d === 0) { const a = g.pick([0.2, 0.5, 1]), P = g.pick([500, 1000, 2000]);
+    return { title: 'Couple de levage', fig: fig(f, 220), q: `<p>Un bras en liaison pivot d'axe \\((O,\\vec z)\\) avec le bâti soulève une charge de poids \\(\\vec P = -P\\vec y\\) appliqué en G ; un moteur exerce sur le bras un couple \\(C_\\ell\\,\\vec z\\) (DS 2023-24). ${geo}, avec \\(a = ${tN(a)}\\ \\mathrm{m}\\) et \\(P = ${P}\\ \\mathrm{N}\\). Le poids du bras est négligé. Calculer \\(C_\\ell\\) et l'action \\(Y\\) du pivot.</p>`,
+      items: [Nn('C_\\ell', xg * a * P, 'N·m'), Nn('Y', P, 'N')], corr: meth + `<p>A.N. : \\(C_\\ell = ${Q(xg * a * P, 'N·m')}\\).</p>` }; }
+  if (d === 1) return { title: 'Couple de levage (littéral)', fig: fig(f, 220), q: `<p>Un bras en liaison pivot d'axe \\((O,\\vec z)\\) soulève une charge \\(\\vec P = -P\\vec y\\) appliquée en G ; un moteur exerce le couple \\(C_\\ell\\,\\vec z\\) (DS 2023-24). ${geo}. À l'aide du PFS, exprimer \\(C_\\ell\\) en fonction de \\(a\\) et \\(P\\).</p>`,
+    items: [Ex('C_\\ell', ['a', 'P'], v => xg * v.a * v.P, `C_\\ell = ${xg}aP`)], corr: meth };
+  return { title: 'Couple de levage avec bras pesant', fig: fig(f, 220), q: `<p>Même bras (${geo}), mais on tient compte du poids du segment OD : \\(-Q\\vec y\\) appliqué au milieu de [OD]. Exprimer le couple \\(C_\\ell\\) en fonction de \\(a\\), \\(P\\) et \\(Q\\).</p>`,
+    items: [Ex('C_\\ell', ['a', 'P', 'Q'], v => xg * v.a * v.P + p * v.a * v.Q / 2, `C_\\ell = ${xg}aP + ${p === 2 ? '' : `\\dfrac{${p}}{2}`}aQ`)],
+    corr: meth + `<p>Le poids \\(Q\\) au milieu de [OD], à l'abscisse \\(\\dfrac{${p}a}{2}\\), ajoute le moment \\(-\\dfrac{${p}a}{2}Q\\,\\vec z\\) : \\(C_\\ell = ${xg}aP + \\dfrac{${p}}{2}aQ\\).</p>` };
+};
+
+/* ---------- 11. isolements successifs : levier et bielle ---------- */
+GEN.bielle = (d, g) => {
+  const e = g.pick([0.1, 0.15, 0.2]), dd = g.pick([0.4, 0.5, 0.6]), be = g.pick([20, 30, 40]), F = g.pick([100, 200, 300]), S = dd * F / (e * cosD(be)), XA = S * sinD(be), YA = F - S * cosD(be);
+  const A = [60, 90], k = 260 / dd, E = [A[0] + k * e, 90], Fp = [A[0] + k * dd, 90], Dp = [E[0] + 90 * sinD(be), 90 + 90 * cosD(be)];
+  const f = sv.wall(40, 90, 50) + sv.line(40, 90, 55, 90, 'thin2') + `<circle class="sup" cx="${A[0]}" cy="${A[1]}" r="6"/>` + sv.line(A[0] + 6, 90, Fp[0], 90) + sv.line(E[0], E[1], Dp[0], Dp[1]) + `<circle class="sup" cx="${fx1(E[0])}" cy="90" r="5"/>` + sv.pin(Dp[0], Dp[1]) + sv.text(A[0], 75, 'A') + sv.text(E[0], 75, 'E') + sv.text(Dp[0] + 16, Dp[1] - 2, 'D', 'start') + sv.text(Fp[0], 75, 'K') + sv.force(Fp[0], 92, Fp[0], 150, 'F', 10, 0) + sv.line(E[0], 90, E[0], 170, 'thin') + sv.arc(E[0], 90, 42, -90, -90 + be, 'β') + sv.text((A[0] + Fp[0]) / 2 - 30, 40, '1', 'middle', 'dt') + sv.text((E[0] + Dp[0]) / 2 + 12, (E[1] + Dp[1]) / 2, '2', 'start', 'dt') + sv.axes(30, 205);
+  const st = `<p>Un levier 1 (horizontal, en liaison pivot en A avec le bâti) reçoit en K une force verticale \\(F = ${F}\\ \\mathrm{N}\\) vers le bas, avec \\(AK = ${tN(dd)}\\ \\mathrm{m}\\). Il est retenu en E (\\(AE = ${tN(e)}\\ \\mathrm{m}\\)) par une biellette 2, articulée en E et en D, de poids négligeable, qui fait l'angle \\(\\beta = ${be}^\\circ\\) avec la verticale (même démarche que la cisaille du TD 5 : isoler 2, puis 1).</p>`;
+  const meth = `<p><b>On isole 2</b> : soumise à deux forces (en E et en D), elle est en équilibre si ces forces sont <b>opposées et portées par la droite (ED)</b>. L'action de 2 sur 1 est donc dirigée selon (DE) : \\(\\vec S = S(-\\sin\\beta\\,\\vec x + \\cos\\beta\\,\\vec y)\\).</p><p><b>On isole 1</b> : moments en A, \\(AE\\cdot S\\cos\\beta - AK\\cdot F = 0\\), donc \\(S = \\dfrac{AK\\cdot F}{AE\\cos\\beta} = ${Q(S, 'N')}\\).</p><p>Forces : \\(X_A - S\\sin\\beta = 0\\), \\(Y_A + S\\cos\\beta - F = 0\\) : \\(X_A = ${Q(XA, 'N')}\\), \\(Y_A = ${Q(YA, 'N')}\\) (le pivot tire le levier vers le bas).</p>`;
+  const two = Ch('Un solide soumis à deux forces est en équilibre si elles sont', [['o', 'opposées, portées par la droite joignant leurs points d\'application'], ['p', 'perpendiculaires'], ['m', 'de même sens et de même norme']], 'o');
+  if (d === 0) return { title: 'Biellette : solide soumis à deux forces', fig: fig(f, 225), q: st + '<p>Quelle propriété de la biellette utilise-t-on ? Calculer l\'effort \\(S\\) dans la biellette.</p>', items: [two, Nn('S', S, 'N')], corr: meth };
+  if (d === 1) return { title: 'Levier et biellette', fig: fig(f, 225), q: st + '<p>Calculer l\'effort \\(S\\) dans la biellette et les composantes \\(X_A\\), \\(Y_A\\) de l\'action du pivot A sur le levier.</p>', items: [Nn('S', S, 'N'), Nn('X_A', XA, 'N'), Nn('Y_A', YA, 'N')], corr: meth };
+  return { title: 'Levier et biellette (littéral)', fig: fig(f, 225), q: st + '<p>En notant \\(e = AE\\) et \\(d = AK\\), exprimer \\(S\\) puis \\(Y_A\\) en fonction de \\(F\\), \\(d\\), \\(e\\) et \\(\\beta\\).</p>',
+    items: [Ex('S', ['d', 'e', 'F', 'beta'], v => v.d * v.F / (v.e * Math.cos(v.beta)), 'S = \\dfrac{dF}{e\\cos\\beta}'), Ex('Y_A', ['d', 'e', 'F', 'beta'], v => v.F * (1 - v.d / v.e), 'Y_A = F\\left(1 - \\dfrac{d}{e}\\right)')], corr: meth };
+};
+
+/* =====================================================================
+   VÉRIFICATION
+   ===================================================================== */
+function check(it, raw) {
+  raw = raw == null ? '' : String(raw);
+  if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
+  if (it.type === 'expr') { const r = checkExpr(raw, it); if (r.st === 'sign') return { st: 'bad', msg: 'au signe près : vérifie l\'orientation.' }; return r; }
+  const q = parseNum(raw, it.unit);
+  if (q.err !== undefined) return { st: q.err === '' ? 'empty' : 'err', msg: q.err };
+  const tol = Math.max((it.tol || 0.02) * Math.abs(it.val), 1e-9);
+  if (Math.abs(q.v - it.val) <= tol) return { st: 'ok' };
+  if (Math.abs(q.v + it.val) <= tol) return { st: 'bad', msg: 'attention au signe.' };
+  const ratio = q.v / it.val;
+  if (it.val && [1e3, 1e-3, 1e2, 1e-2, 1e6, 1e-6].some(f => Math.abs(ratio / f - 1) < 0.02)) return { st: 'bad', msg: 'bon nombre, mauvaise puissance de 10 : vérifie les unités.' };
+  return { st: 'bad' };
+}
+const PILL = { ok: '<span class="pill ok">Juste</span>', bad: '<span class="pill bad">Faux</span>', err: '<span class="pill bad">Illisible</span>', empty: '<span class="pill part">Vide</span>' };
+const fbHTML = r => PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '');
+function itemHTML(it, id, val) {
+  if (it.type === 'choice') return `<div class="it full" data-id="${id}"><span class="it-lab w">${it.lab}</span><div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${o.t}</span></label>`).join('')}</div><div class="fb"></div></div>`;
+  const lab = `<span class="it-lab">${tx(it.lab + ' =')}</span>`;
+  if (it.type === 'expr') return `<div class="it ex-expr" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" data-expr="1" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="formule" value="${esc(val || '')}"></div><div class="vh">${varsHint(it.vars)}</div><div class="pv" data-pv="${id}"></div><div class="fb"></div></div>`;
+  return `<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="valeur" value="${esc(val || '')}">${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div><div class="fb"></div></div>`;
+}
+const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); if (r) return r.value; const t = $(`input[type=text][data-id="${id}"]`, root); return t ? t.value : ''; };
+function preview(inp) {
+  const pv = $(`[data-pv="${inp.dataset.id}"]`); if (!pv) return;
+  const it = findItem(inp.dataset.id); if (!it) return;
+  if (!inp.value.trim()) { pv.innerHTML = ''; return; }
+  const P = parseF(inp.value, it.vars, false);
+  pv.innerHTML = P.err !== undefined ? '<span class="fine">' + esc(P.err) + '</span>' : 'lu : ' + tx(texF(P.ast));
+}
+const HELP = '<p class="fine" style="margin-top:12px">Formules : tape par exemple <code>P/(2*sin(theta))</code>, <code>-F*cos(alpha)</code>, <code>2*H*F1 - L*F2*cos(a)</code>. Fonctions : <code>sqrt</code>, <code>sin</code>, <code>cos</code>, <code>tan</code>, <code>exp</code>, <code>ln</code>, <code>pi</code>. Mets des parenthèses en cas de doute : l\'aperçu montre comment ta formule est lue. Valeurs : virgule ou point, puissances de 10 en <code>4,2e-3</code> ; l\'unité est facultative (tu peux en écrire une autre, comme km/h ou min).</p>';
+
+/* =====================================================================
+   COMPÉTENCES ET PROGRESSION (mêmes règles que les autres matières)
+   ===================================================================== */
+const PK = 'meca.path.v1', HK = 'meca.hist.v1', EK = 'meca.exam.v1', VAL = 100, MMAX = 130;
+const CH = ['Vecteurs et moments', 'Torseurs', 'Liaisons', 'Principe fondamental de la statique', 'Plusieurs solides'];
+const SK = [
+  { id: 'proj', ch: 0, name: 'Projeter une force dans une base', fiche: 0 },
+  { id: 'pvec', ch: 0, name: 'Produit vectoriel', fiche: 0 },
+  { id: 'moment', ch: 0, name: 'Moment d\'une force en un point', fiche: 1 },
+  { id: 'transport', ch: 1, name: 'Torseurs : transport et réduction', fiche: 2 },
+  { id: 'liaisons', ch: 2, name: 'Liaisons : actions transmissibles', fiche: 3 },
+  { id: 'cables', ch: 3, name: 'Tension dans des câbles', fiche: 5 },
+  { id: 'encastre', ch: 3, name: 'Poutre ou poteau encastré', fiche: 4 },
+  { id: 'appuis', ch: 3, name: 'Appuis, réactions et basculement', fiche: 5 },
+  { id: 'contact3', ch: 3, name: 'Trois appuis ponctuels (3D)', fiche: 4 },
+  { id: 'moteur', ch: 3, name: 'Couple de levage (pivot + couple)', fiche: 5 },
+  { id: 'bielle', ch: 4, name: 'Isolements successifs, biellette', fiche: 6 }
+];
+const skById = id => SK.find(k => k.id === id);
+function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
+function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false }); }
+const isVal = s => s.m >= VAL, levelOf = s => s.m < 40 ? 0 : s.m < 80 ? 1 : 2;
+const frontier = P => SK.find(k => !isVal(skS(P, k.id))) || null;
+function pickNext(P) {
+  const f = frontier(P), pool = SK.filter(k => k !== f && skS(P, k.id).ever);
+  const rev = pool.length >= 2 && (P.since >= 6 || (P.since >= 3 && Math.random() < 0.35));
+  if (f && !rev) return { k: f, review: false };
+  if (!pool.length) return f ? { k: f, review: false } : null;
+  const now = Date.now(), W = pool.map(k => { const s = skS(P, k.id); return [k, (MMAX + 20 - s.m) * (1 + Math.min(3, (now - s.last) / 864e5))]; });
+  let r = Math.random() * W.reduce((a, w) => a + w[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) return { k, review: true }; }
+  return { k: W[0][0], review: true };
+}
+function build(id, d, seed) { const ex = GEN[id](d, G(rng(seed))); ex.items.forEach((it, i) => { it.id = `${id}-${seed}-${i}`; }); return ex; }
+
+let CUR = null, EXAM = null;
+function findItem(id) {
+  if (CUR && CUR.ex) { const it = CUR.ex.items.find(x => x.id === id); if (it) return it; }
+  if (EXAM && EXAM.exs) for (const ex of EXAM.exs) for (const p of ex.parts) { const it = p.items.find(x => x.id === id); if (it) return it; }
+  return null;
+}
+function exHTML(ex) {
+  return `<article class="card ex"><h2>${esc(ex.title)}</h2><div class="q">${ex.q}</div>${ex.fig || ''}
+    <div class="items">${ex.items.map(it => itemHTML(it, it.id, (CUR && CUR.ans[it.id]) || '')).join('')}</div>
+    ${ex.items.some(it => it.type === 'expr') ? HELP : ''}
+    <div class="actions"><button type="button" class="btn btn-primary" data-act="check">Vérifier</button></div>
+    <details class="corr"><summary>Correction</summary><div class="expl">${ex.corr}${ex.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details></article>`;
+}
+function startEx(k, o = {}) {
+  const P = pst(), s = skS(P, k.id), R = o.resume || null;
+  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s), seed = R ? R.seed : newSeed();
+  CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), done: false };
+  CUR.ex = build(k.id, d, seed);
+  if (CUR.mode === 'path' && !R) saveCur(!!o.user);
+  renderEx();
+}
+function saveCur(bump = true) {
+  if (!CUR || CUR.mode !== 'path') return;
+  const P = pst();
+  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek };
+  if (bump) P.curT = Date.now();
+  ls.set(PK, P);
+}
+function renderEx() {
+  const host = $('#exHost'); if (!host || !CUR) return;
+  const k = CUR.k, s = skS(pst(), k.id);
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span><button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
+    + exHTML(CUR.ex);
+  mathIn(host);
+  CUR.ex.items.forEach(it => { if (it.id in CUR.first) { const fb = $(`.it[data-id="${it.id}"] .fb`, host); if (fb) fb.innerHTML = fbHTML(check(it, valOf(host, it.id))); } });
+  $$('input[data-expr]', host).forEach(preview);
+  host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function checkCur() {
+  if (!CUR || CUR.done) return;
+  const host = $('#exHost');
+  CUR.ex.items.forEach(it => {
+    const r = check(it, valOf(host, it.id)), fb = $(`.it[data-id="${it.id}"] .fb`, host);
+    if (fb) fb.innerHTML = fbHTML(r);
+    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? 1 : 0;
+  });
+  saveCur();
+  if (CUR.ex.items.every(it => it.id in CUR.first)) finish(CUR.ex.items.reduce((a, it) => a + CUR.first[it.id], 0) / CUR.ex.items.length);
+}
+function finish(r) {
+  CUR.done = true;
+  const host = $('#exHost');
+  $('details.corr', host).open = true;
+  if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); return; }
+  const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
+  s.n++; if (r === 1) s.ok++;
+  const gain = CUR.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
+  if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
+  s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now(); if (isVal(s)) s.ever = true;
+  P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
+  ls.set(PK, P);
+  const f = frontier(P), now = isVal(s);
+  const title = CUR.review ? (r === 1 ? 'Toujours acquis' : was && !now ? 'Un peu oublié' : 'À surveiller') : !was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
+  const msg = !was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+  host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span></div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
+    <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
+    <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`);
+  if (!was && now && !CUR.review) toast('Compétence validée : ' + k.name);
+  renderPathTop(); renderMap();
+}
+
+/* =====================================================================
+   VUES
+   ===================================================================== */
+let VIEW = 'home';
+function setTab(t) {
+  if (EXAM && EXAM.running && t !== 'blanc') { toast('Un sujet blanc est en cours.'); t = 'blanc'; }
+  VIEW = t;
+  $$('#tabs .tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
+  ({ home: vHome, path: vPath, cours: vCours, exos: vExos, blanc: vBlanc })[t]();
+  if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
+  window.scrollTo(0, 0);
+}
+function nextCC() {
+  const c = ls.get('planning.cache.v1', null), now = Date.now();
+  const ev = c && c.evs ? c.evs.slice().sort((x, y) => x.s - y.s).find(e => e.s > now - 3 * 3600e3 && /(^|[^A-Za-z])MECA([^A-Za-z]|$)/.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : null;
+  return ev ? ev.s : Date.parse('2026-12-09T12:15:00Z');
+}
+function vHome() {
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
+  const days = Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Ingénierie mécanique · Statique · D. Auche, C. Clavaud</p><h1>Réussir le CC d'ingénierie mécanique</h1>
+    <p class="lede">Le CC du mercredi 9/12 dure 1 h 30 et porte sur la <b>statique des solides</b> : projeter des forces, calculer des moments et les transporter (torseurs), connaître les actions transmises par les <b>liaisons</b>, puis appliquer le <b>principe fondamental de la statique</b> pour trouver des tensions, des réactions d'appui ou un couple moteur.</p></div>
+    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC d'ingénierie mécanique : ${esc(when)}</span></div></section>
+    <div class="grid2">
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Des vecteurs jusqu'aux mécanismes à plusieurs solides, avec un schéma pour chaque exercice et une progression qui s'adapte à tes résultats.</p>
+        <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
+      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">4 exercices notés sur 20, dont les deux exercices types du DS : tension dans des câbles et couple de levage. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
+    </div>
+    <section class="card"><h2>Une seule annale : le DS 2023-24 corrigé</h2><p class="sub">Sur Moodle, il y a 5 feuilles de TD (vecteurs, transport de moment, PFS, liaisons, systèmes : moto, parasol, chargeur, cisaille) et un DS corrigé d'1 h. Seul document autorisé : la <b>fiche des liaisons</b>. Exercice 1 : tension dans deux câbles qui soulèvent une poutre (\\(F_A = P/2\\sin\\theta\\), puis avec la géométrie). Exercice 2 : couple de levage d'un bras en pivot, par le PFS écrit avec des torseurs. Les deux sont dans le parcours et dans le sujet blanc.</p></section>`;
+  mathIn(app);
+}
+function renderPathTop() {
+  const el = $('#pathTop'); if (!el) return;
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, f = frontier(P);
+  el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${done}/${SK.length}</b><span>compétences validées</span></div><span class="sp"></span>
+    ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
+    <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+    <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'} · Deux sans-faute d'affilée valident une compétence ; en cas d'erreurs, les exercices se simplifient et les compétences validées reviennent en révision.</p></section>`;
+}
+function renderMap() {
+  const el = $('#pathMap'); if (!el) return;
+  const P = pst(), f = frontier(P);
+  el.innerHTML = CH.map((c, ci) => `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${SK.filter(k => k.ch === ci).map(k => {
+    const s = skS(P, k.id), val = isVal(s), open = val || k === f || s.n > 0, pct = Math.min(100, Math.round(s.m));
+    return `<div class="psk ${val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}${s.ever && !val ? '<small>à revoir</small>' : ''}</span>
+      <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
+  }).join('')}</div>`).join('');
+}
+function nextPath(o = {}) {
+  const P = pst();
+  if (!o.fresh && P.cur && skById(P.cur.id)) { startEx(skById(P.cur.id), { resume: P.cur }); renderPathTop(); renderMap(); return; }
+  const n = pickNext(P); if (!n) return;
+  startEx(n.k, { review: n.review, user: o.user }); renderPathTop(); renderMap();
+}
+function vPath() {
+  app.innerHTML = `<div><p class="eyebrow">Parcours guidé</p><h1>Le parcours</h1></div><div id="pathTop"></div><div id="exHost" style="display:grid;gap:16px"></div><section class="card"><h2>La carte</h2><div id="pathMap"></div></section>`;
+  renderPathTop(); renderMap();
+  if (CUR && CUR.mode === 'path') renderEx(); else if (pst().n || pst().cur) nextPath();
+}
+let FREE = { id: 'proj', d: 0 };
+function vExos() {
+  app.innerHTML = `<div><p class="eyebrow">Entraînement libre</p><h1>Exercices par type</h1><p class="lede">Choisis un type d'exercice et un niveau. Les valeurs et les schémas changent à chaque fois ; le niveau 3 demande surtout des expressions littérales.</p></div>
+    <section class="card"><div class="seg">${SK.map(k => `<button type="button" data-ft="${k.id}" aria-pressed="${k.id === FREE.id}">${esc(k.name)}</button>`).join('')}</div>
+      <div class="row" style="margin-top:12px"><div class="seg">${[0, 1, 2].map(d => `<button type="button" data-fd="${d}" aria-pressed="${d === FREE.d}">Niveau ${d + 1}</button>`).join('')}</div><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></section>
+    <div id="exHost" style="display:grid;gap:16px"></div>`;
+  startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+}
+
+/* ---------- Cours ---------- */
+const FICHES = [
+  ['1. Vecteurs : projection et produit vectoriel', 'projection, produit vectoriel', `<p>Projection d'une force de norme \\(F\\) faisant l'angle \\(\\alpha\\) avec un axe : composante \\(F\\cos\\alpha\\) sur cet axe (côté <b>adjacent</b>), \\(F\\sin\\alpha\\) sur l'axe perpendiculaire ; les signes se lisent sur la figure.</p>
+    <p>Produit vectoriel dans une base orthonormée directe : \\(\\vec x\\wedge\\vec y = \\vec z\\), \\(\\vec y\\wedge\\vec z = \\vec x\\), \\(\\vec z\\wedge\\vec x = \\vec y\\) ; \\(\\vec v\\wedge\\vec u = -\\vec u\\wedge\\vec v\\) ; \\(\\vec u\\wedge\\vec u = \\vec 0\\).</p>
+    \\[\\begin{pmatrix} u_x \\\\ u_y \\\\ u_z \\end{pmatrix}\\wedge\\begin{pmatrix} v_x \\\\ v_y \\\\ v_z \\end{pmatrix} = \\begin{pmatrix} u_yv_z - u_zv_y \\\\ u_zv_x - u_xv_z \\\\ u_xv_y - u_yv_x \\end{pmatrix}\\]
+    <p>\\(\\vec u\\wedge\\vec v\\) est perpendiculaire à \\(\\vec u\\) et à \\(\\vec v\\), de norme \\(uv\\sin(\\vec u, \\vec v)\\) (règle des trois doigts de la main droite).</p>
+    <div class="box key"><h5>À savoir faire</h5>Écrire chaque force en colonne dans la base \\((\\vec x, \\vec y, \\vec z)\\) avant tout calcul ; développer un produit vectoriel avec les produits des vecteurs de base.</div>
+    <div class="box warn"><h5>Pièges</h5>Inverser cos et sin quand l'angle est mesuré depuis \\(\\vec y\\) · oublier le signe d'une composante dirigée vers les \\(x\\) ou \\(y\\) négatifs · \\(\\vec x\\wedge\\vec z = -\\vec y\\).</div>`],
+  ['2. Moment d\'une force', 'moments', `<p>Moment en A d'une force \\(\\vec F\\) appliquée en B :</p>\\[\\vec{\\mathcal M}_A(\\vec F) = \\vec{AB}\\wedge\\vec F\\]
+    <ul><li>Il est nul si A est sur la ligne d'action de \\(\\vec F\\).</li><li>Sa norme vaut \\(F\\times d\\), où \\(d\\) est le <b>bras de levier</b> (distance de A à la ligne d'action) : il mesure la capacité de la force à faire tourner le solide autour de A.</li><li>Dans un problème plan \\((\\vec x, \\vec y)\\), il est porté par \\(\\vec z\\) : \\(\\mathcal M_{A,z} = x_{AB}F_y - y_{AB}F_x\\), positif si la force fait tourner dans le sens trigonométrique.</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Calculer le moment d'une même force en plusieurs points ; retrouver le résultat par « force × bras de levier » avec le bon signe.</div>
+    <div class="box warn"><h5>Pièges</h5>Le vecteur va du point où l'on calcule le moment <b>vers</b> le point d'application (\\(\\vec{AB}\\), pas \\(\\vec{BA}\\)) · l'ordre du produit vectoriel compte.</div>`],
+  ['3. Torseurs', 'torseurs', `<p>Une action mécanique est représentée par un torseur : sa <b>résultante</b> \\(\\vec R\\) (indépendante du point) et son <b>moment</b> \\(\\vec{\\mathcal M}_A\\) en un point A :</p>\\[\\{\\mathcal T\\} = \\begin{Bmatrix} \\vec R \\\\ \\vec{\\mathcal M}_A \\end{Bmatrix}_A = \\begin{Bmatrix} X & L \\\\ Y & M \\\\ Z & N \\end{Bmatrix}_{A,(\\vec x,\\vec y,\\vec z)}\\]
+    <p><b>Transport du moment</b> (« BABAR ») : \\(\\vec{\\mathcal M}_B = \\vec{\\mathcal M}_A + \\vec{BA}\\wedge\\vec R\\).</p>
+    <ul><li>Glisseur (une force) : moment nul en tout point de sa ligne d'action.</li><li>Couple : résultante nulle, moment identique en tout point.</li><li>On n'additionne deux torseurs que s'ils sont écrits <b>au même point</b> et dans la même base.</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Écrire le torseur d'une force en son point d'application, puis le transporter au point choisi pour le PFS.</div>`],
+  ['4. Liaisons et actions transmissibles', 'liaisons', `<p>Une liaison transmet une force dans chaque direction de translation bloquée et un moment autour de chaque axe de rotation bloqué. Inconnues statiques + degrés de liberté = 6. (Au DS de 2023-24, la fiche des liaisons était le seul document autorisé.)</p>
+    <table class="t"><tr><th>Liaison</th><th>Torseur transmissible en A</th><th>Inconnues</th></tr>${LIA.map(l => `<tr><td>${l[0]}</td><td>\\(${tor(l[2], l[3], 'A')}\\)</td><td>${l[1]}</td></tr>`).join('')}</table>
+    <p><b>Problème plan</b> \\((\\vec x, \\vec y)\\) : seules \\(X\\), \\(Y\\) et \\(N\\) restent. Pivot d'axe \\(\\vec z\\) : \\(X, Y\\) ; encastrement : \\(X, Y, N\\) ; appui ponctuel de normale \\(\\vec y\\) : \\(Y\\) ; glissière de direction \\(\\vec x\\) : \\(Y, N\\).</p>
+    <div class="box warn"><h5>Pièges</h5>Une liaison parfaite (sans frottement) ne transmet rien dans les directions où elle laisse bouger · le torseur d'une pivot n'a pas cette forme en un point hors de son axe.</div>`],
+  ['5. Principe fondamental de la statique', 'PFS', `<p>Un solide (ou ensemble) en équilibre dans un référentiel galiléen : la somme des torseurs des actions <b>extérieures</b> est nulle.</p>\\[\\sum\\{\\mathcal T_{ext}\\} = \\{0\\}\\iff\\begin{cases}\\sum\\vec F_{ext} = \\vec 0 & \\text{(théorème de la résultante statique)}\\\\ \\sum\\vec{\\mathcal M}_A(\\vec F_{ext}) = \\vec 0 & \\text{(théorème du moment statique, en un point A quelconque)}\\end{cases}\\]
+    <p>6 équations dans l'espace, 3 dans le plan (\\(X\\), \\(Y\\), \\(N\\)).</p>
+    <div class="box key"><h5>Méthode (celle du corrigé du DS)</h5>1. Isoler le système. 2. Bilan des actions extérieures : écrire chaque torseur (liaisons, forces, couples) dans la même base. 3. Les transporter tous au même point, de préférence celui qui a le plus d'inconnues. 4. Écrire les 6 (ou 3) équations et résoudre. 5. Encadrer la réponse demandée.</div>
+    <div class="box warn"><h5>Pièges</h5>Les actions intérieures au système isolé n'apparaissent pas · une inconnue trouvée négative signifie seulement qu'elle est dans l'autre sens.</div>`],
+  ['6. Cas classiques', 'câbles, appuis, basculement', `<ul><li><b>Câbles symétriques</b> d'angle \\(\\theta\\) avec l'horizontale : \\(F = \\dfrac{P}{2\\sin\\theta}\\) ; avec la géométrie, \\(\\sin\\theta = \\dfrac h\\ell\\) et \\(h = \\sqrt{\\ell^2 - L^2/4}\\).</li><li><b>Nœud retenu par deux câbles</b> : projeter sur \\(\\vec x\\) et \\(\\vec y\\), deux équations, deux tensions.</li><li><b>Poutre encastrée</b> : \\(X_A, Y_A, N_A\\) ; moments en A.</li><li><b>Poutre sur deux appuis</b> : moments en un appui donnent l'autre réaction (\\(Y_B = \\frac dL F\\)).</li><li><b>Basculement</b> : à la limite, l'appui qui décolle a une réaction nulle ; on écrit les moments autour de l'autre.</li><li><b>Trois appuis ponctuels</b> (moto) : résultante sur \\(\\vec z\\) + moments sur \\(\\vec x\\) et \\(\\vec y\\).</li><li><b>Couple moteur</b> sur un bras en pivot : \\(C = P\\times x_G\\) (bras de levier horizontal).</li></ul>`],
+  ['7. Plusieurs solides : isolements successifs', 'bielles', `<ul><li><b>Solide soumis à deux forces</b> (biellette, poids négligé) : en équilibre si les deux forces sont opposées et portées par la droite qui joint leurs points d'application. On connaît donc la <b>direction</b> de l'effort.</li><li><b>Solide soumis à trois forces non parallèles</b> : elles sont concourantes en un même point et leur somme est nulle.</li><li>Ordre d'isolement : commencer par les solides soumis à deux forces, puis ceux qui ont le moins d'inconnues (cisaille du TD 5 : isoler 2, puis 3, puis {1 + 2}).</li><li>Actions réciproques : l'action de 1 sur 2 est l'opposée de celle de 2 sur 1.</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Choisir les isolements pour n'avoir à chaque fois pas plus d'inconnues que d'équations (3 en plan).</div>`]
+];
+function vCours(open) {
+  app.innerHTML = `<div><p class="eyebrow">Statique des solides · CC du 9/12</p><h1>Le cours utile</h1><p class="lede">Ingénierie mécanique condensée en 7 fiches : outils (vecteurs, moments, torseurs), liaisons, PFS et méthodes de résolution. Chaque fiche dit à quel type d'exercice elle sert.</p></div>
+    ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
+  mathIn(app);
+  if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
+}
+
+/* ---------- Sujet blanc ---------- */
+let tick = 0;
+const DUR = 5400;
+const EXAM_PLAN = [['Exercice 1 · Vecteurs et moments', [['proj', 1], ['moment', 1]], 4], ['Exercice 2 · Tension dans des câbles', [['cables', 1]], 5], ['Exercice 3 · Liaisons et PFS', [['liaisons', 1], ['encastre', 1]], 5], ['Exercice 4 · Couple de levage et appuis', [['moteur', 1], ['appuis', 2]], 6]];
+function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+function vBlanc() {
+  const E = ls.get(EK, null);
+  if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
+  if (EXAM) return renderExam();
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">4 exercices dans le style du TD et du DS : vecteurs et moments (4 pts), tension dans des câbles (5 pts), liaisons et PFS (5 pts), couple de levage et basculement (6 pts). Les formules littérales sont corrigées automatiquement.</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button><span class="fine">Au CC, seule la fiche des liaisons est autorisée : garde l\'onglet Cours fermé.</span></div></section>
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+}
+function renderExam() {
+  EXAM.exs = examExos(EXAM.seed);
+  app.innerHTML = `<div><p class="eyebrow">Sujet blanc d'ingénierie mécanique</p><h1>CC · 1 h 30</h1></div>`
+    + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div>${p.fig || ''}<div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
+    + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
+      : `<section class="card">${HELP}<div class="row" style="justify-content:center;margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div></section>`);
+  mathIn(app);
+  $$('input[data-expr]', app).forEach(preview);
+  if (EXAM.done && EXAM.fb) Object.entries(EXAM.fb).forEach(([id, h]) => { const fb = $(`.it[data-id="${id}"] .fb`, app); if (fb) fb.innerHTML = h; });
+  startTick();
+}
+function startTick() {
+  clearInterval(tick); const clk = $('#clock');
+  if (!EXAM || EXAM.done) { clk.hidden = true; return; }
+  clk.hidden = false;
+  const upd = () => { const left = DUR - (Date.now() - EXAM.t0) / 1000; clk.textContent = `${Math.floor(Math.max(0, left) / 3600)}:${String(Math.floor(Math.max(0, left) % 3600 / 60)).padStart(2, '0')}:${String(Math.floor(Math.max(0, left) % 60)).padStart(2, '0')}`; clk.classList.toggle('rush', left < 600); if (left <= 0) submitExam(true); };
+  upd(); tick = setInterval(upd, 1000);
+}
+const saveExam = () => { const { exs, ...rest } = EXAM; try { localStorage.setItem(EK, JSON.stringify(rest)); } catch (e) { /* ignore */ } };
+function submitExam(auto) {
+  if (!EXAM || EXAM.done) return;
+  if (!auto && !confirm('Rendre la copie ?')) return;
+  clearInterval(tick);
+  const exs = examExos(EXAM.seed); let note = 0; const fb = {};
+  for (const ex of exs) {
+    const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
+    for (const it of its) { const r = check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += r.st === 'ok' ? 1 : 0; }
+    note += ex.pts * got / its.length;
+  }
+  EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
+  try { localStorage.removeItem(EK); } catch (e) { /* ignore */ }
+  if (auto) toast('Temps écoulé : copie rendue.');
+  renderExam(); window.scrollTo(0, 0);
+}
+
+/* =====================================================================
+   ÉVÉNEMENTS
+   ===================================================================== */
+let saveT = 0;
+document.addEventListener('click', e => {
+  const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab); return; }
+  const fi = e.target.closest('[data-fiche]'); if (fi) { setTab('cours'); vCours(+fi.dataset.fiche); return; }
+  const go = e.target.closest('[data-go]');
+  if (go) { if (CUR && CUR.mode === 'path' && !CUR.done && CUR.k.id === go.dataset.go) { $('#exHost').scrollIntoView({ behavior: 'smooth' }); return; } startEx(skById(go.dataset.go), { user: true }); renderPathTop(); renderMap(); return; }
+  const ft = e.target.closest('[data-ft]'); if (ft) { FREE.id = ft.dataset.ft; vExos(); return; }
+  const fd = e.target.closest('[data-fd]'); if (fd) { FREE.d = +fd.dataset.fd; vExos(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'check') checkCur();
+  else if (act === 'next') nextPath();
+  else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
+  else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
+  else if (act === 'submit') submitExam(false);
+  else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
+});
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.matches('input')) return;
+  const id = t.dataset.id || t.name; if (!id) return;
+  if (t.dataset.expr) preview(t);
+  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; saveExam(); }
+  else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
+});
+document.addEventListener('change', e => { if (e.target.type === 'radio') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); } });
+document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matches && e.target.matches('#exHost details.corr') && e.target.open) { CUR.peek = true; saveCur(); } }, true);
+
+(function () {
+  const ICON = { sun: '☀', moon: '☾', auto: '◐' }, KEY = 'qcm-maths-theme', btn = $('#themeBtn');
+  function apply(t) { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t; btn.textContent = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; btn.dataset.mode = t; btn.title = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t]; }
+  let t = 'auto'; try { t = localStorage.getItem(KEY) || 'auto'; } catch (e) { /* ignore */ }
+  apply(t);
+  btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
+})();
+function wireAccount() {
+  const A = window.SiteAccount; if (!A) return;
+  A.on('data', keys => {
+    if (!keys.some(k => k.startsWith('meca.'))) return;
+    if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
+    if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();
+  });
+}
+if (window.SiteAccount) wireAccount(); else window.addEventListener('siteaccount', wireAccount, { once: true });
+
+window.__MECA = { GEN, build, check, parseF, evF, texF, parseNum, SK, VD, FICHES };   // tests
+function boot() { const h = location.hash.slice(1); setTab(['home', 'path', 'cours', 'exos', 'blanc'].includes(h) ? h : 'home'); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+</body>
+</html>

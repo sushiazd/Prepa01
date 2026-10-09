@@ -377,28 +377,21 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
 <!-- ================= ACCUEIL ================= -->
 <section class="hub" id="v-home" hidden>
   <div class="hub-head">
-    <p class="eyebrow">Contrôle continu n°1 · 60 min · sans document</p>
-    <h1>Atomiser le CC1 d'élec</h1>
-    <p class="lede">Depuis 2021 le sujet a toujours la même forme : une démonstration du cours, une résistance équivalente, un circuit à deux générateurs et un circuit avec une charge \(R_L\). Ici tu t'entraînes sur exactement ça.</p>
+    <p class="eyebrow">Électronique analogique · ELECa · S. Avrillon et O. Lafond</p>
+    <h1>Réussir le CC d'électronique</h1>
+    <p class="lede">Le CC1 du vendredi 16/10 dure 1 h, sans document ni calculatrice, et garde la même forme depuis 2021 : une <b>démonstration du cours</b> (4 pts), une <b>résistance équivalente</b> (4 pts), un <b>circuit à deux générateurs</b> (8 pts) et un <b>circuit avec une charge \(R_L\)</b> (4 pts). Le CC2 du 2/11 garde la démonstration, puis passe au générateur de Thévenin et aux circuits RC et RL.</p>
   </div>
   <div id="resumeBanner"></div>
-  <div id="pathBanner"></div>
-  <section class="card">
-    <div class="card-head"><div><h2>Le sujet, exercice par exercice</h2><p class="sub">La barre indique ton taux de réussite sur les exercices faits ici (entraînement + sujets blancs).</p></div></div>
-    <div class="tiles" id="homeTiles"></div>
-  </section>
+  <section class="card"><div class="count" id="countBox"></div></section>
   <div class="two">
-    <section class="card">
-      <div class="card-head"><div><h2>Compte à rebours</h2><p class="sub">Indique la date du CC pour caler le planning.</p></div></div>
-      <div class="row"><input type="date" id="ccDate" aria-label="Date du CC"><span class="fine">enregistrée sur ce téléphone / ordinateur</span></div>
-      <div class="count" id="countBox" style="margin-top:18px"></div>
-      <div id="lastNotes" style="margin-top:18px"></div>
-    </section>
-    <section class="card">
-      <div class="card-head"><div><h2>Planning sur 12 jours</h2><p class="sub">≈ 40 min par jour. Coche au fur et à mesure.</p></div></div>
-      <ul class="plan" id="planList"></ul>
-    </section>
+    <section class="card" id="homePath"></section>
+    <section class="card" id="homeBlanc"></section>
   </div>
+  <section class="card">
+    <h2>Les annales, ta meilleure arme</h2>
+    <p class="sub">Les 5 vrais CC1 (2021 à 2025) sont redessinés ici avec une correction détaillée qui suit la méthode des corrigés du prof : refais-les en 1 h, sur papier. Les 3 démonstrations possibles de l'Ex 1 sont à savoir par cœur. Pour le CC2, les 4 sujets corrigés sont sur Moodle (dossier « Electronique analogique »).</p>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn" data-go="annales">Voir les annales</button><button type="button" class="btn" data-go="demos">Les démos à savoir</button></div>
+  </section>
 </section>
 
 <!-- ================= PARCOURS ================= -->
@@ -419,116 +412,130 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
 <!-- ================= COURS ================= -->
 <section class="hub" id="v-cours" hidden>
   <div class="hub-head">
-    <p class="eyebrow">Séquence 1 du CM · tout ce qui sert au CC1</p>
+    <p class="eyebrow">Séquence 1 du CM · ce qui tombe au CC</p>
     <h1>Le cours utile</h1>
-    <p class="lede">Les fiches marquées « tombe au CC » servent dans tous les sujets depuis 2021. Le reste est là pour la culture et les CC suivants.</p>
+    <p class="lede">Le cours d'électronique condensé en 7 fiches : définitions, formules, méthodes et pièges. Chaque fiche dit dans quel exercice du CC elle sert.</p>
   </div>
   <div id="coursBody" style="display:grid;gap:14px">
 
   <details class="th-card" open>
-    <summary><h3>1. Conventions de fléchage</h3><span class="tag-hot">tombe au CC (Ex 3 Q1)</span></summary>
+    <summary><h3>1. Conventions, loi d'Ohm et lois de Kirchhoff</h3><span class="tag-hot">tout le sujet</span></summary>
     <div class="th-body">
       <div id="convFig"></div>
       <ul>
-        <li><b>Récepteur</b> (résistance, bobine, condensateur) : la flèche de tension est <b>opposée</b> à la flèche de courant. C'est dans ce sens que \(U = R\,I\).</li>
-        <li><b>Générateur</b> : flèche de tension et flèche de courant dans le <b>même sens</b>. La flèche de tension d'un générateur pointe vers sa borne \(+\).</li>
-        <li>Tu choisis librement le sens des courants. Si un courant sort négatif, il circule dans l'autre sens : ce n'est pas une erreur, garde ton signe jusqu'au bout.</li>
-        <li>Une tension \(U_{AB} = V_A - V_B\) se représente par une flèche qui pointe vers \(A\).</li>
+        <li><b>Récepteur</b> (résistance, bobine, condensateur) : flèche de tension <b>opposée</b> à la flèche de courant. C'est dans ce sens que \(U = R\,I\).</li>
+        <li><b>Générateur</b> : flèches de tension et de courant dans le <b>même sens</b> ; la flèche de tension pointe vers la borne \(+\).</li>
+        <li>Une <b>branche</b> = des dipôles traversés par le même courant ; un <b>nœud</b> relie au moins trois branches ; une <b>maille</b> est une boucle fermée.</li>
+        <li><b>Loi des nœuds</b> : \(\sum I_{\text{entrants}} = \sum I_{\text{sortants}}\).</li>
+        <li><b>Loi des mailles</b> : on choisit un sens de parcours ; les tensions fléchées dans ce sens comptent en \(+\), les autres en \(-\) ; la somme vaut 0.</li>
       </ul>
-      <div class="box warn"><h5>Coquille dans ton CM</h5>Au § 1.1.3 (dipôles passifs), il est écrit « sens contraire pour un dipôle <i>actif</i> ». Il faut lire « pour un dipôle <b>passif</b> ».</div>
-    </div>
-  </details>
-
-  <details class="th-card">
-    <summary><h3>2. Lois de Kirchhoff et loi d'Ohm</h3><span class="tag-hot">tombe au CC (Ex 3 Q2)</span></summary>
-    <div class="th-body">
-      <p><b>Vocabulaire.</b> Une <b>branche</b> est un ensemble de dipôles traversés par le même courant. Un <b>nœud</b> relie au moins trois branches. Une <b>maille</b> est une boucle fermée de branches.</p>
-      <h4>Loi des nœuds</h4>
-      <p>La somme des courants qui entrent dans un nœud est égale à la somme de ceux qui en sortent : \(\sum I_{\text{entrants}} = \sum I_{\text{sortants}}\).</p>
-      <h4>Loi des mailles</h4>
-      <p>Choisis un sens de parcours. Les tensions fléchées dans ce sens comptent en \(+\), celles fléchées à contre-sens en \(-\), et la somme vaut 0.</p>
-      <div class="box pen"><h5>Méthode sans se tromper de signe</h5>Écris d'abord, pour chaque branche, « potentiel du haut = potentiel du bas + ce qu'on gagne en montant ». Une maille, c'est « monter par une branche et redescendre par une autre ». Avec 3 branches, tu écris 2 mailles indépendantes. La troisième est la différence des deux autres et n'apporte rien de plus.</div>
-      <h4>Loi d'Ohm (convention récepteur)</h4>
-      <p>\(U = R\,I\). Dans les corrigés du prof, elle est appliquée directement sur le schéma (« \(U_1 = R\,I_1\) » écrit à côté de la flèche).</p>
-    </div>
-  </details>
-
-  <details class="th-card">
-    <summary><h3>3. Associations de résistances</h3><span class="tag-hot">tombe au CC (Ex 2)</span></summary>
-    <div class="th-body">
-      <ul>
-        <li><b>Série</b> (même courant) : \(R_{eq} = R_1 + R_2 + \dots\)</li>
-        <li><b>Parallèle</b> (même tension) : \(\dfrac{1}{R_{eq}} = \dfrac{1}{R_1} + \dfrac{1}{R_2} + \dots\) (ce sont les admittances qui s'additionnent).</li>
-        <li>Deux résistances en parallèle : \(R_{eq} = \dfrac{R_1 R_2}{R_1 + R_2}\) (produit sur somme).</li>
-        <li>\(n\) résistances identiques \(R\) en parallèle : \(R/n\). Exemples : \(4R \parallel 4R = 2R\) et \(3R \parallel 3R \parallel 3R = R\). Le prof adore ces simplifications.</li>
-      </ul>
-      <div class="box pen"><h5>Méthode pour l'Ex 2</h5>Pars toujours du bout <b>opposé</b> à A et B, puis remonte vers A et B en alternant « série » et « parallèle ». Fais un petit schéma à chaque étape et écris la phrase « X et Y en série / en parallèle ». C'est ce que le corrigé attend (« en expliquant »).</div>
-      <div class="box warn"><h5>Pièges classiques</h5><ul>
-        <li>Une résistance au bout du montage reliée à la ligne du bas par un simple fil compte comme une branche verticale (annales 2022 et 2025).</li>
-        <li>Une résistance branchée en parallèle d'un fil est court-circuitée : on l'enlève.</li>
-        <li>Une résistance dont une borne n'est reliée à rien n'est traversée par aucun courant : on l'enlève aussi.</li>
+      <div class="box pen"><h5>À savoir faire</h5>Flécher un courant par branche (sens libre), puis les tensions : opposées au courant sur les résistances, vers le \(+\) sur les générateurs. Avec 3 branches : 2 mailles indépendantes + 1 nœud (la 3<sup>e</sup> maille n'apporte rien). Pour les AN : des V divisés par des kΩ donnent des mA, des kΩ fois des mA donnent des V.</div>
+      <div class="box warn"><h5>Pièges</h5><ul>
+        <li>Un courant négatif n'est pas une erreur : il circule dans l'autre sens que ta flèche. Garde ton signe jusqu'au bout.</li>
+        <li>Coquille du CM (§ 1.1.3) : « sens contraire pour un dipôle <i>actif</i> » doit se lire « <b>passif</b> ».</li>
+        <li>Vérifie toujours la loi des nœuds sur tes valeurs numériques, et ne rends jamais un résultat sans unité.</li>
       </ul></div>
     </div>
   </details>
 
   <details class="th-card">
-    <summary><h3>4. Ponts diviseurs de tension et de courant</h3><span class="tag-hot">tombe au CC (Ex 1, Ex 4)</span></summary>
+    <summary><h3>2. Associations de résistances</h3><span class="tag-hot">Ex 2 · 4 pts</span></summary>
     <div class="th-body">
-      <h4>Pont diviseur de tension</h4>
-      <p>Pour des résistances <b>en série</b> (même courant) soumises à une tension \(U\) : \[U_k = \frac{R_k}{\sum_{i=1}^{N} R_i}\,U \qquad\text{deux résistances : } U_1 = \frac{R_1}{R_1+R_2}\,U\]</p>
-      <h4>Pont diviseur de courant</h4>
-      <p>Pour des résistances <b>en parallèle</b> (même tension) traversées au total par \(I\) : \[I_k = \frac{1/R_k}{\sum_{i=1}^{N} 1/R_i}\,I \qquad\text{deux résistances : } I_1 = \frac{R_2}{R_1+R_2}\,I\]</p>
-      <div class="box red"><h5>Attention</h5>Pour le courant avec deux résistances, c'est l'<b>autre</b> résistance qui se retrouve au numérateur. Et le pont diviseur de tension ne marche que si aucun courant ne part entre les résistances : s'il y a une charge branchée au milieu, regroupe-la d'abord avec la résistance concernée (\(R_{eq}\)), puis applique le pont.</div>
+      <ul>
+        <li><b>Série</b> (même courant) : \(R_{eq} = R_1 + R_2 + \dots\)</li>
+        <li><b>Parallèle</b> (même tension) : \(\dfrac{1}{R_{eq}} = \dfrac{1}{R_1} + \dfrac{1}{R_2} + \dots\) ; pour deux : \(R_{eq} = \dfrac{R_1 R_2}{R_1 + R_2}\) (produit sur somme).</li>
+        <li>\(n\) résistances identiques \(R\) en parallèle : \(R/n\). Exemples : \(4R \parallel 4R = 2R\), \(3R \parallel 3R \parallel 3R = R\). Le prof adore ces simplifications.</li>
+      </ul>
+      <div class="box pen"><h5>À savoir faire</h5>Partir du bout <b>opposé</b> à A et B, puis remonter vers A et B en alternant « série » et « parallèle ». À chaque étape, un petit schéma et la phrase « X et Y sont en série / en parallèle » : c'est ce que demande « en expliquant ».</div>
+      <div class="box warn"><h5>Pièges</h5><ul>
+        <li>Une résistance au bout du montage reliée à la ligne du bas par un simple fil compte comme une branche verticale (annales 2022 et 2025).</li>
+        <li>Une résistance en parallèle d'un fil est court-circuitée ; une résistance dont une borne n'est reliée à rien n'est traversée par aucun courant : on les enlève.</li>
+      </ul></div>
     </div>
   </details>
 
   <details class="th-card">
-    <summary><h3>5. Théorème de Millman</h3><span class="tag-hot">tombe au CC (Ex 1, Ex 3 Q5, Ex 4)</span></summary>
+    <summary><h3>3. Ponts diviseurs de tension et de courant</h3><span class="tag-hot">Ex 1 et Ex 4</span></summary>
     <div class="th-body">
-      <p>On l'utilise pour trouver le potentiel d'un nœud \(A\) relié par des résistances \(R_k\) à des points de potentiels \(V_k\) : \[V_A = \frac{\sum_k V_k / R_k}{\sum_k 1/R_k}\]</p>
-      <ul>
-        <li>Place le <b>0 V</b> (masse) sur la ligne du bas et dessine-le sur le schéma : la question le demande explicitement.</li>
-        <li>Branche « générateur \(E\) + résistance \(R\) », \(+\) côté \(A\) : le terme vaut \(\dfrac{E}{R}\). Si le générateur est retourné (\(+\) vers le bas) : \(-\dfrac{E}{R}\).</li>
-        <li>Branche sans générateur reliée au 0 V : le terme vaut \(\dfrac{0}{R}\). Écris quand même le \(0\) (le prof le fait), mais n'oublie pas \(\dfrac{1}{R}\) au dénominateur.</li>
-        <li>Ensuite, la loi d'Ohm sur la branche voulue donne le courant : \(R\,I = E - V_A\) (courant vers \(A\)) ou \(R\,I = V_A - 0\) (courant de \(A\) vers la masse).</li>
-      </ul>
+      <p><b>Tension</b>, résistances <b>en série</b> sous une tension \(U\) : \[U_k = \frac{R_k}{\sum_{i=1}^{N} R_i}\,U \qquad\text{deux résistances : } U_1 = \frac{R_1}{R_1+R_2}\,U\]</p>
+      <p><b>Courant</b>, résistances <b>en parallèle</b> traversées au total par \(I\) : \[I_k = \frac{1/R_k}{\sum_{i=1}^{N} 1/R_i}\,I \qquad\text{deux résistances : } I_1 = \frac{R_2}{R_1+R_2}\,I\]</p>
+      <div class="box pen"><h5>À savoir faire</h5>Les deux démonstrations (Ex 1) : loi d'Ohm sur la résistance concernée, puis loi des mailles (tension) ou loi des nœuds (courant), on isole \(I\) ou \(U\) et on remplace. Entraîne-toi dans l'onglet Démos.</div>
+      <div class="box warn"><h5>Pièges</h5><ul>
+        <li>Pour le courant avec deux résistances, c'est l'<b>autre</b> résistance qui va au numérateur.</li>
+        <li>Le pont diviseur de tension ne marche que si aucun courant ne part entre les résistances. Si une charge est branchée au milieu, regroupe-la d'abord avec la résistance concernée (\(R_{eq}\)).</li>
+      </ul></div>
     </div>
   </details>
 
   <details class="th-card">
-    <summary><h3>6. Générateur de Thévenin</h3><span class="tag-off">au programme, jamais au CC1</span></summary>
+    <summary><h3>4. Théorème de Millman</h3><span class="tag-hot">Ex 1, Ex 3 Q5, Ex 4</span></summary>
     <div class="th-body">
-      <p>On remplace une partie d'un circuit par un générateur \(E_{th}\) en série avec \(R_{th}\) :</p>
-      <ul>
-        <li>\(R_{th}\) : la résistance vue des bornes quand les sources sont <b>éteintes</b> (source de tension remplacée par un fil, source de courant par un circuit ouvert) ;</li>
-        <li>\(E_{th}\) : la tension à vide entre les bornes.</li>
-      </ul>
+      <p>Potentiel d'un nœud \(A\) relié par des résistances \(R_k\) à des points de potentiels \(V_k\) : \[V_A = \frac{\sum_k V_k / R_k}{\sum_k 1/R_k}\]</p>
+      <div class="box pen"><h5>À savoir faire</h5>Placer le <b>0 V</b> sur la ligne du bas et le dessiner (la question le demande). Branche « générateur \(E\) + résistance \(R\) » avec le \(+\) côté \(A\) : terme \(\dfrac{E}{R}\) ; générateur retourné : \(-\dfrac{E}{R}\) ; branche sans générateur : \(\dfrac{0}{R}\). Puis loi d'Ohm sur la branche voulue : \(R\,I = E - V_A\) (courant vers \(A\)) ou \(R\,I = V_A - 0\).</div>
+      <div class="box warn"><h5>Pièges</h5><ul>
+        <li>Une branche sans générateur ajoute 0 en haut mais compte bien \(\dfrac{1}{R}\) en bas.</li>
+        <li>La démo de Millman est tombée 3 fois sur 5 (2022, 2023, 2025) : c'est la plus probable à l'Ex 1.</li>
+      </ul></div>
     </div>
   </details>
 
   <details class="th-card">
-    <summary><h3>7. Applications numériques et vérifications</h3><span class="tag-hot">tombe au CC (Q « AN »)</span></summary>
+    <summary><h3>5. Méthode de l'Ex 3 : deux générateurs</h3><span class="tag-hot">Ex 3 · 8 pts</span></summary>
     <div class="th-body">
       <ul>
-        <li>Des volts divisés par des kilo-ohms donnent des milliampères : \(\dfrac{8\ \text{V}}{4 \times 1\ \text{k}\Omega} = 2\ \text{mA}\).</li>
-        <li>Vérifie l'homogénéité : un courant a la forme \(\dfrac{E}{R}\) fois un nombre, une tension la forme \(E\) fois un nombre (sans \(R\)).</li>
-        <li>Vérifie la loi des nœuds sur tes valeurs numériques : par exemple \(2 + 1 = 3\) mA.</li>
-        <li>Ne termine jamais par un résultat sans unité. Encadre le résultat final.</li>
+        <li><b>Q1, flécher</b> : un courant nommé dans chaque branche, les tensions selon les conventions (fiche 1).</li>
+        <li><b>Q2, équations</b> : 2 lois des mailles (signes compris), la loi des nœuds en A, la loi d'Ohm pour chaque résistance, écrite directement sur le schéma.</li>
+        <li><b>Q3, résoudre</b> : avec les deux mailles, exprimer les deux autres courants en fonction de celui de la branche sans générateur, remplacer dans la loi des nœuds, puis réinjecter.</li>
+        <li><b>Q4, AN</b> : remplacer \(E\) et \(R\), résultats en mA, vérifier la loi des nœuds.</li>
+        <li><b>Q5, Millman</b> : 0 V en bas, \(V_A\) par Millman, puis le courant demandé par la loi d'Ohm. On retrouve le résultat de Q3.</li>
       </ul>
+      <div class="box pen"><h5>À savoir faire</h5>Un courant s'écrit toujours \(\dfrac{\text{(combinaison de } E_1, E_2)}{\text{nombre}\times R}\) : vérifie l'homogénéité avant de passer à l'AN.</div>
+      <div class="box warn"><h5>Pièges</h5><ul>
+        <li>Une résistance dessinée sur le fil du haut appartient à la branche de son côté.</li>
+        <li>Générateur retourné (\(+\) en bas) : il compte avec un signe \(-\) dans les mailles et dans Millman.</li>
+      </ul></div>
     </div>
   </details>
 
   <details class="th-card">
-    <summary><h3>8. Séquences 2 et 3 : sinusoïdal, puissance, RC, RLC</h3><span class="tag-off">jamais tombé au CC1</span></summary>
+    <summary><h3>6. Méthode de l'Ex 4 : circuit avec une charge \(R_L\)</h3><span class="tag-hot">Ex 4 · 4 pts</span></summary>
     <div class="th-body">
       <ul>
-        <li>Valeur moyenne \(\langle s\rangle = \frac{1}{T}\int_0^T s(t)\,dt\). Pour un sinus de moyenne nulle \(s(t) = S_M\cos(\omega t + \varphi)\), la valeur efficace vaut \(S_{\text{eff}} = S_M/\sqrt{2}\), avec \(\omega = 2\pi f = 2\pi/T\).</li>
-        <li>Impédances : \(Z_R = R\), \(Z_L = L\omega\), \(Z_C = \dfrac{1}{C\omega}\). En continu, une bobine se comporte comme un fil et un condensateur comme un circuit ouvert.</li>
-        <li>Puissance en continu : \(P = UI = RI^2 = U^2/R\). Elle est nulle dans \(L\) et \(C\).</li>
-        <li>Circuit RC : \(RC\,\dfrac{du}{dt} + u = e\). Charge : \(u(t) = E\left(1 - e^{-(t-t_0)/\tau}\right)\). Décharge : \(u(t) = E\,e^{-(t-t_1)/\tau}\), avec \(\tau = RC\).</li>
+        <li><b>Simplifier</b> : regrouper les résistances en série, puis \(R_{eq}\) = la résistance du milieu en parallèle avec la branche de \(R_L\).</li>
+        <li><b>Tension \(U\)</b> : pont diviseur entre la résistance côté générateur et \(R_{eq}\) ; ou Millman au nœud du haut, plus rapide quand le générateur est dans la branche du milieu (sujet 2023).</li>
+        <li><b>\(U_L\) en fonction de \(U\)</b> : pont diviseur entre la résistance en série avec \(R_L\) et \(R_L\). <b>\(I_3\) en fonction de \(I_1\)</b> : pont diviseur de courant.</li>
+        <li><b>Cas \(R_L = kR\)</b> : on remplace dans le résultat général et on simplifie par \(R\) ; il reste un nombre fois \(E\) (tension) ou fois \(E/R\) (courant). Puis AN.</li>
       </ul>
+      <div class="box warn"><h5>Pièges</h5><ul>
+        <li>Pas de pont diviseur de tension directement sur \(R_L\) si un courant part entre les résistances : simplifier d'abord.</li>
+        <li>« Simplifier au maximum » : factoriser numérateur et dénominateur, et ne garder ni \(R\) ni \(R_L\) dans le cas \(R_L = kR\).</li>
+      </ul></div>
     </div>
   </details>
+
+  <details class="th-card">
+    <summary><h3>7. Pour le CC2 : Thévenin, RC et RL</h3><span class="tag-off">CC2 du 2/11</span></summary>
+    <div class="th-body">
+      <h4>Générateur de Thévenin (Ex 2 du CC2)</h4>
+      <ul>
+        <li>On remplace le circuit vu des bornes de \(R_L\) par un générateur \(E_{th}\) en série avec \(R_{th}\), puis \(U_L = \dfrac{R_L}{R_{th} + R_L}\,E_{th}\).</li>
+        <li>\(R_{th}\) : résistance vue des bornes, sources <b>éteintes</b> (source de tension → fil, source de courant → circuit ouvert).</li>
+        <li>\(E_{th}\) : tension à vide entre les bornes (\(R_L\) enlevée), par pont diviseur ou Millman.</li>
+      </ul>
+      <h4>Circuits RC et RL (Ex 3 du CC2)</h4>
+      <ul>
+        <li>Relations : condensateur \(i = C\,\dfrac{du}{dt}\), bobine \(u = L\,\dfrac{di}{dt}\).</li>
+        <li>Très basse fréquence (continu) : \(C\) = circuit ouvert, \(L\) = fil. Très haute fréquence : \(C\) = fil, \(L\) = circuit ouvert. On en déduit \(u(t)\) dans les deux cas, donc le type de filtre (passe-bas ou passe-haut).</li>
+        <li>Équation différentielle par la loi des mailles + ces relations, par exemple \(RC\,\dfrac{du}{dt} + u = e\), avec \(\tau = RC\) (ou \(\tau = L/R\)). Charge : \(u(t) = E\left(1 - e^{-t/\tau}\right)\) ; décharge : \(u(t) = E\,e^{-t/\tau}\).</li>
+      </ul>
+      <div class="box pen"><h5>À savoir faire</h5>Les 4 CC2 corrigés (2021 à 2025) sont sur Moodle : même démonstration à l'Ex 1, un Thévenin à deux générateurs à l'Ex 2, un RC ou RL à l'Ex 3.</div>
+    </div>
+  </details>
+
+  <section class="card">
+    <h2>Réflexes pour les applications numériques</h2>
+    <p class="sub">\(\dfrac{8\ \text{V}}{4\ \text{k}\Omega} = 2\ \text{mA}\) · \(2\ \text{k}\Omega \times 3\ \text{mA} = 6\ \text{V}\) · un courant a la forme \(\dfrac{E}{R}\) fois un nombre, une tension la forme \(E\) fois un nombre · encadre le résultat final, avec son unité.</p>
+  </section>
   </div>
 </section>
 
@@ -1565,47 +1572,29 @@ function showTab(tab) {
 /* =====================================================================
    ACCUEIL
    ===================================================================== */
-const PLAN = [
-  'Cours : conventions de fléchage + Kirchhoff. Démo du pont diviseur de tension (récite-la, puis remets les étapes dans l\'ordre).',
-  'Démos du pont diviseur de courant et de Millman. Récite les trois de mémoire le soir.',
-  'Ex 2 : 4 réseaux en niveau « Type CC ».',
-  'Ex 3 : 2 exercices en niveau « Type CC », Kirchhoff puis Millman.',
-  'Annale 2021 complète sur papier, puis lecture du corrigé.',
-  'Ex 4 : 3 exercices (types variés) + les 3 démos de mémoire.',
-  'Sujet blanc n°1 en conditions réelles (60 min).',
-  'Reprends tes erreurs : Ex 3 en niveau « Pièges » ×2, Ex 2 en niveau « Costaud » ×3.',
-  'Annales 2022 et 2023 en conditions (ou au moins leurs Ex 3 et 4).',
-  'Sujet blanc n°2.',
-  'Annales 2024 et 2025. Toutes les démos de mémoire.',
-  'Veille du CC : les 3 démos une dernière fois + un Ex 3 rapide. Dodo tôt.'
-];
+// date du prochain CC d'électronique analogique : emploi du temps (onglet Planning de l'accueil),
+// sinon la date enregistrée sur la page, sinon celle du CC1 2026
+function nextElecCC() {
+  const c = ls.get('planning.cache.v1', null), now = Date.now();
+  const all = c && c.evs ? c.evs.filter(e => /ELECa/i.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : [];
+  const i = all.findIndex(e => e.s > now - 3 * 3600e3);
+  if (i >= 0) return { ts: all[i].s, n: i + 1 };
+  const d = ls.get(K.date, '');
+  if (d && new Date(d + 'T23:59:59') >= new Date()) return { ts: new Date(d + 'T08:00:00').getTime(), n: 1, dayOnly: true };
+  return { ts: Date.parse('2026-10-16T07:45:00Z'), n: 1 };
+}
 function renderHome() {
-  const tiles = [
-    { k: 'ex1', l: 'Ex 1 · 4 pts', h: 'Une démonstration du cours', p: 'Millman (3 fois), pont diviseur de tension ou de courant.', go: 'demos' },
-    { k: 'ex2', l: 'Ex 2 · 4 pts', h: 'Résistance équivalente', p: 'Réseau en échelle entre A et B, à réduire en partant du bout.', go: 'exos:ex2' },
-    { k: 'ex3', l: 'Ex 3 · 8 pts', h: 'Deux générateurs', p: 'Fléchage, Kirchhoff, courants, AN puis vérification par Millman.', go: 'exos:ex3' },
-    { k: 'ex4', l: 'Ex 4 · 4 pts', h: 'Charge \\(R_L\\)', p: 'Ponts diviseurs ou Millman, puis cas particulier \\(R_L = kR\\).', go: 'exos:ex4' }
-  ];
-  $('#homeTiles').innerHTML = tiles.map(t => { const m = mastery(t.k), pct = m.n ? Math.round(100 * m.ok / m.n) : null;
-    return `<div class="tile"><span class="tile-label">${t.l}</span><h3>${t.h}</h3><p>${t.p}</p>
-      <div class="bar ${pct == null ? '' : pct >= 75 ? '' : pct >= 45 ? 'mid' : 'low'}"><i style="width:${pct || 0}%"></i></div>
-      <p class="fine">${pct == null ? 'pas encore commencé' : pct + ' % de réussite · ' + m.n + ' réponse' + (m.n > 1 ? 's' : '')}</p>
-      <button type="button" class="btn btn-sm" data-go="${t.go}">S'entraîner</button></div>`; }).join('');
-  mathIn($('#homeTiles'));
-  const d = ls.get(K.date, ''); $('#ccDate').value = d;
-  const box = $('#countBox');
-  let today = -1;
-  if (d) {
-    const t0 = new Date(); t0.setHours(0, 0, 0, 0); const t1 = new Date(d + 'T00:00:00');
-    const n = Math.round((t1 - t0) / 86400000);
-    box.innerHTML = n > 0 ? `<b>J−${n}</b><span>avant le CC du ${t1.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>` : n === 0 ? '<b>Jour J</b><span>Bonne chance !</span>' : '<b>Fini</b><span>Le CC est passé. Pense à noter ta vraie note quelque part.</span>';
-    if (n >= 0 && n < 12) today = 11 - n;
-  } else box.innerHTML = '<span>Aucune date enregistrée.</span>';
-  const done = ls.get(K.plan, []);
-  $('#planList').innerHTML = PLAN.map((t, i) => `<li class="${done.includes(i) ? 'done' : ''}${i === today ? ' today' : ''}"><input type="checkbox" data-plan="${i}"${done.includes(i) ? ' checked' : ''} aria-label="Jour ${i + 1} fait"><span class="d">J${i + 1}${i === today ? ' ←' : ''}</span><span class="t">${esc(t)}</span></li>`).join('');
-  const H = ls.get(K.hist, []);
-  $('#lastNotes').innerHTML = H.length ? `<p class="lbl-s" style="margin-bottom:8px">Derniers sujets</p>` + H.slice(-4).reverse().map(r => `<div class="row" style="justify-content:space-between;padding:6px 0;border-top:1px solid var(--rule)"><span class="fine">${esc(r.title)} · ${new Date(r.ts).toLocaleDateString('fr-FR')}</span><b>${fmtPts(scoreRec(r).total)}/20</b></div>`).join('') : '';
-  $('#pathBanner').innerHTML = pathBannerHTML(); mathIn($('#pathBanner'));
+  const cc = nextElecCC();
+  const days = Math.round((new Date(new Date(cc.ts).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = new Intl.DateTimeFormat('fr-FR', Object.assign({ timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long' }, cc.dayOnly ? {} : { hour: '2-digit', minute: '2-digit' })).format(cc.ts);
+  $('#countBox').innerHTML = `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC${cc.n} d'électronique : ${esc(when)}</span>`;
+  const P = pst(), { n, tot } = coreDone(P), pct = Math.round(100 * n / tot);
+  $('#homePath').innerHTML = `<h2>Le parcours</h2><p class="sub">${n}/${tot} compétences validées. Des bases (loi d'Ohm, fléchage) jusqu'aux exercices complets du CC, avec une progression qui s'adapte à tes résultats.</p>
+    <div class="bar ${pct >= 75 ? '' : pct >= 35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${pct}%"></i></div>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-go="path">${P.n ? 'Continuer' : 'Commencer'}</button></div>`;
+  const H = ls.get(K.hist, []), last = H[H.length - 1];
+  $('#homeBlanc').innerHTML = `<h2>Sujet blanc (1 h)</h2><p class="sub">Un sujet complet au format exact du CC1, avec un nouveau tirage à chaque fois, noté sur 20 avec la correction. ${last ? `Dernière note : <b>${fmtPts(scoreRec(last).total)}/20</b>.` : 'Pas encore tenté.'}</p>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn" data-go="blanc">Faire un sujet blanc</button></div>`;
   const ex = ls.get(K.exam, null);
   $('#resumeBanner').innerHTML = ex ? `<div class="banner"><p><b>Un sujet est en cours</b> (${esc(ex.title)}).</p><span class="spacer"></span><button type="button" class="btn btn-primary" data-act="resume">Reprendre</button></div>` : '';
 }
@@ -2145,28 +2134,28 @@ const PK = 'elec.path.v1', VAL = 100, MMAX = 130;
 const PCH = ['Les bases', 'Résistance équivalente', 'Lois de Kirchhoff', 'Ponts diviseurs', 'Théorème de Millman', 'Exercices complets du CC', 'Bonus'];
 const PCH_FOR = ['tout le sujet', 'Ex 2', 'Ex 3', 'Ex 1 et Ex 4', 'Ex 1, Ex 3 et Ex 4', 'le sujet entier', 'culture : jamais tombé au CC1'];
 const SK = [
-  { id: 'ohm', ch: 0, name: 'Loi d\'Ohm et unités', desc: 'U = RI avec des kΩ et des mA', fiche: 7, gen: pOhm },
+  { id: 'ohm', ch: 0, name: 'Loi d\'Ohm et unités', desc: 'U = RI avec des kΩ et des mA', fiche: 1, gen: pOhm },
   { id: 'conv', ch: 0, name: 'Conventions de fléchage', desc: 'récepteur ou générateur, signe de U = RI', fiche: 1, gen: pConv },
-  { id: 'as2', ch: 1, name: 'Série et parallèle', desc: '2 ou 3 résistances', fiche: 3, gen: pAs2 },
-  { id: 'asn', ch: 1, name: 'Plusieurs branches en parallèle', desc: 'R/n et le piège du bout de montage', fiche: 3, gen: pAsn },
-  { id: 'lad1', ch: 1, name: 'Réseau en échelle (simple)', desc: 'la méthode de l\'Ex 2', fiche: 3, gen: pLad(0) },
-  { id: 'lad2', ch: 1, name: 'Réseau en échelle (niveau CC)', desc: 'comme dans les annales', fiche: 3, gen: pLad(1) },
-  { id: 'nd', ch: 2, name: 'Loi des nœuds', desc: 'ce qui entre = ce qui sort', fiche: 2, gen: pNode },
-  { id: 'ml', ch: 2, name: 'Loi des mailles', desc: 'le signe de chaque tension', fiche: 2, gen: pMesh },
-  { id: 'loop', ch: 2, name: 'Courant dans une maille', desc: 'loi des mailles + loi d\'Ohm', fiche: 2, gen: pLoop },
-  { id: 'pdt', ch: 3, name: 'Pont diviseur de tension', desc: 'résistances en série', fiche: 4, gen: pPdt },
-  { id: 'd-dt', ch: 3, name: 'Démo : pont diviseur de tension', desc: 'Ex 1, tombée en 2021', fiche: 4, demo: 'dt-N' },
-  { id: 'pdc', ch: 3, name: 'Pont diviseur de courant', desc: 'résistances en parallèle', fiche: 4, gen: pPdc },
-  { id: 'd-dc', ch: 3, name: 'Démo : pont diviseur de courant', desc: 'Ex 1, tombée en 2024', fiche: 4, demo: 'dc-N' },
-  { id: 'mi1', ch: 4, name: 'Millman avec des nombres', desc: 'le potentiel d\'un nœud', fiche: 5, gen: pMil1 },
-  { id: 'mi2', ch: 4, name: 'Millman en littéral', desc: 'la question 5 de l\'Ex 3', fiche: 5, gen: pMil2 },
-  { id: 'd-mi', ch: 4, name: 'Démo : théorème de Millman', desc: 'Ex 1, tombée 3 fois sur 5', fiche: 5, demo: 'mi-N' },
-  { id: 'x3a', ch: 5, name: 'Ex 3 complet (facile)', desc: 'deux générateurs : Kirchhoff puis Millman', fiche: 2, gen: d => pEx3(d === 2 ? 'cc' : 'facile') },
-  { id: 'x4', ch: 5, name: 'Ex 4 : circuit avec une charge', desc: 'ponts diviseurs ou Millman', fiche: 4, gen: pEx4 },
-  { id: 'x3b', ch: 5, name: 'Ex 3 complet (niveau CC)', desc: 'comme dans les annales', fiche: 2, gen: d => pEx3(d === 2 ? 'pieges' : 'cc') },
-  { id: 'lad3', ch: 5, name: 'Ex 2 costaud', desc: 'plus dur que le CC', fiche: 3, gen: pLad(2) },
-  { id: 'x3c', ch: 5, name: 'Ex 3 avec pièges', desc: 'générateur retourné, courant négatif', fiche: 1, gen: () => pEx3('pieges') },
-  { id: 'thv', ch: 6, name: 'Générateur de Thévenin', desc: 'au programme, jamais tombé au CC1', fiche: 6, gen: pThv, bonus: true }
+  { id: 'as2', ch: 1, name: 'Série et parallèle', desc: '2 ou 3 résistances', fiche: 2, gen: pAs2 },
+  { id: 'asn', ch: 1, name: 'Plusieurs branches en parallèle', desc: 'R/n et le piège du bout de montage', fiche: 2, gen: pAsn },
+  { id: 'lad1', ch: 1, name: 'Réseau en échelle (simple)', desc: 'la méthode de l\'Ex 2', fiche: 2, gen: pLad(0) },
+  { id: 'lad2', ch: 1, name: 'Réseau en échelle (niveau CC)', desc: 'comme dans les annales', fiche: 2, gen: pLad(1) },
+  { id: 'nd', ch: 2, name: 'Loi des nœuds', desc: 'ce qui entre = ce qui sort', fiche: 1, gen: pNode },
+  { id: 'ml', ch: 2, name: 'Loi des mailles', desc: 'le signe de chaque tension', fiche: 1, gen: pMesh },
+  { id: 'loop', ch: 2, name: 'Courant dans une maille', desc: 'loi des mailles + loi d\'Ohm', fiche: 1, gen: pLoop },
+  { id: 'pdt', ch: 3, name: 'Pont diviseur de tension', desc: 'résistances en série', fiche: 3, gen: pPdt },
+  { id: 'd-dt', ch: 3, name: 'Démo : pont diviseur de tension', desc: 'Ex 1, tombée en 2021', fiche: 3, demo: 'dt-N' },
+  { id: 'pdc', ch: 3, name: 'Pont diviseur de courant', desc: 'résistances en parallèle', fiche: 3, gen: pPdc },
+  { id: 'd-dc', ch: 3, name: 'Démo : pont diviseur de courant', desc: 'Ex 1, tombée en 2024', fiche: 3, demo: 'dc-N' },
+  { id: 'mi1', ch: 4, name: 'Millman avec des nombres', desc: 'le potentiel d\'un nœud', fiche: 4, gen: pMil1 },
+  { id: 'mi2', ch: 4, name: 'Millman en littéral', desc: 'la question 5 de l\'Ex 3', fiche: 4, gen: pMil2 },
+  { id: 'd-mi', ch: 4, name: 'Démo : théorème de Millman', desc: 'Ex 1, tombée 3 fois sur 5', fiche: 4, demo: 'mi-N' },
+  { id: 'x3a', ch: 5, name: 'Ex 3 complet (facile)', desc: 'deux générateurs : Kirchhoff puis Millman', fiche: 5, gen: d => pEx3(d === 2 ? 'cc' : 'facile') },
+  { id: 'x4', ch: 5, name: 'Ex 4 : circuit avec une charge', desc: 'ponts diviseurs ou Millman', fiche: 6, gen: pEx4 },
+  { id: 'x3b', ch: 5, name: 'Ex 3 complet (niveau CC)', desc: 'comme dans les annales', fiche: 5, gen: d => pEx3(d === 2 ? 'pieges' : 'cc') },
+  { id: 'lad3', ch: 5, name: 'Ex 2 costaud', desc: 'plus dur que le CC', fiche: 2, gen: pLad(2) },
+  { id: 'x3c', ch: 5, name: 'Ex 3 avec pièges', desc: 'générateur retourné, courant négatif', fiche: 5, gen: () => pEx3('pieges') },
+  { id: 'thv', ch: 6, name: 'Générateur de Thévenin', desc: 'au programme, jamais tombé au CC1', fiche: 7, gen: pThv, bonus: true }
 ];
 // test de positionnement : une question par chapitre ; s'arrête à la première erreur
 const PROBES = [{ id: 'conv', d: 2 }, { id: 'lad2', d: 1 }, { id: 'loop', d: 1 }, { id: 'pdc', d: 1 }, { id: 'mi2', d: 1 }];
@@ -2452,8 +2441,6 @@ function init() {
   $('#submitBtn').addEventListener('click', () => submitExam(false));
   $('#pauseBtn').addEventListener('click', pauseExam);
   $('#annGrid').addEventListener('toggle', e => { if (e.target.open && e.target.dataset.ann) fillAnnale(e.target); }, true);
-  $('#ccDate').addEventListener('change', e => { ls.set(K.date, e.target.value); renderHome(); });
-  $('#planList').addEventListener('change', e => { const c = e.target.closest('[data-plan]'); if (!c) return; let d = ls.get(K.plan, []); const i = +c.dataset.plan; d = c.checked ? [...new Set([...d, i])] : d.filter(x => x !== i); ls.set(K.plan, d); renderHome(); });
   $('#v-res').addEventListener('change', e => { const c = e.target.closest('[data-self]'); if (!c) return; const H = ls.get(K.hist, []), rec = H.find(r => r.id === $('#v-res').dataset.rec); if (!rec) return; rec.self[c.dataset.self] = c.checked; ls.set(K.hist, H); drawHero(rec); });
   window.addEventListener('beforeunload', () => { if (EXAM && EXAM.running) saveExam(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && EXAM && EXAM.running) saveExam(); });

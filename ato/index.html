@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atomistique · Entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../presence.js" data-external></script>
+<script defer src="../account.js" data-lazy></script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
+  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
+  --rule:#e4e0d6; --rule-strong:#cdc8bb;
+  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc; --pen-line:#bccaf5;
+  --ok:#1f8a4c; --ok-soft:#e6f4ec; --bad:#c2352b; --bad-soft:#fbeceb; --warn:#9a5b00; --warn-soft:#fcf2da;
+  --chem:#0f766e; --chem-soft:#e0f2ef;
+  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
+  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+    --rule:#2e2d2a; --rule-strong:#45433e;
+    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340; --pen-line:#34437a;
+    --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+    --chem:#3fc4b4; --chem-soft:#10302c;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+  --rule:#2e2d2a; --rule-strong:#45433e;
+  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340; --pen-line:#34437a;
+  --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+  --chem:#3fc4b4; --chem-soft:#10302c;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+h1,h2,h3,h4,p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+[hidden]{display:none !important}
+.katex{font-size:1.05em}
+.katex-display{margin:.6em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;min-height:64px;padding:8px 24px;background:color-mix(in srgb,var(--paper) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;min-width:0}
+.brand-mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--chem);color:#fff;display:grid;place-items:center;font:700 15px/1 var(--sans)}
+.brand strong{display:block;font:600 15px/1.2 var(--sans)}
+.brand small{display:block;color:var(--muted);font-size:12.5px}
+.tabs{display:flex;gap:4px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
+.tab{height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:500 14px/1 var(--sans);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.tab:hover{background:var(--sheet-2)}
+.tab[aria-current="page"]{background:var(--ink);color:var(--paper)}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer}
+.clock{font:800 22px/1 var(--sans);font-variant-numeric:tabular-nums}
+.clock.rush{color:var(--bad)}
+main{max-width:980px;margin:32px auto 90px;padding:0 24px;display:grid;gap:20px}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--chem);margin-bottom:10px}
+h1{font:600 clamp(28px,4.6vw,42px)/1.08 var(--serif);letter-spacing:-.02em}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:680px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:24px}
+.card h2{font:600 21px/1.25 var(--serif)}
+.sub{color:var(--ink-2);font-size:14.5px;margin-top:4px}
+.fine{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:600 14px/1 var(--sans);cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--pen)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn-primary:hover:not(:disabled){background:var(--pen-hover)}
+.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .sp{flex:1}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font:600 12.5px/1 var(--sans);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.part{background:var(--warn-soft);color:var(--warn)}
+.bar{height:10px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.bar.mid>i{background:var(--warn)} .bar.low>i{background:var(--bad)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600}
+.count{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.count b{font:800 clamp(40px,7vw,58px)/1 var(--sans);letter-spacing:-.04em;color:var(--chem);font-variant-numeric:tabular-nums}
+.count span{color:var(--ink-2)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+/* exercices */
+.ex .q{font:17.5px/1.6 var(--serif);margin-top:8px}
+.ex .q .katex{font-size:1.04em}
+.items{display:grid;gap:12px;margin-top:16px}
+.it{display:grid;grid-template-columns:minmax(90px,auto) minmax(0,1fr);gap:4px 12px;align-items:center}
+.it-lab{text-align:right;font-size:16px;white-space:nowrap}
+.it-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.it-in input[type=text]{flex:1;min-width:0;width:100%;font:15px/1.3 ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:42px}
+.unit{font:600 14px var(--sans);color:var(--ink-2);white-space:nowrap}
+.prev,.fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto}
+.prev:empty,.fb:empty{display:none}
+.prev .err{color:var(--muted);font-style:italic}
+.ch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);cursor:pointer}
+.ch:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
+.ch input{accent-color:var(--pen);margin:0}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+details.corr{margin-top:14px}
+details.corr>summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen);padding:6px 0}
+.expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.65 var(--serif);overflow-x:auto}
+.expl p+p{margin-top:8px}
+.strip{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--chem-soft);border:1px solid color-mix(in srgb,var(--chem) 35%,transparent)}
+.strip b{font:600 17px/1.3 var(--serif)}
+.lvl{display:inline-flex;gap:4px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.lvl i{width:8px;height:8px;border-radius:50%;background:var(--rule-strong)} .lvl i.on{background:var(--chem)}
+.tag-rev{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font:600 11.5px/1 var(--sans)}
+.res{border-color:color-mix(in srgb,var(--pen) 40%,transparent)}
+.psk{display:grid;grid-template-columns:24px minmax(0,1fr) 110px auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--rule)}
+.psk .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 11px/1 var(--sans);background:var(--sheet-2);color:var(--muted);border:1px solid var(--rule)}
+.psk.val .ic{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.psk.cur .ic{background:var(--chem);color:#fff;border-color:transparent}
+.psk.rev .ic{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.psk.lock{opacity:.5}
+.psk .nm small{display:block;color:var(--muted);font-size:12.5px}
+.pch h3{font:600 17px/1.3 var(--serif);margin:16px 0 4px}
+/* cours */
+.fiche{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.fiche>summary{display:flex;gap:12px;align-items:center;padding:16px 22px;cursor:pointer;list-style:none;font:600 18px/1.3 var(--serif)}
+.fiche>summary::-webkit-details-marker{display:none}
+.fiche>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+.fiche[open]>summary::before{transform:rotate(90deg)}
+.fiche .body{padding:4px 24px 22px;border-top:1px solid var(--rule);font:16.5px/1.65 var(--serif)}
+.fiche .body p,.fiche .body ul{margin-top:10px}
+.fiche .body ul{padding-left:22px}
+.fiche h4{font:700 11.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:20px}
+.box{margin-top:12px;padding:12px 16px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
+.box.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.box.key{background:var(--chem-soft);border-color:color-mix(in srgb,var(--chem) 30%,transparent)}
+.box h5{font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;margin:0 0 6px;color:var(--ink-2)}
+table.t{border-collapse:collapse;margin-top:10px;font:14.5px/1.4 var(--sans)}
+table.t td,table.t th{border:1px solid var(--rule);padding:5px 10px;text-align:center}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);font:500 13.5px/1 var(--sans);color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.score{font:800 clamp(48px,9vw,72px)/1 var(--sans);letter-spacing:-.03em}
+.hist{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+.hist td,.hist th{padding:8px;border-bottom:1px solid var(--rule);text-align:left}
+@media (max-width:760px){
+  .topbar{padding:8px 16px}
+  .brand small{display:none}
+  .tabs{order:3;flex-basis:100%;justify-content:flex-start}
+  main{padding:0 16px;margin-top:22px}
+  .card{padding:18px}
+  .grid2{grid-template-columns:1fr}
+  .it{grid-template-columns:1fr}
+  .it-lab{text-align:left}
+  .prev,.fb{grid-column:1}
+  .psk{grid-template-columns:24px minmax(0,1fr) auto} .psk .bar{display:none}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">Ato</span><div><strong>Atomistique</strong><small>Révisions du CC</small></div></a>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button type="button" class="tab" data-tab="home">Accueil</button>
+    <button type="button" class="tab" data-tab="path">Parcours</button>
+    <button type="button" class="tab" data-tab="cours">Cours</button>
+    <button type="button" class="tab" data-tab="exos">Exos</button>
+    <button type="button" class="tab" data-tab="blanc">Sujet blanc</button>
+  </nav>
+  <span class="clock" id="clock" hidden></span>
+  <button type="button" class="icon-btn" id="themeBtn" aria-label="Thème"></button>
+</header>
+<main id="app"></main>
+
+<script>
+(function () {
+'use strict';
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const app = $('#app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
+};
+let toastT = 0;
+function toast(t) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500); }
+function typeset(el) { if (el && window.renderMathInElement) try { renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); } catch (e) { /* ignore */ } }
+// générateur pseudo-aléatoire à graine (un exercice se retrouve à l'identique)
+function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const G = R => ({ int: (a, b) => a + Math.floor(R() * (b - a + 1)), pick: a => a[Math.floor(R() * a.length)], shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }, r: R });
+const newSeed = () => Math.floor(Math.random() * 4294967296);
+
+/* ---------- Nombres ---------- */
+const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+function sig(x, n = 3) { return +x.toPrecision(n); }
+// TeX : 4{,}86\times10^{-7}
+function T(x, n = 3) {
+  if (x === 0) return '0';
+  const a = Math.abs(x);
+  if (a >= 1e-2 && a < 1e5) return String(sig(x, n)).replace('.', '{,}');
+  const e = Math.floor(Math.log10(a)); let m = sig(x / 10 ** e, n);
+  if (Math.abs(m) >= 10) return T(x, n + 0);   // arrondi qui déborde : rare
+  return `${String(m).replace('.', '{,}')}\\times10^{${e}}`;
+}
+// texte : 4,86·10⁻⁷
+function txt(x, n = 4) {
+  if (x === 0) return '0';
+  const a = Math.abs(x);
+  if (a >= 1e-2 && a < 1e5) return String(sig(x, n)).replace('.', ',');
+  const e = Math.floor(Math.log10(a)), m = sig(x / 10 ** e, n);
+  return `${String(m).replace('.', ',')}·10${String(e).replace('-', '⁻').replace(/\d/g, d => SUP[d])}`;
+}
+// unités acceptées : facteur vers l'unité affichée
+const UNITS = {
+  nm: { nm: 1, m: 1e9, pm: 1e-3, 'å': 0.1, a: 0.1, 'µm': 1e3, um: 1e3, mm: 1e6, cm: 1e7 },
+  m: { m: 1, nm: 1e-9, pm: 1e-12, 'å': 1e-10, a: 1e-10, 'µm': 1e-6, um: 1e-6, mm: 1e-3, cm: 1e-2, km: 1e3 },
+  pm: { pm: 1, nm: 1e3, m: 1e12, 'å': 100, a: 100 },
+  eV: { ev: 1, j: 1 / 1.602e-19 },
+  J: { j: 1, ev: 1.602e-19 },
+  Hz: { hz: 1, khz: 1e3, mhz: 1e6, ghz: 1e9, thz: 1e12, phz: 1e15, 's-1': 1 },
+  'cm⁻¹': { 'cm-1': 1, 'cm⁻¹': 1, 'm-1': 0.01, 'm⁻¹': 0.01 },
+  'm⁻¹': { 'm-1': 1, 'm⁻¹': 1, 'cm-1': 100, 'cm⁻¹': 100 },
+  'g/mol': { 'g/mol': 1, 'g.mol-1': 1, 'gmol-1': 1, g: 1 },
+  '%': { '%': 1 },
+  'm/s': { 'm/s': 1, 'm.s-1': 1, 'ms-1': 1, 'km/s': 1e3 }
+};
+function parseNum(input, unit) {
+  let s = String(input).trim().replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–]/g, '-').replace(/[×·∙*]/g, 'x').replace(/⁻/g, '-').replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, c => SUP.indexOf(c));
+  if (!s) return { err: '' };
+  s = s.replace(/^10\^/, '1x10^');
+  const m = /^([-+]?(?:\d+\.?\d*|\.\d+))(?:[eE]([-+]?\d+)|x10\^?\(?([-+]?\d+)\)?|\.10\^\(?([-+]?\d+)\)?)?(.*)$/.exec(s);
+  if (!m) return { err: 'écris un nombre, par exemple 4,86e-7 ou 4,86×10^-7' };
+  let v = parseFloat(m[1]); const ex = m[2] || m[3] || m[4]; if (ex) v *= 10 ** +ex;
+  const u = (m[5] || '').toLowerCase();
+  if (!u) return { v };
+  const map = UNITS[unit] || {}, f = map[u];
+  if (f == null) return { err: `unité non reconnue (attendu : ${unit || 'sans unité'})` };
+  return { v: v * f };
+}
+
+/* =====================================================================
+   DONNÉES : éléments (Z = 1 à 56), configurations électroniques
+   ===================================================================== */
+const EL = [null, ['H', 'hydrogène'], ['He', 'hélium'], ['Li', 'lithium'], ['Be', 'béryllium'], ['B', 'bore'], ['C', 'carbone'], ['N', 'azote'], ['O', 'oxygène'], ['F', 'fluor'], ['Ne', 'néon'],
+  ['Na', 'sodium'], ['Mg', 'magnésium'], ['Al', 'aluminium'], ['Si', 'silicium'], ['P', 'phosphore'], ['S', 'soufre'], ['Cl', 'chlore'], ['Ar', 'argon'], ['K', 'potassium'], ['Ca', 'calcium'],
+  ['Sc', 'scandium'], ['Ti', 'titane'], ['V', 'vanadium'], ['Cr', 'chrome'], ['Mn', 'manganèse'], ['Fe', 'fer'], ['Co', 'cobalt'], ['Ni', 'nickel'], ['Cu', 'cuivre'], ['Zn', 'zinc'],
+  ['Ga', 'gallium'], ['Ge', 'germanium'], ['As', 'arsenic'], ['Se', 'sélénium'], ['Br', 'brome'], ['Kr', 'krypton'], ['Rb', 'rubidium'], ['Sr', 'strontium'], ['Y', 'yttrium'], ['Zr', 'zirconium'],
+  ['Nb', 'niobium'], ['Mo', 'molybdène'], ['Tc', 'technétium'], ['Ru', 'ruthénium'], ['Rh', 'rhodium'], ['Pd', 'palladium'], ['Ag', 'argent'], ['Cd', 'cadmium'], ['In', 'indium'], ['Sn', 'étain'],
+  ['Sb', 'antimoine'], ['Te', 'tellure'], ['I', 'iode'], ['Xe', 'xénon'], ['Cs', 'césium'], ['Ba', 'baryum']];
+// électronégativité de Pauling (valeurs du tableau du cours)
+const EN = [null, 2.1, null, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, null, 0.9, 1.2, 1.5, 1.8, 2.1, 2.5, 3.0, null, 0.8, 1.0, 1.3, 1.5, 1.6, 1.6, 1.5, 1.8, 1.8, 1.8, 1.9, 1.6, 1.6, 1.8, 2.0, 2.4, 2.8, null,
+  0.8, 1.0, 1.3, 1.4, 1.6, 1.8, 1.9, 2.2, 2.2, 2.2, 1.9, 1.7, 1.7, 1.8, 1.9, 2.1, 2.5, null, 0.7, 0.9];
+// nombre de masse de l'isotope le plus courant
+const AM = [null, 1, 4, 7, 9, 11, 12, 14, 16, 19, 20, 23, 24, 27, 28, 31, 32, 35, 40, 39, 40, 45, 48, 51, 52, 55, 56, 59, 58, 63, 64, 69, 74, 75, 80, 79, 84, 85, 88, 89, 90, 93, 98, 98, 102, 103, 106, 107, 114, 115, 120, 121, 130, 127, 132, 133, 138];
+const sym = Z => EL[Z][0], nom = Z => EL[Z][1];
+const ORDER = ['1s', '2s', '2p', '3s', '3p', '4s', '3d', '4p', '5s', '4d', '5p', '6s', '4f', '5d', '6p'];
+const CAP = { s: 2, p: 6, d: 10, f: 14 };
+const NOBLE = { He: 2, Ne: 10, Ar: 18, Kr: 36, Xe: 54 };
+const IRREG = new Set([41, 44, 45, 46]);   // Nb, Ru, Rh, Pd : hors des règles du cours, jamais demandés
+function klech(Z) { const o = {}; let e = Z; for (const s of ORDER) { if (e <= 0) break; const k = Math.min(e, CAP[s[1]]); o[s] = k; e -= k; } return o; }
+// règles du cours : (n-1)d4 ns2 → (n-1)d5 ns1 et (n-1)d9 ns2 → (n-1)d10 ns1
+function conf(Z) {
+  const o = klech(Z);
+  for (const [d, s] of [['3d', '4s'], ['4d', '5s']]) if (o[s] === 2 && (o[d] === 4 || o[d] === 9)) { o[d]++; o[s] = 1; }
+  return o;
+}
+const isExc = Z => JSON.stringify(conf(Z)) !== JSON.stringify(klech(Z));
+const subKey = s => +s[0] * 10 + 'spdf'.indexOf(s[1]);
+const sorted = o => Object.keys(o).filter(k => o[k] > 0).sort((a, b) => subKey(a) - subKey(b));
+const confTex = o => sorted(o).map(k => `${k}^{${o[k]}}`).join('\\,');
+function coreOf(o) {   // gaz rare de cœur le plus grand
+  let best = null;
+  for (const [g, z] of Object.entries(NOBLE)) { const c = conf(z); if (Object.keys(c).every(k => (o[k] || 0) >= c[k]) && Object.values(o).reduce((a, b) => a + b, 0) > z) best = g; }
+  return best;
+}
+function confShortTex(o) {
+  const g = coreOf(o); if (!g) return confTex(o);
+  const c = conf(NOBLE[g]), rest = {}; Object.keys(o).forEach(k => { const r = o[k] - (c[k] || 0); if (r > 0) rest[k] = r; });
+  return `(${g})\\,${confTex(rest)}`;
+}
+function ionConf(Z, q) {   // ions des blocs s et p : on retire les électrons de la couche externe (ou on en ajoute)
+  const o = conf(Z);
+  if (q > 0) { let k = q; for (const s of sorted(o).reverse()) { const t = Math.min(k, o[s]); o[s] -= t; k -= t; if (!k) break; } }
+  else { let k = -q; for (const s of ORDER) { const free = CAP[s[1]] - (o[s] || 0); if (free > 0 && k > 0) { const t = Math.min(k, free); o[s] = (o[s] || 0) + t; k -= t; } if (!k) break; } }
+  Object.keys(o).forEach(k => { if (!o[k]) delete o[k]; });
+  return o;
+}
+function parseConf(input) {
+  let s = String(input).replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, c => SUP.indexOf(c)).replace(/[\^\s,;.]/g, '').replace(/[\[\]\(\)]/g, '');
+  if (!s) return { err: '' };
+  const o = {};
+  const core = /^(He|Ne|Ar|Kr|Xe)/i.exec(s);
+  if (core) { const g = core[1][0].toUpperCase() + core[1][1].toLowerCase(); Object.assign(o, conf(NOBLE[g])); s = s.slice(2); }
+  const re = /([1-7])([spdf])(\d{1,2}?)(?=[1-7][spdf]|$)/gy;
+  let m, pos = 0;
+  while (pos < s.length) {
+    re.lastIndex = pos; m = re.exec(s);
+    if (!m) return { err: `je ne comprends pas « ${s.slice(pos, pos + 6)} » : écris par exemple 1s2 2s2 2p6 ou (Ar) 3d5 4s1` };
+    const k = m[1] + m[2], v = +m[3];
+    if (v > CAP[m[2]]) return { err: `${k} ne peut pas contenir ${v} électrons (maximum ${CAP[m[2]]})` };
+    o[k] = (o[k] || 0) + v; pos = re.lastIndex;
+  }
+  return { o };
+}
+const sameConf = (a, b) => { const ks = new Set([...Object.keys(a), ...Object.keys(b)]); for (const k of ks) if ((a[k] || 0) !== (b[k] || 0)) return false; return true; };
+const unpaired = o => Object.keys(o).reduce((s, k) => { const orb = CAP[k[1]] / 2, e = o[k]; return s + (e <= orb ? e : 2 * orb - e); }, 0);
+function place(Z) {
+  const o = conf(Z), per = Math.max(...Object.keys(o).map(k => +k[0]));
+  const ns = o[per + 's'] || 0, np = o[per + 'p'] || 0, nd = o[(per - 1) + 'd'] || 0;
+  let col, bloc;
+  if (Z === 2) { col = 18; bloc = 's'; }
+  else if (np) { col = ns + np + 10; bloc = 'p'; }
+  else if (nd && per >= 4 && !((Z >= 31 && Z <= 36) || (Z >= 49 && Z <= 54))) { col = ns + nd; bloc = 'd'; }
+  else { col = ns; bloc = 's'; }
+  return { per, col, bloc };
+}
+function famille(Z) {
+  const c = place(Z).col;
+  if (Z === 1) return 'aucune';
+  return c === 1 ? 'alcalins' : c === 2 ? 'alcalino-terreux' : c >= 3 && c <= 12 ? 'métaux de transition' : c === 16 ? 'chalcogènes' : c === 17 ? 'halogènes' : c === 18 ? 'gaz rares' : 'aucune';
+}
+const ROM = ['', 'I', 'II', 'III', 'IV', 'V', 'VI'];
+const chargeTex = q => q === 0 ? '' : `^{${Math.abs(q) === 1 ? '' : Math.abs(q)}${q > 0 ? '+' : '-'}}`;
+const nucl = (A, Z, q = 0) => `{}^{${A}}_{${Z}}\\mathrm{${sym(Z)}}${chargeTex(q)}`;
+
+/* ---------- Constantes du poly ---------- */
+const h = 6.6256e-34, c = 2.997925e8, eV = 1.602e-19, RH = 1.096775e7, me = 9.1091e-31, mn = 1.675e-27, Ei0 = 13.6;
+const SERIES = ['', 'Lyman', 'Balmer', 'Paschen', 'Brackett', 'Pfund'];
+const domain = nm => nm < 400 ? 'UV' : nm <= 750 ? 'visible' : 'IR';
+const HYDRO = { 1: 'H', 2: '\\mathrm{He}^{+}', 3: '\\mathrm{Li}^{2+}', 4: '\\mathrm{Be}^{3+}' };
+
+/* =====================================================================
+   GÉNÉRATEURS D'EXERCICES : chacun renvoie { title, q, items, corr }
+   item : { type: 'num'|'int'|'choice'|'conf', label, ... }
+   ===================================================================== */
+const DOM_OPTS = [{ v: 'UV', t: 'UV' }, { v: 'visible', t: 'visible' }, { v: 'IR', t: 'IR' }];
+const GEN = {};
+
+GEN.noyau = (d, g) => {
+  if (d < 2) {
+    const ions = [[11, 1], [12, 2], [13, 3], [8, -2], [9, -1], [16, -2], [17, -1], [19, 1], [20, 2], [26, 2], [26, 3], [29, 2], [30, 2], [35, -1], [7, -3]];
+    let Z, q = 0;
+    if (d === 0) Z = g.pick([3, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 26, 29, 30, 35, 47, 53, 54, 56]);
+    else[Z, q] = g.pick(ions);
+    const A = Math.max(Z + 1, AM[Z] + g.pick([0, 0, 1, 2, -1]));
+    return { title: 'Composition d\'un atome ou d\'un ion', q: `Donner la composition de \\(${nucl(A, Z, q)}\\) (${nom(Z)}${q ? (q > 0 ? ', cation' : ', anion') : ''}).`,
+      items: [{ type: 'int', label: 'protons', val: Z }, { type: 'int', label: 'neutrons', val: A - Z }, { type: 'int', label: 'électrons', val: Z - q }],
+      corr: `<p>\\(Z = ${Z}\\) protons ; \\(N = A - Z = ${A} - ${Z} = ${A - Z}\\) neutrons ; ${q ? `l'ion porte la charge \\(${q > 0 ? '+' : ''}${q}\\) : il a ${q > 0 ? 'perdu' : 'gagné'} ${Math.abs(q)} électron${Math.abs(q) > 1 ? 's' : ''}, donc \\(${Z} ${q > 0 ? '-' : '+'} ${Math.abs(q)} = ${Z - q}\\) électrons.` : `l'atome est neutre : autant d'électrons que de protons, ${Z}.`}</p>` };
+  }
+  const [Z, q] = g.pick([[26, 2], [17, -1], [12, 2], [16, -2], [29, 1], [13, 3], [35, -1], [20, 2]]), A = AM[Z] + g.pick([0, 1, 2]);
+  return { title: 'Retrouver l\'atome', q: `Une entité possède ${Z} protons, ${A - Z} neutrons et ${Z - q} électrons. Donner \\(A\\), \\(Z\\) et sa charge (0 si neutre), puis l'élément.`,
+    items: [{ type: 'int', label: 'A', val: A }, { type: 'int', label: 'Z', val: Z }, { type: 'int', label: 'charge', val: q }, { type: 'choice', label: 'élément', opts: g.shuffle([Z, Z + 1, Z - 1, Z + 2].filter(z => z >= 1 && z <= 56)).map(z => ({ v: String(z), t: `${sym(z)} (${nom(z)})` })), ans: String(Z) }],
+    corr: `<p>\\(Z\\) = nombre de protons = ${Z} : c'est le ${nom(Z)} (\\(\\mathrm{${sym(Z)}}\\)). \\(A = Z + N = ${Z} + ${A - Z} = ${A}\\). Charge = protons − électrons = \\(${Z} - ${Z - q} = ${q > 0 ? '+' : ''}${q}\\) : \\(${nucl(A, Z, q)}\\).</p>` };
+};
+
+const ISO = {   // [A, masse molaire, abondance %]
+  Cl: [17, [[35, 34.96885, 75.53], [37, 36.96590, 24.47]]], Br: [35, [[79, 78.9183, 50.69], [81, 80.9163, 49.31]]], B: [5, [[10, 10.0129, 19.9], [11, 11.0093, 80.1]]],
+  Li: [3, [[6, 6.01512, 7.59], [7, 7.01600, 92.41]]], Cu: [29, [[63, 62.9296, 69.17], [65, 64.9278, 30.83]]], Ga: [31, [[69, 68.9256, 60.11], [71, 70.9247, 39.89]]],
+  Ag: [47, [[107, 106.9051, 51.84], [109, 108.9048, 48.16]]], Rb: [37, [[85, 84.9118, 72.17], [87, 86.9092, 27.83]]],
+  Mg: [12, [[24, 23.98504, 78.99], [25, 24.98584, 10.00], [26, 25.98259, 11.01]]], Si: [14, [[28, 27.97693, 92.23], [29, 28.97649, 4.67], [30, 29.97377, 3.10]]],
+  Ar: [18, [[36, 35.968, 0.337], [38, 37.963, 0.063], [40, 39.962, 99.600]]], C: [6, [[12, 12.0000, 98.892], [13, 13.00335, 1.108]]]
+};
+GEN.iso = (d, g) => {
+  const two = Object.keys(ISO).filter(k => ISO[k][1].length === 2), three = Object.keys(ISO).filter(k => ISO[k][1].length === 3);
+  const el = d === 1 ? g.pick(three) : g.pick(two), [Z, isos] = ISO[el];
+  const Mel = isos.reduce((s, [, M, x]) => s + M * x / 100, 0);
+  const table = `<table class="t"><tr><th>Isotope</th><th>Masse molaire (g/mol)</th>${d < 2 ? '<th>Abondance</th>' : ''}</tr>${isos.map(([A, M, x]) => `<tr><td>\\({}^{${A}}\\mathrm{${el}}\\)</td><td>${String(M).replace('.', ',')}</td>${d < 2 ? `<td>${String(x).replace('.', ',')} %</td>` : ''}</tr>`).join('')}</table>`;
+  if (d < 2) return { title: 'Masse molaire d\'un élément naturel', q: `Le ${nom(Z)} naturel est un mélange des isotopes suivants. Calculer sa masse molaire atomique.${table}`,
+    items: [{ type: 'num', label: 'M', unit: 'g/mol', val: Mel, tol: 0.002 }],
+    corr: `<p>La masse molaire de l'élément est la moyenne des masses des isotopes pondérée par leurs abondances :</p>\\[M = \\sum_i x_i M_i = ${isos.map(([, M, x]) => `${String(x / 100).replace('.', '{,}')}\\times ${String(M).replace('.', '{,}')}`).join(' + ')} = ${T(Mel, 5)}\\ \\text{g/mol}\\]` };
+  const [[A1, M1, x1], [A2, M2]] = isos, Mg = +Mel.toFixed(3), x = (Mg - M2) / (M1 - M2) * 100;
+  return { title: 'Abondances isotopiques', q: `La masse molaire atomique du ${nom(Z)} naturel vaut ${String(Mg).replace('.', ',')} g/mol. Il est formé des deux isotopes ci-dessous. Calculer leurs proportions.${table}`,
+    items: [{ type: 'num', label: `x(^{${A1}}\\mathrm{${el}})`, unit: '%', val: x, tol: 0.01 }, { type: 'num', label: `x(^{${A2}}\\mathrm{${el}})`, unit: '%', val: 100 - x, tol: 0.01 }],
+    corr: `<p>Avec \\(x\\) la proportion de \\({}^{${A1}}\\mathrm{${el}}\\) et \\(1 - x\\) celle de \\({}^{${A2}}\\mathrm{${el}}\\) :</p>\\[M = x M_1 + (1-x) M_2 \\Rightarrow x = \\frac{M - M_2}{M_1 - M_2} = \\frac{${String(Mg).replace('.', '{,}')} - ${String(M2).replace('.', '{,}')}}{${String(M1).replace('.', '{,}')} - ${String(M2).replace('.', '{,}')}} = ${T(x / 100, 4)}\\]<p>Soit ${txt(x, 4)} % de \\({}^{${A1}}\\mathrm{${el}}\\) et ${txt(100 - x, 4)} % de \\({}^{${A2}}\\mathrm{${el}}\\).</p>` };
+};
+
+GEN.niv = (d, g) => {
+  if (d === 0) {
+    const n = g.int(1, 5), E = -Ei0 / n ** 2;
+    return { title: 'Niveaux d\'énergie de l\'hydrogène', q: `Calculer l'énergie du niveau \\(n = ${n}\\) de l'atome d'hydrogène, puis l'énergie d'ionisation de l'atome à partir de ce niveau.`,
+      items: [{ type: 'num', label: `E_{${n}}`, unit: 'eV', val: E, tol: 0.01 }, { type: 'num', label: 'E_i', unit: 'eV', val: -E, tol: 0.01 }],
+      corr: `<p>Modèle de Bohr : \\(E_n = -\\dfrac{13{,}6}{n^2}\\ \\text{eV}\\), donc \\(E_{${n}} = -\\dfrac{13{,}6}{${n * n}} = ${T(E)}\\ \\text{eV}\\).</p><p>Ioniser, c'est amener l'électron en \\(n = \\infty\\) (énergie 0) : \\(E_i = E_\\infty - E_{${n}} = ${T(-E)}\\ \\text{eV}\\).${n === 1 ? ' C\'est l\'énergie d\'ionisation de l\'atome H dans son état fondamental.' : ''}</p>` };
+  }
+  const Z = d === 1 ? g.pick([2, 3]) : g.pick([2, 3, 4]), n = d === 1 ? 1 : g.int(1, 3), E = -Ei0 * Z * Z / n ** 2;
+  return { title: 'Hydrogénoïdes', q: `On considère l'ion \\(${HYDRO[Z]}\\) (\\(Z = ${Z}\\)). Pourquoi peut-on lui appliquer le modèle de Bohr ? Calculer l'énergie du niveau \\(n = ${n}\\), puis l'énergie à fournir pour arracher l'électron depuis ce niveau.`,
+    items: [{ type: 'num', label: `E_{${n}}`, unit: 'eV', val: E, tol: 0.01 }, { type: 'num', label: 'E_i', unit: 'eV', val: -E, tol: 0.01 }],
+    corr: `<p>\\(${HYDRO[Z]}\\) n'a plus qu'<b>un seul électron</b> : c'est un hydrogénoïde, le modèle de Bohr s'applique avec la charge \\(Z\\) du noyau :</p>\\[E_n = -13{,}6\\,\\frac{Z^2}{n^2}\\ \\text{eV} \\Rightarrow E_{${n}} = -13{,}6\\times\\frac{${Z * Z}}{${n * n}} = ${T(E)}\\ \\text{eV}\\]<p>\\(E_i = 0 - E_{${n}} = ${T(-E)}\\ \\text{eV}\\). Les énergies sont \\(Z^2 = ${Z * Z}\\) fois plus grandes que pour H : le noyau, plus chargé, retient plus fort l'électron.</p>` };
+};
+
+function transData(Z, n, p) { const dE = Ei0 * Z * Z * (1 / n ** 2 - 1 / p ** 2), lam = h * c / (dE * eV) * 1e9; return { dE, lam, nu: dE * eV / h }; }
+GEN.trans = (d, g) => {
+  const Z = d === 2 ? g.pick([2, 3]) : 1, n = g.int(1, 3), p = n + g.int(1, 3), { dE, lam, nu } = transData(Z, n, p);
+  const who = Z === 1 ? 'l\'atome d\'hydrogène' : `l'ion hydrogénoïde \\(${HYDRO[Z]}\\)`;
+  if (d === 1) return { title: 'Absorption d\'un photon', q: `Dans ${who}, l'électron passe du niveau \\(n = ${n}\\) au niveau \\(p = ${p}\\). S'agit-il d'une absorption ou d'une émission ? Calculer l'énergie et la fréquence du photon.`,
+    items: [{ type: 'choice', label: 'phénomène', opts: [{ v: 'abs', t: 'absorption' }, { v: 'em', t: 'émission' }], ans: 'abs' }, { type: 'num', label: 'E_{photon}', unit: 'eV', val: dE, tol: 0.015 }, { type: 'num', label: '\\nu', unit: 'Hz', val: nu, tol: 0.02 }],
+    corr: `<p>L'électron monte vers un niveau d'énergie supérieure : l'atome gagne de l'énergie, c'est une <b>absorption</b>.</p>\\[\\Delta E = E_{${p}} - E_{${n}} = 13{,}6${Z > 1 ? `\\times${Z * Z}` : ''}\\left(\\frac{1}{${n * n}} - \\frac{1}{${p * p}}\\right) = ${T(dE)}\\ \\text{eV}\\]\\[\\nu = \\frac{\\Delta E}{h} = \\frac{${T(dE)}\\times1{,}602\\times10^{-19}}{6{,}626\\times10^{-34}} = ${T(nu)}\\ \\text{Hz}\\]` };
+  return { title: 'Raie d\'émission', q: `Dans ${who}, l'électron redescend du niveau \\(p = ${p}\\) au niveau \\(n = ${n}\\). Calculer l'énergie du photon émis, sa longueur d'onde, et dire dans quel domaine il se trouve.`,
+    items: [{ type: 'num', label: '|\\Delta E|', unit: 'eV', val: dE, tol: 0.015 }, { type: 'num', label: '\\lambda', unit: 'nm', val: lam, tol: 0.015 }, { type: 'choice', label: 'domaine', opts: DOM_OPTS, ans: domain(lam) }],
+    corr: `\\[|\\Delta E| = 13{,}6${Z > 1 ? `\\times${Z * Z}` : ''}\\left(\\frac{1}{${n * n}} - \\frac{1}{${p * p}}\\right) = ${T(dE)}\\ \\text{eV}\\]\\[\\lambda = \\frac{hc}{|\\Delta E|} = \\frac{6{,}626\\times10^{-34}\\times 3\\times10^{8}}{${T(dE)}\\times1{,}602\\times10^{-19}} = ${T(lam * 1e-9)}\\ \\text{m} = ${T(lam, 4)}\\ \\text{nm}\\]<p>${lam < 400 ? 'En dessous de 400 nm : ultraviolet.' : lam <= 750 ? 'Entre 400 et 750 nm : visible.' : 'Au-dessus de 750 nm : infrarouge.'}${Z === 1 ? ` C'est une raie de la série de ${SERIES[n]} (retour sur \\(n = ${n}\\)).` : ''}</p><p class="fine">Astuce : \\(\\lambda(\\text{nm}) \\approx 1240 / E(\\text{eV})\\).</p>` };
+};
+
+GEN.serie = (d, g) => {
+  if (d === 0) {
+    const n = g.pick([1, 2, 2, 3]), p = n + g.int(1, 4), lam = 1 / (RH * (1 / n ** 2 - 1 / p ** 2)) * 1e9;
+    return { title: 'Identifier une raie', q: `Une raie de la série de ${SERIES[n]} de l'hydrogène a pour longueur d'onde \\(\\lambda = ${T(lam, 4)}\\ \\text{nm}\\). À quelle transition correspond-elle (niveau de départ \\(p\\)) ?`,
+      items: [{ type: 'int', label: 'p', val: p }, { type: 'int', label: 'n', val: n }],
+      corr: `<p>Série de ${SERIES[n]} : retour sur \\(n = ${n}\\). Formule de Ritz :</p>\\[\\frac{1}{\\lambda} = R_H\\left(\\frac{1}{n^2} - \\frac{1}{p^2}\\right) \\Rightarrow \\frac{1}{p^2} = \\frac{1}{${n * n}} - \\frac{1}{R_H\\,\\lambda} = ${T(1 / n ** 2 - 1 / (RH * lam * 1e-9), 3)} \\Rightarrow p = ${p}\\]` };
+  }
+  if (d === 1) {
+    const n = g.int(1, 4), lmax = 1 / (RH * (1 / n ** 2 - 1 / (n + 1) ** 2)) * 1e9, lmin = n * n / RH * 1e9;
+    return { title: 'Raies limites d\'une série', q: `Calculer les longueurs d'onde des raies limites de la série de ${SERIES[n]} de l'hydrogène : la plus grande (\\(p = n + 1\\)) et la plus petite (\\(p \\to \\infty\\)).`,
+      items: [{ type: 'num', label: '\\lambda_{max}', unit: 'nm', val: lmax, tol: 0.01 }, { type: 'num', label: '\\lambda_{min}', unit: 'nm', val: lmin, tol: 0.01 }],
+      corr: `<p>Série de ${SERIES[n]} : \\(n = ${n}\\).</p>\\[\\lambda_{max} : \\frac{1}{\\lambda} = R_H\\left(\\frac{1}{${n * n}} - \\frac{1}{${(n + 1) ** 2}}\\right) \\Rightarrow \\lambda_{max} = ${T(lmax, 4)}\\ \\text{nm}\\]\\[\\lambda_{min} : \\frac{1}{\\lambda} = \\frac{R_H}{${n * n}} \\Rightarrow \\lambda_{min} = \\frac{${n * n}}{R_H} = ${T(lmin, 4)}\\ \\text{nm}\\]<p class="fine">\\(p \\to \\infty\\) : la plus grande énergie possible, donc la plus petite longueur d'onde.</p>` };
+  }
+  const p = g.int(3, 6), lines = p * (p - 1) / 2, vis = p - 2;
+  return { title: 'Raies observables', q: `L'atome d'hydrogène, dans son état fondamental, est excité jusqu'au niveau \\(p = ${p}\\). Combien de raies différentes peut-on observer quand il se désexcite (toutes les transitions possibles vers les niveaux inférieurs) ? Combien appartiennent à la série de Balmer ?`,
+    items: [{ type: 'int', label: 'raies', val: lines }, { type: 'int', label: 'Balmer', val: vis }],
+    corr: `<p>L'électron peut redescendre par paliers : toute transition entre deux niveaux parmi \\(1, 2, \\dots, ${p}\\) est possible, soit \\(\\binom{${p}}{2} = \\dfrac{${p}\\times${p - 1}}{2} = ${lines}\\) raies.</p><p>Série de Balmer = retour sur \\(n = 2\\) depuis \\(p = 3\\) à \\(${p}\\) : ${vis} raie${vis > 1 ? 's' : ''} (dans le visible).</p>` };
+};
+
+GEN.onde = (d, g) => {
+  if (d < 2) {
+    const lam = sig(d === 0 ? g.pick([121.6, 254, 300, 410.2, 434.1, 486.1, 532, 589, 656.3, 700, 850, 1282, 1875]) : g.pick([0.05, 2, 10, 0.4e3, 0.75e3, 1e6, 3e6]), 4), lm = lam * 1e-9;
+    const nu = c / lm, E = h * nu / eV, sig_ = 1 / (lm * 100);
+    return { title: d === 0 ? 'Longueur d\'onde, fréquence, énergie' : 'Conversions dans le spectre', q: `Une radiation a pour longueur d'onde \\(\\lambda = ${T(lam, 4)}\\ \\text{nm}\\). Calculer sa fréquence, son nombre d'onde et l'énergie d'un photon.`,
+      items: [{ type: 'num', label: '\\nu', unit: 'Hz', val: nu, tol: 0.015 }, { type: 'num', label: '\\bar\\nu = 1/\\lambda', unit: 'cm⁻¹', val: sig_, tol: 0.015 }, { type: 'num', label: 'E', unit: 'eV', val: E, tol: 0.015 }],
+      corr: `\\[\\nu = \\frac{c}{\\lambda} = \\frac{3\\times10^{8}}{${T(lm)}} = ${T(nu)}\\ \\text{Hz}\\qquad \\bar\\nu = \\frac{1}{\\lambda} = \\frac{1}{${T(lm * 100)}\\ \\text{cm}} = ${T(sig_)}\\ \\text{cm}^{-1}\\]\\[E = h\\nu = 6{,}626\\times10^{-34}\\times${T(nu)} = ${T(h * nu)}\\ \\text{J} = ${T(E)}\\ \\text{eV}\\]<p class="fine">Pense à convertir les nm en m (\\(\\times10^{-9}\\)) et les J en eV (\\(\\div 1{,}602\\times10^{-19}\\)).</p>` };
+  }
+  const part = g.pick(['e', 'n']), m = part === 'e' ? me : mn, E = part === 'e' ? g.pick([1, 10, 54, 100, 150]) : g.pick([0.025, 0.039, 0.05, 1]);
+  const v = Math.sqrt(2 * E * eV / m), lam = h / (m * v);
+  return { title: 'Onde de matière (De Broglie)', q: `${part === 'e' ? 'Un électron' : 'Un neutron'} a une énergie cinétique de \\(${T(E)}\\ \\text{eV}\\). Calculer sa vitesse, puis la longueur d'onde associée.`,
+    items: [{ type: 'num', label: 'v', unit: 'm/s', val: v, tol: 0.02 }, { type: 'num', label: '\\lambda', unit: 'pm', val: lam * 1e12, tol: 0.02 }],
+    corr: `\\[E_c = \\tfrac12 m v^2 \\Rightarrow v = \\sqrt{\\frac{2E_c}{m}} = \\sqrt{\\frac{2\\times${T(E * eV)}}{${T(m)}}} = ${T(v)}\\ \\text{m/s}\\]\\[\\lambda = \\frac{h}{m v} = \\frac{6{,}626\\times10^{-34}}{${T(m)}\\times${T(v)}} = ${T(lam)}\\ \\text{m} = ${T(lam * 1e12)}\\ \\text{pm}\\]<p>Cette longueur d'onde est de l'ordre des distances entre atomes : l'aspect ondulatoire de la particule est observable (diffraction). Pour un objet macroscopique, \\(\\lambda\\) serait ridiculement petite.</p>` };
+};
+
+GEN.nq = (d, g) => {
+  if (d === 0) {
+    const n = g.int(2, 5), l = g.int(0, Math.min(3, n - 1)), L = 'spdf'[l];
+    return { title: 'Sous-couches et orbitales', q: `On considère les électrons de nombres quantiques \\(n = ${n}\\) et \\(\\ell = ${l}\\). Quelle sous-couche est-ce ? Combien d'orbitales atomiques (cases quantiques) contient-elle, et combien d'électrons au maximum ? Combien d'O.A. compte la couche \\(n = ${n}\\) entière ?`,
+      items: [{ type: 'choice', label: 'sous-couche', opts: g.shuffle([n + L, (n + 1) + L, n + 'spdf'[(l + 1) % 4], (n - 1) + 'spdf'[(l + 2) % 4]]).filter((x, i, a) => a.indexOf(x) === i).map(x => ({ v: x, t: x })), ans: n + L },
+        { type: 'int', label: 'O.A.', val: 2 * l + 1 }, { type: 'int', label: 'électrons max', val: 2 * (2 * l + 1) }, { type: 'int', label: 'O.A. de la couche', val: n * n }],
+      corr: `<p>\\(\\ell = ${l}\\) correspond à la sous-couche <b>${L}</b> (0 → s, 1 → p, 2 → d, 3 → f) : c'est la sous-couche <b>${n}${L}</b>.</p><p>\\(m_\\ell\\) va de \\(-\\ell\\) à \\(+\\ell\\) : \\(2\\ell + 1 = ${2 * l + 1}\\) orbitales, chacune avec 2 électrons de spins opposés (Pauli) : ${2 * (2 * l + 1)} électrons au maximum.</p><p>La couche \\(n\\) contient \\(n^2 = ${n * n}\\) orbitales (et \\(2n^2 = ${2 * n * n}\\) électrons au maximum).</p>` };
+  }
+  if (d === 1) {
+    const sets = [];
+    const ok = () => { const n = g.int(1, 5), l = g.int(0, Math.min(3, n - 1)), ml = g.int(-l, l); return [n, l, ml, g.pick(['+½', '−½'])]; };
+    const bad = () => g.pick([
+      () => { const n = g.int(1, 4); return [n, n, 0, '+½', `\\(\\ell\\) doit être strictement inférieur à \\(n\\)`]; },
+      () => { const n = g.int(2, 5), l = g.int(0, n - 1); return [n, l, l + 1, '−½', `\\(m_\\ell\\) doit être compris entre \\(-\\ell\\) et \\(+\\ell\\)`]; },
+      () => { const n = g.int(1, 4), l = g.int(0, n - 1); return [n, l, 0, '+1', `\\(m_s\\) ne peut valoir que \\(+\\tfrac12\\) ou \\(-\\tfrac12\\)`]; },
+      () => [0, 0, 0, '+½', `\\(n\\) doit être un entier strictement positif`]
+    ])();
+    for (let i = 0; i < 4; i++) sets.push(g.r() < 0.5 ? ok() : bad());
+    const tex = s => `(n, \\ell, m_\\ell, m_s) = (${s[0]}, ${s[1]}, ${s[2]}, ${s[3].replace('½', '\\tfrac12').replace('−', '-')})`;
+    return { title: 'Nombres quantiques possibles ?', q: 'Les séries de nombres quantiques suivantes sont-elles possibles pour un électron ?',
+      items: sets.map((s, i) => ({ type: 'choice', label: `\\text{(${'abcd'[i]})}\\ ${tex(s)}`, opts: [{ v: 'oui', t: 'possible' }, { v: 'non', t: 'impossible' }], ans: s[4] ? 'non' : 'oui' })),
+      corr: `<p>Règles : \\(n \\geq 1\\) ; \\(0 \\leq \\ell \\leq n - 1\\) ; \\(-\\ell \\leq m_\\ell \\leq +\\ell\\) ; \\(m_s = \\pm\\tfrac12\\).</p><ul>${sets.map((s, i) => `<li>(${'abcd'[i]}) ${s[4] ? 'impossible : ' + s[4] : `possible : orbitale ${s[0]}${'spdf'[s[1]]}`}.</li>`).join('')}</ul>` };
+  }
+  const n = g.int(2, 5), l = g.int(1, Math.min(2, n - 1)), ml = g.int(-l, l), L = 'spdf'[l];
+  const st = g.shuffle([
+    [`Cette série décrit un électron dans une orbitale ${n}${L}.`, true, `\\(\\ell = ${l}\\) ↔ ${L}.`],
+    [`Cette série décrit un électron dans une orbitale ${n}${'spdf'[l + 1]}.`, false, `ce serait \\(\\ell = ${l + 1}\\).`],
+    ['Cette série décrit forcément un électron dans un état excité.', false, 'impossible à dire sans connaître l\'atome : ces nombres quantiques peuvent décrire un électron de l\'état fondamental.'],
+    ['Cette série décrit trois électrons.', false, `\\((n, \\ell, m_\\ell)\\) définit UNE orbitale : au plus 2 électrons.`],
+    ['Cet électron peut avoir \\(m_s = +\\tfrac12\\).', true, 'tout électron a \\(m_s = \\pm\\tfrac12\\).'],
+    [`Cet électron peut avoir \\(\\ell = ${n}\\).`, false, `\\(\\ell\\) va de 0 à \\(n - 1 = ${n - 1}\\).`]
+  ]).slice(0, 4);
+  return { title: 'Vrai ou faux : nombres quantiques', q: `Soit la série \\(n = ${n}\\), \\(\\ell = ${l}\\), \\(m_\\ell = ${ml}\\). Les affirmations suivantes sont-elles exactes ?`,
+    items: st.map((s, i) => ({ type: 'choice', label: `\\text{(${'abcd'[i]})}`, pre: s[0], opts: [{ v: 'v', t: 'vrai' }, { v: 'f', t: 'faux' }], ans: s[1] ? 'v' : 'f' })),
+    corr: `<ul>${st.map((s, i) => `<li>(${'abcd'[i]}) <b>${s[1] ? 'Vrai' : 'Faux'}</b> : ${s[2]}</li>`).join('')}</ul>` };
+};
+
+const confItem = (Z, o, label) => ({ type: 'conf', label: label || `\\mathrm{${sym(Z)}}`, conf: o, Z });
+const confCorr = (Z, o, extra = '') => `<p>\\(\\mathrm{${sym(Z)}}\\) (\\(Z = ${Z}\\)) : on remplit dans l'ordre de Klechkowski (\\(n + \\ell\\) croissant, puis \\(n\\) croissant) : 1s 2s 2p 3s 3p 4s 3d 4p 5s 4d 5p 6s…</p>\\[${confTex(o)}\\]<p>soit, en abrégé : \\(${confShortTex(o)}\\).${extra}</p>`;
+GEN.conf = (d, g) => {
+  const pool = d === 0 ? [3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 19, 20] : d === 1 ? [21, 22, 23, 25, 26, 27, 28, 30, 31, 32, 33, 34, 35, 36] : [37, 38, 39, 40, 43, 48, 49, 50, 51, 52, 53, 54, 55, 56];
+  const Zs = g.shuffle(pool).slice(0, 2);
+  return { title: 'Configurations électroniques', q: `Donner la configuration électronique de ${Zs.map(Z => `\\(\\mathrm{${sym(Z)}}\\) (\\(Z = ${Z}\\))`).join(' et de ')} dans l'état fondamental.`,
+    items: Zs.map(Z => confItem(Z, conf(Z))), corr: Zs.map(Z => confCorr(Z, conf(Z))).join('') };
+};
+GEN.exc = (d, g) => {
+  if (d === 0 || (d === 2 && g.r() < 0.5)) {
+    const Z = g.pick([24, 29, 42, 47]), o = conf(Z), k = klech(Z);
+    return { title: 'Les exceptions au remplissage', q: `Donner la configuration électronique de \\(\\mathrm{${sym(Z)}}\\) (\\(Z = ${Z}\\)) dans l'état fondamental. Attention au piège.`,
+      items: [confItem(Z, o)], corr: confCorr(Z, o, ` Le remplissage « normal » donnerait \\(${confShortTex(k)}\\), mais une sous-couche d ${Object.values(o).includes(10) && (Z === 29 || Z === 47) ? 'pleine (d<sup>10</sup>)' : 'à moitié pleine (d<sup>5</sup>)'} est plus stable : un électron ns passe dans la sous-couche d.`) };
+  }
+  const [Z, q] = g.pick([[11, 1], [12, 2], [13, 3], [8, -2], [9, -1], [16, -2], [17, -1], [19, 1], [20, 2], [7, -3], [35, -1], [3, 1], [15, -3], [38, 2], [53, -1]]);
+  const o = ionConf(Z, q), ne = Z - q, gaz = Object.entries(NOBLE).find(([, z]) => z === ne);
+  return { title: 'Configuration d\'un ion', q: `Donner la configuration électronique de l'ion \\(\\mathrm{${sym(Z)}}${chargeTex(q)}\\) (\\(Z = ${Z}\\)). À quel gaz rare est-il isoélectronique ?`,
+    items: [confItem(Z, o, `\\mathrm{${sym(Z)}}${chargeTex(q)}`), { type: 'choice', label: 'gaz rare', opts: Object.keys(NOBLE).map(k => ({ v: k, t: k })), ans: gaz ? gaz[0] : 'He' }],
+    corr: `<p>\\(\\mathrm{${sym(Z)}}\\) : \\(${confShortTex(conf(Z))}\\). ${q > 0 ? `Il perd ${q} électron${q > 1 ? 's' : ''} de sa couche externe` : `Il gagne ${-q} électron${q < -1 ? 's' : ''} pour compléter sa couche externe`} : ${ne} électrons.</p>\\[\\mathrm{${sym(Z)}}${chargeTex(q)} : ${confTex(o)}\\]<p>C'est la configuration de \\(\\mathrm{${gaz ? gaz[0] : ''}}\\) (\\(Z = ${ne}\\)) : les ions des colonnes 1, 2, 13, 16, 17 prennent la structure du gaz rare le plus proche.</p>` };
+};
+GEN.case = (d, g) => {
+  const pool = d === 0 ? [5, 6, 7, 8, 9, 13, 14, 15, 16] : d === 1 ? [21, 22, 23, 25, 26, 27, 28, 32, 33, 34] : [24, 29, 42, 47, 26, 25, 23, 7, 15];
+  const Zs = g.shuffle(pool).slice(0, 2);
+  const val = Z => { const o = conf(Z), keys = sorted(o); const last = keys.filter(k => +k[0] === Math.max(...keys.map(x => +x[0])) || (k[1] === 'd' && o[k] < 10 && o[k] > 0)); return last; };
+  const boxes = Z => val(Z).map(k => { const orb = CAP[k[1]] / 2, e = conf(Z)[k], cells = Array.from({ length: orb }, (_, i) => e > i ? (e > orb + i ? '↑↓' : '↑') : '&nbsp;'); return `${k} : <span style="font-family:ui-monospace,monospace">${cells.map(x => `[${x}]`).join('')}</span>`; }).join(' &nbsp; ');
+  return { title: 'Cases quantiques et électrons célibataires', q: `Représenter la couche de valence en cases quantiques (règle de Hund) et donner le nombre d'électrons célibataires de ${Zs.map(Z => `\\(\\mathrm{${sym(Z)}}\\) (\\(Z = ${Z}\\))`).join(' et de ')}.`,
+    items: Zs.map(Z => ({ type: 'int', label: `\\mathrm{${sym(Z)}}`, val: unpaired(conf(Z)) })),
+    corr: Zs.map(Z => `<p>\\(\\mathrm{${sym(Z)}}\\) : \\(${confShortTex(conf(Z))}\\). ${boxes(Z)} → <b>${unpaired(conf(Z))}</b> électron${unpaired(conf(Z)) > 1 ? 's' : ''} célibataire${unpaired(conf(Z)) > 1 ? 's' : ''}.</p>`).join('') + '<p class="fine">Règle de Hund : dans des cases de même énergie, on place d\'abord un électron par case, tous de même spin, avant d\'apparier.</p>' };
+};
+GEN.place = (d, g) => {
+  const pool = (d === 0 ? [3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20] : d === 1 ? [21, 23, 25, 26, 29, 30, 31, 33, 35, 37, 38] : [24, 29, 39, 40, 42, 47, 48, 50, 52, 53, 55, 56]).filter(z => z !== 2);
+  const Z = g.pick(pool), P = place(Z), fam = famille(Z);
+  const items = [{ type: 'int', label: 'période', val: P.per }, { type: 'int', label: 'colonne', val: P.col }, { type: 'choice', label: 'bloc', opts: ['s', 'p', 'd', 'f'].map(x => ({ v: x, t: x })), ans: P.bloc }];
+  if (d >= 1) items.push({ type: 'choice', label: 'famille', opts: ['alcalins', 'alcalino-terreux', 'métaux de transition', 'chalcogènes', 'halogènes', 'gaz rares', 'aucune'].map(x => ({ v: x, t: x })), ans: fam });
+  const o = conf(Z), per = P.per;
+  return { title: 'Place dans le tableau périodique', q: `Situer l'élément \\(Z = ${Z}\\) dans la classification : période, colonne, bloc${d >= 1 ? ', et famille' : ''}.`, items,
+    corr: `<p>Configuration : \\(${confShortTex(o)}\\).</p><p>Période = plus grande valeur de \\(n\\) : <b>${per}</b>.</p><p>Colonne : ${P.bloc === 'p' ? `structure terminée par \\(ns^{${o[per + 's']}}\\,np^{${o[per + 'p']}}\\) → \\(${o[per + 's']} + ${o[per + 'p']} + 10 = ${P.col}\\)` : P.bloc === 'd' ? `structure terminée par \\((n-1)d^{${o[(per - 1) + 'd']}}\\,ns^{${o[per + 's']}}\\) → \\(${o[(per - 1) + 'd']} + ${o[per + 's']} = ${P.col}\\)` : `structure terminée par \\(ns^{${o[per + 's']}}\\) → colonne ${P.col}`}. Bloc <b>${P.bloc}</b>${d >= 1 ? `, famille : <b>${fam}</b>` : ''}. C'est le ${nom(Z)} (\\(\\mathrm{${sym(Z)}}\\)).</p>` };
+};
+GEN.prop = (d, g) => {
+  const mk = () => {
+    const kind = g.pick(d === 0 ? ['EIp', 'EIc', 'Rp', 'Rc'] : d === 1 ? ['EIp', 'Rc', 'ENp', 'ENc', 'ion'] : ['anom', 'anom', 'ion', 'ENp', 'EIc']);
+    const per = g.int(2, 4), base = [0, 0, 2, 10, 18][per];
+    const mainCols = [1, 2, 13, 14, 15, 16, 17], colZ = col => base + (col <= 2 ? col : col - 10 + (per >= 4 ? 10 : 0));
+    if (kind === 'EIp' || kind === 'Rp' || kind === 'ENp') {
+      // paires écartées : voisines, et pour E.I. celles touchées par une anomalie (col. 2/13 ; 15/16)
+      const anomal = (x, y) => [x, y].sort((u, v) => u - v).join() === '2,13' || [x, y].sort((u, v) => u - v).join() === '15,16';
+      let c1, c2; do { [c1, c2] = g.shuffle(mainCols).slice(0, 2); } while (Math.abs(c1 - c2) < 2 || (kind === 'EIp' && anomal(c1, c2)) || (kind === 'ENp' && EN[colZ(c1)] === EN[colZ(c2)]));
+      const A = colZ(c1), B = colZ(c2), right = c1 > c2 ? A : B, left = c1 > c2 ? B : A;
+      if (kind === 'EIp') return [`Lequel a la plus grande énergie de 1<sup>re</sup> ionisation : ${sym(A)} ou ${sym(B)} ?`, [A, B], right, `dans une même période, E.I. augmente de gauche à droite (\\(Z^*\\) augmente, l'électron est plus retenu) : ${sym(right)}.`];
+      if (kind === 'ENp') return [`Lequel est le plus électronégatif : ${sym(A)} ou ${sym(B)} ?`, [A, B], right, `dans une période, \\(\\chi\\) augmente de gauche à droite : \\(\\chi(${sym(right)}) = ${String(EN[right]).replace('.', '{,}')}\\) contre \\(${String(EN[left]).replace('.', '{,}')}\\).`];
+      return [`Lequel a le plus grand rayon atomique : ${sym(A)} ou ${sym(B)} ?`, [A, B], left, `dans une période, le rayon diminue de gauche à droite (\\(Z^*\\) augmente, les O.A. se contractent) : ${sym(left)}.`];
+    }
+    if (kind === 'EIc' || kind === 'Rc' || kind === 'ENc') {
+      const col = g.pick([1, 2, 16, 17]), fams = { 1: [3, 11, 19, 37, 55], 2: [4, 12, 20, 38, 56], 16: [8, 16, 34, 52], 17: [9, 17, 35, 53] }[col];
+      let A, B; do { [A, B] = g.shuffle(fams).slice(0, 2); } while (kind === 'ENc' && EN[A] === EN[B]);
+      const up = A < B ? A : B, down = A < B ? B : A;
+      if (kind === 'EIc') return [`Lequel a la plus grande énergie de 1<sup>re</sup> ionisation : ${sym(A)} ou ${sym(B)} ?`, [A, B], up, `dans une colonne, E.I. diminue quand \\(n\\) augmente (l'électron externe est plus loin du noyau) : ${sym(up)}.`];
+      if (kind === 'ENc') return [`Lequel est le plus électronégatif : ${sym(A)} ou ${sym(B)} ?`, [A, B], up, `dans une colonne, \\(\\chi\\) diminue vers le bas : ${sym(up)}.`];
+      return [`Lequel a le plus grand rayon atomique : ${sym(A)} ou ${sym(B)} ?`, [A, B], down, `dans une colonne, le rayon augmente quand \\(n\\) augmente (nouvelle couche) : ${sym(down)}.`];
+    }
+    if (kind === 'ion') {
+      const [Z, q] = g.pick([[11, 1], [13, 3], [12, 2], [17, -1], [8, -2], [7, -3], [16, -2]]);
+      const a = `\\mathrm{${sym(Z)}}`, b = `\\mathrm{${sym(Z)}}${chargeTex(q)}`;
+      return [`Lequel est le plus gros : \\(${a}\\) ou \\(${b}\\) ?`, [['a', a], ['b', b]], q > 0 ? 'a' : 'b', q > 0 ? 'un cation est plus petit que l\'atome (moins d\'électrons, moins d\'écran, plus attirés).' : 'un anion est plus gros que l\'atome (plus d\'électrons, plus d\'écran et de répulsion).'];
+    }
+    const [A, B, why] = g.pick([[4, 5, 'Be (2s<sup>2</sup>, sous-couche pleine) est plus stable que B (2p<sup>1</sup>)'], [12, 13, 'Mg (3s<sup>2</sup> pleine) est plus stable que Al (3p<sup>1</sup>)'], [7, 8, 'N (2p<sup>3</sup>, demi-pleine) est plus stable que O (2p<sup>4</sup>)'], [15, 16, 'P (3p<sup>3</sup> demi-pleine) est plus stable que S (3p<sup>4</sup>)'], [30, 31, 'Zn (3d<sup>10</sup> 4s<sup>2</sup> pleines) est plus stable que Ga (4p<sup>1</sup>)']]);
+    return [`Lequel a la plus grande énergie de 1<sup>re</sup> ionisation : ${sym(A)} ou ${sym(B)} ?`, [A, B], A, `<b>anomalie</b> : ${why}, donc E.I.(${sym(A)}) > E.I.(${sym(B)}) alors que ${sym(B)} est plus à droite.`];
+  };
+  const qs = [mk(), mk()];
+  const opt = x => Array.isArray(x) ? { v: String(x[0]), t: `\\(${x[1]}\\)` } : { v: String(x), t: `${sym(x)}` };
+  return { title: 'Évolution des propriétés', q: 'Répondre en justifiant (sur ta feuille) :',
+    items: qs.map(([q, opts, ans], i) => ({ type: 'choice', label: `\\text{(${'ab'[i]})}`, pre: q, opts: opts.map(opt), ans: String(ans) })),
+    corr: `<ul>${qs.map(([, , , why], i) => `<li>(${'ab'[i]}) ${why}</li>`).join('')}</ul>` };
+};
+
+/* =====================================================================
+   VÉRIFICATION DES RÉPONSES
+   ===================================================================== */
+function check(it, raw) {
+  if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
+  if (it.type === 'int') {
+    const s = String(raw || '').trim().replace(/\s/g, '').replace('−', '-'); if (!s) return { st: 'empty' };
+    if (!/^[-+]?\d+$/.test(s)) return { st: 'err', msg: 'écris un nombre entier' };
+    return { st: +s === it.val ? 'ok' : 'bad' };
+  }
+  if (it.type === 'num') {
+    const p = parseNum(raw || '', it.unit); if (p.err !== undefined) return { st: p.err ? 'err' : 'empty', msg: p.err };
+    const tol = it.tol || 0.02, ok = Math.abs(p.v - it.val) <= tol * Math.abs(it.val) + 1e-12;
+    if (!ok && Math.abs(p.v + it.val) <= tol * Math.abs(it.val)) return { st: 'bad', msg: 'au signe près : attention au signe.' };
+    if (!ok && Math.abs(p.v / it.val) > 0 && Math.abs(Math.log10(Math.abs(p.v / it.val)) - Math.round(Math.log10(Math.abs(p.v / it.val)))) < 0.01 && Math.round(Math.log10(Math.abs(p.v / it.val)))) return { st: 'bad', msg: 'erreur de puissance de 10 : vérifie tes conversions d\'unités.' };
+    return { st: ok ? 'ok' : 'bad' };
+  }
+  if (it.type === 'conf') {
+    const p = parseConf(raw || ''); if (p.err !== undefined) return { st: p.err ? 'err' : 'empty', msg: p.err };
+    if (sameConf(p.o, it.conf)) {
+      const order = String(raw).match(/[1-7][spdf]/g) || [], byN = order.slice().sort((a, b) => subKey(a) - subKey(b));
+      return { st: 'ok', msg: order.join() !== byN.join() ? 'juste. Le cours demande d\'écrire la configuration finale dans l\'ordre des n croissants (3d avant 4s).' : '' };
+    }
+    if (it.Z && isExc(it.Z) && sameConf(p.o, klech(it.Z))) return { st: 'bad', msg: 'c\'est le remplissage normal, mais cet élément est une exception (d⁵ ou d¹⁰ plus stable).' };
+    const tot = Object.values(p.o).reduce((a, b) => a + b, 0), exp = Object.values(it.conf).reduce((a, b) => a + b, 0);
+    return { st: 'bad', msg: tot !== exp ? `tu as placé ${tot} électrons au lieu de ${exp}.` : '' };
+  }
+  return { st: 'empty' };
+}
+function preview(it, raw) {
+  if (!raw) return '';
+  if (it.type === 'num') { const p = parseNum(raw, it.unit); return p.err ? `<span class="err">${esc(p.err)}</span>` : `lu : ${txt(p.v)} ${esc(it.unit)}`; }
+  if (it.type === 'conf') { const p = parseConf(raw); return p.err ? `<span class="err">${esc(p.err)}</span>` : 'lu : ' + katexStr(confTex(p.o)); }
+  return '';
+}
+const katexStr = s => window.katex ? katex.renderToString(s, { throwOnError: false }) : esc(s);
+const PILL = { ok: '<span class="pill ok">Juste</span>', bad: '<span class="pill bad">Faux</span>', err: '<span class="pill bad">Illisible</span>', empty: '<span class="pill part">Vide</span>' };
+
+function itemHTML(it, id, val) {
+  // un mot (« période », « électrons ») s'affiche en texte normal, une grandeur (λ, E_1, A) en mathématiques
+  const isMath = /[\\^_{}]/.test(it.label) || /^[A-Za-z]$/.test(it.label);
+  const lab = `<span class="it-lab">${isMath ? `\\(${it.label}\\)` : esc(it.label)}</span>`;
+  const pre = it.pre ? `<div style="grid-column:1/-1;font:16px/1.5 var(--serif)">${it.pre}</div>` : '';
+  if (it.type === 'choice') return `${pre}<div class="it" data-id="${id}">${lab}<div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${o.t}</span></label>`).join('')}</div><div class="fb"></div></div>`;
+  const ph = it.type === 'conf' ? 'ex : 1s2 2s2 2p6 ou (Ar) 3d5 4s1' : it.type === 'int' ? 'nombre entier' : 'ex : 4,86e-7';
+  return `${pre}<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" autocomplete="off" spellcheck="false" inputmode="${it.type === 'int' ? 'numeric' : 'text'}" placeholder="${ph}" value="${esc(val || '')}">${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div><div class="prev"></div><div class="fb"></div></div>`;
+}
+const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); if (r) return r.value; const t = $(`input[type=text][data-id="${id}"]`, root); return t ? t.value : ''; };
+
+/* =====================================================================
+   COMPÉTENCES ET PROGRESSION (mêmes règles que le parcours d'élec)
+   ===================================================================== */
+const PK = 'ato.path.v1', HK = 'ato.hist.v1', VAL = 100, MMAX = 130;
+const CH = ['Structure de l\'atome', 'Spectres atomiques', 'Modèle quantique', 'Atomes polyélectroniques', 'Tableau périodique'];
+const SK = [
+  { id: 'noyau', ch: 0, name: 'Composition des atomes et des ions', fiche: 0 },
+  { id: 'iso', ch: 0, name: 'Isotopes et masse molaire', fiche: 0 },
+  { id: 'onde', ch: 1, name: 'Lumière : λ, ν, E et De Broglie', fiche: 1 },
+  { id: 'niv', ch: 1, name: 'Niveaux d\'énergie (H et hydrogénoïdes)', fiche: 1 },
+  { id: 'trans', ch: 1, name: 'Transitions : absorption, émission', fiche: 1 },
+  { id: 'serie', ch: 1, name: 'Séries de raies', fiche: 1 },
+  { id: 'nq', ch: 2, name: 'Nombres quantiques', fiche: 2 },
+  { id: 'conf', ch: 3, name: 'Configurations électroniques', fiche: 3 },
+  { id: 'exc', ch: 3, name: 'Exceptions (Cr, Cu) et ions', fiche: 3 },
+  { id: 'case', ch: 3, name: 'Cases quantiques, électrons célibataires', fiche: 3 },
+  { id: 'place', ch: 4, name: 'Place dans le tableau périodique', fiche: 4 },
+  { id: 'prop', ch: 4, name: 'Évolution des propriétés', fiche: 4 }
+];
+const skById = id => SK.find(k => k.id === id);
+function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
+function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false }); }
+const isVal = s => s.m >= VAL, levelOf = s => s.m < 40 ? 0 : s.m < 80 ? 1 : 2;
+const frontier = P => SK.find(k => !isVal(skS(P, k.id))) || null;
+function pickNext(P) {
+  const f = frontier(P), pool = SK.filter(k => k !== f && skS(P, k.id).ever);
+  const rev = pool.length >= 2 && (P.since >= 6 || (P.since >= 3 && Math.random() < 0.35));
+  if (f && !rev) return { k: f, review: false };
+  if (!pool.length) return f ? { k: f, review: false } : null;
+  const now = Date.now(), W = pool.map(k => { const s = skS(P, k.id); return [k, (MMAX + 20 - s.m) * (1 + Math.min(3, (now - s.last) / 864e5))]; });
+  let r = Math.random() * W.reduce((a, w) => a + w[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) return { k, review: true }; }
+  return { k: W[0][0], review: true };
+}
+function build(id, d, seed) { const ex = GEN[id](d, G(rng(seed))); ex.items.forEach((it, i) => { it.id = `${id}-${seed}-${i}`; }); return ex; }
+
+/* ---------- Exercice affiché (parcours ou entraînement libre) ---------- */
+let CUR = null;   // { mode: 'path'|'free', k, d, seed, review, ex, ans, first: {}, done }
+function exHTML(ex, mode) {
+  return `<article class="card ex"><h2>${esc(ex.title)}</h2><div class="q">${ex.q}</div>
+    <div class="items">${ex.items.map(it => itemHTML(it, it.id, (CUR && CUR.ans[it.id]) || '')).join('')}</div>
+    ${mode === 'exam' ? '' : `<div class="actions"><button type="button" class="btn btn-primary" data-act="check">Vérifier</button><span class="fine">Une réponse compte si elle est juste à la première vérification. Entrée valide aussi.</span></div>
+    <details class="corr"><summary>Correction</summary><div class="expl">${ex.corr}</div></details>`}</article>`;
+}
+function startEx(k, o = {}) {
+  const P = pst(), s = skS(P, k.id), R = o.resume || null;
+  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s), seed = R ? R.seed : newSeed();
+  CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), done: false };
+  CUR.ex = build(k.id, d, seed);
+  if (CUR.mode === 'path' && !R) saveCur(!!o.user);
+  renderEx();
+}
+function saveCur(bump = true) {
+  if (!CUR || CUR.mode !== 'path') return;
+  const P = pst();
+  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek };
+  if (bump) P.curT = Date.now();
+  ls.set(PK, P);
+}
+function renderEx() {
+  const host = $('#exHost'); if (!host || !CUR) return;
+  const k = CUR.k, s = skS(pst(), k.id);
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span class="sp" style="flex:1"></span><button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
+    + exHTML(CUR.ex, 'train');
+  // réponses déjà vérifiées : on remet les corrections
+  CUR.ex.items.forEach(it => { if (it.id in CUR.first) showFb(host, it); const inp = $(`input[type=text][data-id="${it.id}"]`, host); if (inp && inp.value) $('.prev', inp.closest('.it')).innerHTML = preview(it, inp.value); });
+  typeset(host);
+  host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function showFb(root, it) {
+  const r = check(it, valOf(root, it.id)), fb = $(`.it[data-id="${it.id}"] .fb`, root);
+  if (fb) { fb.innerHTML = PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '') + (r.st !== 'ok' && r.st !== 'empty' ? ' <span class="fine">→ voir la correction</span>' : ''); }
+  return r;
+}
+function checkCur() {
+  if (!CUR || CUR.done) return;
+  const host = $('#exHost');
+  CUR.ex.items.forEach(it => {
+    const r = showFb(host, it);
+    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek;
+  });
+  typeset(host);
+  saveCur();
+  const all = CUR.ex.items.every(it => it.id in CUR.first);
+  if (all) finish(CUR.ex.items.filter(it => CUR.first[it.id]).length / CUR.ex.items.length);
+}
+function finish(r) {
+  CUR.done = true;
+  const host = $('#exHost');
+  $('details.corr', host).open = true;
+  if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); typeset(host); return; }
+  const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
+  s.n++; if (r === 1) s.ok++;
+  const gain = CUR.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
+  if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
+  s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now(); if (isVal(s)) s.ever = true;
+  P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
+  ls.set(PK, P);
+  const f = frontier(P), now = isVal(s);
+  const title = CUR.review ? (r === 1 ? 'Toujours acquis' : was && !now ? 'Un peu oublié' : 'À surveiller') : !was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
+  const msg = !was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+  host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span></div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
+    <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
+    <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`);
+  if (!was && now && !CUR.review) toast('Compétence validée : ' + k.name);
+  renderPathTop(); renderMap();
+}
+
+/* =====================================================================
+   VUES
+   ===================================================================== */
+let VIEW = 'home';
+function setTab(t) {
+  if (EXAM && EXAM.running && t !== 'blanc') { toast('Un sujet blanc est en cours.'); t = 'blanc'; }
+  VIEW = t;
+  $$('#tabs .tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
+  ({ home: vHome, path: vPath, cours: vCours, exos: vExos, blanc: vBlanc })[t]();
+  if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
+  window.scrollTo(0, 0);
+}
+function nextCC() {
+  const c = ls.get('planning.cache.v1', null), now = Date.now();
+  const ev = c && c.evs ? c.evs.find(e => e.s > now - 3 * 3600e3 && /(^|[^A-Za-z])ATO([^A-Za-z]|$)/.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : null;
+  return ev ? ev.s : Date.parse('2026-10-20T13:00:00Z');
+}
+function vHome() {
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
+  const days = Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Chimie · Atomistique · V. Bouquet</p><h1>Réussir le CC d'atomistique</h1>
+    <p class="lede">Le CC du 20/10 dure 1 h et porte sur la 1<sup>re</sup> partie du cours : <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique). Les liaisons chimiques seront au CC du 16/12.</p></div>
+    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC d'atomistique : ${esc(when)}</span></div></section>
+    <div class="grid2">
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du plus simple (composition d'un atome) au plus dur (anomalies d'énergie d'ionisation), avec une progression qui s'adapte à tes résultats.</p>
+        <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
+      <section class="card"><h2>Sujet blanc (1 h)</h2><p class="sub">4 exercices au format des TD du poly, notés sur 20, avec correction détaillée. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
+    </div>
+    <section class="card"><h2>Pas d'annales sur Moodle</h2><p class="sub">La prof n'a pas mis de CC des années précédentes. Les exercices de ce site reprennent donc le style des TD I à III du poly et des « exercices de cours » (isotopes, raies de l'hydrogène et de He<sup>+</sup>, nombres quantiques, configurations, tableau périodique). Fais aussi les TD du poly sur papier : c'est le meilleur indice de ce qui tombera.</p></section>`;
+  typeset(app);
+}
+function renderPathTop() {
+  const el = $('#pathTop'); if (!el) return;
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, f = frontier(P);
+  el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${done}/${SK.length}</b><span>compétences validées</span></div><span class="sp"></span>
+    ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
+    <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+    <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'} · Deux sans-faute d'affilée valident une compétence ; en cas d'erreurs, les exercices se simplifient et les compétences validées reviennent en révision.</p></section>`;
+}
+function renderMap() {
+  const el = $('#pathMap'); if (!el) return;
+  const P = pst(), f = frontier(P);
+  el.innerHTML = CH.map((c, ci) => `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${SK.filter(k => k.ch === ci).map(k => {
+    const s = skS(P, k.id), val = isVal(s), open = val || k === f || s.n > 0, pct = Math.min(100, Math.round(s.m));
+    return `<div class="psk ${val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}${s.ever && !val ? '<small>à revoir</small>' : ''}</span>
+      <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
+  }).join('')}</div>`).join('');
+}
+function nextPath(o = {}) {
+  const P = pst();
+  if (!o.fresh && P.cur && skById(P.cur.id)) { startEx(skById(P.cur.id), { resume: P.cur }); renderPathTop(); renderMap(); return; }
+  const n = pickNext(P); if (!n) return;
+  startEx(n.k, { review: n.review, user: o.user }); renderPathTop(); renderMap();
+}
+function vPath() {
+  app.innerHTML = `<div><p class="eyebrow">Parcours guidé</p><h1>Le parcours</h1></div><div id="pathTop"></div><div id="exHost" style="display:grid;gap:16px"></div><section class="card"><h2>La carte</h2><div id="pathMap"></div></section>`;
+  renderPathTop(); renderMap();
+  if (CUR && CUR.mode === 'path') renderEx(); else if (pst().n || pst().cur) nextPath();
+}
+let FREE = { id: 'noyau', d: 0 };
+function vExos() {
+  app.innerHTML = `<div><p class="eyebrow">Entraînement libre</p><h1>Exercices par type</h1><p class="lede">Choisis un type d'exercice et un niveau. Les nombres changent à chaque fois.</p></div>
+    <section class="card"><div class="seg" id="exType">${SK.map(k => `<button type="button" data-ft="${k.id}" aria-pressed="${k.id === FREE.id}">${esc(k.name)}</button>`).join('')}</div>
+      <div class="row" style="margin-top:12px"><div class="seg">${[0, 1, 2].map(d => `<button type="button" data-fd="${d}" aria-pressed="${d === FREE.d}">Niveau ${d + 1}</button>`).join('')}</div><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div>
+      <details class="corr"><summary>Comment écrire mes réponses ?</summary><div class="expl"><p>Nombres : <code>4,86e-7</code>, <code>4,86×10^-7</code> ou <code>486 nm</code> (l'unité est convertie). Configurations : <code>1s2 2s2 2p6 3s1</code> ou <code>(Ne) 3s1</code> ou <code>[Ar]3d5 4s1</code>. L'aperçu sous la case montre comment ta réponse est lue.</p></div></details></section>
+    <div id="exHost" style="display:grid;gap:16px"></div>`;
+  typeset(app);
+  startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+}
+
+/* ---------- Cours ---------- */
+const FICHES = [
+  ['I. Structure de l\'atome', `<p>Un atome = un <b>noyau</b> (\\(Z\\) protons + \\(N\\) neutrons = \\(A\\) nucléons) et \\(Z\\) <b>électrons</b>. Notation \\({}^{A}_{Z}\\mathrm{X}\\), avec \\(A = Z + N\\).</p>
+    <ul><li>\\(Z\\) (numéro atomique) caractérise l'<b>élément</b> ; \\(A\\) le <b>nucléide</b>.</li><li><b>Isotopes</b> : même \\(Z\\), \\(A\\) différents (même élément). <b>Isobares</b> : même \\(A\\), \\(Z\\) différents.</li><li>Ion : \\(\\mathrm{X}^{q+}\\) a perdu \\(q\\) électrons (cation), \\(\\mathrm{X}^{q-}\\) en a gagné \\(q\\) (anion). Le noyau ne change pas.</li><li>Masses : \\(m_p \\approx m_n \\approx 1{,}67\\times10^{-27}\\) kg, \\(m_e = 9{,}11\\times10^{-31}\\) kg. Presque toute la masse est dans le noyau.</li></ul>
+    <h4>Mole et masse molaire</h4><p>1 mol = \\(N_A = 6{,}022\\times10^{23}\\) entités (autant que d'atomes dans 12 g de \\({}^{12}\\mathrm{C}\\)). 1 u.m.a. = 1/12 de la masse d'un atome de \\({}^{12}\\mathrm{C}\\).</p>
+    <div class="box key"><h5>À savoir faire</h5>Masse molaire d'un élément naturel : \\(M = \\sum_i x_i M_i\\) (\\(x_i\\) = abondances, \\(\\sum x_i = 1\\)). Avec deux isotopes, \\(x_1 = \\dfrac{M - M_2}{M_1 - M_2}\\).</div>`],
+  ['II. Spectres atomiques', `<p>La lumière est à la fois une <b>onde</b> (\\(\\lambda\\), \\(\\nu = c/\\lambda\\), \\(\\bar\\nu = 1/\\lambda\\)) et un flux de <b>photons</b> d'énergie \\(E = h\\nu = \\dfrac{hc}{\\lambda}\\) (Planck, Einstein). De Broglie : toute particule a une onde associée \\(\\lambda = \\dfrac{h}{mv}\\).</p>
+    <h4>Atome d'hydrogène (Bohr)</h4><p>L'énergie est <b>quantifiée</b> : \\(E_n = -\\dfrac{13{,}6}{n^2}\\ \\text{eV}\\) (\\(n\\) = couche). Fondamental : \\(n = 1\\), \\(E_1 = -13{,}6\\) eV. Ionisation : \\(E_i = 13{,}6\\) eV.</p>
+    <ul><li><b>Absorption</b> : l'électron monte (\\(\\Delta E > 0\\)), un photon est absorbé. <b>Émission</b> : il redescend, un photon est émis.</li><li>Photon : \\(h\\nu = |E_p - E_n| = 13{,}6\\left(\\dfrac{1}{n^2} - \\dfrac{1}{p^2}\\right)\\) eV. Ritz : \\(\\dfrac1\\lambda = R_H\\left(\\dfrac{1}{n^2} - \\dfrac{1}{p^2}\\right)\\), \\(R_H = 1{,}097\\times10^{7}\\ \\text{m}^{-1}\\).</li></ul>
+    <table class="t"><tr><th>Retour sur</th><th>Série</th><th>Domaine</th></tr><tr><td>n = 1</td><td>Lyman</td><td>UV</td></tr><tr><td>n = 2</td><td>Balmer</td><td>visible (4 raies : 410, 434, 486, 656 nm)</td></tr><tr><td>n = 3</td><td>Paschen</td><td>IR</td></tr><tr><td>n = 4, 5</td><td>Brackett, Pfund</td><td>IR</td></tr></table>
+    <div class="box key"><h5>Hydrogénoïdes</h5>Un seul électron (He<sup>+</sup>, Li<sup>2+</sup>, Be<sup>3+</sup>) : \\(E_n = -13{,}6\\,\\dfrac{Z^2}{n^2}\\) eV. Les énergies sont \\(Z^2\\) fois plus grandes, les longueurs d'onde \\(Z^2\\) fois plus petites.</div>
+    <div class="box warn"><h5>Pièges</h5>Convertir nm → m et eV → J (1 eV = \\(1{,}602\\times10^{-19}\\) J). Raies limites : \\(\\lambda_{max}\\) pour \\(p = n + 1\\), \\(\\lambda_{min}\\) pour \\(p \\to \\infty\\). Depuis le niveau \\(p\\), on peut observer \\(p(p-1)/2\\) raies.</div>`],
+  ['III. Modèle quantique', `<p>Plus de trajectoire : l'électron est décrit par une <b>fonction d'onde</b> \\(\\psi\\), solution de l'équation de Schrödinger \\(\\hat H\\psi = E\\psi\\). \\(|\\psi|^2\\) = densité de probabilité de présence ; \\(\\psi\\) est normée. <b>Heisenberg</b> : \\(\\Delta x\\,\\Delta p \\geq \\dfrac{h}{4\\pi}\\).</p>
+    <h4>Les 4 nombres quantiques</h4><table class="t"><tr><th>Nombre</th><th>Valeurs</th><th>Rôle</th></tr><tr><td>\\(n\\)</td><td>1, 2, 3…</td><td>couche, énergie, taille</td></tr><tr><td>\\(\\ell\\)</td><td>0 à \\(n - 1\\)</td><td>sous-couche, forme (s, p, d, f)</td></tr><tr><td>\\(m_\\ell\\)</td><td>\\(-\\ell\\) à \\(+\\ell\\)</td><td>orientation (\\(2\\ell + 1\\) O.A.)</td></tr><tr><td>\\(m_s\\)</td><td>\\(\\pm\\tfrac12\\)</td><td>spin</td></tr></table>
+    <ul><li>Une O.A. = un triplet \\((n, \\ell, m_\\ell)\\) = une case quantique, au plus 2 électrons.</li><li>La couche \\(n\\) contient \\(n^2\\) O.A. et \\(2n^2\\) électrons au maximum. s : 1 O.A. (2 e⁻), p : 3 (6 e⁻), d : 5 (10 e⁻), f : 7 (14 e⁻).</li><li>O.A. s : sphérique ; p : deux lobes selon un axe (px, py, pz).</li></ul>`],
+  ['IV. Atomes polyélectroniques', `<p>Plusieurs électrons : l'énergie dépend de \\(n\\) <b>et</b> de \\(\\ell\\) (effet d'écran, modèle de Slater : \\(Z^* = Z - \\sigma\\)).</p>
+    <h4>Les 3 règles de remplissage</h4><ul><li><b>Pauli</b> : deux électrons ne peuvent pas avoir les 4 mêmes nombres quantiques → 2 électrons de spins opposés par case.</li><li><b>Klechkowski</b> : on remplit par \\(n + \\ell\\) croissant, puis \\(n\\) croissant : 1s 2s 2p 3s 3p <b>4s 3d</b> 4p 5s 4d 5p 6s 4f 5d 6p.</li><li><b>Hund</b> : dans des cases de même énergie, un électron par case (spins parallèles) avant d'apparier.</li></ul>
+    <div class="box warn"><h5>Exceptions à connaître</h5>\\((n-1)d^4\\,ns^2 \\to (n-1)d^5\\,ns^1\\) et \\((n-1)d^9\\,ns^2 \\to (n-1)d^{10}\\,ns^1\\) : Cr (Z = 24) = (Ar) 3d<sup>5</sup> 4s<sup>1</sup>, Cu (Z = 29) = (Ar) 3d<sup>10</sup> 4s<sup>1</sup>, de même Mo et Ag.</div>
+    <div class="box key"><h5>Écriture</h5>On remplit dans l'ordre de Klechkowski, mais on <b>écrit</b> la configuration par \\(n\\) croissant : V (Z = 23) → 1s<sup>2</sup> 2s<sup>2</sup> 2p<sup>6</sup> 3s<sup>2</sup> 3p<sup>6</sup> 3d<sup>3</sup> 4s<sup>2</sup>, ou en abrégé (Ar) 3d<sup>3</sup> 4s<sup>2</sup>. Électrons de valence = ceux de \\(n\\) maximal + sous-couches en cours de remplissage.</div>`],
+  ['V. Tableau périodique et propriétés', `<p>Classement par \\(Z\\) croissant : 7 <b>périodes</b> (même \\(n\\) externe), 18 <b>colonnes</b> (même configuration externe → propriétés analogues).</p>
+    <div class="box key"><h5>Retrouver la place d'un élément</h5>Période = \\(n\\) le plus grand. Colonne : \\(ns^x\\) → \\(x\\) ; \\(ns^x np^y\\) → \\(x + y + 10\\) ; \\((n-1)d^y ns^x\\) → \\(x + y\\). Exception : He en colonne 18. Blocs s (col. 1-2), d (3-12), p (13-18), f (lanthanides, actinides).</div>
+    <p>Familles : alcalins (col. 1, ns<sup>1</sup>, sauf H), alcalino-terreux (2), chalcogènes (16), halogènes (17), gaz rares (18), métaux de transition (3 à 12).</p>
+    <h4>Évolutions</h4><table class="t"><tr><th></th><th>dans une période (→)</th><th>dans une colonne (↓)</th></tr><tr><td>Rayon atomique</td><td>diminue (\\(Z^*\\) ↑)</td><td>augmente (\\(n\\) ↑)</td></tr><tr><td>Énergie d'ionisation</td><td>augmente</td><td>diminue</td></tr><tr><td>Électronégativité</td><td>augmente</td><td>diminue</td></tr><tr><td>Caractère métallique</td><td>diminue</td><td>augmente</td></tr></table>
+    <ul><li>Cation plus petit que l'atome, anion plus gros.</li><li>Électronégativité max : F (4,0) ; nulle pour les gaz rares.</li><li>Ions : colonnes 1, 2, 13 → +I, +II, +III ; colonnes 16, 17 → −II, −I (structure du gaz rare le plus proche).</li><li>\\(\\Delta\\chi > 1{,}7\\) : liaison ionique ; sinon covalente (à droite) ou métallique (à gauche).</li></ul>
+    <div class="box warn"><h5>Anomalies d'énergie d'ionisation</h5>E.I.(Be) > E.I.(B) et E.I.(Mg) > E.I.(Al) : ns<sup>2</sup> pleine est stable. E.I.(N) > E.I.(O) et E.I.(P) > E.I.(S) : np<sup>3</sup> demi-pleine est stable. E.I.(Zn) > E.I.(Ga) : 3d<sup>10</sup> 4s<sup>2</sup> pleines.</div>`]
+];
+function vCours(open) {
+  app.innerHTML = `<div><p class="eyebrow">Partie 1 · L'atome (CC du 20/10)</p><h1>Le cours utile</h1><p class="lede">Les 5 chapitres du cours de V. Bouquet, condensés : définitions, formules, méthodes et pièges.</p></div>
+    ${FICHES.map(([t, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}</summary><div class="body">${b}</div></details>`).join('')}
+    <section class="card"><h2>Constantes (poly de TD)</h2><p class="sub">\\(h = 6{,}626\\times10^{-34}\\) J·s · \\(c = 3{,}00\\times10^{8}\\) m/s · \\(N_A = 6{,}022\\times10^{23}\\) mol⁻¹ · \\(R_H = 1{,}097\\times10^{7}\\) m⁻¹ · \\(e = 1{,}602\\times10^{-19}\\) C · \\(m_e = 9{,}11\\times10^{-31}\\) kg · \\(m_n = 1{,}675\\times10^{-27}\\) kg</p></section>`;
+  typeset(app);
+  if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
+}
+
+/* ---------- Sujet blanc ---------- */
+let EXAM = null, tick = 0;
+const EXAM_PLAN = [['Exercice 1 · Structure de l\'atome', [['noyau', 1], ['iso', 0]], 4], ['Exercice 2 · Spectre de l\'hydrogène', [['trans', 0], ['serie', 2]], 6], ['Exercice 3 · Nombres quantiques et configurations', [['nq', 2], ['exc', 0], ['conf', 1]], 6], ['Exercice 4 · Classification périodique', [['place', 1], ['prop', 2]], 4]];
+function examExos(seed) {
+  const g = G(rng(seed));
+  return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) }));
+}
+function vBlanc() {
+  const E = ls.get('ato.exam.v1', null);
+  if (E && !EXAM) { EXAM = E; EXAM.running = true; }
+  if (EXAM) return renderExam();
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">4 exercices dans le style des TD : structure de l'atome (4 pts), spectre de l'hydrogène (6 pts), nombres quantiques et configurations (6 pts), classification périodique (4 pts). Calculatrice autorisée pour l'entraînement : vérifie la règle le jour du CC.</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (60 min)</button><span class="fine">Prévois une feuille : les justifications se font sur papier, seuls les résultats sont saisis ici.</span></div></section>
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+}
+function renderExam() {
+  const exs = examExos(EXAM.seed);
+  app.innerHTML = `<div><p class="eyebrow">Sujet blanc d'atomistique</p><h1>CC · 1 h</h1></div>`
+    + exs.map((ex, i) => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
+    + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
+      : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div>`);
+  typeset(app);
+  if (EXAM.done) exs.forEach(ex => ex.parts.forEach(p => p.items.forEach(it => showFb(app, it))));
+  startTick();
+}
+function startTick() {
+  clearInterval(tick); const clk = $('#clock');
+  if (!EXAM || EXAM.done) { clk.hidden = true; return; }
+  clk.hidden = false;
+  const upd = () => { const left = 3600 - (Date.now() - EXAM.t0) / 1000; clk.textContent = `${Math.max(0, Math.floor(left / 60))}:${String(Math.max(0, Math.floor(left % 60))).padStart(2, '0')}`; clk.classList.toggle('rush', left < 300); if (left <= 0) submitExam(true); };
+  upd(); tick = setInterval(upd, 1000);
+}
+function submitExam(auto) {
+  if (!EXAM || EXAM.done) return;
+  if (!auto && !confirm('Rendre la copie ?')) return;
+  const exs = examExos(EXAM.seed); let note = 0;
+  exs.forEach(ex => { const its = [].concat(...ex.parts.map(p => p.items)); const ok = its.filter(it => check(it, EXAM.ans[it.id] || '').st === 'ok').length; note += ex.pts * ok / its.length; });
+  EXAM.done = true; EXAM.note = note; EXAM.running = false;
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(3600, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
+  try { localStorage.removeItem('ato.exam.v1'); } catch (e) { /* ignore */ }
+  if (auto) toast('Temps écoulé : copie rendue.');
+  renderExam(); window.scrollTo(0, 0);
+}
+
+/* =====================================================================
+   ÉVÉNEMENTS
+   ===================================================================== */
+document.addEventListener('click', e => {
+  const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab); return; }
+  const fi = e.target.closest('[data-fiche]'); if (fi) { setTab('cours'); vCours(+fi.dataset.fiche); return; }
+  const go = e.target.closest('[data-go]');
+  if (go) { if (CUR && CUR.mode === 'path' && !CUR.done && CUR.k.id === go.dataset.go) { $('#exHost').scrollIntoView({ behavior: 'smooth' }); return; } startEx(skById(go.dataset.go), { user: true }); renderPathTop(); renderMap(); return; }
+  const ft = e.target.closest('[data-ft]'); if (ft) { FREE.id = ft.dataset.ft; vExos(); return; }
+  const fd = e.target.closest('[data-fd]'); if (fd) { FREE.d = +fd.dataset.fd; vExos(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'check') checkCur();
+  else if (act === 'next') nextPath();
+  else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
+  else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; ls.set('ato.exam.v1', EXAM); renderExam(); }
+  else if (act === 'submit') submitExam(false);
+  else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
+});
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.matches('input')) return;
+  const id = t.dataset.id || t.name; if (!id) return;
+  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; try { localStorage.setItem('ato.exam.v1', JSON.stringify(EXAM)); } catch (err) { /* ignore */ } }
+  else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
+  if (t.type === 'text') {
+    const it = (CUR && CUR.ex.items.find(x => x.id === id)) || (EXAM && [].concat(...examExos(EXAM.seed).map(x => [].concat(...x.parts.map(p => p.items)))).find(x => x.id === id));
+    const pv = t.closest('.it') && $('.prev', t.closest('.it')); if (it && pv) pv.innerHTML = preview(it, t.value);
+  }
+});
+document.addEventListener('change', e => { if (e.target.type === 'radio') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
+let saveT = 0;
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); } });
+document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matches && e.target.matches('#exHost details.corr') && e.target.open) { CUR.peek = true; saveCur(); } }, true);
+
+/* ---------- Thème ---------- */
+(function () {
+  const ICON = { sun: '☀', moon: '☾', auto: '◐' }, KEY = 'qcm-maths-theme', btn = $('#themeBtn');
+  function apply(t) { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t; btn.textContent = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; btn.dataset.mode = t; btn.title = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t]; }
+  let t = 'auto'; try { t = localStorage.getItem(KEY) || 'auto'; } catch (e) { /* ignore */ }
+  apply(t);
+  btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
+})();
+
+/* ---------- Synchronisation (progression venue d'un autre appareil) ---------- */
+function wireAccount() {
+  const A = window.SiteAccount; if (!A) return;
+  A.on('data', keys => {
+    if (!keys.some(k => k.startsWith('ato.'))) return;
+    if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
+    if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();
+  });
+}
+if (window.SiteAccount) wireAccount(); else window.addEventListener('siteaccount', wireAccount, { once: true });
+
+window.__ATO = { GEN, build, check, parseConf, parseNum, conf, klech, place, unpaired, ionConf, SK };   // tests
+function boot() { const h = location.hash.slice(1); setTab(['home', 'path', 'cours', 'exos', 'blanc'].includes(h) ? h : 'home'); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+</body>
+</html>

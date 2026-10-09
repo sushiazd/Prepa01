@@ -8,6 +8,7 @@ Le site regroupe plusieurs outils de révision :
 | `account.js` | le compte du site (connexion unique) et la synchronisation de la progression entre appareils |
 | `maths/index.html` | le QCM de maths (QCM, import de PDF, catalogue, comptes, groupes) |
 | `elec/index.html` | l'entraînement au CC1 d'électronique (cours, démos, exos générés, annales, sujets blancs) |
+| `ato/index.html` | l'entraînement au CC d'atomistique (partie 1 « L'atome ») : parcours guidé, cours résumé, exercices générés corrigés, sujet blanc d'1 h |
 | `duel/index.html` | le multijoueur : 1v1 (défis et duels en direct) et FFA (salle jusqu'à 8 joueurs, le dernier survivant gagne) sur le QCM de maths |
 | `streak/index.html` | le mode Streak : des questions du QCM de maths à la suite jusqu'à la première erreur, avec records (tout le programme, nouveaux types, format du QCM) |
 | `planning.js` | l'onglet Planning de l'accueil : emploi du temps ADE (lien d'export `.shu` enregistré dans le compte), prochaines évaluations repérées automatiquement |

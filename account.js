@@ -56,6 +56,9 @@
       return { best, runs: Math.max(L.runs || 0, R.runs || 0), total: Math.max(L.total || 0, R.total || 0), cur: c.cur || null, curT: c.curT || 0 };
     }
   };
+  // atomistique : mêmes règles que l'élec (parcours compétence par compétence, copies réunies)
+  SYNC['ato.path.v1'] = SYNC['elec.path.v1'];
+  SYNC['ato.hist.v1'] = SYNC['elec.hist.v1'];
   const KEYS = Object.keys(SYNC);
 
   /* ---------- Outils ---------- */

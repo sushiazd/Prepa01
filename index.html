@@ -193,6 +193,14 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
       <span class="meta" id="mathsMeta"></span>
       <span class="go">Ouvrir →</span>
     </a>
+    <a class="tool" href="ato/">
+      <span class="ic" aria-hidden="true">Ato</span>
+      <span class="kind">Chimie · Atomistique · CC du 20/10</span>
+      <h2>Atomistique</h2>
+      <p>Structure de l'atome, spectres de l'hydrogène, nombres quantiques, configurations électroniques et tableau périodique : parcours guidé, exercices corrigés et sujet blanc d'une heure.</p>
+      <span class="meta" id="atoMeta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
     <a class="tool" href="elec/">
       <span class="ic" aria-hidden="true">Ω</span>
       <span class="kind">Électronique analogique · CC1</span>
@@ -272,6 +280,8 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   if (hist.length) parts.push(`${hist.length} sujet${hist.length > 1 ? 's' : ''} blanc${hist.length > 1 ? 's' : ''} fait${hist.length > 1 ? 's' : ''}`);
   else if (st) { const n = ['ex2', 'ex3', 'ex4'].reduce((s, k) => s + ((st[k] && st[k].n) || 0), 0); if (n) parts.push(`${n} réponse${n > 1 ? 's' : ''} en entraînement`); }
   document.getElementById('elecMeta').innerHTML = parts.join(' · ');
+  const ap = get('ato.path.v1', null), aSk = ap && ap.sk ? Object.values(ap.sk).filter(s => s.m >= 100).length : 0, aH = get('ato.hist.v1', []);
+  document.getElementById('atoMeta').innerHTML = [aSk ? `<b>${aSk}/12</b> compétences validées` : '', aH.length ? `dernier sujet blanc : <b>${String(aH[aH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   const sk = get('streak.v1', null), best = sk && sk.best ? Math.max(0, ...Object.values(sk.best).map(b => b.n || 0)) : 0;
   document.getElementById('streakMeta').innerHTML = sk && sk.cur ? `Série en cours : <b>${sk.cur.n}</b> d'affilée · record <b>${best}</b>` : best ? `Record : <b>${best}</b> d'affilée` : '';
   }

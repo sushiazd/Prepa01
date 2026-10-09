@@ -51,7 +51,7 @@
     ALGO: 'Algorithmique', MECA: 'Mécanique', ANG: 'Anglais', ATO: 'Atomistique' };
   const LINKS = { ELECA: 'elec/', MATH: 'maths-s1/', MATHS: 'maths-s1/', ATO: 'ato/', ALGO: 'algo/', PHYS: 'phys/', MECA: 'meca/' };
   // second CC de maths (janvier) : partie analyse
-  const linkOf = e => { const sj = subjOf(e); if ((sj === 'MATH' || sj === 'MATHS') && e.s > Date.parse('2026-12-01')) return 'maths-s1-analyse/'; if (sj === 'ELECA' && e.s > Date.parse('2026-10-20')) return 'elec2/'; return LINKS[sj]; };
+  const linkOf = e => { const sj = subjOf(e); if (/QCM/i.test(e.t)) return 'maths/'; if ((sj === 'MATH' || sj === 'MATHS') && e.s > Date.parse('2026-12-01')) return 'maths-s1-analyse/'; if (sj === 'ELECA' && e.s > Date.parse('2026-10-20')) return 'elec2/'; return LINKS[sj]; };
   const isTiers = e => /tiers[\s-]*temps/i.test(e.t);
   const isRatt = e => /rattrapage/i.test(e.t);
   const isEval = e => /(?:^|[^A-Za-zÀ-ÿ])(CC|QCM|DS|EXAMEN|EXAM|PARTIEL|CONTR[ÔO]LE|INTERRO|TOEIC|TOIEC|ORAUX|ORAL|SOUTENANCE|[ÉE]VALUATION)(?![A-Za-zÀ-ÿ])/i.test(e.t);
@@ -128,7 +128,7 @@
   }
   function evalRow(e) {
     const sj = subjOf(e), n = daysUntil(e.s), link = linkOf(e);
-    const name = sj ? SUBJ[sj] : '', k = kindOf(e);
+    const name = sj ? SUBJ[sj] : /QCM/i.test(e.t) ? 'Maths' : '', k = kindOf(e);
     return `<li class="pl-ev${n <= 3 ? ' soon' : n <= 10 ? ' near' : ''}">
       <div class="pl-when"><b>${esc(relDay(n))}</b><span>${esc(dayLong(e.s))}</span></div>
       <div class="pl-what"><b>${esc(k)}${name ? ' · ' + esc(name) : ''}</b><span>${esc(hm(e.s))}${e.e ? '–' + esc(hm(e.e)) : ''} · ${esc(roomOf(e))}</span><small>${esc(e.t)}</small></div>
@@ -189,7 +189,7 @@
     if (!ev.length) { el.hidden = true; el.innerHTML = ''; return; }
     const e = ev[0], sj = subjOf(e), n = daysUntil(e.s);
     el.hidden = false;
-    el.innerHTML = `<div><p class="eyebrow" style="margin-bottom:6px">Prochaine évaluation</p><b>${esc(kindOf(e))}${sj ? ' · ' + esc(SUBJ[sj]) : ''}</b> <span>${esc(relDay(n))}, ${esc(dayLong(e.s))} à ${esc(hm(e.s))}</span></div>
+    el.innerHTML = `<div><p class="eyebrow" style="margin-bottom:6px">Prochaine évaluation</p><b>${esc(kindOf(e))}${sj ? ' · ' + esc(SUBJ[sj]) : /QCM/i.test(e.t) ? ' · Maths' : ''}</b> <span>${esc(relDay(n))}, ${esc(dayLong(e.s))} à ${esc(hm(e.s))}</span></div>
       <span class="sp"></span>${linkOf(e) ? `<a class="btn btn-primary" href="${linkOf(e)}">Réviser</a>` : ''}<button type="button" class="btn" data-ht="plan">Tout le planning</button>`;
   }
 

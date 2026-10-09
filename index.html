@@ -217,6 +217,14 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
       <span class="meta" id="algoMeta"></span>
       <span class="go">Ouvrir →</span>
     </a>
+    <a class="tool" href="phys/">
+      <span class="ic" aria-hidden="true">F</span>
+      <span class="kind">Physique · Mécanique du point · CC du 2/12</span>
+      <h2>Mécanique du point</h2>
+      <p>PFD, frottements, chocs, énergie, oscillateurs et gravitation : parcours guidé, formules littérales corrigées automatiquement, cours résumé avec les démos à savoir refaire, sujet blanc d'1 h 30.</p>
+      <span class="meta" id="physMeta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
     <a class="tool duel streak" href="streak/">
       <span class="ic" aria-hidden="true">∞</span>
       <div>
@@ -291,6 +299,8 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   const ap = get('ato.path.v1', null), aSk = ap && ap.sk ? Object.values(ap.sk).filter(s => s.m >= 100).length : 0, aH = get('ato.hist.v1', []);
   const gp = get('algo.path.v1', null), gSk = gp && gp.sk ? Object.values(gp.sk).filter(s => s.m >= 100).length : 0, gH = get('algo.hist.v1', []);
   document.getElementById('algoMeta').innerHTML = [gSk ? `<b>${gSk}/12</b> compétences validées` : '', gH.length ? `dernier sujet blanc : <b>${String(gH[gH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
+  const pp = get('phys.path.v1', null), pSk = pp && pp.sk ? Object.values(pp.sk).filter(s => s.m >= 100).length : 0, pH = get('phys.hist.v1', []);
+  document.getElementById('physMeta').innerHTML = [pSk ? `<b>${pSk}/14</b> compétences validées` : '', pH.length ? `dernier sujet blanc : <b>${String(pH[pH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   document.getElementById('atoMeta').innerHTML = [aSk ? `<b>${aSk}/12</b> compétences validées` : '', aH.length ? `dernier sujet blanc : <b>${String(aH[aH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   const sk = get('streak.v1', null), best = sk && sk.best ? Math.max(0, ...Object.values(sk.best).map(b => b.n || 0)) : 0;
   document.getElementById('streakMeta').innerHTML = sk && sk.cur ? `Série en cours : <b>${sk.cur.n}</b> d'affilée · record <b>${best}</b>` : best ? `Record : <b>${best}</b> d'affilée` : '';

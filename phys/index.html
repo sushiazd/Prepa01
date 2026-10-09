@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mécanique du point · Entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../presence.js" data-external></script>
+<script defer src="../account.js" data-lazy></script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
+  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
+  --rule:#e4e0d6; --rule-strong:#cdc8bb;
+  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc;
+  --ok:#1f8a4c; --ok-soft:#e6f4ec; --bad:#c2352b; --bad-soft:#fbeceb; --warn:#9a5b00; --warn-soft:#fcf2da;
+  --phys:#0f766e; --phys-soft:#e3f3f1;
+  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
+  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+    --rule:#2e2d2a; --rule-strong:#45433e;
+    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
+    --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+    --phys:#2dd4bf; --phys-soft:#11302c;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+  --rule:#2e2d2a; --rule-strong:#45433e;
+  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
+  --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+  --phys:#2dd4bf; --phys-soft:#11302c;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+h1,h2,h3,h4,p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+[hidden]{display:none !important}
+code{font-family:var(--mono);font-size:.9em;background:var(--sheet-2);padding:1px 5px;border-radius:5px;border:1px solid var(--rule)}
+.katex{font-size:1.05em}
+.katex-display{margin:.6em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;min-height:64px;padding:8px 24px;background:color-mix(in srgb,var(--paper) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;min-width:0}
+.brand-mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--phys);color:#fff;display:grid;place-items:center;font:italic 700 17px/1 var(--serif)}
+.brand strong{display:block;font:600 15px/1.2 var(--sans)}
+.brand small{display:block;color:var(--muted);font-size:12.5px}
+.tabs{display:flex;gap:4px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
+.tab{height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:500 14px/1 var(--sans);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.tab:hover{background:var(--sheet-2)}
+.tab[aria-current="page"]{background:var(--ink);color:var(--paper)}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer}
+.clock{font:800 22px/1 var(--sans);font-variant-numeric:tabular-nums}
+.clock.rush{color:var(--bad)}
+main{max-width:980px;margin:32px auto 90px;padding:0 24px;display:grid;gap:20px}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--phys);margin-bottom:10px}
+h1{font:600 clamp(28px,4.6vw,42px)/1.08 var(--serif);letter-spacing:-.02em}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:720px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:24px;min-width:0}
+.card h2{font:600 21px/1.25 var(--serif)}
+.sub{color:var(--ink-2);font-size:14.5px;margin-top:4px}
+.fine{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:600 14px/1 var(--sans);cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--pen)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn-primary:hover:not(:disabled){background:var(--pen-hover)}
+.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .sp{flex:1}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font:600 12.5px/1 var(--sans);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.part{background:var(--warn-soft);color:var(--warn)}
+.bar{height:10px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.bar.mid>i{background:var(--warn)} .bar.low>i{background:var(--bad)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600}
+.count{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.count b{font:800 clamp(40px,7vw,58px)/1 var(--sans);letter-spacing:-.04em;color:var(--phys);font-variant-numeric:tabular-nums}
+.count span{color:var(--ink-2)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+/* exercices */
+.ex .q{font:17px/1.6 var(--serif);margin-top:8px}
+.ex .q p+p{margin-top:8px}
+.items{display:grid;gap:12px;margin-top:16px}
+.it{display:grid;grid-template-columns:fit-content(40%) minmax(0,1fr);gap:4px 12px;align-items:center}
+.it-lab{text-align:right;font:16px/1.3 var(--serif);overflow-wrap:anywhere}
+.it-lab.w{font:15px/1.4 var(--sans);text-align:left}
+.it.full{grid-template-columns:minmax(0,1fr)}
+.it.full .fb,.it.full .pv,.it.full .vh{grid-column:1}
+.it-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.it-in input[type=text]{flex:1;min-width:0;width:100%;max-width:340px;font:15px/1.3 var(--mono);font-variant-ligatures:none;color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:42px}
+.it.ex-expr .it-in input[type=text]{max-width:none}
+.unit{font:15px/1 var(--sans);color:var(--ink-2);white-space:nowrap}
+.pv,.vh{grid-column:2;min-width:0;overflow-x:auto;overflow-y:hidden}
+.pv{padding:3px 0}
+.pv{font-size:15px;color:var(--ink-2);min-height:0}
+.pv:empty{display:none}
+.vh{font-size:12.5px;color:var(--muted)}
+.fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto;overflow-y:hidden}
+.fb:empty{display:none}
+.ch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);cursor:pointer;font-size:14.5px}
+.ch:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
+.ch input{accent-color:var(--pen);margin:0}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+details.corr{margin-top:14px}
+details.corr>summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen);padding:6px 0}
+.expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.6 var(--serif);overflow-x:auto}
+.expl p+p,.expl ul{margin-top:8px}
+.expl ul{padding-left:20px}
+.strip{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--phys-soft);border:1px solid color-mix(in srgb,var(--phys) 35%,transparent)}
+.strip b{font:600 17px/1.3 var(--serif)}
+.lvl{display:inline-flex;gap:4px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.lvl i{width:8px;height:8px;border-radius:50%;background:var(--rule-strong)} .lvl i.on{background:var(--phys)}
+.tag-rev{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font:600 11.5px/1 var(--sans)}
+.res{border-color:color-mix(in srgb,var(--pen) 40%,transparent)}
+.psk{display:grid;grid-template-columns:24px minmax(0,1fr) 110px auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--rule)}
+.psk .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 11px/1 var(--sans);background:var(--sheet-2);color:var(--muted);border:1px solid var(--rule)}
+.psk.val .ic{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.psk.cur .ic{background:var(--phys);color:#fff;border-color:transparent}
+.psk.rev .ic{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.psk.lock{opacity:.5}
+.psk .nm small{display:block;color:var(--muted);font-size:12.5px}
+.pch h3{font:600 17px/1.3 var(--serif);margin:16px 0 4px}
+/* cours */
+.fiche{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.fiche>summary{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:16px 22px;cursor:pointer;list-style:none;font:600 18px/1.3 var(--serif)}
+.fiche>summary::-webkit-details-marker{display:none}
+.fiche>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+.fiche[open]>summary::before{transform:rotate(90deg)}
+.fiche>summary .tag{margin-left:auto;font:600 11.5px/1 var(--sans);padding:5px 9px;border-radius:999px;background:var(--phys-soft);color:var(--phys)}
+.fiche .body{padding:4px 24px 22px;border-top:1px solid var(--rule);font:16.5px/1.65 var(--serif);overflow-x:auto}
+.fiche .body p,.fiche .body ul,.fiche .body ol{margin-top:10px}
+.fiche .body ul,.fiche .body ol{padding-left:22px}
+.box{margin-top:12px;padding:12px 16px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
+.box.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.box.key{background:var(--phys-soft);border-color:color-mix(in srgb,var(--phys) 30%,transparent)}
+.box h5{font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;margin:0 0 6px;color:var(--ink-2)}
+table.t{border-collapse:collapse;margin-top:10px;font:14.5px/1.4 var(--sans)}
+table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:left}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);font:500 13.5px/1 var(--sans);color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.score{font:800 clamp(48px,9vw,72px)/1 var(--sans);letter-spacing:-.03em}
+.hist{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+.hist td,.hist th{padding:8px;border-bottom:1px solid var(--rule);text-align:left}
+@media (max-width:760px){
+  .topbar{padding:8px 16px}
+  .brand small{display:none}
+  .tabs{order:3;flex-basis:100%;justify-content:flex-start}
+  main{padding:0 16px;margin-top:22px}
+  .card{padding:18px}
+  .grid2{grid-template-columns:1fr}
+  .it{grid-template-columns:1fr}
+  .it-lab{text-align:left}
+  .fb,.pv,.vh{grid-column:1}
+  .psk{grid-template-columns:24px minmax(0,1fr) auto} .psk .bar{display:none}
+  .fiche .body{padding:4px 16px 18px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">F</span><div><strong>Mécanique du point</strong><small>Révisions du CC de physique</small></div></a>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button type="button" class="tab" data-tab="home">Accueil</button>
+    <button type="button" class="tab" data-tab="path">Parcours</button>
+    <button type="button" class="tab" data-tab="cours">Cours</button>
+    <button type="button" class="tab" data-tab="exos">Exos</button>
+    <button type="button" class="tab" data-tab="blanc">Sujet blanc</button>
+  </nav>
+  <span class="clock" id="clock" hidden></span>
+  <button type="button" class="icon-btn" id="themeBtn" aria-label="Thème"></button>
+</header>
+<main id="app"></main>
+
+<script>
+(function () {
+'use strict';
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const app = $('#app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
+};
+let toastT = 0;
+function toast(t) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500); }
+function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const G = R => ({ int: (a, b) => a + Math.floor(R() * (b - a + 1)), pick: a => a[Math.floor(R() * a.length)], shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }, r: R });
+const newSeed = () => Math.floor(Math.random() * 4294967296);
+function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
+function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
+
+/* ---------- nombres et unités ---------- */
+function nfmt(x, s = 3, tex = false) {
+  if (!isFinite(x)) return '?';
+  if (Math.abs(x) < 1e-12) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)) + 1e-9);
+  if (e >= 6 || e <= -3) {
+    let m = +(x / Math.pow(10, e)).toPrecision(s), ee = e; if (Math.abs(m) >= 10) { m /= 10; ee++; }
+    const ms = String(+m.toPrecision(s)).replace('.', tex ? '{,}' : ',');
+    return tex ? `${ms} \\times 10^{${ee}}` : `${ms} × 10^${ee}`;
+  }
+  return String(+x.toPrecision(s)).replace('.', tex ? '{,}' : ',');
+}
+const tN = (x, s = 3) => nfmt(x, s, true);
+const TU = { 'm': '\\mathrm{m}', 's': '\\mathrm{s}', 'm/s': '\\mathrm{m\\cdot s^{-1}}', 'm/s²': '\\mathrm{m\\cdot s^{-2}}', 'N': '\\mathrm{N}', 'J': '\\mathrm{J}', 'W': '\\mathrm{W}', 'rad/s': '\\mathrm{rad\\cdot s^{-1}}', 's⁻¹': '\\mathrm{s^{-1}}', 'kg': '\\mathrm{kg}', '°': '', 'kg·m²/s': '\\mathrm{kg\\cdot m^2\\cdot s^{-1}}', 'N·m': '\\mathrm{N\\cdot m}', 'kg/s': '\\mathrm{kg\\cdot s^{-1}}', '': '' };
+const Q = (x, u, s = 3) => u === '°' ? tN(x, s) + '^\\circ' : tN(x, s) + (TU[u] ? '\\ ' + TU[u] : '');
+const UN = {
+  'm': { m: 1, cm: .01, mm: 1e-3, km: 1e3, 'µm': 1e-6, 'μm': 1e-6, um: 1e-6 },
+  's': { s: 1, ms: 1e-3, 'µs': 1e-6, 'μs': 1e-6, us: 1e-6, min: 60, mn: 60, h: 3600, j: 86400, jour: 86400, jours: 86400 },
+  'm/s': { 'm/s': 1, 'm.s-1': 1, 'ms-1': 1, 'km/h': 1 / 3.6, 'km.h-1': 1 / 3.6, 'km/s': 1e3, 'km.s-1': 1e3, 'cm/s': .01, 'µm/s': 1e-6, 'μm/s': 1e-6, 'um/s': 1e-6 },
+  'm/s²': { 'm/s2': 1, 'm.s-2': 1, 'ms-2': 1 },
+  'N': { N: 1, kN: 1e3, mN: 1e-3 },
+  'J': { J: 1, kJ: 1e3, mJ: 1e-3, MJ: 1e6, GJ: 1e9 },
+  'W': { W: 1, kW: 1e3 },
+  'rad/s': { 'rad/s': 1, 'rad.s-1': 1, 's-1': 1, '/s': 1, '1/s': 1 },
+  's⁻¹': { 's-1': 1, '/s': 1, '1/s': 1, 'rad/s': 1 },
+  'kg': { kg: 1, g: 1e-3, mg: 1e-6, t: 1e3 },
+  '°': { '°': 1, deg: 1, 'degrés': 1, degres: 1 },
+  'kg·m²/s': { 'kg.m2/s': 1, 'kg.m2.s-1': 1, 'J.s': 1, Js: 1, 'kgm2/s': 1 },
+  'N·m': { 'N.m': 1, Nm: 1, 'm.N': 1 },
+  'kg/s': { 'kg/s': 1, 'kg.s-1': 1 },
+  '': {}
+};
+function parseNum(raw, unit) {
+  const s = String(raw).trim().replace(/[−–]/g, '-').replace(/,/g, '.').replace(/\s+/g, ' ');
+  if (!s) return { err: '' };
+  const m = /^([-+]?(?:\d+\.?\d*|\.\d+))\s*(?:[eE]\s*([-+]?\d+)|(?:\*|x|×|·)\s*10\s*\^?\s*\(?\s*([-+]?\d+)\s*\)?)?\s*(.*)$/.exec(s);
+  if (!m) return { err: 'écris un nombre (ex : 2,5 ou 4,2e-3)' + (unit ? ', éventuellement suivi de l\'unité' : '') };
+  const v = parseFloat(m[1]) * Math.pow(10, +(m[2] || m[3] || 0));
+  const u = m[4].replace(/\s+/g, '').replace(/[·*]/g, '.').replace(/⁻¹/g, '-1').replace(/⁻²/g, '-2').replace(/²/g, '2').replace(/\^/g, '');
+  if (!u) return { v };
+  const f = (UN[unit] || {})[u];
+  if (f === undefined) return { err: unit ? 'unité attendue : ' + unit : 'cette grandeur n\'a pas d\'unité' };
+  return { v: v * f };
+}
+
+/* ---------- formules littérales ---------- */
+// nom : [TeX, min, max (tirage pour la vérification), autres écritures acceptées]
+const VD = {
+  m: ['m', .5, 3], m1: ['m_1', .5, 3], m2: ['m_2', .5, 3], g: ['g', 9, 10.5], k: ['k', 2, 40], l: ['\\ell', .3, 2, ['ℓ', 'L', 'ell']],
+  h: ['h', .5, 5], x: ['x', .5, 5], r: ['r', .5, 3], R: ['R', .5, 3], A: ['A', .5, 3], B: ['B', .5, 3], G: ['G', .5, 2], M: ['M', 1, 5],
+  v0: ['v_0', 1, 10, ['V0']], v1: ['v_1', 1, 10, ['V1']], alpha: ['\\alpha', .2, 1.2, ['α', 'a']], mu: ['\\mu', .1, .6, ['μ', 'µ', 'f']],
+  theta0: ['\\theta_0', .2, 1.2, ['θ0']], lambda: ['\\lambda', .1, 1, ['λ', 'lam']], w0: ['\\omega_0', 1.5, 4, ['ω0', 'omega0', 'W0']], eta: ['\\eta', .5, 2, ['η']], F0: ['F_0', 1, 5]
+};
+const FUNCS = { sqrt: Math.sqrt, '√': Math.sqrt, sin: Math.sin, cos: Math.cos, tan: Math.tan, exp: Math.exp, ln: Math.log };
+const FTEX = { sin: '\\sin', cos: '\\cos', tan: '\\tan', ln: '\\ln' };
+function parseF(src, vars, std) {
+  let s = String(src);
+  if (s.includes('=')) s = s.split('=').pop();
+  s = s.replace(/\\(left|right)/g, '').replace(/\\[,;:! ]/g, '').replace(/[−–—]/g, '-').replace(/[×·∙⋅]/g, '*').replace(/÷/g, '/').replace(/,/g, '.').replace(/²/g, '^2').replace(/³/g, '^3')
+    .replace(/\\(cdot|times)/g, '*').replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)').replace(/_\{([^{}]*)\}/g, '$1').replace(/\\/g, '')
+    .replace(/[{\[]/g, '(').replace(/[}\]]/g, ')').replace(/_/g, '').replace(/\s+/g, '');
+  if (!s) return { err: '' };
+  const cands = [];
+  vars.forEach(v => { cands.push([v, 'var', v]); (VD[v][3] || []).forEach(a => cands.push([a, 'var', v])); });
+  Object.keys(FUNCS).forEach(f => cands.push([f, 'fn', f === '√' ? 'sqrt' : f]));
+  cands.push(['pi', 'pi'], ['π', 'pi']);
+  cands.sort((a, b) => b[0].length - a[0].length);
+  const toks = []; let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (/[0-9.]/.test(ch)) { let j = i; while (j < s.length && /[0-9.]/.test(s[j])) j++; const t = s.slice(i, j); if (t === '.' || (t.match(/\./g) || []).length > 1) return { err: 'nombre mal écrit : ' + t }; toks.push({ t: 'num', v: parseFloat(t), s: t }); i = j; continue; }
+    if ('+-*/^()'.includes(ch)) { toks.push({ t: ch }); i++; continue; }
+    const c = cands.find(c => c[1] === 'fn' || c[1] === 'pi' ? s.slice(i, i + c[0].length).toLowerCase() === c[0] : s.startsWith(c[0], i));
+    if (!c) return { err: 'lettre inconnue : « ' + ch + ' »' };
+    toks.push(c[1] === 'var' ? { t: 'var', n: c[2] } : c[1] === 'fn' ? { t: 'fn', f: c[2] } : { t: 'pi' });
+    i += c[0].length;
+  }
+  let p = 0;
+  const peek = () => toks[p];
+  const start = k => k && (k.t === 'num' || k.t === 'var' || k.t === '(' || k.t === 'fn' || k.t === 'pi');
+  function expr() { let a = term(); while (peek() && (peek().t === '+' || peek().t === '-')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: term() }; } return a; }
+  function term() {
+    let a = jux();
+    for (;;) {
+      if (peek() && (peek().t === '*' || peek().t === '/')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: jux() }; }
+      else if (std && start(peek())) a = { t: 'bin', op: 'j', a, b: power() };
+      else return a;
+    }
+  }
+  function jux() { let a = unary(); while (!std && start(peek())) a = { t: 'bin', op: 'j', a, b: power() }; return a; }
+  function unary() { const k = peek(); if (k && k.t === '-') { p++; return { t: 'neg', a: unary() }; } if (k && k.t === '+') { p++; return unary(); } return power(); }
+  function power() { let a = atom(); if (peek() && peek().t === '^') { p++; a = { t: 'bin', op: '^', a, b: unary() }; } return a; }
+  function atom() {
+    const k = toks[p++]; if (!k) throw 'formule incomplète';
+    if (k.t === 'num') return { t: 'num', v: k.v, s: k.s };
+    if (k.t === 'var') return { t: 'var', n: k.n };
+    if (k.t === 'pi') return { t: 'pi' };
+    if (k.t === 'fn') { let e = null; if (peek() && peek().t === '^') { p++; e = atom(); } let a; if (peek() && peek().t === '(') { p++; a = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; } else a = std ? power() : jux(); const f = { t: 'fn', f: k.f, a }; return e ? { t: 'bin', op: '^', a: f, b: e } : f; }
+    if (k.t === '(') { const e = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; return e; }
+    throw 'symbole « ' + k.t + ' » mal placé';
+  }
+  try { const ast = expr(); if (p < toks.length) throw 'symbole « ' + toks[p].t + ' » mal placé'; return { ast }; }
+  catch (e) { return { err: String(e) }; }
+}
+function evF(n, v) {
+  switch (n.t) {
+    case 'num': return n.v;
+    case 'var': return v[n.n];
+    case 'pi': return Math.PI;
+    case 'neg': return -evF(n.a, v);
+    case 'fn': return FUNCS[n.f](evF(n.a, v));
+    default: { const a = evF(n.a, v), b = evF(n.b, v); return n.op === '+' ? a + b : n.op === '-' ? a - b : n.op === '/' ? a / b : n.op === '^' ? Math.pow(a, b) : a * b; }
+  }
+}
+function texF(n) {
+  const isSum = x => x.t === 'neg' || (x.t === 'bin' && (x.op === '+' || x.op === '-'));
+  const wrap = x => isSum(x) ? '\\left(' + texF(x) + '\\right)' : texF(x);
+  switch (n.t) {
+    case 'num': return n.s.replace('.', '{,}');
+    case 'var': return VD[n.n][0];
+    case 'pi': return '\\pi';
+    case 'neg': return '-' + wrap(n.a);
+    case 'fn': return n.f === 'sqrt' ? '\\sqrt{' + texF(n.a) + '}' : n.f === 'exp' ? 'e^{' + texF(n.a) + '}' : FTEX[n.f] + '\\left(' + texF(n.a) + '\\right)';
+    default:
+      if (n.op === '/') return '\\dfrac{' + texF(n.a) + '}{' + texF(n.b) + '}';
+      if (n.op === '+') return texF(n.a) + ' + ' + texF(n.b);
+      if (n.op === '-') return texF(n.a) + ' - ' + wrap(n.b);
+      if (n.op === '^') return '{' + (n.a.t === 'bin' || n.a.t === 'neg' || n.a.t === 'fn' ? '\\left(' + texF(n.a) + '\\right)' : texF(n.a)) + '}^{' + texF(n.b) + '}';
+      { const A = n.a.t === 'neg' ? texF(n.a) : wrap(n.a), B = wrap(n.b); return A + (/^[0-9]/.test(B) ? ' \\times ' : '\\,') + B; }
+  }
+}
+function checkExpr1(P, it) {
+  if (P.err !== undefined) return { st: P.err === '' ? 'empty' : 'err', msg: P.err };
+  let ok = true, opp = true;
+  for (let t = 0; t < 8; t++) {
+    const v = {}; it.vars.forEach(k => { const d = VD[k]; v[k] = d[1] + Math.random() * (d[2] - d[1]); });
+    const r = it.ref(v), u = evF(P.ast, v);
+    if (!isFinite(r)) { t--; continue; }
+    if (!isFinite(u)) { ok = opp = false; break; }
+    const tol = 1e-6 * Math.max(1, Math.abs(r));
+    if (Math.abs(u - r) > tol) ok = false;
+    if (Math.abs(u + r) > tol || Math.abs(r) < 1e-9) opp = false;
+  }
+  return { st: ok ? 'ok' : opp ? 'sign' : 'bad' };
+}
+function checkExpr(raw, it) {
+  const a = checkExpr1(parseF(raw, it.vars, false), it);
+  if (a.st === 'ok' || a.st === 'empty' || a.st === 'err') return a;
+  const b = checkExpr1(parseF(raw, it.vars, true), it);   // autre lecture de « v0^2/2g »
+  return b.st === 'ok' ? b : a;
+}
+const varsHint = vs => 'avec ' + vs.map(v => { const al = (VD[v][3] || [])[0]; return '<code>' + esc(v) + '</code>' + (al && al.length === 1 && /[^a-zA-Z]/.test(al) ? ' ou ' + esc(al) : ''); }).join(', ');
+
+/* =====================================================================
+   GÉNÉRATEURS D'EXERCICES
+   items : num (valeur + unité) · expr (formule littérale) · choice
+   ===================================================================== */
+const gE = 9.81, D2R = Math.PI / 180;
+const Nn = (lab, val, unit, o) => Object.assign({ type: 'num', lab, val, unit }, o || {});
+const Ex = (lab, vars, ref, sol) => ({ type: 'expr', lab, vars, ref, sol });
+const Ch = (lab, opts, ans) => ({ type: 'choice', lab, opts: opts.map(([v, t]) => ({ v, t })), ans });
+const GEN = {};
+const sinD = a => Math.sin(a * D2R), cosD = a => Math.cos(a * D2R), tanD = a => Math.tan(a * D2R);
+
+GEN.polar = (d, g) => {
+  const F = '<p>Rappel : \\(\\vec{OM} = r\\,\\vec u_r\\), \\(\\vec v = \\dot r\\,\\vec u_r + r\\dot\\theta\\,\\vec u_\\theta\\), \\(\\vec a = (\\ddot r - r\\dot\\theta^2)\\,\\vec u_r + (r\\ddot\\theta + 2\\dot r\\dot\\theta)\\,\\vec u_\\theta\\).</p>';
+  if (d === 0) {
+    const R = g.pick([0.5, 1, 1.5, 2, 3]), w = g.pick([2, 3, 4, 5]), v = R * w, a = R * w * w;
+    return { title: 'Mouvement circulaire uniforme', q: `<p>Un point M décrit un cercle de centre O et de rayon \\(R = ${Q(R, 'm')}\\), avec \\(\\theta(t) = \\omega t\\) et \\(\\omega = ${Q(w, 'rad/s')}\\). Donner la norme de la vitesse, la norme de l'accélération, et la direction de \\(\\vec a\\).</p>`,
+      items: [Nn('v', v, 'm/s'), Nn('a', a, 'm/s²'), Ch('\\(\\vec a\\) est dirigée', [['c', 'vers O (centripète)'], ['t', 'selon la tangente'], ['e', 'vers l\'extérieur']], 'c')],
+      corr: F + `<p>Ici \\(r = R\\) est constant (\\(\\dot r = \\ddot r = 0\\)) et \\(\\dot\\theta = \\omega\\), \\(\\ddot\\theta = 0\\) :</p><p>\\(\\vec v = R\\omega\\,\\vec u_\\theta\\), donc \\(v = R\\omega = ${Q(v, 'm/s')}\\).</p><p>\\(\\vec a = -R\\omega^2\\,\\vec u_r\\) : \\(a = R\\omega^2 = ${Q(a, 'm/s²')}\\), dirigée vers le centre O (accélération centripète, alors que la vitesse a une norme constante).</p>` };
+  }
+  const b = g.pick([0.5, 1, 2]), w = g.pick([0.5, 1, 2]), t = g.pick([1, 2, 3]);
+  let rs, vr, vt, ar, at, det;
+  if (d === 1) { rs = 'b\\,t'; vr = b; vt = b * t * w; ar = -b * t * w * w; at = 2 * b * w; det = `\\(\\dot r = b\\), \\(\\ddot r = 0\\), \\(\\dot\\theta = \\omega\\), \\(\\ddot\\theta = 0\\). Donc \\(v_r = b\\), \\(v_\\theta = b t\\omega\\), \\(a_r = -b t\\omega^2\\), \\(a_\\theta = 2b\\omega\\).`; }
+  else { rs = 'b\\,t^2'; vr = 2 * b * t; vt = b * t * t * w; ar = 2 * b - b * t * t * w * w; at = 4 * b * t * w; det = `\\(\\dot r = 2bt\\), \\(\\ddot r = 2b\\), \\(\\dot\\theta = \\omega\\), \\(\\ddot\\theta = 0\\). Donc \\(v_r = 2bt\\), \\(v_\\theta = bt^2\\omega\\), \\(a_r = 2b - bt^2\\omega^2\\), \\(a_\\theta = 4bt\\omega\\).`; }
+  return { title: 'Vitesse et accélération en polaires', q: `<p>Un point M se déplace dans un plan selon \\(r(t) = ${rs}\\) et \\(\\theta(t) = \\omega t\\), avec \\(b = ${Q(b, d === 1 ? 'm/s' : 'm/s²')}\\) et \\(\\omega = ${Q(w, 'rad/s')}\\). Donner les composantes polaires de la vitesse et de l'accélération à \\(t = ${t}\\ \\mathrm{s}\\).</p>`,
+    items: [Nn('v_r', vr, 'm/s'), Nn('v_\\theta', vt, 'm/s'), Nn('a_r', ar, 'm/s²'), Nn('a_\\theta', at, 'm/s²')],
+    corr: F + `<p>${det}</p><p>À \\(t = ${t}\\ \\mathrm{s}\\) : \\(v_r = ${Q(vr, 'm/s')}\\), \\(v_\\theta = ${Q(vt, 'm/s')}\\), \\(a_r = ${Q(ar, 'm/s²')}\\), \\(a_\\theta = ${Q(at, 'm/s²')}\\).</p><p class="fine">Piège classique : oublier le terme \\(-r\\dot\\theta^2\\) dans \\(a_r\\) ou le facteur 2 de \\(2\\dot r\\dot\\theta\\).</p>` };
+};
+
+GEN.chute = (d, g) => {
+  const v0 = g.pick([8, 10, 12, 15, 20]), a = g.pick([30, 40, 45, 50, 60]);
+  const ts = v0 * sinD(a) / gE, H = v0 * v0 * sinD(a) ** 2 / (2 * gE), P = v0 * v0 * sinD(2 * a) / gE;
+  const meth = `<p>PFD sur M soumis à son seul poids : \\(\\vec a = \\vec g\\). En projetant (axe Oy vers le haut) puis en intégrant avec \\(\\vec v(0) = (v_0\\cos\\alpha,\\ v_0\\sin\\alpha)\\) :</p>\\[x(t) = v_0\\cos\\alpha\\,t,\\qquad y(t) = -\\tfrac12 g t^2 + v_0\\sin\\alpha\\,t\\]<p>Sommet : \\(\\dot y = 0 \\Rightarrow t_S = \\dfrac{v_0\\sin\\alpha}{g}\\), \\(h_{max} = \\dfrac{v_0^2\\sin^2\\alpha}{2g}\\). Retour au sol : \\(t_{vol} = 2t_S\\) et portée \\(P = \\dfrac{v_0^2\\sin 2\\alpha}{g}\\), maximale pour \\(\\alpha = 45^\\circ\\).</p>`;
+  const st = `<p>Un projectile est lancé depuis le sol avec une vitesse \\(v_0 = ${Q(v0, 'm/s')}\\) faisant un angle \\(\\alpha = ${a}^\\circ\\) avec l'horizontale (\\(g = 9{,}81\\ \\mathrm{m\\cdot s^{-2}}\\), frottements négligés).</p>`;
+  if (d === 0) return { title: 'Tir parabolique', q: st + '<p>Calculer la durée pour atteindre le sommet, la hauteur maximale et la portée.</p>',
+    items: [Nn('t_S', ts, 's'), Nn('h_{max}', H, 'm'), Nn('P', P, 'm')], corr: meth + `<p>A.N. : \\(t_S = ${Q(ts, 's')}\\), \\(h_{max} = ${Q(H, 'm')}\\), \\(P = ${Q(P, 'm')}\\).</p>` };
+  if (d === 1) return { title: 'Tir parabolique : expressions littérales', q: st + '<p>Exprimer la portée \\(P\\) et la hauteur maximale \\(h_{max}\\) en fonction de \\(v_0\\), \\(\\alpha\\) et \\(g\\), puis calculer la portée.</p>',
+    items: [Ex('P', ['v0', 'alpha', 'g'], v => v.v0 ** 2 * Math.sin(2 * v.alpha) / v.g, 'P = \\dfrac{v_0^2\\sin 2\\alpha}{g}'), Ex('h_{max}', ['v0', 'alpha', 'g'], v => (v.v0 * Math.sin(v.alpha)) ** 2 / (2 * v.g), 'h_{max} = \\dfrac{v_0^2\\sin^2\\alpha}{2g}'), Nn('P', P, 'm')],
+    corr: meth + `<p>A.N. : \\(P = ${Q(P, 'm')}\\).</p>` };
+  return { title: 'Équation de la trajectoire', q: st + '<p>Établir l\'équation de la trajectoire \\(y(x)\\), la durée totale du vol, et l\'angle qui donne la portée maximale.</p>',
+    items: [Ex('y', ['x', 'g', 'v0', 'alpha'], v => -v.g * v.x * v.x / (2 * v.v0 ** 2 * Math.cos(v.alpha) ** 2) + v.x * Math.tan(v.alpha), 'y = -\\dfrac{g\\,x^2}{2v_0^2\\cos^2\\alpha} + x\\tan\\alpha'), Ex('t_{vol}', ['v0', 'alpha', 'g'], v => 2 * v.v0 * Math.sin(v.alpha) / v.g, 't_{vol} = \\dfrac{2v_0\\sin\\alpha}{g}'), Ch('portée maximale pour', [['30', '\\(30^\\circ\\)'], ['45', '\\(45^\\circ\\)'], ['60', '\\(60^\\circ\\)'], ['90', '\\(90^\\circ\\)']], '45')],
+    corr: meth + '<p>On élimine le temps : \\(t = \\dfrac{x}{v_0\\cos\\alpha}\\), d\'où \\(y = -\\dfrac{g x^2}{2v_0^2\\cos^2\\alpha} + x\\tan\\alpha\\) : une parabole. \\(\\sin 2\\alpha\\) est maximal pour \\(2\\alpha = 90^\\circ\\).</p>' };
+};
+
+GEN.plan = (d, g) => {
+  const a = g.pick([20, 25, 30, 35, 40]);
+  if (d === 0) {
+    const v0 = g.pick([2, 3, 4, 5, 6]), acc = gE * sinD(a), D = v0 * v0 / (2 * acc);
+    return { title: 'Plan incliné sans frottement', q: `<p>Un mobile glisse sans frottement sur un plan incliné d'un angle \\(\\alpha = ${a}^\\circ\\). À \\(t = 0\\), il part du bas vers le haut avec une vitesse \\(v_0 = ${Q(v0, 'm/s')}\\). Donner l'expression de la norme de son accélération, sa valeur, et la distance parcourue avant l'arrêt.</p>`,
+      items: [Ex('a', ['g', 'alpha'], v => v.g * Math.sin(v.alpha), 'a = g\\sin\\alpha'), Nn('a', acc, 'm/s²'), Nn('D', D, 'm')],
+      corr: `<p>Bilan des forces : poids \\(m\\vec g\\) et réaction normale \\(\\vec N\\) (pas de frottement). PFD projeté sur l'axe Ox de la pente (vers le haut) : \\(m\\ddot x = -mg\\sin\\alpha\\) ; sur la normale : \\(N = mg\\cos\\alpha\\).</p><p>Mouvement rectiligne uniformément décéléré : \\(a = g\\sin\\alpha = ${Q(acc, 'm/s²')}\\).</p><p>\\(v^2 - v_0^2 = -2g\\sin\\alpha\\,x\\) donc à l'arrêt \\(D = \\dfrac{v_0^2}{2g\\sin\\alpha} = ${Q(D, 'm')}\\).</p>` };
+  }
+  if (d === 1) {
+    const ms = g.pick([0.3, 0.4, 0.5, 0.6, 0.7]), md = +(ms - 0.1).toFixed(1), m = g.pick([1, 2, 5]), slides = tanD(a) > ms, lim = Math.atan(ms) / D2R;
+    const RT = slides ? md * m * gE * cosD(a) : m * gE * sinD(a), acc = gE * (sinD(a) - md * cosD(a));
+    return { title: 'Plan incliné avec frottement solide', q: `<p>Un bloc de masse \\(m = ${m}\\ \\mathrm{kg}\\) est posé sans vitesse sur un plan incliné d'un angle \\(\\alpha = ${a}^\\circ\\). Coefficients de frottement : statique \\(\\mu_s = ${tN(ms)}\\), dynamique \\(\\mu_d = ${tN(md)}\\).</p><p>Le bloc glisse-t-il ? Donner l'angle limite \\(\\alpha_{lim}\\) au-delà duquel il glisse, puis la norme \\(R_T\\) de la force de frottement exercée par le plan.</p>`,
+      items: [Ch('Le bloc', [['g', 'glisse'], ['r', 'reste immobile']], slides ? 'g' : 'r'), Nn('\\alpha_{lim}', lim, '°'), Nn('R_T', RT, 'N')],
+      corr: `<p>À l'équilibre, la réaction a une composante normale \\(N = mg\\cos\\alpha\\) et une composante tangentielle \\(R_T = mg\\sin\\alpha\\). Loi de Coulomb : il n'y a pas glissement tant que \\(R_T \\le \\mu_s N\\), soit \\(\\tan\\alpha \\le \\mu_s\\).</p><p>\\(\\alpha_{lim} = \\arctan\\mu_s = ${Q(lim, '°')}\\). Ici \\(\\alpha = ${a}^\\circ\\) ${slides ? '&gt;' : '&lt;'} \\(\\alpha_{lim}\\) : le bloc <b>${slides ? 'glisse' : 'reste immobile'}</b>.</p>${slides ? `<p>En glissement, \\(R_T = \\mu_d N = \\mu_d mg\\cos\\alpha = ${Q(RT, 'N')}\\), et l'accélération vaut \\(g(\\sin\\alpha - \\mu_d\\cos\\alpha) = ${Q(acc, 'm/s²')}\\) (mouvement uniformément accéléré).</p>` : `<p>Sans glissement, le frottement compense exactement la composante du poids : \\(R_T = mg\\sin\\alpha = ${Q(RT, 'N')}\\) (et non \\(\\mu_s N\\), qui n'est que la valeur maximale).</p>`}` };
+  }
+  return { title: 'Plan incliné : expressions littérales', q: '<p>Un bloc de masse \\(m\\) est sur un plan incliné d\'un angle \\(\\alpha\\), avec un frottement solide de coefficient dynamique \\(\\mu\\).</p><p>1) Exprimer la réaction normale \\(N\\). 2) Le bloc descend en glissant : exprimer la norme de son accélération. 3) On le lance vers le haut avec la vitesse \\(v_0\\) : exprimer la distance \\(D\\) parcourue avant l\'arrêt.</p>',
+    items: [Ex('N', ['m', 'g', 'alpha'], v => v.m * v.g * Math.cos(v.alpha), 'N = mg\\cos\\alpha'), Ex('a', ['g', 'alpha', 'mu'], v => v.g * (Math.sin(v.alpha) - v.mu * Math.cos(v.alpha)), 'a = g(\\sin\\alpha - \\mu\\cos\\alpha)'), Ex('D', ['v0', 'g', 'alpha', 'mu'], v => v.v0 ** 2 / (2 * v.g * (Math.sin(v.alpha) + v.mu * Math.cos(v.alpha))), 'D = \\dfrac{v_0^2}{2g(\\sin\\alpha + \\mu\\cos\\alpha)}')],
+    corr: '<p>Projection du PFD sur la normale : \\(N = mg\\cos\\alpha\\). Le frottement vaut \\(\\mu N\\) et s\'oppose toujours au mouvement.</p><p>En descente : \\(m\\ddot x = mg\\sin\\alpha - \\mu mg\\cos\\alpha\\), donc \\(a = g(\\sin\\alpha - \\mu\\cos\\alpha)\\).</p><p>En montée, poids ET frottement freinent : décélération \\(g(\\sin\\alpha + \\mu\\cos\\alpha)\\), d\'où \\(D = \\dfrac{v_0^2}{2g(\\sin\\alpha + \\mu\\cos\\alpha)}\\) (on peut aussi l\'obtenir par le théorème de l\'énergie cinétique).</p>' };
+};
+
+GEN.visq = (d, g) => {
+  if (d < 2) {
+    const m = g.pick([0.1, 0.2, 0.5, 1]), al = g.pick([0.5, 1, 2, 4]), vl = m * gE / al, tau = m / al;
+    const st = `<p>Une bille de masse \\(m = ${Q(m, 'kg')}\\), lâchée sans vitesse, tombe dans un fluide qui exerce une force de frottement \\(\\vec f = -\\alpha\\vec v\\) avec \\(\\alpha = ${Q(al, 'kg/s')}\\) (poussée d'Archimède négligée, axe Oz vers le bas).</p>`;
+    const meth = `<p>PFD projeté sur Oz : \\(m\\dfrac{dv}{dt} = mg - \\alpha v\\), soit \\(\\dfrac{dv}{dt} + \\dfrac{v}{\\tau} = g\\) avec \\(\\tau = \\dfrac{m}{\\alpha}\\). Vitesse limite (quand \\(\\frac{dv}{dt} = 0\\)) : \\(v_{lim} = \\dfrac{mg}{\\alpha}\\). Solution avec \\(v(0) = 0\\) : \\(v(t) = v_{lim}\\left(1 - e^{-t/\\tau}\\right)\\).</p>`;
+    if (d === 0) return { title: 'Frottement fluide : vitesse limite', q: st + '<p>Calculer la vitesse limite et le temps caractéristique \\(\\tau\\). Quelle est l\'unité de \\(\\alpha\\) ?</p>',
+      items: [Nn('v_{lim}', vl, 'm/s'), Nn('\\tau', tau, 's'), Ch('Unité de \\(\\alpha\\)', [['a', 'kg·s⁻¹'], ['b', 'N'], ['c', 'kg·m·s⁻¹'], ['d', 's⁻¹']], 'a')],
+      corr: meth + `<p>A.N. : \\(v_{lim} = ${Q(vl, 'm/s')}\\), \\(\\tau = ${Q(tau, 's')}\\). \\(\\alpha v\\) est une force (kg·m·s⁻²) et \\(v\\) en m·s⁻¹, donc \\(\\alpha\\) en kg·s⁻¹.</p>` };
+    const v1 = vl * (1 - Math.exp(-1)), v3 = vl * (1 - Math.exp(-3));
+    return { title: 'Frottement fluide : équation et solution', q: st + '<p>Exprimer la vitesse limite et le temps caractéristique en fonction de \\(m\\), \\(g\\), \\(\\alpha\\). Calculer la vitesse à \\(t = \\tau\\) et à \\(t = 3\\tau\\).</p>',
+      items: [Ex('v_{lim}', ['m', 'g', 'alpha'], v => v.m * v.g / v.alpha, 'v_{lim} = \\dfrac{mg}{\\alpha}'), Ex('\\tau', ['m', 'alpha'], v => v.m / v.alpha, '\\tau = \\dfrac{m}{\\alpha}'), Nn('v(\\tau)', v1, 'm/s'), Nn('v(3\\tau)', v3, 'm/s')],
+      corr: meth + `<p>\\(v(\\tau) = v_{lim}(1 - e^{-1}) \\approx 0{,}63\\,v_{lim} = ${Q(v1, 'm/s')}\\) ; \\(v(3\\tau) \\approx 0{,}95\\,v_{lim} = ${Q(v3, 'm/s')}\\).</p>` };
+  }
+  const r = g.pick([1, 1.5, 2]) * 1e-6, v0 = g.pick([10, 20, 25, 30, 40]) * 1e-6, eta = 1e-3, m = 1000 * 4 / 3 * Math.PI * r ** 3, tau = m / (6 * Math.PI * eta * r), D = v0 * tau;
+  return { title: 'Mouvement d\'une bactérie (loi de Stokes)', q: `<p>Une bactérie sphérique de rayon \\(r = ${tN(r * 1e6)}\\ \\mathrm{\\mu m}\\), de masse volumique celle de l'eau (\\(1000\\ \\mathrm{kg\\cdot m^{-3}}\\)), se déplace dans l'eau (\\(\\eta = 1{,}0\\times10^{-3}\\ \\mathrm{kg\\cdot m^{-1}\\cdot s^{-1}}\\)) avec la vitesse initiale \\(v_0 = ${tN(v0 * 1e6)}\\ \\mathrm{\\mu m\\cdot s^{-1}}\\) et n'est soumise qu'à la force de Stokes \\(\\vec f = -6\\pi\\eta r\\,\\vec v\\).</p><p>Calculer sa masse, exprimer et calculer le temps caractéristique \\(\\tau\\), puis la distance totale \\(d\\) parcourue.</p>`,
+    items: [Nn('m', m, 'kg'), Ex('\\tau', ['m', 'eta', 'r'], v => v.m / (6 * Math.PI * v.eta * v.r), '\\tau = \\dfrac{m}{6\\pi\\eta r}'), Nn('\\tau', tau, 's'), Nn('d', D, 'm')],
+    corr: `<p>\\(m = \\rho\\,\\tfrac43\\pi r^3 = ${Q(m, 'kg')}\\).</p><p>PFD : \\(m\\dfrac{dv}{dt} + 6\\pi\\eta r\\,v = 0\\), soit \\(\\dfrac{dv}{dt} + \\dfrac{v}{\\tau} = 0\\) avec \\(\\tau = \\dfrac{m}{6\\pi\\eta r} = ${Q(tau, 's')}\\). Donc \\(v(t) = v_0 e^{-t/\\tau}\\).</p><p>En intégrant : \\(x(t) = v_0\\tau\\left(1 - e^{-t/\\tau}\\right)\\). Quand \\(t \\to \\infty\\), la vitesse tend vers 0 et \\(x \\to d = v_0\\tau = ${Q(D, 'm')}\\) : la bactérie s'arrête presque instantanément.</p>` };
+};
+
+GEN.inert = (d, g) => {
+  if (d === 0) {
+    const m = g.pick([50, 60, 70, 80]), a = g.pick([1, 1.5, 2, 2.5]), c = g.pick([['monte en accélérant', 1], ['descend en accélérant', -1], ['monte en freinant', -1], ['descend en freinant', 1]]), ae = c[1] * a, Nv = m * (gE + ae);
+    return { title: 'Poids apparent dans un ascenseur', q: `<p>Une personne de masse \\(m = ${m}\\ \\mathrm{kg}\\) est sur une balance dans un ascenseur qui <b>${c[0]}</b> avec une accélération de norme \\(a = ${Q(a, 'm/s²')}\\). Dans le référentiel de l'ascenseur, donner le sens de la force d'inertie d'entraînement et la force \\(N\\) indiquée par la balance.</p>`,
+      items: [Ch('La force d\'inertie est dirigée', [['h', 'vers le haut'], ['b', 'vers le bas']], ae > 0 ? 'b' : 'h'), Nn('N', Nv, 'N')],
+      corr: `<p>L'accélération de l'ascenseur est dirigée vers le ${ae > 0 ? 'haut' : 'bas'}. Dans ce référentiel non galiléen (en translation), on ajoute \\(\\vec f_{ie} = -m\\vec a_e\\), dirigée vers le <b>${ae > 0 ? 'bas' : 'haut'}</b>.</p><p>Équilibre de la personne dans l'ascenseur : \\(N = m(g ${ae > 0 ? '+' : '-'} a) = ${Q(Nv, 'N')}\\) (poids réel : \\(${Q(m * gE, 'N')}\\)).</p>` };
+  }
+  if (d === 1) {
+    const a = g.pick([1, 2, 3, 4]), m = g.pick([0.1, 0.2, 0.5]), th = Math.atan(a / gE) / D2R, T = m * Math.hypot(gE, a);
+    return { title: 'Pendule dans un wagon qui accélère', q: `<p>Un pendule (masse \\(m = ${Q(m, 'kg')}\\)) est suspendu au plafond d'un wagon qui accélère vers l'avant avec \\(a = ${Q(a, 'm/s²')}\\). À l'équilibre dans le wagon, le fil fait un angle \\(\\theta\\) avec la verticale. Donner le sens de l'inclinaison, \\(\\theta\\) et la tension du fil.</p>`,
+      items: [Ch('Le pendule penche', [['ar', 'vers l\'arrière'], ['av', 'vers l\'avant'], ['no', 'pas du tout']], 'ar'), Nn('\\theta', th, '°'), Nn('T', T, 'N')],
+      corr: `<p>Dans le wagon (non galiléen), forces : poids \\(m\\vec g\\), tension \\(\\vec T\\), force d'inertie \\(-m\\vec a\\) dirigée vers l'<b>arrière</b>. Équilibre : horizontalement \\(T\\sin\\theta = ma\\), verticalement \\(T\\cos\\theta = mg\\).</p><p>\\(\\tan\\theta = \\dfrac{a}{g}\\) : \\(\\theta = ${Q(th, '°')}\\) ; \\(T = m\\sqrt{g^2 + a^2} = ${Q(T, 'N')}\\).</p>` };
+  }
+  const r = g.pick([2, 3, 4, 5]), w = g.pick([0.5, 1, 1.5]), m = g.pick([20, 40, 60]), vp = g.pick([1, 1.5, 2]);
+  const Fc = m * w * w * r, mu = w * w * r / gE, Fco = 2 * m * w * vp;
+  return { title: 'Manège : forces d\'inertie', q: `<p>Un manège tourne à vitesse angulaire constante \\(\\omega = ${Q(w, 'rad/s')}\\). Un enfant de masse \\(m = ${m}\\ \\mathrm{kg}\\) est à \\(r = ${r}\\ \\mathrm{m}\\) de l'axe.</p><p>1) Immobile sur le manège : norme de la force d'inertie d'entraînement, et coefficient de frottement minimal \\(\\mu_{min}\\) pour qu'il ne glisse pas. 2) Il marche radialement à \\(v' = ${Q(vp, 'm/s')}\\) par rapport au manège : norme de la force de Coriolis.</p>`,
+    items: [Nn('F_{ie}', Fc, 'N'), Nn('\\mu_{min}', mu, ''), Nn('F_{ic}', Fco, 'N')],
+    corr: `<p>Référentiel en rotation uniforme : \\(\\vec f_{ie} = m\\omega^2\\,\\vec{HM}\\) (force « centrifuge », vers l'extérieur) : \\(F_{ie} = m\\omega^2 r = ${Q(Fc, 'N')}\\).</p><p>Sans glissement, le frottement compense \\(F_{ie}\\) : \\(m\\omega^2 r \\le \\mu mg\\), d'où \\(\\mu_{min} = \\dfrac{\\omega^2 r}{g} = ${tN(mu)}\\).</p><p>Coriolis : \\(\\vec f_{ic} = -2m\\,\\vec\\Omega\\wedge\\vec v'\\), ici \\(\\vec\\Omega \\perp \\vec v'\\) donc \\(F_{ic} = 2m\\omega v' = ${Q(Fco, 'N')}\\) (perpendiculaire à \\(\\vec v'\\), dans le plan horizontal).</p>` };
+};
+
+GEN.choc = (d, g) => {
+  const m1 = g.pick([1, 2, 3, 4, 5]), m2 = g.pick([1, 2, 3, 4, 5].filter(x => x !== m1)), v1 = g.pick([2, 3, 4, 5, 6]);
+  if (d === 0) {
+    const v = m1 * v1 / (m1 + m2), loss = 0.5 * m1 * v1 * v1 - 0.5 * (m1 + m2) * v * v;
+    return { title: 'Choc mou', q: `<p>Une particule de masse \\(m_1 = ${m1}\\ \\mathrm{kg}\\) arrive à \\(v_1 = ${Q(v1, 'm/s')}\\) sur une particule de masse \\(m_2 = ${m2}\\ \\mathrm{kg}\\) immobile. Après le choc, elles restent soudées. Calculer leur vitesse commune et l'énergie cinétique perdue (valeur positive).</p>`,
+      items: [Nn('v', v, 'm/s'), Nn('E_{perdue}', loss, 'J')],
+      corr: `<p>Système isolé : la quantité de mouvement se conserve (pas l'énergie cinétique, le choc est inélastique).</p><p>\\(m_1v_1 = (m_1 + m_2)v\\) donc \\(v = \\dfrac{m_1 v_1}{m_1 + m_2} = ${Q(v, 'm/s')}\\).</p><p>\\(E_{perdue} = \\tfrac12 m_1v_1^2 - \\tfrac12(m_1+m_2)v^2 = \\tfrac12\\mu v_1^2\\) avec \\(\\mu = \\dfrac{m_1m_2}{m_1+m_2}\\) : \\(${Q(loss, 'J')}\\).</p>` };
+  }
+  if (d === 1 && g.r() < .5) {
+    const h0 = g.pick([1, 1.5, 2]), e = g.pick([0.5, 0.6, 0.7, 0.8]), vi = Math.sqrt(2 * gE * h0);
+    return { title: 'Rebonds d\'une bille', q: `<p>Une bille est lâchée sans vitesse d'une hauteur \\(h_0 = ${Q(h0, 'm')}\\). À chaque rebond, la vitesse est multipliée par \\(e = ${tN(e)}\\) (\\(v' = e\\,v\\)). Calculer la vitesse juste avant le premier choc, la hauteur atteinte après le premier rebond, puis après le troisième.</p>`,
+      items: [Nn('v_0', vi, 'm/s'), Nn('h_1', e * e * h0, 'm'), Nn('h_3', e ** 6 * h0, 'm')],
+      corr: `<p>Conservation de l'énergie mécanique pendant la chute : \\(mgh_0 = \\tfrac12 mv_0^2\\), donc \\(v_0 = \\sqrt{2gh_0} = ${Q(vi, 'm/s')}\\).</p><p>Après le choc la vitesse vaut \\(e\\,v_0\\) ; elle remonte à \\(h_1 = \\dfrac{(ev_0)^2}{2g} = e^2 h_0 = ${Q(e * e * h0, 'm')}\\). À chaque rebond la hauteur est multipliée par \\(e^2\\) : \\(h_n = e^{2n}h_0\\), \\(h_3 = ${Q(e ** 6 * h0, 'm')}\\).</p>` };
+  }
+  const a1 = (m1 - m2) / (m1 + m2) * v1, a2 = 2 * m1 / (m1 + m2) * v1;
+  const meth = `<p>Choc élastique, cible au repos : conservation de la quantité de mouvement \\(m_1v_1 = m_1v_1' + m_2v_2'\\) ET de l'énergie cinétique \\(\\tfrac12m_1v_1^2 = \\tfrac12m_1v_1'^2 + \\tfrac12m_2v_2'^2\\). On obtient :</p>\\[v_1' = \\frac{m_1 - m_2}{m_1 + m_2}\\,v_1,\\qquad v_2' = \\frac{2m_1}{m_1 + m_2}\\,v_1\\]`;
+  if (d === 1) return { title: 'Choc élastique', q: `<p>Une particule de masse \\(m_1 = ${m1}\\ \\mathrm{kg}\\) arrive à \\(v_1 = ${Q(v1, 'm/s')}\\) sur une particule de masse \\(m_2 = ${m2}\\ \\mathrm{kg}\\) immobile. Le choc est élastique et frontal. Calculer les vitesses algébriques après le choc.</p>`,
+    items: [Nn("v_1'", a1, 'm/s'), Nn("v_2'", a2, 'm/s'), Ch('Après le choc, la particule 1', [['m', 'continue dans le même sens'], ['a', 'repart en arrière']], a1 > 0 ? 'm' : 'a')],
+    corr: meth + `<p>A.N. : \\(v_1' = ${Q(a1, 'm/s')}\\), \\(v_2' = ${Q(a2, 'm/s')}\\). La particule 1 ${a1 > 0 ? 'continue dans le même sens car \\(m_1 > m_2\\)' : 'repart en arrière car \\(m_1 < m_2\\)'}.</p>` };
+  return { title: 'Chocs : expressions littérales', q: '<p>Une particule de masse \\(m_1\\) arrive à la vitesse \\(v_1\\) sur une particule de masse \\(m_2\\) au repos (choc frontal). Exprimer les vitesses après un choc élastique, puis la variation d\'énergie cinétique \\(\\Delta E_c\\) lors d\'un choc mou (les deux restent soudées).</p>',
+    items: [Ex("v_1'", ['m1', 'm2', 'v1'], v => (v.m1 - v.m2) / (v.m1 + v.m2) * v.v1, "v_1' = \\dfrac{m_1 - m_2}{m_1 + m_2}v_1"), Ex("v_2'", ['m1', 'm2', 'v1'], v => 2 * v.m1 / (v.m1 + v.m2) * v.v1, "v_2' = \\dfrac{2m_1}{m_1 + m_2}v_1"), Ex('\\Delta E_c', ['m1', 'm2', 'v1'], v => -0.5 * v.m1 * v.m2 / (v.m1 + v.m2) * v.v1 ** 2, '\\Delta E_c = -\\dfrac{m_1 m_2}{2(m_1 + m_2)}v_1^2')],
+    corr: meth + '<p>Choc mou : \\(v = \\dfrac{m_1v_1}{m_1+m_2}\\) et \\(\\Delta E_c = \\tfrac12(m_1+m_2)v^2 - \\tfrac12 m_1v_1^2 = -\\tfrac12\\mu v_1^2\\), avec la masse réduite \\(\\mu = \\dfrac{m_1m_2}{m_1+m_2}\\). Négative : de l\'énergie est perdue (chaleur, déformation).</p>' };
+};
+
+GEN.travail = (d, g) => {
+  if (d === 0) {
+    const m = g.pick([2, 5, 10]), h = g.pick([2, 3, 5, 10]), up = g.r() < .5, W = (up ? -1 : 1) * m * gE * h, k = g.pick([50, 100, 200]), x = g.pick([0.05, 0.1, 0.2]), Wr = -0.5 * k * x * x;
+    return { title: 'Travail d\'une force', q: `<p>1) Un objet de masse \\(m = ${m}\\ \\mathrm{kg}\\) ${up ? 'monte' : 'descend'} d'une hauteur \\(h = ${h}\\ \\mathrm{m}\\). Calculer le travail de son poids ; est-il moteur ou résistant ?</p><p>2) On étire un ressort de raideur \\(k = ${k}\\ \\mathrm{N\\cdot m^{-1}}\\) depuis sa longueur à vide jusqu'à un allongement de \\(${tN(x * 100)}\\ \\mathrm{cm}\\). Calculer le travail de la force de rappel du ressort.</p>`,
+      items: [Nn('W(\\vec P)', W, 'J'), Ch('Ce travail est', [['m', 'moteur'], ['r', 'résistant']], up ? 'r' : 'm'), Nn('W_{ressort}', Wr, 'J')],
+      corr: `<p>\\(W_{A\\to B}(\\vec P) = -mg(z_B - z_A)\\) : ${up ? 'en montée, \\(z_B - z_A = h\\)' : 'en descente, \\(z_B - z_A = -h\\)'}, donc \\(W = ${Q(W, 'J')}\\) : travail <b>${up ? 'résistant' : 'moteur'}</b>.</p><p>Force de rappel \\(F = -kx\\) : \\(W = \\int_0^{x} -kx\\,dx = -\\tfrac12 kx^2 = ${Q(Wr, 'J')}\\) (toujours résistant quand on s'éloigne de la longueur à vide).</p>` };
+  }
+  if (d === 1) {
+    const m = g.pick([2, 5, 10]), L = g.pick([2, 4, 5, 8]), a = g.pick([20, 30, 40]), mu = g.pick([0.1, 0.2, 0.3]);
+    const WP = -m * gE * L * sinD(a), Wf = -mu * m * gE * cosD(a) * L;
+    return { title: 'Travaux sur un plan incliné', q: `<p>Un bloc de masse \\(m = ${m}\\ \\mathrm{kg}\\) monte de \\(L = ${L}\\ \\mathrm{m}\\) le long d'un plan incliné d'angle \\(\\alpha = ${a}^\\circ\\), avec un frottement solide de coefficient \\(\\mu = ${tN(mu)}\\). Calculer le travail du poids, de la force de frottement et de la réaction normale.</p>`,
+      items: [Nn('W(\\vec P)', WP, 'J'), Nn('W(\\vec f)', Wf, 'J'), Nn('W(\\vec N)', 0, 'J')],
+      corr: `<p>Le bloc s'élève de \\(h = L\\sin\\alpha\\) : \\(W(\\vec P) = -mgL\\sin\\alpha = ${Q(WP, 'J')}\\).</p><p>Le frottement vaut \\(\\mu N = \\mu mg\\cos\\alpha\\), opposé au déplacement : \\(W(\\vec f) = -\\mu mg\\cos\\alpha\\,L = ${Q(Wf, 'J')}\\).</p><p>\\(\\vec N\\) est perpendiculaire au déplacement : \\(W(\\vec N) = 0\\).</p>` };
+  }
+  const x0 = g.int(1, 4), y0 = g.int(1, 4), c1 = g.int(1, 4), c2 = g.r() < .5 ? c1 : g.pick([1, 2, 3, 4].filter(c => c !== c1));
+  const W1 = c2 * x0 * y0, W2 = c1 * x0 * y0;
+  return { title: 'Travail le long de deux chemins', q: `<p>Une particule se déplace dans le champ de force \\(\\vec F = ${c1 === 1 ? '' : c1}y\\,\\vec i + ${c2 === 1 ? '' : c2}x\\,\\vec j\\) (en N, \\(x\\) et \\(y\\) en m), de O(0, 0) à P(${x0}, ${y0}).</p><p>Calculer le travail \\(W_1\\) par le chemin OHP (H(${x0}, 0) : d'abord le long de Ox) et \\(W_2\\) par OGP (G(0, ${y0}) : d'abord le long de Oy). La force est-elle conservative ?</p>`,
+    items: [Nn('W_1', W1, 'J'), Nn('W_2', W2, 'J'), Ch('Le champ est', [['c', 'conservatif'], ['n', 'non conservatif']], c1 === c2 ? 'c' : 'n')],
+    corr: `<p>\\(\\delta W = F_x\\,dx + F_y\\,dy\\).</p><p>OHP : sur OH, \\(y = 0\\) et \\(dy = 0\\) : \\(F_x = 0\\), travail nul ; sur HP, \\(x = ${x0}\\), \\(dx = 0\\) : \\(\\int_0^{${y0}} ${c2}\\times${x0}\\,dy = ${W1}\\ \\mathrm{J}\\). Donc \\(W_1 = ${W1}\\ \\mathrm{J}\\).</p><p>OGP : sur OG, \\(x = 0\\) : \\(F_y = 0\\) ; sur GP, \\(y = ${y0}\\) : \\(\\int_0^{${x0}} ${c1}\\times${y0}\\,dx = ${W2}\\ \\mathrm{J}\\). Donc \\(W_2 = ${W2}\\ \\mathrm{J}\\).</p><p>Test de Schwarz : \\(\\dfrac{\\partial F_x}{\\partial y} = ${c1}\\) et \\(\\dfrac{\\partial F_y}{\\partial x} = ${c2}\\) : ${c1 === c2 ? `égaux, le champ est conservatif (\\(E_p = -${c1 === 1 ? '' : c1}xy\\)) et le travail ne dépend pas du chemin` : 'différents, le champ n\'est pas conservatif : le travail dépend du chemin'}.</p>` };
+};
+
+GEN.tec = (d, g) => {
+  if (d === 0) {
+    const h = g.pick([2, 5, 10, 20]), v0 = g.pick([2, 3, 4]), h2 = g.pick([1, 2, 3]), v1 = Math.sqrt(2 * gE * h), v2 = Math.sqrt(v0 * v0 + 2 * gE * h2);
+    return { title: 'Théorème de l\'énergie cinétique', q: `<p>1) Un objet tombe en chute libre sans vitesse initiale d'une hauteur \\(h = ${h}\\ \\mathrm{m}\\). Vitesse \\(v_1\\) à l'arrivée au sol ?</p><p>2) Un enfant aborde un toboggan sans frottement avec la vitesse \\(v_0 = ${Q(v0, 'm/s')}\\) et descend d'une hauteur \\(${h2}\\ \\mathrm{m}\\). Vitesse \\(v_2\\) en bas ?</p>`,
+      items: [Nn('v_1', v1, 'm/s'), Nn('v_2', v2, 'm/s')],
+      corr: `<p>Théorème de l'énergie cinétique : \\(\\Delta E_c = \\sum W\\). La réaction du toboggan, perpendiculaire au mouvement, ne travaille pas ; seul le poids travaille : \\(W = mgh\\).</p><p>1) \\(\\tfrac12 mv_1^2 = mgh\\) : \\(v_1 = \\sqrt{2gh} = ${Q(v1, 'm/s')}\\).</p><p>2) \\(\\tfrac12 mv_2^2 - \\tfrac12 mv_0^2 = mgh\\) : \\(v_2 = \\sqrt{v_0^2 + 2gh} = ${Q(v2, 'm/s')}\\) (la forme du toboggan n'intervient pas).</p>` };
+  }
+  if (d === 1) {
+    const h = g.pick([1, 2, 3]), a = g.pick([20, 30, 40]), mu = g.pick([0.1, 0.2, 0.3]), v = Math.sqrt(2 * gE * h * (1 + mu / tanD(a)));
+    return { title: 'Vitesse minimale de lancement', q: `<p>Un solide est lancé vers le haut d'un plan incliné d'angle \\(\\alpha = ${a}^\\circ\\) avec un frottement solide de coefficient \\(\\mu = ${tN(mu)}\\). Quelle vitesse minimale \\(v_0\\) faut-il lui donner pour qu'il s'élève d'une hauteur \\(h = ${h}\\ \\mathrm{m}\\) ? Donner l'expression littérale puis la valeur.</p>`,
+      items: [Ex('v_0', ['g', 'h', 'mu', 'alpha'], v => Math.sqrt(2 * v.g * v.h * (1 + v.mu / Math.tan(v.alpha))), 'v_0 = \\sqrt{2gh\\left(1 + \\dfrac{\\mu}{\\tan\\alpha}\\right)}'), Nn('v_0', v, 'm/s')],
+      corr: `<p>Pour s'élever de \\(h\\), il parcourt \\(L = \\dfrac{h}{\\sin\\alpha}\\). Travaux : poids \\(-mgh\\) ; frottement \\(-\\mu mg\\cos\\alpha\\,L = -\\mu mg\\dfrac{h}{\\tan\\alpha}\\) ; réaction normale 0.</p><p>TEC entre le départ et l'arrêt (vitesse nulle au mieux) : \\(0 - \\tfrac12 mv_0^2 = -mgh - \\mu mg\\dfrac{h}{\\tan\\alpha}\\), d'où \\(v_0 = \\sqrt{2gh\\left(1 + \\dfrac{\\mu}{\\tan\\alpha}\\right)} = ${Q(v, 'm/s')}\\).</p>` };
+  }
+  const l = g.pick([0.5, 1, 1.5, 2]), t0 = g.pick([20, 30, 45, 60]), m = g.pick([0.1, 0.2, 0.5]), v = Math.sqrt(2 * gE * l * (1 - cosD(t0))), T = m * gE * (3 - 2 * cosD(t0));
+  return { title: 'Pendule : vitesse maximale et tension', q: `<p>Un pendule simple (masse \\(m = ${Q(m, 'kg')}\\), fil de longueur \\(\\ell = ${Q(l, 'm')}\\)) est lâché sans vitesse depuis l'angle \\(\\theta_0 = ${t0}^\\circ\\). Exprimer puis calculer sa vitesse au passage par la verticale, et calculer la tension du fil à cet instant.</p>`,
+    items: [Ex('v_{max}', ['g', 'l', 'theta0'], v => Math.sqrt(2 * v.g * v.l * (1 - Math.cos(v.theta0))), 'v_{max} = \\sqrt{2g\\ell(1 - \\cos\\theta_0)}'), Nn('v_{max}', v, 'm/s'), Nn('T', T, 'N')],
+    corr: `<p>La tension est perpendiculaire à la vitesse : elle ne travaille pas, \\(E_m\\) se conserve. Avec \\(z = -\\ell\\cos\\theta\\) : \\(E_p = -mg\\ell\\cos\\theta\\).</p><p>\\(-mg\\ell\\cos\\theta_0 = \\tfrac12 mv_{max}^2 - mg\\ell\\) donc \\(v_{max} = \\sqrt{2g\\ell(1 - \\cos\\theta_0)} = ${Q(v, 'm/s')}\\).</p><p>Au point bas, PFD projeté sur \\(\\vec u_r\\) (vers O, accélération centripète \\(v^2/\\ell\\)) : \\(T - mg = m\\dfrac{v_{max}^2}{\\ell}\\), donc \\(T = mg(3 - 2\\cos\\theta_0) = ${Q(T, 'N')}\\).</p>` };
+};
+
+GEN.pot = (d, g) => {
+  if (d === 0) {
+    const k = g.pick([10, 20, 50, 100]), F = g.pick([1, 2, 5, 10]), xe = F / k;
+    return { title: 'Position d\'équilibre', q: `<p>Une particule se déplace sur un axe Ox avec l'énergie potentielle \\(E_p(x) = \\tfrac12 kx^2 - Fx\\), où \\(k = ${k}\\ \\mathrm{N\\cdot m^{-1}}\\) et \\(F = ${F}\\ \\mathrm{N}\\). Donner la position d'équilibre, sa nature, et la force qui s'exerce sur la particule en \\(x = 0\\).</p>`,
+      items: [Nn('x_e', xe, 'm'), Ch('Équilibre', [['s', 'stable'], ['i', 'instable']], 's'), Nn('F_x(0)', F, 'N')],
+      corr: `<p>\\(F_x = -\\dfrac{dE_p}{dx} = -kx + F\\). Équilibre : \\(F_x = 0\\), soit \\(x_e = \\dfrac{F}{k} = ${Q(xe, 'm')}\\).</p><p>\\(\\dfrac{d^2E_p}{dx^2} = k > 0\\) : minimum de \\(E_p\\), équilibre <b>stable</b>.</p><p>\\(F_x(0) = ${F}\\ \\mathrm{N}\\) (la particule est poussée vers \\(x_e\\)).</p>` };
+  }
+  if (d === 1) {
+    const a = g.pick([1, 2, 3]), b = g.pick([3, 6, 12, 27]), x = Math.sqrt(b / (3 * a));
+    return { title: 'Deux positions d\'équilibre', q: `<p>Une particule sur un axe Ox a l'énergie potentielle \\(E_p(x) = ${a === 1 ? '' : a}x^3 - ${b}x\\) (en J, \\(x\\) en m). Trouver la position d'équilibre stable et la position d'équilibre instable.</p>`,
+      items: [Nn('x_{stable}', x, 'm'), Nn('x_{instable}', -x, 'm')],
+      corr: `<p>\\(E_p'(x) = ${3 * a}x^2 - ${b} = 0\\) pour \\(x = \\pm\\sqrt{\\dfrac{${b}}{${3 * a}}} = \\pm${tN(x)}\\ \\mathrm{m}\\).</p><p>\\(E_p''(x) = ${6 * a}x\\) : positive en \\(x = +${tN(x)}\\) (minimum, <b>stable</b>), négative en \\(x = -${tN(x)}\\) (maximum, <b>instable</b>).</p>` };
+  }
+  const A = g.pick([1, 2, 3, 4]), B = g.pick([1, 2, 4]), r0 = 2 * A / B, E0 = -B * B / (4 * A);
+  return { title: 'Puits de potentiel', q: `<p>Une particule soumise à une force centrale a l'énergie potentielle \\(E_p(r) = \\dfrac{A}{r^2} - \\dfrac{B}{r}\\) avec \\(A = ${A}\\ \\mathrm{J\\cdot m^2}\\) et \\(B = ${B}\\ \\mathrm{J\\cdot m}\\). Exprimer et calculer la distance d'équilibre \\(r_0\\), calculer \\(E_p(r_0)\\), et donner la nature de l'équilibre.</p>`,
+    items: [Ex('r_0', ['A', 'B'], v => 2 * v.A / v.B, 'r_0 = \\dfrac{2A}{B}'), Nn('r_0', r0, 'm'), Nn('E_p(r_0)', E0, 'J'), Ch('Équilibre', [['s', 'stable'], ['i', 'instable']], 's')],
+    corr: `<p>\\(\\dfrac{dE_p}{dr} = -\\dfrac{2A}{r^3} + \\dfrac{B}{r^2} = 0 \\Rightarrow r_0 = \\dfrac{2A}{B} = ${Q(r0, 'm')}\\).</p><p>\\(E_p(r_0) = \\dfrac{A}{r_0^2} - \\dfrac{B}{r_0} = -\\dfrac{B^2}{4A} = ${Q(E0, 'J')}\\).</p><p>\\(\\dfrac{d^2E_p}{dr^2}(r_0) = \\dfrac{6A}{r_0^4} - \\dfrac{2B}{r_0^3} = \\dfrac{2A}{r_0^4} > 0\\) : minimum, équilibre <b>stable</b> (puits de potentiel). Une particule d'énergie \\(E_m < 0\\) reste piégée entre deux distances.</p>` };
+};
+
+GEN.oh = (d, g) => {
+  const m = g.pick([0.1, 0.2, 0.25, 0.5]), k = g.pick([10, 20, 40, 50, 100]), w0 = Math.sqrt(k / m), T0 = 2 * Math.PI / w0;
+  if (d === 0) {
+    const l = g.pick([0.25, 0.5, 1, 2]), Tp = 2 * Math.PI * Math.sqrt(l / gE);
+    return { title: 'Pulsation et période propres', q: `<p>1) Une masse \\(m = ${Q(m, 'kg')}\\) est accrochée à un ressort horizontal de raideur \\(k = ${k}\\ \\mathrm{N\\cdot m^{-1}}\\), sans frottement. Calculer la pulsation propre et la période propre.</p><p>2) Calculer la période des petites oscillations d'un pendule simple de longueur \\(\\ell = ${Q(l, 'm')}\\).</p>`,
+      items: [Nn('\\omega_0', w0, 'rad/s'), Nn('T_0', T0, 's'), Nn('T_{pendule}', Tp, 's')],
+      corr: `<p>PFD : \\(m\\ddot x = -kx\\), soit \\(\\ddot x + \\omega_0^2 x = 0\\) avec \\(\\omega_0 = \\sqrt{\\dfrac km} = ${Q(w0, 'rad/s')}\\) et \\(T_0 = \\dfrac{2\\pi}{\\omega_0} = ${Q(T0, 's')}\\).</p><p>Pendule, petits angles (\\(\\sin\\theta \\approx \\theta\\)) : \\(\\ddot\\theta + \\dfrac{g}{\\ell}\\theta = 0\\), donc \\(T = 2\\pi\\sqrt{\\dfrac{\\ell}{g}} = ${Q(Tp, 's')}\\) (indépendante de la masse).</p>` };
+  }
+  if (d === 1) {
+    const x0 = g.pick([0.02, 0.05, 0.1]), v0 = g.pick([0.1, 0.2, 0.5]), X = Math.hypot(x0, v0 / w0), vm = w0 * X, Em = 0.5 * k * X * X;
+    return { title: 'Amplitude et énergie', q: `<p>Un oscillateur (masse \\(m = ${Q(m, 'kg')}\\), ressort \\(k = ${k}\\ \\mathrm{N\\cdot m^{-1}}\\), sans frottement) est écarté de \\(x_0 = ${tN(x0 * 100)}\\ \\mathrm{cm}\\) et lancé avec la vitesse \\(v_0 = ${Q(v0, 'm/s')}\\). Calculer l'amplitude \\(X_m\\) du mouvement, la vitesse maximale et l'énergie mécanique.</p>`,
+      items: [Nn('X_m', X, 'm'), Nn('v_{max}', vm, 'm/s'), Nn('E_m', Em, 'J')],
+      corr: `<p>\\(x(t) = x_0\\cos\\omega_0 t + \\dfrac{v_0}{\\omega_0}\\sin\\omega_0 t = X_m\\cos(\\omega_0 t + \\varphi)\\) avec \\(\\omega_0 = ${Q(w0, 'rad/s')}\\).</p><p>\\(X_m = \\sqrt{x_0^2 + \\left(\\dfrac{v_0}{\\omega_0}\\right)^2} = ${Q(X, 'm')}\\) ; \\(v_{max} = \\omega_0 X_m = ${Q(vm, 'm/s')}\\).</p><p>\\(E_m = \\tfrac12 kX_m^2 = \\tfrac12 mv_{max}^2 = ${Q(Em, 'J')}\\) (constante : l'oscillateur est conservatif).</p>` };
+  }
+  const H = g.pick([4, 5, 6]) / 100, rb = g.pick([0.5, 0.6, 0.7, 0.8]), h = H * rb, T = 2 * Math.PI * Math.sqrt(h / gE);
+  return { title: 'Oscillations d\'un bouchon', q: `<p>Un bouchon cylindrique de hauteur \\(H = ${tN(H * 100)}\\ \\mathrm{cm}\\) et de masse volumique \\(\\rho_b = ${tN(rb)}\\ \\mathrm{kg/L}\\) flotte verticalement dans l'eau (\\(\\rho_e = 1\\ \\mathrm{kg/L}\\)). Calculer la hauteur immergée \\(h\\) à l'équilibre, puis la période des petites oscillations verticales (viscosité négligée). Exprimer aussi la période d'un pendule simple.</p>`,
+    items: [Nn('h', h, 'm'), Nn('T', T, 's'), Ex('T_0', ['l', 'g'], v => 2 * Math.PI * Math.sqrt(v.l / v.g), 'T_0 = 2\\pi\\sqrt{\\dfrac{\\ell}{g}}')],
+    corr: `<p>Équilibre (section S) : poids \\(\\rho_b S H g\\) = poussée d'Archimède \\(\\rho_e S h g\\), donc \\(h = \\dfrac{\\rho_b}{\\rho_e}H = ${Q(h, 'm')}\\).</p><p>Si le bouchon s'enfonce de \\(z\\) en plus : \\(m\\ddot z = -\\rho_e S g\\,z\\) avec \\(m = \\rho_e S h\\), soit \\(\\ddot z + \\dfrac{g}{h}z = 0\\). Donc \\(T = 2\\pi\\sqrt{\\dfrac hg} = ${Q(T, 's')}\\).</p><p>Pendule simple : \\(T_0 = 2\\pi\\sqrt{\\dfrac{\\ell}{g}}\\).</p>` };
+};
+
+GEN.amorti = (d, g) => {
+  const m = g.pick([0.25, 0.5, 1, 2]), w0 = g.pick([2, 4, 5, 10]), k = m * w0 * w0;
+  const eq = '<p>PFD : \\(m\\ddot x = -kx - \\alpha\\dot x\\), soit \\(\\ddot x + 2\\lambda\\dot x + \\omega_0^2 x = 0\\) avec \\(\\lambda = \\dfrac{\\alpha}{2m}\\) et \\(\\omega_0 = \\sqrt{\\dfrac km}\\). Équation caractéristique \\(r^2 + 2\\lambda r + \\omega_0^2 = 0\\), discriminant réduit \\(\\Delta\' = \\lambda^2 - \\omega_0^2\\).</p>';
+  if (d === 0) {
+    const reg = g.pick(['p', 'p', 'a', 'c']), ratio = reg === 'p' ? g.pick([0.1, 0.2, 0.25, 0.5]) : reg === 'a' ? g.pick([2, 2.5]) : 1, lam = ratio * w0, al = 2 * m * lam;
+    return { title: 'Régimes d\'un oscillateur amorti', q: `<p>Une masse \\(m = ${Q(m, 'kg')}\\) est accrochée à un ressort de raideur \\(k = ${tN(k)}\\ \\mathrm{N\\cdot m^{-1}}\\) et soumise à un frottement \\(-\\alpha\\dot x\\) avec \\(\\alpha = ${Q(al, 'kg/s')}\\). Calculer \\(\\omega_0\\), le coefficient d'amortissement \\(\\lambda\\), et donner le régime.</p>`,
+      items: [Nn('\\omega_0', w0, 'rad/s'), Nn('\\lambda', lam, 's⁻¹'), Ch('Régime', [['p', 'pseudo-périodique'], ['c', 'critique'], ['a', 'apériodique']], reg)],
+      corr: eq + `<p>\\(\\omega_0 = ${Q(w0, 'rad/s')}\\), \\(\\lambda = ${Q(lam, 's⁻¹')}\\).</p><p>${reg === 'p' ? '\\(\\lambda < \\omega_0\\) : racines complexes, régime <b>pseudo-périodique</b> (oscillations dans une enveloppe \\(e^{-\\lambda t}\\)).' : reg === 'c' ? '\\(\\lambda = \\omega_0\\) : racine double, régime <b>critique</b> (retour le plus rapide sans oscillation).' : '\\(\\lambda > \\omega_0\\) : deux racines réelles négatives, régime <b>apériodique</b> (pas d\'oscillation).'}</p>` };
+  }
+  const ratio = g.pick([0.05, 0.1, 0.2, 0.25]), lam = ratio * w0, al = 2 * m * lam, w = Math.sqrt(w0 * w0 - lam * lam), T = 2 * Math.PI / w, Qf = w0 / (2 * lam), dl = lam * T, th = Math.log(2) / lam;
+  if (d === 1) return { title: 'Pseudo-période et facteur de qualité', q: `<p>Un oscillateur amorti vérifie \\(\\ddot x + 2\\lambda\\dot x + \\omega_0^2x = 0\\) avec \\(\\omega_0 = ${Q(w0, 'rad/s')}\\) et \\(\\lambda = ${Q(lam, 's⁻¹')}\\). Calculer la pseudo-période \\(T\\), le facteur de qualité \\(Q\\) et le décrément logarithmique \\(\\delta\\).</p>`,
+    items: [Nn('T', T, 's'), Nn('Q', Qf, ''), Nn('\\delta', dl, '')],
+    corr: `<p>\\(\\lambda < \\omega_0\\) : régime pseudo-périodique, \\(x(t) = Ae^{-\\lambda t}\\cos(\\omega t + \\varphi)\\) avec la pseudo-pulsation \\(\\omega = \\sqrt{\\omega_0^2 - \\lambda^2}\\).</p><p>\\(T = \\dfrac{2\\pi}{\\sqrt{\\omega_0^2 - \\lambda^2}} = ${Q(T, 's')}\\) (un peu plus grande que \\(T_0 = ${Q(2 * Math.PI / w0, 's')}\\)).</p><p>\\(Q = \\dfrac{\\omega_0}{2\\lambda} = ${tN(Qf)}\\) ; \\(\\delta = \\ln\\dfrac{x(t)}{x(t+T)} = \\lambda T = ${tN(dl)}\\).</p>` };
+  return { title: 'Oscillateur amorti : expressions', q: `<p>Une masse \\(m\\) accrochée à un ressort subit un frottement \\(-\\alpha\\dot x\\). Exprimer \\(\\lambda\\) en fonction de \\(\\alpha\\) et \\(m\\), puis la pseudo-pulsation \\(\\omega\\) en fonction de \\(\\omega_0\\) et \\(\\lambda\\). A.N. avec \\(m = ${Q(m, 'kg')}\\), \\(\\alpha = ${Q(al, 'kg/s')}\\) : au bout de combien de temps l'amplitude des oscillations est-elle divisée par 2 ?</p>`,
+    items: [Ex('\\lambda', ['alpha', 'm'], v => v.alpha / (2 * v.m), '\\lambda = \\dfrac{\\alpha}{2m}'), Ex('\\omega', ['w0', 'lambda'], v => Math.sqrt(v.w0 ** 2 - v.lambda ** 2), '\\omega = \\sqrt{\\omega_0^2 - \\lambda^2}'), Nn('t_{1/2}', th, 's')],
+    corr: eq + `<p>L'amplitude décroît comme \\(e^{-\\lambda t}\\) : divisée par 2 quand \\(\\lambda t = \\ln 2\\), soit \\(t_{1/2} = \\dfrac{\\ln 2}{\\lambda}\\) avec \\(\\lambda = \\dfrac{\\alpha}{2m} = ${Q(lam, 's⁻¹')}\\) : \\(t_{1/2} = ${Q(th, 's')}\\).</p>` };
+};
+
+GEN.force = (d, g) => {
+  const w0 = g.pick([2, 4, 5, 10]);
+  const A = '<p>En régime permanent, \\(x(t) = A(\\omega)\\cos(\\omega t + \\varphi)\\) avec</p>\\[A(\\omega) = \\frac{F_0/m}{\\sqrt{(\\omega_0^2 - \\omega^2)^2 + 4\\lambda^2\\omega^2}}\\]<p>Le maximum (résonance d\'amplitude) est atteint pour \\(\\omega_r = \\sqrt{\\omega_0^2 - 2\\lambda^2}\\), qui n\'existe que si \\(\\lambda < \\dfrac{\\omega_0}{\\sqrt2}\\), c\'est-à-dire \\(Q > \\dfrac{1}{\\sqrt 2}\\).</p>';
+  const st = (lam, extra) => `<p>Un oscillateur amorti (\\(\\omega_0 = ${Q(w0, 'rad/s')}\\), \\(\\lambda = ${Q(lam, 's⁻¹')}\\)) est soumis à une force \\(F_0\\cos\\omega t\\) : \\(\\ddot x + 2\\lambda\\dot x + \\omega_0^2 x = \\dfrac{F_0}{m}\\cos\\omega t\\).${extra || ''}</p>`;
+  if (d === 0) {
+    const ratio = g.pick([0.1, 0.2, 0.3, 0.5, 0.8, 1]), lam = ratio * w0, Qf = w0 / (2 * lam), yes = ratio < Math.SQRT1_2;
+    return { title: 'Y a-t-il résonance ?', q: st(lam) + '<p>Calculer le facteur de qualité \\(Q\\). Y a-t-il une résonance d\'amplitude ?</p>',
+      items: [Nn('Q', Qf, ''), Ch('Résonance d\'amplitude', [['o', 'oui'], ['n', 'non']], yes ? 'o' : 'n')],
+      corr: A + `<p>\\(Q = \\dfrac{\\omega_0}{2\\lambda} = ${tN(Qf)}\\) ${yes ? '&gt;' : '&le;'} \\(\\dfrac{1}{\\sqrt2} \\approx 0{,}71\\) : ${yes ? `résonance en \\(\\omega_r = ${Q(Math.sqrt(w0 * w0 - 2 * lam * lam), 'rad/s')}\\)` : 'pas de résonance, l\'amplitude décroît quand \\(\\omega\\) augmente'}.</p>` };
+  }
+  const lam = g.pick([0.1, 0.2, 0.3]) * w0, f = g.pick([1, 2, 5]), wr = Math.sqrt(w0 * w0 - 2 * lam * lam);
+  if (d === 1) {
+    const w = w0 * g.pick([0.5, 1, 2]), Aw = f / Math.sqrt((w0 * w0 - w * w) ** 2 + 4 * lam * lam * w * w);
+    return { title: 'Amplitude en régime forcé', q: st(lam, ` On donne \\(F_0/m = ${f}\\ \\mathrm{N\\cdot kg^{-1}}\\).`) + `<p>Calculer la pulsation de résonance \\(\\omega_r\\), puis l'amplitude \\(A\\) pour \\(\\omega = ${tN(w)}\\ \\mathrm{rad\\cdot s^{-1}}\\).</p>`,
+      items: [Nn('\\omega_r', wr, 'rad/s'), Nn('A', Aw, 'm')],
+      corr: A + `<p>\\(\\omega_r = ${Q(wr, 'rad/s')}\\) ; \\(A(${tN(w)}) = ${Q(Aw, 'm')}\\).</p>` };
+  }
+  const Amax = f / (2 * lam * Math.sqrt(w0 * w0 - lam * lam));
+  return { title: 'Résonance : expressions', q: st(lam, ` On donne \\(F_0/m = ${f}\\ \\mathrm{N\\cdot kg^{-1}}\\).`) + '<p>Exprimer la pulsation de résonance en fonction de \\(\\omega_0\\) et \\(\\lambda\\), puis calculer l\'amplitude maximale et le facteur de qualité.</p>',
+    items: [Ex('\\omega_r', ['w0', 'lambda'], v => Math.sqrt(v.w0 ** 2 - 2 * v.lambda ** 2), '\\omega_r = \\sqrt{\\omega_0^2 - 2\\lambda^2}'), Nn('A_{max}', Amax, 'm'), Nn('Q', w0 / (2 * lam), '')],
+    corr: A + `<p>En remplaçant \\(\\omega = \\omega_r\\) : \\(A_{max} = \\dfrac{F_0/m}{2\\lambda\\sqrt{\\omega_0^2 - \\lambda^2}} = ${Q(Amax, 'm')}\\). \\(Q = \\dfrac{\\omega_0}{2\\lambda} = ${tN(w0 / (2 * lam))}\\) : plus \\(Q\\) est grand, plus le pic est haut et étroit.</p>` };
+};
+
+const GM_T = 6.67e-11 * 5.97e24, R_T = 6.37e6;
+GEN.moment = (d, g) => {
+  if (d === 0) {
+    const m = g.pick([0.2, 0.5, 1]), r = g.pick([0.5, 1, 1.5, 2]), v = g.pick([2, 3, 4]), L = m * r * v, r1 = 147.1e9, r2 = 152.1e9, v1 = 30.29e3, v2 = r1 * v1 / r2;
+    return { title: 'Moment cinétique', q: `<p>1) Une bille de masse \\(m = ${Q(m, 'kg')}\\) tourne en cercle de rayon \\(r = ${Q(r, 'm')}\\) autour de O à la vitesse \\(v = ${Q(v, 'm/s')}\\). Calculer la norme de son moment cinétique par rapport à O et donner sa direction.</p><p>2) La Terre passe au périhélie à \\(r_P = 147{,}1\\times10^6\\ \\mathrm{km}\\) du Soleil avec \\(v_P = 30{,}29\\ \\mathrm{km\\cdot s^{-1}}\\), et à l'aphélie à \\(r_A = 152{,}1\\times10^6\\ \\mathrm{km}\\). Calculer sa vitesse \\(v_A\\) à l'aphélie.</p>`,
+      items: [Nn('L_O', L, 'kg·m²/s'), Ch('\\(\\vec L_O\\) est', [['p', 'perpendiculaire au plan du mouvement'], ['t', 'tangent à la trajectoire'], ['r', 'dirigé vers O']], 'p'), Nn('v_A', v2, 'm/s')],
+      corr: `<p>\\(\\vec L_O = \\vec{OM}\\wedge m\\vec v\\) ; pour un cercle, \\(\\vec{OM} \\perp \\vec v\\) : \\(L_O = mrv = ${Q(L, 'kg·m²/s')}\\), perpendiculaire au plan du mouvement.</p><p>La force de gravitation est centrale : \\(\\vec L_O\\) se conserve. Au périhélie et à l'aphélie, \\(\\vec v \\perp \\vec{OM}\\), donc \\(m r_P v_P = m r_A v_A\\) : \\(v_A = \\dfrac{r_P v_P}{r_A} = ${Q(v2 / 1000, '')}\\ \\mathrm{km\\cdot s^{-1}}\\).</p>` };
+  }
+  if (d === 1) {
+    const m = g.pick([0.1, 0.2, 0.5]), l = g.pick([0.5, 1, 2]), th = g.pick([10, 20, 30]), M = m * gE * l * sinD(th);
+    return { title: 'Théorème du moment cinétique : pendule', q: `<p>Un pendule simple (masse \\(m = ${Q(m, 'kg')}\\), longueur \\(\\ell = ${Q(l, 'm')}\\)) fait l'angle \\(\\theta = ${th}^\\circ\\) avec la verticale. Calculer la norme du moment du poids par rapport au point d'attache O, donner le moment de la tension, et l'équation du mouvement donnée par le théorème du moment cinétique.</p>`,
+      items: [Nn('|\\mathcal M_O(\\vec P)|', M, 'N·m'), Ch('Moment de la tension \\(\\mathcal M_O(\\vec T)\\)', [['0', 'nul'], ['t', '\\(T\\ell\\)'], ['m', '\\(mg\\ell\\)']], '0'), Ch('Équation du mouvement', [['a', '\\(\\ddot\\theta + \\frac{g}{\\ell}\\sin\\theta = 0\\)'], ['b', '\\(\\ddot\\theta + \\frac{\\ell}{g}\\sin\\theta = 0\\)'], ['c', '\\(\\ddot\\theta - \\frac{g}{\\ell}\\sin\\theta = 0\\)'], ['d', '\\(\\ddot\\theta + g\\ell\\sin\\theta = 0\\)']], 'a')],
+      corr: `<p>\\(L_O = m\\ell^2\\dot\\theta\\) (selon \\(\\vec u_z\\)). Le moment du poids vaut \\(-mg\\ell\\sin\\theta\\,\\vec u_z\\) : norme \\(${Q(M, 'N·m')}\\). La tension passe par O : son moment est <b>nul</b>.</p><p>TMC : \\(\\dfrac{dL_O}{dt} = m\\ell^2\\ddot\\theta = -mg\\ell\\sin\\theta\\), soit \\(\\ddot\\theta + \\dfrac{g}{\\ell}\\sin\\theta = 0\\) (même équation que par le PFD ou l'énergie).</p>` };
+  }
+  const v0 = g.pick([10, 20, 30, 40]) * 1e3, b = R_T * Math.sqrt(1 + 2 * GM_T / (R_T * v0 * v0));
+  return { title: 'Météorite déviée par la Terre', q: `<p>Très loin de la Terre, une météorite a une vitesse \\(v_0 = ${v0 / 1000}\\ \\mathrm{km\\cdot s^{-1}}\\) portée par une droite passant à la distance \\(b\\) du centre O de la Terre (paramètre d'impact). Elle passe au plus près de O à la distance \\(r_m\\). En utilisant la conservation du moment cinétique et de l'énergie, exprimer la valeur \\(b_{lim}\\) de \\(b\\) en dessous de laquelle elle touche la Terre (\\(r_m = R\\)), puis la calculer.</p><p>Données : \\(G = 6{,}67\\times10^{-11}\\ \\mathrm{SI}\\), \\(M = 5{,}97\\times10^{24}\\ \\mathrm{kg}\\), \\(R = 6{,}37\\times10^{6}\\ \\mathrm{m}\\).</p>`,
+    items: [Ex('b_{lim}', ['R', 'G', 'M', 'v0'], v => v.R * Math.sqrt(1 + 2 * v.G * v.M / (v.R * v.v0 ** 2)), 'b_{lim} = R\\sqrt{1 + \\dfrac{2GM}{Rv_0^2}}'), Nn('b_{lim}', b, 'm')],
+    corr: `<p>Force centrale conservative : \\(L_O\\) et \\(E_m\\) se conservent. Au point le plus proche, \\(\\vec v_m \\perp \\vec{OM}\\).</p><p>\\(L_O\\) : \\(m b v_0 = m r_m v_m\\). \\(E_m\\) : \\(\\tfrac12 mv_0^2 = \\tfrac12 mv_m^2 - \\dfrac{GMm}{r_m}\\).</p><p>Avec \\(r_m = R\\) : \\(v_m = \\dfrac{bv_0}{R}\\), d'où \\(b_{lim} = R\\sqrt{1 + \\dfrac{2GM}{Rv_0^2}} = ${Q(b, 'm')}\\) (\\(\\approx ${tN(b / 1000)}\\ \\mathrm{km}\\), un peu plus que le rayon terrestre).</p>` };
+};
+
+const PLANETS = [['la Terre', 5.97e24, 6.37e6], ['Mars', 6.42e23, 3.39e6], ['la Lune', 7.35e22, 1.74e6]];
+GEN.kepler = (d, g) => {
+  const Gc = 6.67e-11;
+  const meth = '<p>Orbite circulaire de rayon \\(r\\) : le PFD projeté sur \\(\\vec u_r\\) donne \\(m\\dfrac{v^2}{r} = \\dfrac{GMm}{r^2}\\), donc \\(v = \\sqrt{\\dfrac{GM}{r}}\\) (mouvement uniforme). Période : \\(T = \\dfrac{2\\pi r}{v}\\), d\'où la 3<sup>e</sup> loi de Kepler \\(\\dfrac{T^2}{r^3} = \\dfrac{4\\pi^2}{GM}\\).</p>';
+  const data = '\\(G = 6{,}67\\times10^{-11}\\ \\mathrm{SI}\\), \\(M_T = 5{,}97\\times10^{24}\\ \\mathrm{kg}\\), \\(R_T = 6{,}37\\times10^{6}\\ \\mathrm{m}\\)';
+  if (d === 0) {
+    const h = g.pick([300, 400, 600, 800, 1000]) * 1e3, r = R_T + h, v = Math.sqrt(GM_T / r), T = 2 * Math.PI * r / v;
+    return { title: 'Satellite en orbite basse', q: `<p>Un satellite décrit une orbite circulaire à l'altitude \\(h = ${h / 1000}\\ \\mathrm{km}\\) autour de la Terre. Calculer sa vitesse et sa période. Données : ${data}.</p>`,
+      items: [Nn('v', v, 'm/s'), Nn('T', T, 's')], corr: meth + `<p>\\(r = R_T + h = ${Q(r, 'm')}\\) ; \\(v = ${Q(v, 'm/s')}\\) ; \\(T = ${Q(T, 's')} \\approx ${tN(T / 60)}\\ \\mathrm{min}\\).</p><p class="fine">Piège : \\(r\\) se mesure depuis le centre de la Terre, pas depuis le sol.</p>` };
+  }
+  if (d === 1) {
+    const c = g.pick([[86164, 'géostationnaire (\\(T = 23\\ \\mathrm{h}\\ 56\\ \\mathrm{min}\\))'], [43082, 'GPS (\\(T = 11\\ \\mathrm{h}\\ 58\\ \\mathrm{min}\\))'], [7200, 'de période \\(T = 2\\ \\mathrm{h}\\)']]);
+    const r = Math.cbrt(GM_T * c[0] ** 2 / (4 * Math.PI ** 2)), h = r - R_T;
+    return { title: 'Troisième loi de Kepler', q: `<p>Calculer le rayon de l'orbite circulaire d'un satellite ${c[1]}, puis son altitude. Données : ${data}.</p>`,
+      items: [Nn('r', r, 'm'), Nn('h', h, 'm')], corr: meth + `<p>\\(r = \\left(\\dfrac{GM_T T^2}{4\\pi^2}\\right)^{1/3} = ${Q(r, 'm')}\\) et \\(h = r - R_T = ${Q(h, 'm')}\\) (\\(\\approx ${tN(h / 1000)}\\ \\mathrm{km}\\)).</p>` };
+  }
+  const p = g.pick(PLANETS), vl = Math.sqrt(2 * Gc * p[1] / p[2]);
+  return { title: 'Vitesse de libération et énergie', q: `<p>Exprimer la vitesse d'un satellite en orbite circulaire de rayon \\(r\\) autour d'un astre de masse \\(M\\), puis son énergie mécanique (masse \\(m\\)). Calculer la vitesse de libération à la surface de ${p[0]} (\\(M = ${tN(p[1])}\\ \\mathrm{kg}\\), \\(R = ${tN(p[2])}\\ \\mathrm{m}\\), \\(G = 6{,}67\\times10^{-11}\\ \\mathrm{SI}\\)).</p>`,
+    items: [Ex('v', ['G', 'M', 'r'], v => Math.sqrt(v.G * v.M / v.r), 'v = \\sqrt{\\dfrac{GM}{r}}'), Ex('E_m', ['G', 'M', 'm', 'r'], v => -v.G * v.M * v.m / (2 * v.r), 'E_m = -\\dfrac{GMm}{2r}'), Nn('v_{lib}', vl, 'm/s')],
+    corr: meth + `<p>\\(E_m = \\tfrac12 mv^2 - \\dfrac{GMm}{r} = \\dfrac{GMm}{2r} - \\dfrac{GMm}{r} = -\\dfrac{GMm}{2r}\\) (négative : état lié).</p><p>Pour s'échapper, il faut \\(E_m \\ge 0\\) : \\(\\tfrac12 mv^2 - \\dfrac{GMm}{R} \\ge 0\\), donc \\(v_{lib} = \\sqrt{\\dfrac{2GM}{R}} = ${Q(vl, 'm/s')}\\) (\\(\\sqrt2\\) fois la vitesse en orbite rasante).</p>` };
+};
+
+/* =====================================================================
+   VÉRIFICATION
+   ===================================================================== */
+function check(it, raw) {
+  raw = raw == null ? '' : String(raw);
+  if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
+  if (it.type === 'expr') { const r = checkExpr(raw, it); if (r.st === 'sign') return { st: 'bad', msg: 'au signe près : vérifie l\'orientation.' }; return r; }
+  const q = parseNum(raw, it.unit);
+  if (q.err !== undefined) return { st: q.err === '' ? 'empty' : 'err', msg: q.err };
+  const tol = Math.max((it.tol || 0.02) * Math.abs(it.val), 1e-9);
+  if (Math.abs(q.v - it.val) <= tol) return { st: 'ok' };
+  if (Math.abs(q.v + it.val) <= tol) return { st: 'bad', msg: 'attention au signe.' };
+  const ratio = q.v / it.val;
+  if (it.val && [1e3, 1e-3, 1e2, 1e-2, 1e6, 1e-6].some(f => Math.abs(ratio / f - 1) < 0.02)) return { st: 'bad', msg: 'bon nombre, mauvaise puissance de 10 : vérifie les unités.' };
+  return { st: 'bad' };
+}
+const PILL = { ok: '<span class="pill ok">Juste</span>', bad: '<span class="pill bad">Faux</span>', err: '<span class="pill bad">Illisible</span>', empty: '<span class="pill part">Vide</span>' };
+const fbHTML = r => PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '');
+function itemHTML(it, id, val) {
+  if (it.type === 'choice') return `<div class="it full" data-id="${id}"><span class="it-lab w">${it.lab}</span><div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${o.t}</span></label>`).join('')}</div><div class="fb"></div></div>`;
+  const lab = `<span class="it-lab">${tx(it.lab + ' =')}</span>`;
+  if (it.type === 'expr') return `<div class="it ex-expr" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" data-expr="1" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="formule" value="${esc(val || '')}"></div><div class="vh">${varsHint(it.vars)}</div><div class="pv" data-pv="${id}"></div><div class="fb"></div></div>`;
+  return `<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="valeur" value="${esc(val || '')}">${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div><div class="fb"></div></div>`;
+}
+const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); if (r) return r.value; const t = $(`input[type=text][data-id="${id}"]`, root); return t ? t.value : ''; };
+function preview(inp) {
+  const pv = $(`[data-pv="${inp.dataset.id}"]`); if (!pv) return;
+  const it = findItem(inp.dataset.id); if (!it) return;
+  if (!inp.value.trim()) { pv.innerHTML = ''; return; }
+  const P = parseF(inp.value, it.vars, false);
+  pv.innerHTML = P.err !== undefined ? '<span class="fine">' + esc(P.err) + '</span>' : 'lu : ' + tx(texF(P.ast));
+}
+const HELP = '<p class="fine" style="margin-top:12px">Formules : tape par exemple <code>sqrt(2*g*h)</code>, <code>v0^2*sin(2*alpha)/g</code>, <code>m*g/alpha</code>. Fonctions : <code>sqrt</code>, <code>sin</code>, <code>cos</code>, <code>tan</code>, <code>exp</code>, <code>ln</code>, <code>pi</code>. Mets des parenthèses en cas de doute : l\'aperçu montre comment ta formule est lue. Valeurs : virgule ou point, puissances de 10 en <code>4,2e-3</code> ; l\'unité est facultative (tu peux en écrire une autre, comme km/h ou min).</p>';
+
+/* =====================================================================
+   COMPÉTENCES ET PROGRESSION (mêmes règles que les autres matières)
+   ===================================================================== */
+const PK = 'phys.path.v1', HK = 'phys.hist.v1', EK = 'phys.exam.v1', VAL = 100, MMAX = 130;
+const CH = ['Rappels de cinématique', 'Dynamique : le PFD', 'Énergie', 'Oscillateurs', 'Moment cinétique et gravitation'];
+const SK = [
+  { id: 'polar', ch: 0, name: 'Vitesse et accélération en polaires', fiche: 0 },
+  { id: 'chute', ch: 0, name: 'Tir dans le champ de pesanteur', fiche: 0 },
+  { id: 'plan', ch: 1, name: 'PFD sur un plan incliné (frottement solide)', fiche: 1 },
+  { id: 'visq', ch: 1, name: 'Frottement fluide, vitesse limite', fiche: 1 },
+  { id: 'inert', ch: 1, name: 'Référentiels non galiléens', fiche: 2 },
+  { id: 'choc', ch: 1, name: 'Quantité de mouvement et chocs', fiche: 3 },
+  { id: 'travail', ch: 2, name: 'Travail d\'une force', fiche: 4 },
+  { id: 'tec', ch: 2, name: 'Théorème de l\'énergie cinétique', fiche: 4 },
+  { id: 'pot', ch: 2, name: 'Énergie potentielle, équilibre, stabilité', fiche: 5 },
+  { id: 'oh', ch: 3, name: 'Oscillateur harmonique', fiche: 6 },
+  { id: 'amorti', ch: 3, name: 'Oscillateur amorti : régimes', fiche: 6 },
+  { id: 'force', ch: 3, name: 'Oscillations forcées, résonance', fiche: 6 },
+  { id: 'moment', ch: 4, name: 'Moment cinétique', fiche: 7 },
+  { id: 'kepler', ch: 4, name: 'Orbites, lois de Kepler', fiche: 7 }
+];
+const skById = id => SK.find(k => k.id === id);
+function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
+function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false }); }
+const isVal = s => s.m >= VAL, levelOf = s => s.m < 40 ? 0 : s.m < 80 ? 1 : 2;
+const frontier = P => SK.find(k => !isVal(skS(P, k.id))) || null;
+function pickNext(P) {
+  const f = frontier(P), pool = SK.filter(k => k !== f && skS(P, k.id).ever);
+  const rev = pool.length >= 2 && (P.since >= 6 || (P.since >= 3 && Math.random() < 0.35));
+  if (f && !rev) return { k: f, review: false };
+  if (!pool.length) return f ? { k: f, review: false } : null;
+  const now = Date.now(), W = pool.map(k => { const s = skS(P, k.id); return [k, (MMAX + 20 - s.m) * (1 + Math.min(3, (now - s.last) / 864e5))]; });
+  let r = Math.random() * W.reduce((a, w) => a + w[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) return { k, review: true }; }
+  return { k: W[0][0], review: true };
+}
+function build(id, d, seed) { const ex = GEN[id](d, G(rng(seed))); ex.items.forEach((it, i) => { it.id = `${id}-${seed}-${i}`; }); return ex; }
+
+let CUR = null, EXAM = null;
+function findItem(id) {
+  if (CUR && CUR.ex) { const it = CUR.ex.items.find(x => x.id === id); if (it) return it; }
+  if (EXAM && EXAM.exs) for (const ex of EXAM.exs) for (const p of ex.parts) { const it = p.items.find(x => x.id === id); if (it) return it; }
+  return null;
+}
+function exHTML(ex) {
+  return `<article class="card ex"><h2>${esc(ex.title)}</h2><div class="q">${ex.q}</div>
+    <div class="items">${ex.items.map(it => itemHTML(it, it.id, (CUR && CUR.ans[it.id]) || '')).join('')}</div>
+    ${ex.items.some(it => it.type === 'expr') ? HELP : ''}
+    <div class="actions"><button type="button" class="btn btn-primary" data-act="check">Vérifier</button></div>
+    <details class="corr"><summary>Correction</summary><div class="expl">${ex.corr}${ex.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details></article>`;
+}
+function startEx(k, o = {}) {
+  const P = pst(), s = skS(P, k.id), R = o.resume || null;
+  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s), seed = R ? R.seed : newSeed();
+  CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), done: false };
+  CUR.ex = build(k.id, d, seed);
+  if (CUR.mode === 'path' && !R) saveCur(!!o.user);
+  renderEx();
+}
+function saveCur(bump = true) {
+  if (!CUR || CUR.mode !== 'path') return;
+  const P = pst();
+  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek };
+  if (bump) P.curT = Date.now();
+  ls.set(PK, P);
+}
+function renderEx() {
+  const host = $('#exHost'); if (!host || !CUR) return;
+  const k = CUR.k, s = skS(pst(), k.id);
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span><button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
+    + exHTML(CUR.ex);
+  mathIn(host);
+  CUR.ex.items.forEach(it => { if (it.id in CUR.first) { const fb = $(`.it[data-id="${it.id}"] .fb`, host); if (fb) fb.innerHTML = fbHTML(check(it, valOf(host, it.id))); } });
+  $$('input[data-expr]', host).forEach(preview);
+  host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function checkCur() {
+  if (!CUR || CUR.done) return;
+  const host = $('#exHost');
+  CUR.ex.items.forEach(it => {
+    const r = check(it, valOf(host, it.id)), fb = $(`.it[data-id="${it.id}"] .fb`, host);
+    if (fb) fb.innerHTML = fbHTML(r);
+    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? 1 : 0;
+  });
+  saveCur();
+  if (CUR.ex.items.every(it => it.id in CUR.first)) finish(CUR.ex.items.reduce((a, it) => a + CUR.first[it.id], 0) / CUR.ex.items.length);
+}
+function finish(r) {
+  CUR.done = true;
+  const host = $('#exHost');
+  $('details.corr', host).open = true;
+  if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); return; }
+  const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
+  s.n++; if (r === 1) s.ok++;
+  const gain = CUR.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
+  if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
+  s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now(); if (isVal(s)) s.ever = true;
+  P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
+  ls.set(PK, P);
+  const f = frontier(P), now = isVal(s);
+  const title = CUR.review ? (r === 1 ? 'Toujours acquis' : was && !now ? 'Un peu oublié' : 'À surveiller') : !was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
+  const msg = !was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+  host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span></div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
+    <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
+    <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`);
+  if (!was && now && !CUR.review) toast('Compétence validée : ' + k.name);
+  renderPathTop(); renderMap();
+}
+
+/* =====================================================================
+   VUES
+   ===================================================================== */
+let VIEW = 'home';
+function setTab(t) {
+  if (EXAM && EXAM.running && t !== 'blanc') { toast('Un sujet blanc est en cours.'); t = 'blanc'; }
+  VIEW = t;
+  $$('#tabs .tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
+  ({ home: vHome, path: vPath, cours: vCours, exos: vExos, blanc: vBlanc })[t]();
+  if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
+  window.scrollTo(0, 0);
+}
+function nextCC() {
+  const c = ls.get('planning.cache.v1', null), now = Date.now();
+  const ev = c && c.evs ? c.evs.slice().sort((x, y) => x.s - y.s).find(e => e.s > now - 3 * 3600e3 && /(^|[^A-Za-z])PHYS([^A-Za-z]|$)/.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : null;
+  return ev ? ev.s : Date.parse('2026-12-02T08:45:00Z');
+}
+function vHome() {
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
+  const days = Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Physique · Mécanique du point · B. Bêche</p><h1>Réussir le CC de mécanique</h1>
+    <p class="lede">Le CC du mercredi 2/12 dure 1 h 30. Le premier CC (28/09) a porté sur le début du cours ; celui-ci devrait couvrir les <b>chapitres II à V</b> : dynamique (PFD, frottements, référentiels non galiléens, chocs), énergie (travail, potentiel, stabilité), oscillateurs (libre, amorti, forcé) et moment cinétique (forces centrales, gravitation). La cinématique du chapitre I sert partout pour projeter le PFD.</p></div>
+    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC de physique : ${esc(when)}</span></div></section>
+    <div class="grid2">
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du tir parabolique jusqu'aux orbites, avec une progression qui s'adapte à tes résultats.</p>
+        <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
+      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">4 exercices notés sur 20 : dynamique, énergie, oscillateurs, chocs et gravitation. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
+    </div>
+    <section class="card"><h2>Pas d'annales sur Moodle</h2><p class="sub">Aucun CC des années précédentes n'est en ligne. Les exercices reprennent ceux du poly de TD (plan incliné, goutte d'eau, bactérie, chocs, rebonds, ressort, pendule, bouchon, météorite…). Au CC, on attend surtout des <b>expressions littérales</b> démontrées puis des applications numériques : ici, tes formules sont vérifiées automatiquement (tu tapes par exemple <code>sqrt(2*g*h)</code>). L'onglet Cours liste aussi les démonstrations à savoir refaire.</p></section>`;
+}
+function renderPathTop() {
+  const el = $('#pathTop'); if (!el) return;
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, f = frontier(P);
+  el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${done}/${SK.length}</b><span>compétences validées</span></div><span class="sp"></span>
+    ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
+    <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+    <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'} · Deux sans-faute d'affilée valident une compétence ; en cas d'erreurs, les exercices se simplifient et les compétences validées reviennent en révision.</p></section>`;
+}
+function renderMap() {
+  const el = $('#pathMap'); if (!el) return;
+  const P = pst(), f = frontier(P);
+  el.innerHTML = CH.map((c, ci) => `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${SK.filter(k => k.ch === ci).map(k => {
+    const s = skS(P, k.id), val = isVal(s), open = val || k === f || s.n > 0, pct = Math.min(100, Math.round(s.m));
+    return `<div class="psk ${val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}${s.ever && !val ? '<small>à revoir</small>' : ''}</span>
+      <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
+  }).join('')}</div>`).join('');
+}
+function nextPath(o = {}) {
+  const P = pst();
+  if (!o.fresh && P.cur && skById(P.cur.id)) { startEx(skById(P.cur.id), { resume: P.cur }); renderPathTop(); renderMap(); return; }
+  const n = pickNext(P); if (!n) return;
+  startEx(n.k, { review: n.review, user: o.user }); renderPathTop(); renderMap();
+}
+function vPath() {
+  app.innerHTML = `<div><p class="eyebrow">Parcours guidé</p><h1>Le parcours</h1></div><div id="pathTop"></div><div id="exHost" style="display:grid;gap:16px"></div><section class="card"><h2>La carte</h2><div id="pathMap"></div></section>`;
+  renderPathTop(); renderMap();
+  if (CUR && CUR.mode === 'path') renderEx(); else if (pst().n || pst().cur) nextPath();
+}
+let FREE = { id: 'polar', d: 0 };
+function vExos() {
+  app.innerHTML = `<div><p class="eyebrow">Entraînement libre</p><h1>Exercices par type</h1><p class="lede">Choisis un type d'exercice et un niveau. Les valeurs changent à chaque fois ; le niveau 3 demande surtout des expressions littérales.</p></div>
+    <section class="card"><div class="seg">${SK.map(k => `<button type="button" data-ft="${k.id}" aria-pressed="${k.id === FREE.id}">${esc(k.name)}</button>`).join('')}</div>
+      <div class="row" style="margin-top:12px"><div class="seg">${[0, 1, 2].map(d => `<button type="button" data-fd="${d}" aria-pressed="${d === FREE.d}">Niveau ${d + 1}</button>`).join('')}</div><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></section>
+    <div id="exHost" style="display:grid;gap:16px"></div>`;
+  startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+}
+
+/* ---------- Cours ---------- */
+const FICHES = [
+  ['1. Rappels de cinématique', 'polaires, tir', `<p>En coordonnées polaires (\\(\\vec u_r\\), \\(\\vec u_\\theta\\) tournent avec M : \\(\\dot{\\vec u}_r = \\dot\\theta\\,\\vec u_\\theta\\), \\(\\dot{\\vec u}_\\theta = -\\dot\\theta\\,\\vec u_r\\)) :</p>
+    \\[\\vec{OM} = r\\vec u_r,\\quad \\vec v = \\dot r\\,\\vec u_r + r\\dot\\theta\\,\\vec u_\\theta,\\quad \\vec a = (\\ddot r - r\\dot\\theta^2)\\,\\vec u_r + (r\\ddot\\theta + 2\\dot r\\dot\\theta)\\,\\vec u_\\theta\\]
+    <p>Mouvement circulaire (\\(r = R\\)) : \\(\\vec v = R\\dot\\theta\\,\\vec u_\\theta\\), \\(\\vec a = -R\\dot\\theta^2\\vec u_r + R\\ddot\\theta\\,\\vec u_\\theta\\) ; s'il est uniforme, \\(a = \\dfrac{v^2}{R}\\) vers le centre.</p>
+    <p>Tir dans le champ de pesanteur : \\(\\vec a = \\vec g\\) ; \\(x = v_0\\cos\\alpha\\,t\\), \\(y = -\\tfrac12gt^2 + v_0\\sin\\alpha\\,t\\) ; portée \\(P = \\dfrac{v_0^2\\sin 2\\alpha}{g}\\), hauteur max \\(\\dfrac{v_0^2\\sin^2\\alpha}{2g}\\).</p>
+    <div class="box key"><h5>À savoir faire</h5>Dériver un vecteur position en polaires sans oublier que les vecteurs de base tournent ; éliminer \\(t\\) pour obtenir l'équation de la trajectoire.</div>
+    <div class="box warn"><h5>Pièges</h5>Oublier \\(-r\\dot\\theta^2\\) ou le 2 de \\(2\\dot r\\dot\\theta\\) · une vitesse de norme constante n'implique pas une accélération nulle (virage).</div>`],
+  ['2. Lois de Newton et méthode du PFD', 'PFD, frottements', `<ul><li>1<sup>re</sup> loi (inertie) : dans un référentiel galiléen, un point isolé est au repos ou en mouvement rectiligne uniforme.</li><li>2<sup>e</sup> loi (PFD) : \\(\\dfrac{d\\vec p}{dt} = \\sum\\vec F\\), soit \\(m\\vec a = \\sum\\vec F\\) à masse constante.</li><li>3<sup>e</sup> loi : \\(\\vec F_{A\\to B} = -\\vec F_{B\\to A}\\).</li></ul>
+    <table class="t"><tr><th>Force</th><th>Expression</th></tr><tr><td>Poids</td><td>\\(m\\vec g\\)</td></tr><tr><td>Gravitation</td><td>\\(-\\dfrac{GMm}{r^2}\\vec u_r\\)</td></tr><tr><td>Ressort</td><td>\\(-k(\\ell - \\ell_0)\\vec u\\)</td></tr><tr><td>Frottement fluide</td><td>\\(-\\alpha\\vec v\\) ; sphère : \\(-6\\pi\\eta r\\vec v\\) (Stokes)</td></tr><tr><td>Frottement solide (Coulomb)</td><td>immobile : \\(R_T \\le \\mu_s N\\) ; glissement : \\(R_T = \\mu_d N\\), opposé à \\(\\vec v\\)</td></tr><tr><td>Archimède</td><td>\\(-\\rho_{fluide}V\\vec g\\)</td></tr></table>
+    <div class="box key"><h5>Méthode (toujours la même)</h5>1. Système et référentiel (galiléen ?). 2. Bilan des forces, avec un schéma. 3. Repère adapté (axe de la pente, polaires pour un pendule…). 4. PFD projeté sur chaque axe. 5. Résoudre (équation différentielle + conditions initiales). Vitesse limite : quand \\(\\dot v = 0\\) ; temps caractéristique \\(\\tau = m/\\alpha\\).</div>
+    <div class="box warn"><h5>Pièges</h5>À l'arrêt, le frottement solide vaut ce qu'il faut pour l'équilibre, pas \\(\\mu_s N\\) · en montée, poids et frottement freinent tous les deux · \\(N\\) ne vaut \\(mg\\) que sur un plan horizontal.</div>`],
+  ['3. Référentiels non galiléens', 'forces d\'inertie', `<p>Dans un référentiel \\(\\mathcal R'\\) en mouvement par rapport à un référentiel galiléen, on écrit \\(m\\vec a_{/\\mathcal R'} = \\sum\\vec F + \\vec f_{ie} + \\vec f_{ic}\\) avec \\(\\vec f_{ie} = -m\\vec a_e\\) et \\(\\vec f_{ic} = -m\\vec a_c = -2m\\,\\vec\\Omega\\wedge\\vec v_{/\\mathcal R'}\\).</p>
+    <ul><li>Translation (ascenseur, wagon) : \\(\\vec f_{ie} = -m\\vec a_{O'}\\), pas de Coriolis.</li><li>Rotation uniforme autour d'un axe fixe : \\(\\vec f_{ie} = m\\omega^2\\,\\vec{HM}\\) (centrifuge, H projeté de M sur l'axe), et Coriolis si M bouge dans \\(\\mathcal R'\\).</li></ul>
+    <p>Composition : \\(\\vec v_a = \\vec v_r + \\vec v_e\\), \\(\\vec a_a = \\vec a_r + \\vec a_e + \\vec a_c\\).</p>
+    <div class="box key"><h5>À savoir faire</h5>Poids apparent dans un ascenseur \\(m(g \\pm a)\\) ; inclinaison d'un pendule dans un wagon \\(\\tan\\theta = a/g\\) ; condition de non-glissement sur un manège \\(\\omega^2 r \\le \\mu g\\).</div>
+    <div class="box warn"><h5>Pièges</h5>La force d'inertie est opposée à l'accélération du référentiel, pas à sa vitesse · « monte en freinant » = accélération vers le bas.</div>`],
+  ['4. Quantité de mouvement et chocs', 'chocs', `<p>\\(\\vec p = m\\vec v\\). Pour un système isolé (ou pendant un choc bref), \\(\\vec p_{total}\\) se conserve.</p>
+    <ul><li>Choc <b>élastique</b> : \\(\\vec p\\) ET \\(E_c\\) conservés. Cible au repos, 1D : \\(v_1' = \\dfrac{m_1 - m_2}{m_1 + m_2}v_1\\), \\(v_2' = \\dfrac{2m_1}{m_1 + m_2}v_1\\).</li><li>Choc <b>mou</b> (corps soudés) : \\(v = \\dfrac{m_1v_1}{m_1 + m_2}\\) ; énergie perdue \\(\\tfrac12\\mu v_1^2\\) avec la masse réduite \\(\\mu = \\dfrac{m_1m_2}{m_1+m_2}\\).</li><li>Coefficient de restitution \\(e\\) : \\(v_2' - v_1' = e\\,v_1\\) (\\(e = 1\\) élastique, \\(e = 0\\) mou). Rebonds : \\(h_n = e^{2n}h_0\\).</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Écrire les deux lois de conservation et résoudre le système ; vérifier les cas limites (\\(m_1 = m_2\\) : échange des vitesses).</div>
+    <div class="box warn"><h5>Pièges</h5>Les vitesses sont algébriques (signe = sens) · l'énergie cinétique ne se conserve pas dans un choc mou.</div>`],
+  ['5. Travail, puissance, énergie', 'travail, TEC', `<ul><li>Travail élémentaire \\(\\delta W = \\vec F\\cdot d\\vec\\ell\\) ; \\(W_{A\\to B} = \\int_A^B \\vec F\\cdot d\\vec\\ell\\). Puissance \\(\\mathcal P = \\vec F\\cdot\\vec v\\).</li><li>Poids : \\(W = -mg(z_B - z_A)\\). Ressort : \\(W = -\\tfrac12k(x_B^2 - x_A^2)\\). Frottement solide sur une longueur L : \\(-\\mu N L\\). Une force perpendiculaire au déplacement ne travaille pas.</li><li><b>Théorème de l'énergie cinétique</b> (référentiel galiléen) : \\(\\Delta E_c = \\sum W\\), avec \\(E_c = \\tfrac12mv^2\\).</li><li>Force conservative : \\(W\\) ne dépend pas du chemin ; \\(\\vec F = -\\overrightarrow{\\mathrm{grad}}\\,E_p\\) ; en 2D, test de Schwarz \\(\\dfrac{\\partial F_x}{\\partial y} = \\dfrac{\\partial F_y}{\\partial x}\\).</li><li>\\(E_m = E_c + E_p\\) : constante si seules des forces conservatives travaillent ; sinon \\(\\Delta E_m = W_{non\\ cons}\\).</li></ul>
+    <table class="t"><tr><th>Énergie potentielle</th><th>Expression</th></tr><tr><td>Pesanteur (z vers le haut)</td><td>\\(mgz\\)</td></tr><tr><td>Élastique</td><td>\\(\\tfrac12k(\\ell - \\ell_0)^2\\)</td></tr><tr><td>Gravitation</td><td>\\(-\\dfrac{GMm}{r}\\)</td></tr></table>
+    <div class="box key"><h5>À savoir faire</h5>Quand on cherche une vitesse à partir de positions (sans le temps), penser énergie plutôt que PFD. Calculer un travail le long de deux chemins et conclure sur le caractère conservatif.</div>
+    <div class="box warn"><h5>Pièges</h5>Le signe du travail du poids (négatif en montée) · \\(r\\) dans \\(-GMm/r\\) se mesure depuis le centre de l'astre.</div>`],
+  ['6. Équilibre et stabilité', 'potentiel', `<p>Sur un axe : \\(F_x = -\\dfrac{dE_p}{dx}\\).</p><ul><li>Équilibre en \\(x_e\\) : \\(\\dfrac{dE_p}{dx}(x_e) = 0\\).</li><li>Stable si \\(\\dfrac{d^2E_p}{dx^2}(x_e) > 0\\) (minimum, « puits »), instable si \\(< 0\\) (maximum, « barrière »).</li><li>Petits mouvements autour d'un équilibre stable : \\(E_p \\approx E_p(x_e) + \\tfrac12 E_p''(x_e)(x - x_e)^2\\), oscillateur harmonique de pulsation \\(\\omega_0 = \\sqrt{E_p''(x_e)/m}\\).</li><li>Lecture du graphe : une particule d'énergie \\(E_m\\) n'accède qu'aux zones où \\(E_p \\le E_m\\) (car \\(E_c \\ge 0\\)).</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Dériver \\(E_p\\), trouver les zéros, étudier le signe de la dérivée seconde, tracer l'allure et commenter les mouvements possibles.</div>`],
+  ['7. Oscillateurs', 'oscillateurs', `<p><b>Harmonique</b> : \\(\\ddot x + \\omega_0^2 x = 0\\), \\(x = X_m\\cos(\\omega_0t + \\varphi)\\), \\(T_0 = 2\\pi/\\omega_0\\). Ressort : \\(\\omega_0 = \\sqrt{k/m}\\). Pendule (petits angles) : \\(\\omega_0 = \\sqrt{g/\\ell}\\). Énergie conservée : \\(E_m = \\tfrac12 kX_m^2\\).</p>
+    <p><b>Amorti</b> (frottement \\(-\\alpha\\dot x\\)) : \\(\\ddot x + 2\\lambda\\dot x + \\omega_0^2x = 0\\) avec \\(\\lambda = \\dfrac{\\alpha}{2m}\\). Équation caractéristique \\(r^2 + 2\\lambda r + \\omega_0^2 = 0\\), \\(\\Delta' = \\lambda^2 - \\omega_0^2\\) :</p>
+    <table class="t"><tr><th>Cas</th><th>Régime</th><th>Solution</th></tr><tr><td>\\(\\lambda > \\omega_0\\)</td><td>apériodique</td><td>\\(Ae^{r_1t} + Be^{r_2t}\\)</td></tr><tr><td>\\(\\lambda = \\omega_0\\)</td><td>critique</td><td>\\((A + Bt)e^{-\\lambda t}\\)</td></tr><tr><td>\\(\\lambda < \\omega_0\\)</td><td>pseudo-périodique</td><td>\\(Ae^{-\\lambda t}\\cos(\\omega t + \\varphi)\\), \\(\\omega = \\sqrt{\\omega_0^2 - \\lambda^2}\\)</td></tr></table>
+    <p>Pseudo-période \\(T = 2\\pi/\\omega\\), décrément logarithmique \\(\\delta = \\lambda T\\), facteur de qualité \\(Q = \\dfrac{\\omega_0}{2\\lambda}\\).</p>
+    <p><b>Forcé</b> (\\(F_0\\cos\\omega t\\)), régime permanent : \\(A(\\omega) = \\dfrac{F_0/m}{\\sqrt{(\\omega_0^2 - \\omega^2)^2 + 4\\lambda^2\\omega^2}}\\) ; résonance en \\(\\omega_r = \\sqrt{\\omega_0^2 - 2\\lambda^2}\\) si \\(Q > 1/\\sqrt2\\). Analogie électrique : \\(m \\leftrightarrow L\\), \\(k \\leftrightarrow 1/C\\), \\(\\alpha \\leftrightarrow R\\).</p>
+    <div class="box key"><h5>À savoir faire</h5>Établir l'équation différentielle par le PFD ou par \\(\\dfrac{dE_m}{dt} = 0\\) ; déterminer les constantes avec les conditions initiales ; reconnaître le régime.</div>
+    <div class="box warn"><h5>Pièges</h5>\\(\\lambda = \\alpha/(2m)\\), pas \\(\\alpha/m\\) · la pseudo-période est plus grande que \\(T_0\\) · pendule : approximation \\(\\sin\\theta \\approx \\theta\\) à justifier.</div>`],
+  ['8. Moment cinétique et gravitation', 'moment, Kepler', `<ul><li>Moment d'une force : \\(\\vec{\\mathcal M}_O(\\vec F) = \\vec{OM}\\wedge\\vec F\\) (nul si la force passe par O). Moment cinétique : \\(\\vec L_O = \\vec{OM}\\wedge m\\vec v\\).</li><li><b>TMC</b> : \\(\\dfrac{d\\vec L_O}{dt} = \\sum\\vec{\\mathcal M}_O\\). Pendule : \\(L_O = m\\ell^2\\dot\\theta\\) donne \\(\\ddot\\theta + \\dfrac g\\ell\\sin\\theta = 0\\).</li><li>Force centrale : \\(\\vec L_O\\) constant, donc mouvement <b>plan</b> et loi des aires \\(r^2\\dot\\theta = C\\). Aux points où \\(\\vec v \\perp \\vec{OM}\\) : \\(r_1v_1 = r_2v_2\\).</li><li>Orbite circulaire : \\(v = \\sqrt{GM/r}\\), \\(\\dfrac{T^2}{r^3} = \\dfrac{4\\pi^2}{GM}\\) (3<sup>e</sup> loi de Kepler), \\(E_m = -\\dfrac{GMm}{2r}\\). Vitesse de libération \\(\\sqrt{2GM/R}\\).</li></ul>
+    <div class="box key"><h5>À savoir faire</h5>Combiner conservation de \\(L_O\\) et de \\(E_m\\) (météorite, périhélie/aphélie) ; démontrer la 3<sup>e</sup> loi de Kepler pour une orbite circulaire.</div>
+    <div class="box warn"><h5>Pièges</h5>Altitude ≠ rayon de l'orbite · les trajectoires sont des coniques : ellipse si \\(E_m < 0\\), parabole si \\(E_m = 0\\), hyperbole si \\(E_m > 0\\).</div>`],
+  ['9. Les démonstrations à savoir refaire', 'démos', `<p>Le cours signale par un symbole les démonstrations « à faire au tableau ». Celles qui reviennent le plus dans le TD et dans les CC :</p>
+    <ol><li>Vitesse et accélération en coordonnées polaires.</li><li>Tir parabolique : équations horaires, trajectoire, portée maximale à 45°.</li><li>Chute avec frottement fluide : équation différentielle, vitesse limite, \\(v(t) = v_{lim}(1 - e^{-t/\\tau})\\).</li><li>Pendule simple par le PFD en polaires : \\(\\ddot\\theta + \\frac g\\ell\\sin\\theta = 0\\), puis la période des petites oscillations.</li><li>Même équation par la conservation de l'énergie (\\(dE_m/dt = 0\\)) et par le théorème du moment cinétique.</li><li>Chocs élastique et mou à une dimension.</li><li>Un champ de force conservatif dérive d'une énergie potentielle ; \\(E_p\\) de pesanteur, élastique, gravitationnelle.</li><li>Condition d'équilibre et de stabilité sur \\(E_p(x)\\).</li><li>Ressort vertical : position d'équilibre, puis équation de l'oscillateur autour de cette position.</li><li>Oscillateur amorti : équation caractéristique et les trois régimes.</li><li>Force centrale ⇒ mouvement plan et loi des aires ; 3<sup>e</sup> loi de Kepler pour une orbite circulaire.</li></ol>
+    <div class="box key"><h5>Conseil</h5>Recopie chaque démonstration une fois, puis refais-la de mémoire sur une feuille blanche : c'est ce qui sera demandé au CC.</div>`]
+];
+function vCours(open) {
+  app.innerHTML = `<div><p class="eyebrow">Chapitres II à V · CC du 2/12</p><h1>Le cours utile</h1><p class="lede">Le cours de B. Bêche condensé en 9 fiches : lois, formules, méthodes et pièges. Chaque fiche dit à quel type d'exercice elle sert.</p></div>
+    ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
+  mathIn(app);
+  if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
+}
+
+/* ---------- Sujet blanc ---------- */
+let tick = 0;
+const DUR = 5400;
+const EXAM_PLAN = [['Exercice 1 · Dynamique', [['plan', 1], ['visq', 1]], 5], ['Exercice 2 · Énergie', [['tec', 1], ['pot', 1]], 5], ['Exercice 3 · Oscillateurs', [['oh', 1], ['amorti', 1]], 5], ['Exercice 4 · Chocs et gravitation', [['choc', 1], ['kepler', 1]], 5]];
+function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+function vBlanc() {
+  const E = ls.get(EK, null);
+  if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
+  if (EXAM) return renderExam();
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">4 exercices de 5 points dans le style du TD : dynamique (plan incliné, frottement fluide), énergie (théorème de l'énergie cinétique, potentiel), oscillateurs (harmonique, amorti), chocs et gravitation. Les formules littérales sont corrigées automatiquement.</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button><span class="fine">Fais les démonstrations sur une feuille, puis reporte les résultats.</span></div></section>
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+}
+function renderExam() {
+  EXAM.exs = examExos(EXAM.seed);
+  app.innerHTML = `<div><p class="eyebrow">Sujet blanc de mécanique</p><h1>CC · 1 h 30</h1></div>`
+    + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
+    + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
+      : `<section class="card">${HELP}<div class="row" style="justify-content:center;margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div></section>`);
+  mathIn(app);
+  $$('input[data-expr]', app).forEach(preview);
+  if (EXAM.done && EXAM.fb) Object.entries(EXAM.fb).forEach(([id, h]) => { const fb = $(`.it[data-id="${id}"] .fb`, app); if (fb) fb.innerHTML = h; });
+  startTick();
+}
+function startTick() {
+  clearInterval(tick); const clk = $('#clock');
+  if (!EXAM || EXAM.done) { clk.hidden = true; return; }
+  clk.hidden = false;
+  const upd = () => { const left = DUR - (Date.now() - EXAM.t0) / 1000; clk.textContent = `${Math.floor(Math.max(0, left) / 3600)}:${String(Math.floor(Math.max(0, left) % 3600 / 60)).padStart(2, '0')}:${String(Math.floor(Math.max(0, left) % 60)).padStart(2, '0')}`; clk.classList.toggle('rush', left < 600); if (left <= 0) submitExam(true); };
+  upd(); tick = setInterval(upd, 1000);
+}
+const saveExam = () => { const { exs, ...rest } = EXAM; try { localStorage.setItem(EK, JSON.stringify(rest)); } catch (e) { /* ignore */ } };
+function submitExam(auto) {
+  if (!EXAM || EXAM.done) return;
+  if (!auto && !confirm('Rendre la copie ?')) return;
+  clearInterval(tick);
+  const exs = examExos(EXAM.seed); let note = 0; const fb = {};
+  for (const ex of exs) {
+    const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
+    for (const it of its) { const r = check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += r.st === 'ok' ? 1 : 0; }
+    note += ex.pts * got / its.length;
+  }
+  EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
+  try { localStorage.removeItem(EK); } catch (e) { /* ignore */ }
+  if (auto) toast('Temps écoulé : copie rendue.');
+  renderExam(); window.scrollTo(0, 0);
+}
+
+/* =====================================================================
+   ÉVÉNEMENTS
+   ===================================================================== */
+let saveT = 0;
+document.addEventListener('click', e => {
+  const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab); return; }
+  const fi = e.target.closest('[data-fiche]'); if (fi) { setTab('cours'); vCours(+fi.dataset.fiche); return; }
+  const go = e.target.closest('[data-go]');
+  if (go) { if (CUR && CUR.mode === 'path' && !CUR.done && CUR.k.id === go.dataset.go) { $('#exHost').scrollIntoView({ behavior: 'smooth' }); return; } startEx(skById(go.dataset.go), { user: true }); renderPathTop(); renderMap(); return; }
+  const ft = e.target.closest('[data-ft]'); if (ft) { FREE.id = ft.dataset.ft; vExos(); return; }
+  const fd = e.target.closest('[data-fd]'); if (fd) { FREE.d = +fd.dataset.fd; vExos(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'check') checkCur();
+  else if (act === 'next') nextPath();
+  else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
+  else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
+  else if (act === 'submit') submitExam(false);
+  else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
+});
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.matches('input')) return;
+  const id = t.dataset.id || t.name; if (!id) return;
+  if (t.dataset.expr) preview(t);
+  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; saveExam(); }
+  else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
+});
+document.addEventListener('change', e => { if (e.target.type === 'radio') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); } });
+document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matches && e.target.matches('#exHost details.corr') && e.target.open) { CUR.peek = true; saveCur(); } }, true);
+
+(function () {
+  const ICON = { sun: '☀', moon: '☾', auto: '◐' }, KEY = 'qcm-maths-theme', btn = $('#themeBtn');
+  function apply(t) { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t; btn.textContent = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; btn.dataset.mode = t; btn.title = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t]; }
+  let t = 'auto'; try { t = localStorage.getItem(KEY) || 'auto'; } catch (e) { /* ignore */ }
+  apply(t);
+  btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
+})();
+function wireAccount() {
+  const A = window.SiteAccount; if (!A) return;
+  A.on('data', keys => {
+    if (!keys.some(k => k.startsWith('phys.'))) return;
+    if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
+    if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();
+  });
+}
+if (window.SiteAccount) wireAccount(); else window.addEventListener('siteaccount', wireAccount, { once: true });
+
+window.__PHYS = { GEN, build, check, parseF, evF, texF, parseNum, SK, VD, FICHES };   // tests
+function boot() { const h = location.hash.slice(1); setTab(['home', 'path', 'cours', 'exos', 'blanc'].includes(h) ? h : 'home'); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+</body>
+</html>

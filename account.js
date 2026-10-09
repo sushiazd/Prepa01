@@ -47,6 +47,7 @@
     },
     'elec.plan.v1': null,                // le plus récent gagne
     'elec.ccdate.v1': null,
+    'planning.v1': null,                 // lien d'export de l'emploi du temps (le plus récent gagne)
     // mode Streak : meilleur record par matière et par source, série en cours la plus récente
     'streak.v1': (L, R) => {
       const best = Object.assign({}, R.best || {}, L.best || {});

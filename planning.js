@@ -51,7 +51,7 @@
     ALGO: 'Algorithmique', MECA: 'Mécanique', ANG: 'Anglais', ATO: 'Atomistique' };
   const LINKS = { ELECA: 'elec/', MATH: 'maths-s1/', MATHS: 'maths-s1/', ATO: 'ato/', ALGO: 'algo/', PHYS: 'phys/', MECA: 'meca/' };
   // second CC de maths (janvier) : partie analyse
-  const linkOf = e => { const sj = subjOf(e); return (sj === 'MATH' || sj === 'MATHS') && e.s > Date.parse('2026-12-01') ? 'maths-s1-analyse/' : LINKS[sj]; };
+  const linkOf = e => { const sj = subjOf(e); if ((sj === 'MATH' || sj === 'MATHS') && e.s > Date.parse('2026-12-01')) return 'maths-s1-analyse/'; if (sj === 'ELECA' && e.s > Date.parse('2026-10-20')) return 'elec2/'; return LINKS[sj]; };
   const isTiers = e => /tiers[\s-]*temps/i.test(e.t);
   const isRatt = e => /rattrapage/i.test(e.t);
   const isEval = e => /(?:^|[^A-Za-zÀ-ÿ])(CC|QCM|DS|EXAMEN|EXAM|PARTIEL|CONTR[ÔO]LE|INTERRO|TOEIC|TOIEC|ORAUX|ORAL|SOUTENANCE|[ÉE]VALUATION)(?![A-Za-zÀ-ÿ])/i.test(e.t);

@@ -1587,7 +1587,7 @@ function renderHome() {
   const cc = nextElecCC();
   const days = Math.round((new Date(new Date(cc.ts).toDateString()) - new Date(new Date().toDateString())) / 864e5);
   const when = new Intl.DateTimeFormat('fr-FR', Object.assign({ timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long' }, cc.dayOnly ? {} : { hour: '2-digit', minute: '2-digit' })).format(cc.ts);
-  $('#countBox').innerHTML = `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC${cc.n} d'électronique : ${esc(when)}</span>`;
+  $('#countBox').innerHTML = `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC${cc.n} d'électronique : ${esc(when)}</span>` + (cc.n >= 2 ? '<a class="btn btn-primary" href="../elec2/" style="margin-left:auto">Réviser le CC2 (Thévenin, RC, RL)</a>' : '<a class="btn btn-ghost" href="../elec2/" style="margin-left:auto">Page du CC2 →</a>');
   const P = pst(), { n, tot } = coreDone(P), pct = Math.round(100 * n / tot);
   $('#homePath').innerHTML = `<h2>Le parcours</h2><p class="sub">${n}/${tot} compétences validées. Des bases (loi d'Ohm, fléchage) jusqu'aux exercices complets du CC, avec une progression qui s'adapte à tes résultats.</p>
     <div class="bar ${pct >= 75 ? '' : pct >= 35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${pct}%"></i></div>

@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Électronique CC2 · Entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../presence.js" data-external></script>
+<script defer src="../account.js" data-lazy></script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
+  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
+  --rule:#e4e0d6; --rule-strong:#cdc8bb;
+  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc;
+  --ok:#1f8a4c; --ok-soft:#e6f4ec; --bad:#c2352b; --bad-soft:#fbeceb; --warn:#9a5b00; --warn-soft:#fcf2da;
+  --phys:#b45309; --phys-soft:#fcf0e1;
+  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
+  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+    --rule:#2e2d2a; --rule-strong:#45433e;
+    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
+    --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+    --phys:#fbbf24; --phys-soft:#33260f;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+  --rule:#2e2d2a; --rule-strong:#45433e;
+  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
+  --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
+  --phys:#fbbf24; --phys-soft:#33260f;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+h1,h2,h3,h4,p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+[hidden]{display:none !important}
+code{font-family:var(--mono);font-size:.9em;background:var(--sheet-2);padding:1px 5px;border-radius:5px;border:1px solid var(--rule)}
+.katex{font-size:1.05em}
+.katex-display{margin:.6em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;min-height:64px;padding:8px 24px;background:color-mix(in srgb,var(--paper) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;min-width:0}
+.brand-mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--phys);color:#fff;display:grid;place-items:center;font:italic 700 17px/1 var(--serif)}
+.brand strong{display:block;font:600 15px/1.2 var(--sans)}
+.brand small{display:block;color:var(--muted);font-size:12.5px}
+.tabs{display:flex;gap:4px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
+.tab{height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:500 14px/1 var(--sans);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.tab:hover{background:var(--sheet-2)}
+.tab[aria-current="page"]{background:var(--ink);color:var(--paper)}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer}
+.clock{font:800 22px/1 var(--sans);font-variant-numeric:tabular-nums}
+.clock.rush{color:var(--bad)}
+main{max-width:980px;margin:32px auto 90px;padding:0 24px;display:grid;gap:20px}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--phys);margin-bottom:10px}
+h1{font:600 clamp(28px,4.6vw,42px)/1.08 var(--serif);letter-spacing:-.02em}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:720px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:24px;min-width:0}
+.card h2{font:600 21px/1.25 var(--serif)}
+.sub{color:var(--ink-2);font-size:14.5px;margin-top:4px}
+.fine{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:600 14px/1 var(--sans);cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--pen)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn-primary:hover:not(:disabled){background:var(--pen-hover)}
+.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .sp{flex:1}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font:600 12.5px/1 var(--sans);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.part{background:var(--warn-soft);color:var(--warn)}
+.bar{height:10px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.bar.mid>i{background:var(--warn)} .bar.low>i{background:var(--bad)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600}
+.count{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.count b{font:800 clamp(40px,7vw,58px)/1 var(--sans);letter-spacing:-.04em;color:var(--phys);font-variant-numeric:tabular-nums}
+.count span{color:var(--ink-2)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+/* exercices */
+.ex .q{font:17px/1.6 var(--serif);margin-top:8px}
+.ex .q p+p{margin-top:8px}
+.items{display:grid;gap:12px;margin-top:16px}
+.it{display:grid;grid-template-columns:fit-content(40%) minmax(0,1fr);gap:4px 12px;align-items:center}
+.it-lab{text-align:right;font:16px/1.3 var(--serif);overflow-wrap:anywhere}
+.it-lab.w{font:15px/1.4 var(--sans);text-align:left}
+.it.full{grid-template-columns:minmax(0,1fr)}
+.it.full .fb,.it.full .pv,.it.full .vh{grid-column:1}
+.it-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.it-in input[type=text]{flex:1;min-width:0;width:100%;max-width:340px;font:15px/1.3 var(--mono);font-variant-ligatures:none;color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:42px}
+.it.ex-expr .it-in input[type=text]{max-width:none}
+.unit{font:15px/1 var(--sans);color:var(--ink-2);white-space:nowrap}
+.pv,.vh{grid-column:2;min-width:0;overflow-x:auto;overflow-y:hidden}
+.pv{padding:3px 0}
+.pv{font-size:15px;color:var(--ink-2);min-height:0}
+.pv:empty{display:none}
+.vh{font-size:12.5px;color:var(--muted)}
+.fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto;overflow-y:hidden}
+.fb:empty{display:none}
+.ch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);cursor:pointer;font-size:14.5px}
+.ch:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
+.ch input{accent-color:var(--pen);margin:0}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+details.corr{margin-top:14px}
+details.corr>summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen);padding:6px 0}
+.expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.6 var(--serif);overflow-x:auto}
+.expl p+p,.expl ul{margin-top:8px}
+.expl ul{padding-left:20px}
+.strip{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--phys-soft);border:1px solid color-mix(in srgb,var(--phys) 35%,transparent)}
+.strip b{font:600 17px/1.3 var(--serif)}
+.lvl{display:inline-flex;gap:4px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.lvl i{width:8px;height:8px;border-radius:50%;background:var(--rule-strong)} .lvl i.on{background:var(--phys)}
+.tag-rev{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font:600 11.5px/1 var(--sans)}
+.res{border-color:color-mix(in srgb,var(--pen) 40%,transparent)}
+.psk{display:grid;grid-template-columns:24px minmax(0,1fr) 110px auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--rule)}
+.psk .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 11px/1 var(--sans);background:var(--sheet-2);color:var(--muted);border:1px solid var(--rule)}
+.psk.val .ic{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.psk.cur .ic{background:var(--phys);color:#fff;border-color:transparent}
+.psk.rev .ic{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.psk.lock{opacity:.5}
+.psk .nm small{display:block;color:var(--muted);font-size:12.5px}
+.pch h3{font:600 17px/1.3 var(--serif);margin:16px 0 4px}
+/* cours */
+.fiche{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.fiche>summary{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:16px 22px;cursor:pointer;list-style:none;font:600 18px/1.3 var(--serif)}
+.fiche>summary::-webkit-details-marker{display:none}
+.fiche>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+.fiche[open]>summary::before{transform:rotate(90deg)}
+.fiche>summary .tag{margin-left:auto;font:600 11.5px/1 var(--sans);padding:5px 9px;border-radius:999px;background:var(--phys-soft);color:var(--phys)}
+.fiche .body{padding:4px 24px 22px;border-top:1px solid var(--rule);font:16.5px/1.65 var(--serif);overflow-x:auto}
+.fiche .body p,.fiche .body ul,.fiche .body ol{margin-top:10px}
+.fiche .body ul,.fiche .body ol{padding-left:22px}
+.box{margin-top:12px;padding:12px 16px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
+.box.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.box.key{background:var(--phys-soft);border-color:color-mix(in srgb,var(--phys) 30%,transparent)}
+.box h5{font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;margin:0 0 6px;color:var(--ink-2)}
+table.t{border-collapse:collapse;margin-top:10px;font:14.5px/1.4 var(--sans)}
+table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:left}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);font:500 13.5px/1 var(--sans);color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.score{font:800 clamp(48px,9vw,72px)/1 var(--sans);letter-spacing:-.03em}
+.hist{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+.hist td,.hist th{padding:8px;border-bottom:1px solid var(--rule);text-align:left}
+.fig{display:block;width:100%;max-width:470px;height:auto;margin:14px auto 0}
+.fig .wr,.fig .wrp{stroke:var(--ink);stroke-width:2;fill:none}
+.fig .cp{fill:var(--sheet);stroke:var(--ink);stroke-width:2}
+.fig .nd{fill:var(--ink)}
+.fig .ua{stroke:var(--bad);stroke-width:2}
+.fig .mku{fill:var(--bad)}
+.fig text{fill:var(--ink);font:600 14px/1 var(--sans)}
+.fig text.sg{font-size:12px}
+.fig text.ul{fill:var(--bad)}
+.fig text.nA{fill:var(--pen)}
+@media (max-width:760px){
+  .topbar{padding:8px 16px}
+  .brand small{display:none}
+  .tabs{order:3;flex-basis:100%;justify-content:flex-start}
+  main{padding:0 16px;margin-top:22px}
+  .card{padding:18px}
+  .grid2{grid-template-columns:1fr}
+  .it{grid-template-columns:1fr}
+  .it-lab{text-align:left}
+  .fb,.pv,.vh{grid-column:1}
+  .psk{grid-template-columns:24px minmax(0,1fr) auto} .psk .bar{display:none}
+  .fiche .body{padding:4px 16px 18px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">Ω</span><div><strong>Électronique : CC2</strong><small>Thévenin, RC et RL</small></div></a>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button type="button" class="tab" data-tab="home">Accueil</button>
+    <button type="button" class="tab" data-tab="path">Parcours</button>
+    <button type="button" class="tab" data-tab="cours">Cours</button>
+    <button type="button" class="tab" data-tab="exos">Exos</button>
+    <button type="button" class="tab" data-tab="blanc">Sujet blanc</button>
+  </nav>
+  <span class="clock" id="clock" hidden></span>
+  <button type="button" class="icon-btn" id="themeBtn" aria-label="Thème"></button>
+</header>
+<main id="app"></main>
+
+<script>
+(function () {
+'use strict';
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const app = $('#app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
+};
+let toastT = 0;
+function toast(t) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500); }
+function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const G = R => ({ int: (a, b) => a + Math.floor(R() * (b - a + 1)), pick: a => a[Math.floor(R() * a.length)], shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }, r: R });
+const newSeed = () => Math.floor(Math.random() * 4294967296);
+function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
+function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
+
+/* ---------- nombres et unités ---------- */
+function nfmt(x, s = 3, tex = false) {
+  if (!isFinite(x)) return '?';
+  if (Math.abs(x) < 1e-12) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)) + 1e-9);
+  if (e >= 6 || e <= -3) {
+    let m = +(x / Math.pow(10, e)).toPrecision(s), ee = e; if (Math.abs(m) >= 10) { m /= 10; ee++; }
+    const ms = String(+m.toPrecision(s)).replace('.', tex ? '{,}' : ',');
+    return tex ? `${ms} \\times 10^{${ee}}` : `${ms} × 10^${ee}`;
+  }
+  return String(+x.toPrecision(s)).replace('.', tex ? '{,}' : ',');
+}
+const tN = (x, s = 3) => nfmt(x, s, true);
+const TU = { 'm': '\\mathrm{m}', 's': '\\mathrm{s}', 'm/s': '\\mathrm{m\\cdot s^{-1}}', 'm/s²': '\\mathrm{m\\cdot s^{-2}}', 'N': '\\mathrm{N}', 'J': '\\mathrm{J}', 'W': '\\mathrm{W}', 'rad/s': '\\mathrm{rad\\cdot s^{-1}}', 's⁻¹': '\\mathrm{s^{-1}}', 'kg': '\\mathrm{kg}', '°': '', 'kg·m²/s': '\\mathrm{kg\\cdot m^2\\cdot s^{-1}}', 'N·m': '\\mathrm{N\\cdot m}', 'kg/s': '\\mathrm{kg\\cdot s^{-1}}', '': '' };
+const Q = (x, u, s = 3) => u === '°' ? tN(x, s) + '^\\circ' : tN(x, s) + (TU[u] ? '\\ ' + TU[u] : '');
+const UN = {
+  'm': { m: 1, cm: .01, mm: 1e-3, km: 1e3, 'µm': 1e-6, 'μm': 1e-6, um: 1e-6 },
+  's': { s: 1, ms: 1e-3, 'µs': 1e-6, 'μs': 1e-6, us: 1e-6, min: 60, mn: 60, h: 3600, j: 86400, jour: 86400, jours: 86400 },
+  'm/s': { 'm/s': 1, 'm.s-1': 1, 'ms-1': 1, 'km/h': 1 / 3.6, 'km.h-1': 1 / 3.6, 'km/s': 1e3, 'km.s-1': 1e3, 'cm/s': .01, 'µm/s': 1e-6, 'μm/s': 1e-6, 'um/s': 1e-6 },
+  'm/s²': { 'm/s2': 1, 'm.s-2': 1, 'ms-2': 1 },
+  'N': { N: 1, kN: 1e3, mN: 1e-3 },
+  'J': { J: 1, kJ: 1e3, mJ: 1e-3, MJ: 1e6, GJ: 1e9 },
+  'W': { W: 1, kW: 1e3 },
+  'rad/s': { 'rad/s': 1, 'rad.s-1': 1, 's-1': 1, '/s': 1, '1/s': 1 },
+  's⁻¹': { 's-1': 1, '/s': 1, '1/s': 1, 'rad/s': 1 },
+  'kg': { kg: 1, g: 1e-3, mg: 1e-6, t: 1e3 },
+  '°': { '°': 1, deg: 1, 'degrés': 1, degres: 1 },
+  'kg·m²/s': { 'kg.m2/s': 1, 'kg.m2.s-1': 1, 'J.s': 1, Js: 1, 'kgm2/s': 1 },
+  'N·m': { 'N.m': 1, Nm: 1, 'm.N': 1 },
+  'kg/s': { 'kg/s': 1, 'kg.s-1': 1 },
+  '': {}
+};
+function parseNum(raw, unit) {
+  const s = String(raw).trim().replace(/[−–]/g, '-').replace(/,/g, '.').replace(/\s+/g, ' ');
+  if (!s) return { err: '' };
+  const m = /^([-+]?(?:\d+\.?\d*|\.\d+))\s*(?:[eE]\s*([-+]?\d+)|(?:\*|x|×|·)\s*10\s*\^?\s*\(?\s*([-+]?\d+)\s*\)?)?\s*(.*)$/.exec(s);
+  if (!m) return { err: 'écris un nombre (ex : 2,5 ou 4,2e-3)' + (unit ? ', éventuellement suivi de l\'unité' : '') };
+  const v = parseFloat(m[1]) * Math.pow(10, +(m[2] || m[3] || 0));
+  const u = m[4].replace(/\s+/g, '').replace(/[·*]/g, '.').replace(/⁻¹/g, '-1').replace(/⁻²/g, '-2').replace(/²/g, '2').replace(/\^/g, '');
+  if (!u) return { v };
+  const f = (UN[unit] || {})[u];
+  if (f === undefined) return { err: unit ? 'unité attendue : ' + unit : 'cette grandeur n\'a pas d\'unité' };
+  return { v: v * f };
+}
+
+/* ---------- formules littérales ---------- */
+// nom : [TeX, min, max (tirage pour la vérification), autres écritures acceptées]
+const VD = { E1: ['E_1', 1, 9], E2: ['E_2', 1, 9], R: ['R', .5, 3], RL: ['R_L', .5, 3], C: ['C', .5, 3], L: ['L', .5, 3], U: ['U', 1, 9], E: ['E', 1, 9], E0: ['E_0', 1, 9], t: ['t', .1, 3], tau: ['\\tau', .3, 2, ['τ']] };
+const FUNCS = { sqrt: Math.sqrt, '√': Math.sqrt, sin: Math.sin, cos: Math.cos, tan: Math.tan, exp: Math.exp, ln: Math.log };
+const FTEX = { sin: '\\sin', cos: '\\cos', tan: '\\tan', ln: '\\ln' };
+function parseF(src, vars, std) {
+  let s = String(src);
+  if (s.includes('=')) s = s.split('=').pop();
+  s = s.replace(/\\(left|right)/g, '').replace(/\\[,;:! ]/g, '').replace(/[−–—]/g, '-').replace(/[×·∙⋅]/g, '*').replace(/÷/g, '/').replace(/,/g, '.').replace(/²/g, '^2').replace(/³/g, '^3')
+    .replace(/\\(cdot|times)/g, '*');
+  s = s.replace(/\\[dt]?frac\s*(\\[A-Za-z]+|[0-9A-Za-z])\s*(\\[A-Za-z]+|[0-9A-Za-z])/g, '($1)/($2)');
+  for (let k = 0; k < 6 && /[{}]/.test(s); k++) s = s.replace(/\\sqrt\{([^{}]*)\}/g, 'sqrt($1)').replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)').replace(/_\{([^{}]*)\}/g, '$1').replace(/\^\{([^{}]*)\}/g, '^($1)');
+  s = s.replace(/\\/g, '')
+    .replace(/[{\[]/g, '(').replace(/[}\]]/g, ')').replace(/_/g, '').replace(/\s+/g, '');
+  if (!s) return { err: '' };
+  const cands = [];
+  vars.forEach(v => { cands.push([v, 'var', v]); (VD[v][3] || []).forEach(a => cands.push([a, 'var', v])); });
+  Object.keys(FUNCS).forEach(f => cands.push([f, 'fn', f === '√' ? 'sqrt' : f]));
+  cands.push(['pi', 'pi'], ['π', 'pi']); if (!vars.includes('e')) cands.push(['e', 'ec']);
+  cands.sort((a, b) => b[0].length - a[0].length);
+  const toks = []; let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (/[0-9.]/.test(ch)) { let j = i; while (j < s.length && /[0-9.]/.test(s[j])) j++; const t = s.slice(i, j); if (t === '.' || (t.match(/\./g) || []).length > 1) return { err: 'nombre mal écrit : ' + t }; toks.push({ t: 'num', v: parseFloat(t), s: t }); i = j; continue; }
+    if ('+-*/^()'.includes(ch)) { toks.push({ t: ch }); i++; continue; }
+    const c = cands.find(c => c[1] === 'fn' || c[1] === 'pi' ? s.slice(i, i + c[0].length).toLowerCase() === c[0] : s.startsWith(c[0], i));
+    if (!c) return { err: 'lettre inconnue : « ' + ch + ' »' };
+    toks.push(c[1] === 'var' ? { t: 'var', n: c[2] } : c[1] === 'fn' ? { t: 'fn', f: c[2] } : { t: c[1] });
+    i += c[0].length;
+  }
+  let p = 0;
+  const peek = () => toks[p];
+  const start = k => k && (k.t === 'num' || k.t === 'var' || k.t === '(' || k.t === 'fn' || k.t === 'pi' || k.t === 'ec');
+  function expr() { let a = term(); while (peek() && (peek().t === '+' || peek().t === '-')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: term() }; } return a; }
+  function term() {
+    let a = jux();
+    for (;;) {
+      if (peek() && (peek().t === '*' || peek().t === '/')) { const op = toks[p++].t; a = { t: 'bin', op, a, b: jux() }; }
+      else if (std && start(peek())) a = { t: 'bin', op: 'j', a, b: power() };
+      else return a;
+    }
+  }
+  function jux() { let a = unary(); while (!std && start(peek())) a = { t: 'bin', op: 'j', a, b: power() }; return a; }
+  function unary() { const k = peek(); if (k && k.t === '-') { p++; return { t: 'neg', a: unary() }; } if (k && k.t === '+') { p++; return unary(); } return power(); }
+  function power() { let a = atom(); if (peek() && peek().t === '^') { p++; a = { t: 'bin', op: '^', a, b: unary() }; } return a; }
+  function atom() {
+    const k = toks[p++]; if (!k) throw 'formule incomplète';
+    if (k.t === 'num') return { t: 'num', v: k.v, s: k.s };
+    if (k.t === 'var') return { t: 'var', n: k.n };
+    if (k.t === 'pi') return { t: 'pi' }; if (k.t === 'ec') return { t: 'ec' };
+    if (k.t === 'fn') { let e = null; if (peek() && peek().t === '^') { p++; e = atom(); } let a; if (peek() && peek().t === '(') { p++; a = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; } else a = std ? power() : jux(); const f = { t: 'fn', f: k.f, a }; return e ? { t: 'bin', op: '^', a: f, b: e } : f; }
+    if (k.t === '(') { const e = expr(); if (!peek() || peek().t !== ')') throw 'parenthèse non fermée'; p++; return e; }
+    throw 'symbole « ' + k.t + ' » mal placé';
+  }
+  try { const ast = expr(); if (p < toks.length) throw 'symbole « ' + toks[p].t + ' » mal placé'; return { ast }; }
+  catch (e) { return { err: String(e) }; }
+}
+function evF(n, v) {
+  switch (n.t) {
+    case 'num': return n.v;
+    case 'var': return v[n.n];
+    case 'pi': return Math.PI; case 'ec': return Math.E;
+    case 'neg': return -evF(n.a, v);
+    case 'fn': return FUNCS[n.f](evF(n.a, v));
+    default: { const a = evF(n.a, v), b = evF(n.b, v); return n.op === '+' ? a + b : n.op === '-' ? a - b : n.op === '/' ? a / b : n.op === '^' ? Math.pow(a, b) : a * b; }
+  }
+}
+function texF(n) {
+  const isSum = x => x.t === 'neg' || (x.t === 'bin' && (x.op === '+' || x.op === '-'));
+  const wrap = x => isSum(x) ? '\\left(' + texF(x) + '\\right)' : texF(x);
+  switch (n.t) {
+    case 'num': return n.s.replace('.', '{,}');
+    case 'var': return VD[n.n][0];
+    case 'pi': return '\\pi'; case 'ec': return 'e';
+    case 'neg': return '-' + wrap(n.a);
+    case 'fn': return n.f === 'sqrt' ? '\\sqrt{' + texF(n.a) + '}' : n.f === 'exp' ? 'e^{' + texF(n.a) + '}' : FTEX[n.f] + '\\left(' + texF(n.a) + '\\right)';
+    default:
+      if (n.op === '/') return '\\dfrac{' + texF(n.a) + '}{' + texF(n.b) + '}';
+      if (n.op === '+') return texF(n.a) + ' + ' + texF(n.b);
+      if (n.op === '-') return texF(n.a) + ' - ' + wrap(n.b);
+      if (n.op === '^') return '{' + (n.a.t === 'bin' || n.a.t === 'neg' || n.a.t === 'fn' ? '\\left(' + texF(n.a) + '\\right)' : texF(n.a)) + '}^{' + texF(n.b) + '}';
+      { const A = n.a.t === 'neg' ? texF(n.a) : wrap(n.a), B = wrap(n.b); return A + (/^[0-9]/.test(B) ? ' \\times ' : '\\,') + B; }
+  }
+}
+function checkExpr1(P, it) {
+  if (P.err !== undefined) return { st: P.err === '' ? 'empty' : 'err', msg: P.err };
+  let ok = true, opp = true;
+  for (let t = 0, gd = 0; t < 8 && gd < 80; t++, gd++) {
+    const v = {}; it.vars.forEach(k => { const d = VD[k]; v[k] = d[1] + Math.random() * (d[2] - d[1]); });
+    const r = it.ref(v), u = evF(P.ast, v);
+    if (!isFinite(r)) { t--; continue; }
+    if (!isFinite(u)) { ok = opp = false; break; }
+    const tol = 1e-6 * Math.max(1, Math.abs(r));
+    if (Math.abs(u - r) > tol) ok = false;
+    if (Math.abs(u + r) > tol || Math.abs(r) < 1e-9) opp = false;
+  }
+  return { st: ok ? 'ok' : opp ? 'sign' : 'bad' };
+}
+function checkExpr(raw, it) {
+  const a = checkExpr1(parseF(raw, it.vars, false), it);
+  if (a.st === 'ok' || a.st === 'empty' || a.st === 'err') return a;
+  const b = checkExpr1(parseF(raw, it.vars, true), it);   // autre lecture de « v0^2/2g »
+  return b.st === 'ok' ? b : a;
+}
+const varsHint = vs => !vs.length ? '' : 'avec ' + vs.map(v => { const al = (VD[v][3] || [])[0]; return '<code>' + esc(v) + '</code>' + (al && al.length === 1 && /[^a-zA-Z]/.test(al) ? ' ou ' + esc(al) : ''); }).join(', ');
+
+/* =====================================================================
+   OUTILS : fractions et schémas de circuits (SVG, y vers le bas)
+   ===================================================================== */
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+const Fq = (p, q = 1) => { if (q < 0) { p = -p; q = -q; } const g0 = gcd(p, q); return [p / g0, q / g0]; };
+const fAdd = (a, b) => Fq(a[0] * b[1] + b[0] * a[1], a[1] * b[1]), fMul = (a, b) => Fq(a[0] * b[0], a[1] * b[1]), fInv = a => Fq(a[1], a[0]), fV = a => a[0] / a[1];
+const fTex = (a, x = '') => { const [p, q] = a, s = p < 0 ? '-' : '', P = Math.abs(p); if (q === 1) return s + (x && P === 1 ? '' : P) + x; return `${s}\\dfrac{${x && P === 1 ? '' : P}${x}}{${q}}`; };
+const f1 = x => Math.round(x * 10) / 10;
+const DEFS = '<defs><marker id="mkU" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" class="mku"/></marker></defs>';
+const fig = (body, w = 420, h = 230) => `<svg class="fig" viewBox="0 0 ${w} ${h}" role="img" aria-label="Schéma électrique">${DEFS}${body}</svg>`;
+const ck = {
+  w: (x1, y1, x2, y2) => `<line class="wr" x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}"/>`,
+  t: (x, y, s, a = 'middle', c = '') => `<text x="${f1(x)}" y="${f1(y)}" text-anchor="${a}" class="${c}">${s}</text>`,
+  // dipôle entre deux points alignés (horizontal ou vertical) : kind = R, C ou L
+  dip(x1, y1, x2, y2, kind, lab) {
+    const hz = y1 === y2, mx = (x1 + x2) / 2, my = (y1 + y2) / 2, L = 34, Wd = 13;
+    const a = hz ? [mx - L / 2, my] : [mx, my - L / 2], b = hz ? [mx + L / 2, my] : [mx, my + L / 2];
+    let s = ck.w(x1, y1, a[0], a[1]) + ck.w(b[0], b[1], x2, y2), lp = hz ? [mx, my - 13] : [mx - 14, my + 5];
+    if (kind === 'R') s += hz ? `<rect class="cp" x="${f1(mx - L / 2)}" y="${f1(my - Wd / 2)}" width="${L}" height="${Wd}"/>` : `<rect class="cp" x="${f1(mx - Wd / 2)}" y="${f1(my - L / 2)}" width="${Wd}" height="${L}"/>`;
+    else if (kind === 'C') { const g0 = 5; s = ck.w(x1, y1, hz ? mx - g0 : mx, hz ? my : my - g0) + ck.w(hz ? mx + g0 : mx, hz ? my : my + g0, x2, y2) + (hz ? ck.w(mx - g0, my - 13, mx - g0, my + 13) + ck.w(mx + g0, my - 13, mx + g0, my + 13) : ck.w(mx - 13, my - g0, mx + 13, my - g0) + ck.w(mx - 13, my + g0, mx + 13, my + g0)); lp = hz ? [mx, my - 18] : [mx - 20, my + 5]; }
+    else { let p = `M${f1(a[0])},${f1(a[1])}`; for (let i = 0; i < 4; i++) p += hz ? ` a4.25,5 0 0 1 8.5,0` : ` a5,4.25 0 0 1 0,8.5`; s += `<path class="wrp" d="${p}"/>`; lp = hz ? [mx, my - 11] : [mx - 12, my + 5]; }
+    return s + (lab ? ck.t(lp[0], lp[1], lab, hz ? 'middle' : 'end') : '');
+  },
+  src(x, y1, y2, lab, rev) { const my = (y1 + y2) / 2; return ck.w(x, y1, x, my - 14) + ck.w(x, my + 14, x, y2) + `<circle class="cp" cx="${x}" cy="${f1(my)}" r="14"/>` + ck.t(x, my - 2, rev ? '−' : '+', 'middle', 'sg') + ck.t(x, my + 11, rev ? '+' : '−', 'middle', 'sg') + ck.t(x - 20, my + 5, lab, 'end'); },
+  uArrow(x, y1, y2, lab) { return `<line class="ua" x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" marker-end="url(#mkU)"/>` + ck.t(x + 7, (y1 + y2) / 2 + 5, lab, 'start', 'ul'); },
+  node: (x, y) => `<circle class="nd" cx="${f1(x)}" cy="${f1(y)}" r="3"/>`,
+  term: (x, y) => `<circle class="cp" cx="${f1(x)}" cy="${f1(y)}" r="3.5"/>`
+};
+const kR = k => (k === 1 ? '' : k) + 'R';
+
+/* ---------- échelle de Thévenin : E1 – aR – nœud A – branches b_i R (une avec E2) – cR – R_L ---------- */
+const LAD = [[3, [3, 3]], [4, [4, 2]], [3, [6, 2]], [2, [2, 2]], [2, [4, 4]], [6, [3, 6]], [4, [4, 4, 4]], [3, [3, 3, 3]], [6, [6, 6, 6]], [1, [2, 2]]];
+function ladder(g, d) {
+  const [a, bs0] = g.pick(d === 0 ? LAD.slice(0, 4) : LAD), bs = g.shuffle(bs0), c = g.pick(d === 0 ? [1] : [1, 2]), j = g.int(0, bs.length - 1), s2 = d === 2 && g.r() < .4 ? -1 : 1;
+  const G = bs.reduce((s, b) => fAdd(s, Fq(1, b)), Fq(1, a)), Rp = fInv(G), RTH = fAdd(Fq(c), Rp), k1 = fMul(Fq(1, a), Rp), k2 = fMul(Fq(s2, bs[j]), Rp);
+  const top = 50, bot = 205, X0 = 40, xs = bs.map((_, i) => 160 + i * 62), xA = xs[0], xEnd = xs[xs.length - 1], xT = xEnd + 80, xL = xT + 40;
+  let f = ck.src(X0, top, bot, 'E₁') + ck.w(X0, top, X0 + 10, top) + ck.dip(X0 + 10, top, xA, top, 'R', kR(a)) + ck.w(xA, top, xEnd, top) + ck.dip(xEnd, top, xT, top, 'R', kR(c)) + ck.w(xT, top, xL, top) + ck.dip(xL, top, xL, bot, 'R', 'R<tspan dy="4" font-size="11">L</tspan>') + ck.w(X0, bot, xL, bot) + ck.uArrow(xL + 26, bot - 25, top + 25, 'U<tspan dy="4" font-size="11">L</tspan>') + ck.node(xA, top) + ck.t(xA, top - 10, 'A', 'middle', 'nA');
+  bs.forEach((b, i) => { const x = xs[i]; f += i === j ? ck.dip(x, top, x, 125, 'R', kR(b)) + ck.src(x, 125, bot, 'E₂', s2 < 0) : ck.dip(x, top, x, bot, 'R', kR(b)); if (i) f += ck.node(x, top); f += ck.node(x, bot); });
+  return { a, bs, c, j, s2, G, Rp, RTH, k1, k2, fig: fig(f, xL + 60, 230) };
+}
+const ethTex = L => { const t1 = fTex(L.k1, 'E_1'), t2 = fTex([Math.abs(L.k2[0]), L.k2[1]], 'E_2'); return `${t1} ${L.k2[0] < 0 ? '-' : '+'} ${t2}`; };
+const rthTex = L => fTex(L.RTH, 'R');
+const millTex = L => `\\dfrac{\\frac{E_1}{${kR(L.a)}} ${L.s2 < 0 ? '-' : '+'} \\frac{E_2}{${kR(L.bs[L.j])}}}{${[L.a, ...L.bs].map(b => `\\frac{1}{${kR(b)}}`).join(' + ')}}`;
+const rthCorr = L => `<p><b>On éteint les sources</b> : une source de tension devient un fil. Vu des bornes de \\(R_L\\) : \\(${kR(L.c)}\\) en série avec l'association en parallèle de \\(${[L.a, ...L.bs].map(kR).join('\\parallel ')}\\).</p><p>\\(\\dfrac{1}{R_{eq}} = ${[L.a, ...L.bs].map(b => `\\dfrac{1}{${kR(b)}}`).join(' + ')} = ${fTex(L.G)}\\cdot\\dfrac1R\\), donc \\(R_{eq} = ${fTex(L.Rp, 'R')}\\) et \\(R_{TH} = ${kR(L.c)} + ${fTex(L.Rp, 'R')} = ${rthTex(L)}\\).</p>`;
+const ethCorr = L => `<p><b>Tension à vide</b> : on enlève \\(R_L\\) ; aucun courant ne traverse \\(${kR(L.c)}\\), donc pas de tension à ses bornes et \\(E_{TH} = V_A\\) (masse en bas).</p><p>Millman en A (la branche sans source compte pour \\(\\frac{0}{R}\\)) : \\(V_A = ${millTex(L)} = ${ethTex(L)}\\).</p>`;
+const GEN = {};
+const YN = [['o', 'oui'], ['n', 'non']];
+const Ex = (lab, vars, ref, sol) => ({ type: 'expr', lab, vars, ref, sol });
+const K = (lab, val, sol) => ({ type: 'expr', lab, vars: [], ref: () => val, sol });
+const Ch = (lab, opts, ans) => ({ type: 'choice', lab, opts: opts.map(([v, t]) => ({ v, t })), ans });
+const Nn = (lab, val, unit) => ({ type: 'num', lab, val, unit });
+
+GEN.rth = (d, g) => { const L = ladder(g, d);
+  return { title: 'Résistance de Thévenin', fig: L.fig, q: '<p>On veut remplacer tout le circuit vu par \\(R_L\\) par un générateur de Thévenin \\((E_{TH}, R_{TH})\\). Déterminer \\(R_{TH}\\) en fonction de \\(R\\) (tape par exemple <code>2R</code> ou <code>3R/2</code>).</p>',
+    items: [Ex('R_{TH}', ['R'], v => fV(L.RTH) * v.R, rthTex(L))], corr: rthCorr(L) }; };
+GEN.eth = (d, g) => { const L = ladder(g, d);
+  return { title: 'Tension de Thévenin (Millman)', fig: L.fig, q: '<p>Déterminer la tension de Thévenin \\(E_{TH}\\) vue par \\(R_L\\), en fonction de \\(E_1\\) et \\(E_2\\) (tape par exemple <code>(E1+E2)/3</code>).</p>',
+    items: [Ex('E_{TH}', ['E1', 'E2'], v => fV(L.k1) * v.E1 + fV(L.k2) * v.E2, ethTex(L))], corr: ethCorr(L) }; };
+GEN.thev = (d, g) => {
+  const L = ladder(g, d), E1 = g.pick([2, 3, 4, 6]), E2 = g.pick([2, 3, 4, 6]), R = g.pick([1, 2]), RL = g.pick([1, 2, 4]), eth = fAdd(fMul(L.k1, Fq(E1)), fMul(L.k2, Fq(E2))), rth = fMul(L.RTH, Fq(R)), UL = fMul(fMul(Fq(RL), fInv(fAdd(rth, Fq(RL)))), eth);
+  return { title: 'Théorème de Thévenin complet', fig: L.fig, q: `<p>1) Exprimer \\(U_L\\) en fonction de \\(E_1\\), \\(E_2\\), \\(R\\) et \\(R_L\\) (passe par \\(E_{TH}\\) et \\(R_{TH}\\), puis le pont diviseur). 2) Application numérique (sans calculatrice) : \\(E_1 = ${E1}\\ \\mathrm V\\), \\(E_2 = ${E2}\\ \\mathrm V\\), \\(R = ${R}\\ \\mathrm{k\\Omega}\\), \\(R_L = ${RL}\\ \\mathrm{k\\Omega}\\) (fraction acceptée).</p>`,
+    items: [Ex('U_L', ['E1', 'E2', 'R', 'RL'], v => v.RL / (fV(L.RTH) * v.R + v.RL) * (fV(L.k1) * v.E1 + fV(L.k2) * v.E2), `\\dfrac{R_L}{${rthTex(L)} + R_L}\\left(${ethTex(L)}\\right)`), K('U_L\\ (\\mathrm{V})', fV(UL), fTex(UL))],
+    corr: rthCorr(L) + ethCorr(L) + `<p><b>Pont diviseur</b> sur le circuit équivalent : \\(U_L = \\dfrac{R_L}{R_{TH} + R_L}E_{TH} = \\dfrac{R_L}{${rthTex(L)} + R_L}\\left(${ethTex(L)}\\right)\\).</p><p>A.N. : \\(E_{TH} = ${fTex(eth)}\\ \\mathrm V\\), \\(R_{TH} = ${fTex(rth)}\\ \\mathrm{k\\Omega}\\), \\(U_L = \\dfrac{${RL}}{${fTex(rth)} + ${RL}}\\times${fTex(eth)} = ${fTex(UL)}\\ \\mathrm V\\).</p>` };
+};
+
+/* ---------- démonstrations du cours ---------- */
+const DEMOS = [
+  { n: 'le pont diviseur de courant avec N résistances en parallèle', good: 'I_k = \\dfrac{1/R_k}{\\sum_{j=1}^N 1/R_j}\\,I', bad: ['I_k = \\dfrac{R_k}{\\sum_{j=1}^N R_j}\\,I', 'I_k = \\dfrac{\\sum_j 1/R_j}{1/R_k}\\,I', 'I_k = R_k\\,I\\sum_{j=1}^N\\dfrac{1}{R_j}'], laws: 'n', steps: 'Loi des nœuds \\(I = \\sum I_k\\) ; loi d\'Ohm \\(U = R_kI_k\\) (même tension \\(U\\) aux bornes de toutes les résistances) ; donc \\(I = U\\sum\\frac{1}{R_k}\\), \\(U = \\frac{I}{\\sum 1/R_k}\\), et \\(I_k = \\frac{U}{R_k}\\).' },
+  { n: 'le pont diviseur de tension avec N résistances en série', good: 'U_k = \\dfrac{R_k}{\\sum_{j=1}^N R_j}\\,U', bad: ['U_k = \\dfrac{1/R_k}{\\sum_j 1/R_j}\\,U', 'U_k = \\dfrac{\\sum_j R_j}{R_k}\\,U', 'U_k = R_k\\,U\\sum_j R_j'], laws: 'm', steps: 'Loi des mailles \\(U = \\sum U_k\\) ; loi d\'Ohm \\(U_k = R_kI\\) (même courant \\(I\\) partout) ; donc \\(U = I\\sum R_j\\), \\(I = \\frac{U}{\\sum R_j}\\) et \\(U_k = R_kI\\).' },
+  { n: 'le théorème de Millman avec 3 branches', good: 'V_A = \\dfrac{\\frac{V_1}{R_1} + \\frac{V_2}{R_2} + \\frac{V_3}{R_3}}{\\frac{1}{R_1} + \\frac{1}{R_2} + \\frac{1}{R_3}}', bad: ['V_A = \\dfrac{V_1R_1 + V_2R_2 + V_3R_3}{R_1 + R_2 + R_3}', 'V_A = \\dfrac{V_1 + V_2 + V_3}{\\frac{1}{R_1} + \\frac{1}{R_2} + \\frac{1}{R_3}}', 'V_A = \\dfrac{V_1 + V_2 + V_3}{3}'], laws: 'n', steps: 'Loi des nœuds en A : \\(I_1 + I_2 + I_3 = 0\\) ; loi d\'Ohm \\(I_k = \\frac{V_k - V_A}{R_k}\\) ; donc \\(\\sum\\frac{V_k}{R_k} - V_A\\sum\\frac{1}{R_k} = 0\\).' }
+];
+const LAWS = [['n', 'loi des nœuds + loi d\'Ohm'], ['m', 'loi des mailles + loi d\'Ohm'], ['t', 'théorème de Thévenin'], ['s', 'théorème de superposition']];
+GEN.demos = (d, g) => {
+  if (d === 0) { const D = g.pick(DEMOS);
+    return { title: 'Démonstration de cours', q: `<p>Exercice 1 du CC2 (4 points) : « Donner et démontrer la formule de ${D.n} à l'aide d'un schéma. » Quelle est la formule, et quelles lois utilise-t-on ?</p>`,
+      items: [Ch('Formule', g.shuffle([D.good, ...D.bad]).map((o, i) => [o === D.good ? 'ok' : 'x' + i, `\\(${o}\\)`]), 'ok'), Ch('On utilise', LAWS, D.laws)],
+      corr: `<p>\\(${D.good}\\)</p><p>${D.steps}</p><p class="fine">Au CC, il faut le schéma (avec les sens des courants et des tensions) et toutes les étapes : c'est 4 points sûrs à condition d'avoir appris la démonstration.</p>` }; }
+  if (d === 1) { const V = [g.pick([0, 2, 4, 6]), g.pick([3, 6, 9]), g.pick([0, -3, 3])], R = [g.pick([1, 2]), g.pick([1, 2, 3]), g.pick([2, 3, 6])], num = V.reduce((s, v, i) => fAdd(s, Fq(v, R[i])), Fq(0)), den = R.reduce((s, r) => fAdd(s, Fq(1, r)), Fq(0)), VA = fMul(num, fInv(den));
+    return { title: 'Millman : application numérique', q: `<p>Trois branches arrivent au nœud A : \\(V_1 = ${V[0]}\\ \\mathrm V\\) à travers \\(R_1 = ${R[0]}\\ \\mathrm{k\\Omega}\\), \\(V_2 = ${V[1]}\\ \\mathrm V\\) à travers \\(R_2 = ${R[1]}\\ \\mathrm{k\\Omega}\\), \\(V_3 = ${V[2]}\\ \\mathrm V\\) à travers \\(R_3 = ${R[2]}\\ \\mathrm{k\\Omega}\\). Calculer \\(V_A\\) sans calculatrice.</p>`,
+      items: [K('V_A\\ (\\mathrm V)', fV(VA), fTex(VA))], corr: `<p>\\(V_A = \\dfrac{\\frac{${V[0]}}{${R[0]}} + \\frac{${V[1]}}{${R[1]}} + \\frac{${V[2]}}{${R[2]}}}{\\frac{1}{${R[0]}} + \\frac{1}{${R[1]}} + \\frac{1}{${R[2]}}} = \\dfrac{${fTex(num)}}{${fTex(den)}} = ${fTex(VA)}\\ \\mathrm V\\) (les k\\(\\Omega\\) se simplifient).</p>` }; }
+  const I = g.pick([6, 12, 18]), R = [g.pick([1, 2, 3]), g.pick([2, 3, 6]), g.pick([3, 6])], k = g.int(0, 2), G = R.reduce((s, r) => fAdd(s, Fq(1, r)), Fq(0)), Ik = fMul(Fq(I, R[k]), fInv(G));
+  return { title: 'Pont diviseur de courant : application', q: `<p>Un courant \\(I = ${I}\\ \\mathrm{mA}\\) se partage entre trois résistances en parallèle \\(R_1 = ${R[0]}\\ \\mathrm{k\\Omega}\\), \\(R_2 = ${R[1]}\\ \\mathrm{k\\Omega}\\), \\(R_3 = ${R[2]}\\ \\mathrm{k\\Omega}\\). Calculer le courant \\(I_${k + 1}\\) (en mA) et la résistance équivalente (en kΩ).</p>`,
+    items: [K(`I_${k + 1}\\ (\\mathrm{mA})`, fV(Ik), fTex(Ik)), K('R_{eq}\\ (\\mathrm{k\\Omega})', fV(fInv(G)), fTex(fInv(G)))],
+    corr: `<p>\\(\\dfrac{1}{R_{eq}} = \\dfrac1{${R[0]}} + \\dfrac1{${R[1]}} + \\dfrac1{${R[2]}} = ${fTex(G)}\\), donc \\(R_{eq} = ${fTex(fInv(G))}\\ \\mathrm{k\\Omega}\\).</p><p>\\(I_${k + 1} = \\dfrac{1/R_${k + 1}}{\\sum 1/R_j}I = \\dfrac{R_{eq}}{R_${k + 1}}I = ${fTex(Ik)}\\ \\mathrm{mA}\\).</p>` };
+};
+
+/* ---------- circuits du premier ordre ---------- */
+// type : [élément du haut, élément de sortie (vertical), nature]
+const CIRC = { RC: ['R', 'C', 'bas'], CR: ['C', 'R', 'haut'], LR: ['L', 'R', 'bas'], RL: ['R', 'L', 'haut'] };
+function circFig(t, iLab) {
+  const [e1, e2] = CIRC[t], top = 50, bot = 190;
+  return fig(ck.src(60, top, bot, 'e(t)') + ck.dip(60, top, 250, top, e1, e1) + ck.dip(250, top, 250, bot, e2, e2) + ck.w(60, bot, 250, bot) + ck.uArrow(290, bot - 20, top + 20, 'u(t)') + (iLab ? `<line class="ua" x1="60" y1="${top + 34}" x2="60" y2="${top + 22}" marker-end="url(#mkU)"/>` + ck.t(68, top + 30, 'i(t)', 'start', 'ul') : ''), 340, 230);
+}
+const BEH = { C: ['un circuit ouvert', 'un fil'], L: ['un fil', 'un circuit ouvert'], R: ['une résistance', 'une résistance'] };
+const uBF = t => ({ RC: 'e', CR: '0', LR: 'e', RL: '0' })[t], uHF = t => ({ RC: '0', CR: 'e', LR: '0', RL: 'e' })[t];
+const UOPT = [['e', '\\(u(t) = e(t)\\)'], ['0', '\\(u(t) = 0\\)'], ['h', '\\(u(t) = e(t)/2\\)']];
+const FILT = [['bas', 'filtre passe-bas'], ['haut', 'filtre passe-haut'], ['bande', 'filtre passe-bande']];
+const tauOf = t => /C/.test(t) ? ['RC', ['R', 'C'], v => v.R * v.C] : ['\\dfrac LR', ['L', 'R'], v => v.L / v.R];
+GEN.bfhf = (d, g) => {
+  const t = g.pick(Object.keys(CIRC)), [e1, e2, nat] = CIRC[t], X = /C/.test(t) ? 'C' : 'L', ta = tauOf(t);
+  const corr = `<p>En très basse fréquence, ${X === 'C' ? 'le condensateur' : 'la bobine'} est équivalent${X === 'C' ? '' : 'e'} à <b>${BEH[X][0]}</b> ; en très haute fréquence, à <b>${BEH[X][1]}</b>.</p><p>BF : ${uBF(t) === 'e' ? 'aucune tension ne se perd dans l\'élément du haut, \\(u(t) = e(t)\\)' : (e2 === X ? 'la sortie est un fil, \\(u(t) = 0\\)' : 'le circuit est ouvert, \\(i = 0\\) et \\(u = Ri = 0\\)')}. HF : ${uHF(t) === 'e' ? '\\(u(t) = e(t)\\)' : (e2 === X ? 'la sortie est un fil, \\(u(t) = 0\\)' : 'le circuit est ouvert, \\(i = 0\\) donc \\(u = Ri = 0\\)')}.</p><p>Le montage laisse passer les ${nat === 'bas' ? 'basses' : 'hautes'} fréquences : <b>filtre passe-${nat}</b>.</p>`;
+  const items = [Ch(`En très basse fréquence, ${X === 'C' ? 'le condensateur' : 'la bobine'} équivaut à`, [['o', 'un circuit ouvert'], ['f', 'un fil']], X === 'C' ? 'o' : 'f'), Ch('En très basse fréquence', UOPT, uBF(t)), Ch('En très haute fréquence', UOPT, uHF(t)), Ch('Ce montage est un', FILT, nat)];
+  if (d === 2) items.push(Ex('\\tau', ta[1], ta[2], ta[0]), Ex('f_c', ta[1], v => 1 / (2 * Math.PI * ta[2](v)), `\\dfrac{1}{2\\pi ${ta[0].replace('\\dfrac LR', '\\frac LR')}}`));
+  return { title: 'Basse et haute fréquence : nature du filtre', fig: circFig(t), q: `<p>Le circuit ${e1}${e2} ci-dessous est alimenté par \\(e(t)\\) ; on observe la tension \\(u(t)\\) aux bornes de ${e2 === 'R' ? 'la résistance' : e2 === 'C' ? 'du condensateur' : 'la bobine'}. Redessiner mentalement le schéma en BF et en HF.${d === 2 ? ' Donner aussi la constante de temps \\(\\tau\\) et la fréquence de coupure \\(f_c = \\frac{1}{2\\pi\\tau}\\).' : ''}</p>`,
+    items: d === 0 ? items.slice(1) : items, corr: corr + (d === 2 ? `<p>\\(\\tau = ${ta[0]}\\), \\(f_c = \\dfrac{1}{2\\pi\\tau}\\).</p>` : '') };
+};
+GEN.loi = (d, g) => {
+  if (d === 0) return { title: 'Lois du condensateur et de la bobine', q: '<p>Donner les relations courant-tension (conventions récepteur).</p>',
+    items: [Ch('Condensateur', [['a', '\\(i(t) = C\\dfrac{du(t)}{dt}\\)'], ['b', '\\(u(t) = C\\dfrac{di(t)}{dt}\\)'], ['c', '\\(i(t) = \\dfrac1C\\dfrac{du(t)}{dt}\\)'], ['d', '\\(u(t) = Ci(t)\\)']], 'a'), Ch('Bobine', [['a', '\\(u(t) = L\\dfrac{di(t)}{dt}\\)'], ['b', '\\(i(t) = L\\dfrac{du(t)}{dt}\\)'], ['c', '\\(u(t) = Li(t)\\)'], ['d', '\\(u(t) = \\dfrac1L\\dfrac{di(t)}{dt}\\)']], 'a')],
+    corr: '<p>\\(i = C\\dfrac{du}{dt}\\) et \\(u = L\\dfrac{di}{dt}\\). En continu (régime permanent), \\(\\frac{d}{dt} = 0\\) : le condensateur ne laisse plus passer de courant (circuit ouvert), la bobine n\'a plus de tension à ses bornes (fil).</p>' };
+  if (d === 1) return { title: 'Continuité et énergie', q: '<p>Quelle grandeur ne peut pas varier brusquement (est continue) ? Quelle est l\'énergie stockée ?</p>',
+    items: [Ch('Pour un condensateur, est continue', [['u', 'la tension \\(u_C\\)'], ['i', 'le courant \\(i_C\\)']], 'u'), Ch('Pour une bobine, est continu(e)', [['u', 'la tension \\(u_L\\)'], ['i', 'le courant \\(i_L\\)']], 'i'), Ex('W_C', ['C', 'U'], v => v.C * v.U * v.U / 2, '\\dfrac12CU^2')],
+    corr: '<p>Si \\(u_C\\) sautait, \\(i = C\\frac{du}{dt}\\) serait infini : la tension d\'un condensateur est continue ; de même le courant d\'une bobine. Énergies : \\(W_C = \\frac12Cu^2\\), \\(W_L = \\frac12Li^2\\).</p>' };
+  const R = g.pick([1, 2, 5, 10]), C = g.pick([1, 2, 10, 100]), Lm = g.pick([10, 20, 50, 100]), Ro = g.pick([10, 100, 1000]);
+  return { title: 'Constantes de temps', q: `<p>Calculer la constante de temps d'un circuit RC avec \\(R = ${R}\\ \\mathrm{k\\Omega}\\), \\(C = ${C}\\ \\mathrm{\\mu F}\\), puis d'un circuit RL avec \\(L = ${Lm}\\ \\mathrm{mH}\\), \\(R = ${Ro}\\ \\mathrm{\\Omega}\\) (unités acceptées : s, ms, µs).</p>`,
+    items: [Nn('\\tau_{RC}', R * 1e3 * C * 1e-6, 's'), Nn('\\tau_{RL}', Lm * 1e-3 / Ro, 's'), Ch('\\(RC\\) s\'exprime en', [['s', 'secondes'], ['h', 'hertz'], ['o', 'ohms']], 's')],
+    corr: `<p>\\(\\tau = RC = ${R}\\cdot10^3\\times${C}\\cdot10^{-6} = ${tN(R * C * 1e-3)}\\ \\mathrm s\\) ; \\(\\tau = \\frac LR = \\dfrac{${Lm}\\cdot10^{-3}}{${Ro}} = ${tN(Lm * 1e-3 / Ro)}\\ \\mathrm s\\). Ce sont des temps : \\([RC] = \\Omega\\cdot\\mathrm F = \\frac{\\mathrm V}{\\mathrm A}\\cdot\\frac{\\mathrm{A\\,s}}{\\mathrm V} = \\mathrm s\\).</p>` };
+};
+const ODE = [['ue', 'u(t) + \\tau\\dfrac{du(t)}{dt} = e(t)'], ['ude', 'u(t) + \\tau\\dfrac{du(t)}{dt} = \\tau\\dfrac{de(t)}{dt}'], ['tu', '\\tau\\,u(t) + \\dfrac{du(t)}{dt} = e(t)'], ['m', 'u(t) - \\tau\\dfrac{du(t)}{dt} = e(t)']];
+const EDOC = {
+  RC: 'Loi des mailles : \\(e = Ri + u\\), et \\(i = C\\dfrac{du}{dt}\\) (\\(u\\) aux bornes de C). Donc \\(u + RC\\dfrac{du}{dt} = e\\).',
+  LR: 'Loi des mailles : \\(e = L\\dfrac{di}{dt} + Ri\\), avec \\(u = Ri\\), soit \\(i = u/R\\). Donc \\(\\dfrac LR\\dfrac{du}{dt} + u = e\\) (CC 2025-26). En courant : \\(i + \\dfrac LR\\dfrac{di}{dt} = \\dfrac1R e\\), donc \\(G = \\dfrac1R\\).',
+  CR: 'Loi des mailles : \\(e = u_C + u\\), avec \\(i = C\\dfrac{du_C}{dt} = \\dfrac uR\\). En dérivant : \\(\\dfrac{de}{dt} = \\dfrac{u}{RC} + \\dfrac{du}{dt}\\), donc \\(u + RC\\dfrac{du}{dt} = RC\\dfrac{de}{dt}\\).',
+  RL: 'Loi des mailles : \\(e = Ri + u\\), avec \\(u = L\\dfrac{di}{dt}\\) et \\(i = \\dfrac{e - u}{R}\\). Donc \\(u = \\dfrac LR\\left(\\dfrac{de}{dt} - \\dfrac{du}{dt}\\right)\\), soit \\(u + \\dfrac LR\\dfrac{du}{dt} = \\dfrac LR\\dfrac{de}{dt}\\).'
+};
+GEN.edo = (d, g) => {
+  const t = d === 0 ? g.pick(['RC', 'LR']) : g.pick(Object.keys(CIRC)), ta = tauOf(t), ode = CIRC[t][2] === 'bas' ? 'ue' : 'ude';
+  const items = [Ch('Équation vérifiée par \\(u(t)\\)', ODE.map(([v, s]) => [v, `\\(${s}\\)`]), ode), Ex('\\tau', ta[1], ta[2], ta[0])];
+  if (t === 'LR' && d >= 1) items.push(Ex('G', ['R'], v => 1 / v.R, '\\dfrac1R'));
+  return { title: 'Équation différentielle du premier ordre', fig: circFig(t, true), q: `<p>Établir l'équation différentielle vérifiée par \\(u(t)\\) et donner la constante de temps \\(\\tau\\).${t === 'LR' && d >= 1 ? ' Le courant vérifie \\(i + \\tau\\frac{di}{dt} = G\\,e(t)\\) : donner \\(G\\).' : ''}</p>`, items,
+    corr: `<p>${EDOC[t]}</p><p>\\(\\tau = ${ta[0]}\\).</p><p class="fine">Méthode : loi des mailles, puis la relation de l'élément (\\(i = C\\,du/dt\\) ou \\(u = L\\,di/dt\\)) pour ne garder qu'une inconnue, puis mettre sous la forme canonique (coefficient 1 devant \\(u\\)).</p>` };
+};
+GEN.reponse = (d, g) => {
+  const E = g.pick([2, 3, 5, 6, 10]);
+  if (d === 0) return { title: 'Réponse à un échelon (solution proposée)', q: `<p>À \\(t = 0\\), on applique \\(e(t) = E = ${E}\\ \\mathrm V\\) à un circuit RC (passe-bas) : \\(u + \\tau\\frac{du}{dt} = E\\), condensateur initialement déchargé (\\(u(0) = 0\\)). On cherche \\(u(t) = U_1 + U_2e^{-t/\\tau}\\) (CC 2024-25). Donner \\(U_1\\), \\(U_2\\) et la valeur de \\(u\\) à \\(t = \\tau\\).</p>`,
+    items: [K('U_1\\ (\\mathrm V)', E, String(E)), K('U_2\\ (\\mathrm V)', -E, String(-E)), Ch('\\(u(\\tau)\\approx\\)', [['63', `\\(0{,}63\\,E\\)`], ['37', `\\(0{,}37\\,E\\)`], ['50', `\\(0{,}5\\,E\\)`], ['100', '\\(E\\)']], '63')],
+    corr: `<p>\\(\\frac{du}{dt} = -\\frac{U_2}{\\tau}e^{-t/\\tau}\\), donc \\(u + \\tau\\frac{du}{dt} = U_1 + U_2e^{-t/\\tau} - U_2e^{-t/\\tau} = U_1\\) : il faut \\(U_1 = E = ${E}\\ \\mathrm V\\).</p><p>\\(u(0) = U_1 + U_2 = 0\\) donc \\(U_2 = -E\\), et \\(u(t) = E(1 - e^{-t/\\tau})\\).</p><p>\\(u(\\tau) = E(1 - e^{-1})\\approx 0{,}63\\,E\\) ; la tangente à l'origine coupe l'asymptote \\(u = E\\) en \\(t = \\tau\\) ; régime permanent atteint vers \\(5\\tau\\).</p>` };
+  if (d === 1) return { title: 'Réponse à un échelon', q: '<p>Circuit passe-bas (\\(u + \\tau u\' = e\\)), \\(e(t) = E\\) pour \\(t\\geq 0\\), \\(u(0) = 0\\). Exprimer \\(u(t)\\) (variables <code>E</code>, <code>t</code>, <code>tau</code>) et dire au bout de combien de temps \\(u\\) atteint 95 % de \\(E\\).</p>',
+    items: [Ex('u(t)', ['E', 't', 'tau'], v => v.E * (1 - Math.exp(-v.t / v.tau)), 'E\\left(1 - e^{-t/\\tau}\\right)'), Ch('95 % de \\(E\\) est atteint vers', [['1', '\\(t = \\tau\\)'], ['3', '\\(t = 3\\tau\\)'], ['5', '\\(t = 5\\tau\\)'], ['10', '\\(t = 10\\tau\\)']], '3')],
+    corr: '<p>Solution : \\(u(t) = E(1 - e^{-t/\\tau})\\) (solution générale \\(U_1 + U_2e^{-t/\\tau}\\), régime permanent \\(U_1 = E\\), condition initiale \\(U_2 = -E\\)).</p><p>\\(1 - e^{-3}\\approx 0{,}95\\) : 95 % à \\(3\\tau\\) ; \\(1 - e^{-5}\\approx 0{,}99\\) : 99 % à \\(5\\tau\\).</p>' };
+  return { title: 'Retrouver l\'entrée à partir de la sortie', q: `<p>CC 2025-26 : pour le circuit LR (\\(u + \\tau\\frac{du}{dt} = e\\)), quelle tension \\(e(t)\\) faut-il appliquer pour obtenir \\(u(t) = E_0(1 - e^{-t/\\tau})\\) ? Et quelle est la décharge \\(u(t)\\) d'un condensateur initialement chargé sous \\(E\\), quand \\(e(t) = 0\\) pour \\(t\\geq0\\) ?</p>`,
+    items: [Ex('e(t)', ['E0', 't', 'tau'], v => v.E0, 'E_0'), Ex('u(t)', ['E', 't', 'tau'], v => v.E * Math.exp(-v.t / v.tau), 'E\\,e^{-t/\\tau}')],
+    corr: '<p>\\(\\frac{du}{dt} = \\frac{E_0}{\\tau}e^{-t/\\tau}\\) ; \\(u + \\tau\\frac{du}{dt} = E_0 - E_0e^{-t/\\tau} + E_0e^{-t/\\tau} = E_0\\) : un échelon \\(e(t) = E_0\\).</p><p>Décharge : \\(u + \\tau u\' = 0\\) avec \\(u(0) = E\\) (tension continue) : \\(u(t) = Ee^{-t/\\tau}\\).</p>' };
+};
+GEN.sinus = (d, g) => {
+  if (d === 0) { const f = g.pick([50, 100, 500, 1000]);
+    return { title: 'Pulsation, fréquence, période', q: `<p>Un signal \\(e(t) = E_0\\cos(\\omega t)\\) a la fréquence \\(f = ${f}\\ \\mathrm{Hz}\\). Comment appelle-t-on \\(\\omega\\) ? Donner \\(\\omega\\) (valeur exacte, tape <code>${2 * f}pi</code>) et la période \\(T\\).</p>`,
+      items: [Ch('\\(\\omega\\) est', [['p', 'la pulsation, en rad/s'], ['f', 'la fréquence, en Hz'], ['t', 'la période, en s']], 'p'), K('\\omega\\ (\\mathrm{rad/s})', 2 * Math.PI * f, `${2 * f}\\pi`), Nn('T', 1 / f, 's')],
+      corr: `<p>\\(\\omega\\) est la pulsation : \\(\\omega = 2\\pi f = ${2 * f}\\pi\\ \\mathrm{rad/s}\\). Période \\(T = \\frac1f = ${tN(1 / f)}\\ \\mathrm s\\).</p>` }; }
+  if (d === 1) { const x = g.pick([[1, 1], [2, 1], [1, 2]]), wt = Fq(x[0], x[1]), den = fAdd(Fq(1), fMul(wt, wt)), cA = fInv(den), cB = fMul(wt, fInv(den));
+    return { title: 'Régime sinusoïdal (CC 2025-26)', q: `<p>Pour \\(u + \\tau\\frac{du}{dt} = e(t)\\) avec \\(e(t) = E_0\\cos(\\omega t)\\), une solution est \\(u(t) = \\dfrac{E_0}{1 + (\\omega\\tau)^2}\\cos(\\omega t) + \\dfrac{E_0\\,\\omega\\tau}{1 + (\\omega\\tau)^2}\\sin(\\omega t)\\). Pour \\(\\omega\\tau = ${fTex(wt)}\\), donner les coefficients \\(A\\) de \\(\\cos\\) et \\(B\\) de \\(\\sin\\), puis l'amplitude \\(\\sqrt{A^2 + B^2}\\) de \\(u\\).</p>`,
+      items: [Ex('A', ['E0'], v => fV(cA) * v.E0, fTex(cA, 'E_0')), Ex('B', ['E0'], v => fV(cB) * v.E0, fTex(cB, 'E_0')), Ex('\\text{amplitude}', ['E0'], v => v.E0 / Math.sqrt(fV(den)), `\\dfrac{E_0}{\\sqrt{${fTex(den)}}}`)],
+      corr: `<p>\\(1 + (\\omega\\tau)^2 = ${fTex(den)}\\) : \\(A = ${fTex(cA, 'E_0')}\\), \\(B = ${fTex(cB, 'E_0')}\\). Amplitude \\(\\sqrt{A^2 + B^2} = \\dfrac{E_0}{\\sqrt{1 + (\\omega\\tau)^2}}\\) : elle diminue quand \\(\\omega\\) augmente (passe-bas). À \\(\\omega = 1/\\tau\\) (pulsation de coupure), elle vaut \\(E_0/\\sqrt2\\).</p>` }; }
+  const R = g.pick([1, 2, 5, 10]), C = g.pick([10, 100]), tau = R * 1e3 * C * 1e-9;
+  return { title: 'Fréquence de coupure', q: `<p>Filtre RC avec \\(R = ${R}\\ \\mathrm{k\\Omega}\\) et \\(C = ${C}\\ \\mathrm{nF}\\). Calculer \\(\\tau\\), la pulsation de coupure \\(\\omega_c = 1/\\tau\\) et la fréquence de coupure \\(f_c = \\frac{\\omega_c}{2\\pi}\\) (valeur exacte avec <code>pi</code>).</p>`,
+    items: [Nn('\\tau', tau, 's'), K('\\omega_c\\ (\\mathrm{rad/s})', 1 / tau, String(Math.round(1 / tau))), K('f_c\\ (\\mathrm{Hz})', 1 / (2 * Math.PI * tau), `\\dfrac{${Math.round(1 / tau)}}{2\\pi}`)],
+    corr: `<p>\\(\\tau = RC = ${tN(tau)}\\ \\mathrm s\\), \\(\\omega_c = ${Math.round(1 / tau)}\\ \\mathrm{rad/s}\\), \\(f_c = \\dfrac{${Math.round(1 / tau)}}{2\\pi}\\approx${tN(1 / (2 * Math.PI * tau))}\\ \\mathrm{Hz}\\).</p>` };
+};
+
+/* =====================================================================
+   VÉRIFICATION
+   ===================================================================== */
+function check(it, raw) {
+  raw = raw == null ? '' : String(raw);
+  if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
+  if (it.type === 'expr') { const r = checkExpr(raw, it); if (r.st === 'sign') return { st: 'bad', msg: 'au signe près : vérifie l\'orientation.' }; return r; }
+  const q = parseNum(raw, it.unit);
+  if (q.err !== undefined) return { st: q.err === '' ? 'empty' : 'err', msg: q.err };
+  const tol = Math.max((it.tol || 0.02) * Math.abs(it.val), 1e-9);
+  if (Math.abs(q.v - it.val) <= tol) return { st: 'ok' };
+  if (Math.abs(q.v + it.val) <= tol) return { st: 'bad', msg: 'attention au signe.' };
+  const ratio = q.v / it.val;
+  if (it.val && [1e3, 1e-3, 1e2, 1e-2, 1e6, 1e-6].some(f => Math.abs(ratio / f - 1) < 0.02)) return { st: 'bad', msg: 'bon nombre, mauvaise puissance de 10 : vérifie les unités.' };
+  return { st: 'bad' };
+}
+const PILL = { ok: '<span class="pill ok">Juste</span>', bad: '<span class="pill bad">Faux</span>', err: '<span class="pill bad">Illisible</span>', empty: '<span class="pill part">Vide</span>' };
+const fbHTML = r => PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '');
+function itemHTML(it, id, val) {
+  if (it.type === 'choice') return `<div class="it full" data-id="${id}"><span class="it-lab w">${it.lab}</span><div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${o.t}</span></label>`).join('')}</div><div class="fb"></div></div>`;
+  const lab = `<span class="it-lab">${tx(it.lab + ' =')}</span>`;
+  if (it.type === 'expr') return `<div class="it ex-expr" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" data-expr="1" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="formule" value="${esc(val || '')}"></div><div class="vh">${varsHint(it.vars)}</div><div class="pv" data-pv="${id}"></div><div class="fb"></div></div>`;
+  return `<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="valeur" value="${esc(val || '')}">${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div><div class="fb"></div></div>`;
+}
+const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); if (r) return r.value; const t = $(`input[type=text][data-id="${id}"]`, root); return t ? t.value : ''; };
+function preview(inp) {
+  const pv = $(`[data-pv="${inp.dataset.id}"]`); if (!pv) return;
+  const it = findItem(inp.dataset.id); if (!it) return;
+  if (!inp.value.trim()) { pv.innerHTML = ''; return; }
+  const P = parseF(inp.value, it.vars, false);
+  pv.innerHTML = P.err !== undefined ? '<span class="fine">' + esc(P.err) + '</span>' : 'lu : ' + tx(texF(P.ast));
+}
+const HELP = '<p class="fine" style="margin-top:12px">Formules : <code>2R</code>, <code>3R/2</code>, <code>(E1+E2)/3</code>, <code>RL/(2R+RL)*(E1+E2)/3</code>, <code>E*(1-exp(-t/tau))</code> ou <code>E(1-e^(-t/tau))</code>. Valeurs exactes : <code>2/3</code>, <code>100pi</code>. L\'aperçu montre comment ta formule est lue.</p>';
+
+/* =====================================================================
+   COMPÉTENCES ET PROGRESSION (mêmes règles que les autres matières)
+   ===================================================================== */
+const PK = 'el2.path.v1', HK = 'el2.hist.v1', EK = 'el2.exam.v1', VAL = 100, MMAX = 130;
+const CH = ['Démonstrations', 'Théorème de Thévenin', 'Condensateur et bobine', 'Circuits du premier ordre'];
+const SK = [
+  { id: 'demos', ch: 0, name: 'Démos : ponts diviseurs, Millman', fiche: 0 },
+  { id: 'rth', ch: 1, name: 'Résistance de Thévenin', fiche: 1 },
+  { id: 'eth', ch: 1, name: 'Tension de Thévenin (Millman)', fiche: 1 },
+  { id: 'thev', ch: 1, name: 'Thévenin complet et A.N.', fiche: 1 },
+  { id: 'loi', ch: 2, name: 'Lois de C et L, constantes de temps', fiche: 2 },
+  { id: 'bfhf', ch: 2, name: 'Basse et haute fréquence, nature du filtre', fiche: 2 },
+  { id: 'edo', ch: 3, name: 'Équation différentielle et τ', fiche: 3 },
+  { id: 'reponse', ch: 3, name: 'Réponse à un échelon', fiche: 3 },
+  { id: 'sinus', ch: 3, name: 'Régime sinusoïdal', fiche: 4 }
+];
+const skById = id => SK.find(k => k.id === id);
+function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
+function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false }); }
+const isVal = s => s.m >= VAL, levelOf = s => s.m < 40 ? 0 : s.m < 80 ? 1 : 2;
+const frontier = P => SK.find(k => !isVal(skS(P, k.id))) || null;
+function pickNext(P) {
+  const f = frontier(P), pool = SK.filter(k => k !== f && skS(P, k.id).ever);
+  const rev = pool.length >= 2 && (P.since >= 6 || (P.since >= 3 && Math.random() < 0.35));
+  if (f && !rev) return { k: f, review: false };
+  if (!pool.length) return f ? { k: f, review: false } : null;
+  const now = Date.now(), W = pool.map(k => { const s = skS(P, k.id); return [k, (MMAX + 20 - s.m) * (1 + Math.min(3, (now - s.last) / 864e5))]; });
+  let r = Math.random() * W.reduce((a, w) => a + w[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) return { k, review: true }; }
+  return { k: W[0][0], review: true };
+}
+function build(id, d, seed) { const ex = GEN[id](d, G(rng(seed))); ex.items.forEach((it, i) => { it.id = `${id}-${seed}-${i}`; }); return ex; }
+
+let CUR = null, EXAM = null;
+function findItem(id) {
+  if (CUR && CUR.ex) { const it = CUR.ex.items.find(x => x.id === id); if (it) return it; }
+  if (EXAM && EXAM.exs) for (const ex of EXAM.exs) for (const p of ex.parts) { const it = p.items.find(x => x.id === id); if (it) return it; }
+  return null;
+}
+function exHTML(ex) {
+  return `<article class="card ex"><h2>${esc(ex.title)}</h2><div class="q">${ex.q}</div>${ex.fig || ''}
+    <div class="items">${ex.items.map(it => itemHTML(it, it.id, (CUR && CUR.ans[it.id]) || '')).join('')}</div>
+    ${ex.items.some(it => it.type === 'expr') ? HELP : ''}
+    <div class="actions"><button type="button" class="btn btn-primary" data-act="check">Vérifier</button></div>
+    <details class="corr"><summary>Correction</summary><div class="expl">${ex.corr}${ex.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details></article>`;
+}
+function startEx(k, o = {}) {
+  const P = pst(), s = skS(P, k.id), R = o.resume || null;
+  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s), seed = R ? R.seed : newSeed();
+  CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), done: false };
+  CUR.ex = build(k.id, d, seed);
+  if (CUR.mode === 'path' && !R) saveCur(!!o.user);
+  renderEx();
+}
+function saveCur(bump = true) {
+  if (!CUR || CUR.mode !== 'path') return;
+  const P = pst();
+  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek };
+  if (bump) P.curT = Date.now();
+  ls.set(PK, P);
+}
+function renderEx() {
+  const host = $('#exHost'); if (!host || !CUR) return;
+  const k = CUR.k, s = skS(pst(), k.id);
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span><button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
+    + exHTML(CUR.ex);
+  mathIn(host);
+  CUR.ex.items.forEach(it => { if (it.id in CUR.first) { const fb = $(`.it[data-id="${it.id}"] .fb`, host); if (fb) fb.innerHTML = fbHTML(check(it, valOf(host, it.id))); } });
+  $$('input[data-expr]', host).forEach(preview);
+  host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function checkCur() {
+  if (!CUR || CUR.done) return;
+  const host = $('#exHost');
+  CUR.ex.items.forEach(it => {
+    const r = check(it, valOf(host, it.id)), fb = $(`.it[data-id="${it.id}"] .fb`, host);
+    if (fb) fb.innerHTML = fbHTML(r);
+    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? 1 : 0;
+  });
+  saveCur();
+  if (CUR.ex.items.every(it => it.id in CUR.first)) finish(CUR.ex.items.reduce((a, it) => a + CUR.first[it.id], 0) / CUR.ex.items.length);
+}
+function finish(r) {
+  CUR.done = true;
+  const host = $('#exHost');
+  $('details.corr', host).open = true;
+  if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); return; }
+  const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
+  s.n++; if (r === 1) s.ok++;
+  const gain = CUR.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
+  if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
+  s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now(); if (isVal(s)) s.ever = true;
+  P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
+  ls.set(PK, P);
+  const f = frontier(P), now = isVal(s);
+  const title = CUR.review ? (r === 1 ? 'Toujours acquis' : was && !now ? 'Un peu oublié' : 'À surveiller') : !was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
+  const msg = !was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+  host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span></div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
+    <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
+    <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`);
+  if (!was && now && !CUR.review) toast('Compétence validée : ' + k.name);
+  renderPathTop(); renderMap();
+}
+
+/* =====================================================================
+   VUES
+   ===================================================================== */
+let VIEW = 'home';
+function setTab(t) {
+  if (EXAM && EXAM.running && t !== 'blanc') { toast('Un sujet blanc est en cours.'); t = 'blanc'; }
+  VIEW = t;
+  $$('#tabs .tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
+  ({ home: vHome, path: vPath, cours: vCours, exos: vExos, blanc: vBlanc })[t]();
+  if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
+  window.scrollTo(0, 0);
+}
+function nextCC() {
+  const c = ls.get('planning.cache.v1', null), now = Date.now();
+  const ev = c && c.evs ? c.evs.slice().sort((x, y) => x.s - y.s).find(e => e.s > Date.parse('2026-10-20') && e.s > now - 3 * 3600e3 && /ELECa/i.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : null;
+  return ev ? ev.s : Date.parse('2026-11-02T14:00:00Z');
+}
+function vHome() {
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
+  const days = Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Électronique analogique · CC2</p><h1>Réussir le CC2 d'électronique</h1>
+    <p class="lede">Le CC2 (lundi 2/11) a eu exactement la même forme ces trois dernières années : 1 h, sans document ni calculatrice. <b>Exercice 1</b> (4 pts) : une démonstration de cours. <b>Exercice 2</b> (6 à 8 pts) : un générateur de Thévenin avec deux sources. <b>Exercice 3</b> (8 à 10 pts) : un circuit RC ou RL (basse et haute fréquence, équation différentielle, constante de temps, solution).</p></div>
+    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC2 d'électronique : ${esc(when)}</span></div></section>
+    <div class="grid2">
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées, dans l'ordre des exercices du CC2, avec un schéma par exercice.</p>
+        <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
+      <section class="card"><h2>Sujet blanc (1 h)</h2><p class="sub">Le format exact du CC2 : démo (4 pts), Thévenin (8 pts), circuit du premier ordre (8 pts). ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
+    </div>
+    <section class="card"><h2>4 annales corrigées</h2><p class="sub">CC2 2021-22, 2023-24, 2024-25 et 2025-26 sont sur Moodle (dossier Électronique analogique). Le circuit de Thévenin est presque identique d'une année à l'autre (\(R_{TH} = 2R\), \(E_{TH} = \frac{E_1 + E_2}{3}\)) et l'exercice 3 alterne RC (2023-24, 2024-25) et RL (2025-26). La page du CC1 reste disponible : <a href="../elec/">Électricité (CC1)</a>.</p></section>`;
+  mathIn(app);
+}
+function renderPathTop() {
+  const el = $('#pathTop'); if (!el) return;
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, f = frontier(P);
+  el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${done}/${SK.length}</b><span>compétences validées</span></div><span class="sp"></span>
+    ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
+    <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+    <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'} · Deux sans-faute d'affilée valident une compétence ; en cas d'erreurs, les exercices se simplifient et les compétences validées reviennent en révision.</p></section>`;
+}
+function renderMap() {
+  const el = $('#pathMap'); if (!el) return;
+  const P = pst(), f = frontier(P);
+  el.innerHTML = CH.map((c, ci) => `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${SK.filter(k => k.ch === ci).map(k => {
+    const s = skS(P, k.id), val = isVal(s), open = val || k === f || s.n > 0, pct = Math.min(100, Math.round(s.m));
+    return `<div class="psk ${val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}${s.ever && !val ? '<small>à revoir</small>' : ''}</span>
+      <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
+  }).join('')}</div>`).join('');
+}
+function nextPath(o = {}) {
+  const P = pst();
+  if (!o.fresh && P.cur && skById(P.cur.id)) { startEx(skById(P.cur.id), { resume: P.cur }); renderPathTop(); renderMap(); return; }
+  const n = pickNext(P); if (!n) return;
+  startEx(n.k, { review: n.review, user: o.user }); renderPathTop(); renderMap();
+}
+function vPath() {
+  app.innerHTML = `<div><p class="eyebrow">Parcours guidé</p><h1>Le parcours</h1></div><div id="pathTop"></div><div id="exHost" style="display:grid;gap:16px"></div><section class="card"><h2>La carte</h2><div id="pathMap"></div></section>`;
+  renderPathTop(); renderMap();
+  if (CUR && CUR.mode === 'path') renderEx(); else if (pst().n || pst().cur) nextPath();
+}
+let FREE = { id: 'demos', d: 0 };
+function vExos() {
+  app.innerHTML = `<div><p class="eyebrow">Entraînement libre</p><h1>Exercices par type</h1><p class="lede">Choisis un type d'exercice et un niveau. Les circuits et les valeurs changent à chaque fois.</p></div>
+    <section class="card"><div class="seg">${SK.map(k => `<button type="button" data-ft="${k.id}" aria-pressed="${k.id === FREE.id}">${esc(k.name)}</button>`).join('')}</div>
+      <div class="row" style="margin-top:12px"><div class="seg">${[0, 1, 2].map(d => `<button type="button" data-fd="${d}" aria-pressed="${d === FREE.d}">Niveau ${d + 1}</button>`).join('')}</div><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></section>
+    <div id="exHost" style="display:grid;gap:16px"></div>`;
+  startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+}
+
+/* ---------- Cours ---------- */
+const FICHES = [
+  ['1. Les démonstrations de l\'exercice 1', 'démos (4 pts)', `<p>Chaque CC2 commence par « Donner et démontrer la formule de … à l'aide d'un schéma » : pont diviseur de courant à N résistances (2023-24, 2025-26), Millman à 3 résistances (2024-25), à connaître aussi : pont diviseur de tension.</p>
+    <div class="box key"><h5>Pont diviseur de courant</h5>Schéma : \\(I\\) arrive sur \\(N\\) résistances en parallèle, même tension \\(U\\). Loi des nœuds \\(I = \\sum_k I_k\\) ; loi d'Ohm \\(I_k = \\frac{U}{R_k}\\) ; donc \\(I = U\\sum_k\\frac1{R_k}\\) et \\[I_k = \\frac{1/R_k}{\\sum_{j=1}^N 1/R_j}\\,I\\]</div>
+    <div class="box key"><h5>Millman (3 branches)</h5>Loi des nœuds en A : \\(I_1 + I_2 + I_3 = 0\\) ; loi d'Ohm \\(I_k = \\frac{V_k - V_A}{R_k}\\) ; donc \\[V_A = \\frac{\\frac{V_1}{R_1} + \\frac{V_2}{R_2} + \\frac{V_3}{R_3}}{\\frac1{R_1} + \\frac1{R_2} + \\frac1{R_3}}\\]</div>
+    <div class="box key"><h5>Pont diviseur de tension</h5>Résistances en série, même courant \\(I\\) : \\(U = I\\sum R_j\\), \\(U_k = R_kI\\), donc \\(U_k = \\frac{R_k}{\\sum_j R_j}U\\).</div>
+    <div class="box warn"><h5>Pièges</h5>Oublier le schéma avec les sens des courants et tensions · confondre les deux ponts diviseurs (courant : inverses des résistances).</div>`],
+  ['2. Théorème de Thévenin', 'Thévenin (6-8 pts)', `<p>Tout circuit linéaire vu de deux bornes équivaut à une source \\(E_{TH}\\) en série avec \\(R_{TH}\\). Alors \\(U_L = \\dfrac{R_L}{R_{TH} + R_L}E_{TH}\\) (pont diviseur).</p>
+    <ol><li><b>\\(R_{TH}\\)</b> : on enlève \\(R_L\\), on <b>éteint les sources</b> (source de tension → fil, source de courant → circuit ouvert) et on calcule la résistance vue des bornes.</li><li><b>\\(E_{TH}\\)</b> : tension à vide (sans \\(R_L\\)). La résistance entre le nœud et la borne ne porte aucun courant, donc \\(E_{TH} = V_A\\), calculé par <b>Millman</b>.</li><li>Remplacer dans le pont diviseur, puis faire l'A.N. sans calculatrice (simplifier les fractions).</li></ol>
+    <div class="box key"><h5>Le circuit des annales (trois années de suite)</h5>\\(E_1\\) – \\(3R\\) – nœud A – deux branches \\(3R\\) (dont une avec \\(E_2\\)) – \\(R\\) – \\(R_L\\) : \\(3R\\parallel3R\\parallel3R = R\\), \\(R_{TH} = 2R\\) ; \\(E_{TH} = \\frac{E_1 + E_2}{3}\\) ; \\(U_L = \\frac{R_L}{2R + R_L}\\cdot\\frac{E_1 + E_2}{3}\\).</div>
+    <div class="box warn"><h5>Pièges</h5>Une branche sans source compte pour \\(\\frac{0}{R}\\) au numérateur de Millman mais compte au dénominateur · une source à l'envers compte avec un signe moins.</div>`],
+  ['3. Condensateur et bobine', 'C et L', `<table class="t"><tr><th></th><th>Condensateur</th><th>Bobine</th></tr><tr><td>Relation</td><td>\\(i = C\\dfrac{du}{dt}\\)</td><td>\\(u = L\\dfrac{di}{dt}\\)</td></tr><tr><td>Très basse fréquence (continu)</td><td>circuit ouvert</td><td>fil</td></tr><tr><td>Très haute fréquence</td><td>fil</td><td>circuit ouvert</td></tr><tr><td>Grandeur continue</td><td>la tension</td><td>le courant</td></tr><tr><td>Énergie</td><td>\\(\\frac12Cu^2\\)</td><td>\\(\\frac12Li^2\\)</td></tr></table>
+    <div class="box key"><h5>Questions 1 à 3 de l'exercice 3</h5>Redessiner le schéma en BF puis en HF avec l'équivalent, en déduire \\(u(t)\\) (\\(e(t)\\) ou 0), puis la nature du filtre : si \\(u = e\\) en BF et 0 en HF, passe-bas ; l'inverse, passe-haut.</div>`],
+  ['4. Circuits du premier ordre', 'équations (8-10 pts)', `<table class="t"><tr><th>Circuit (sortie)</th><th>Équation</th><th>\\(\\tau\\)</th><th>Filtre</th></tr><tr><td>R puis C (u aux bornes de C)</td><td>\\(u + \\tau u' = e\\)</td><td>\\(RC\\)</td><td>passe-bas</td></tr><tr><td>C puis R (u aux bornes de R)</td><td>\\(u + \\tau u' = \\tau e'\\)</td><td>\\(RC\\)</td><td>passe-haut</td></tr><tr><td>L puis R (u aux bornes de R)</td><td>\\(u + \\tau u' = e\\)</td><td>\\(L/R\\)</td><td>passe-bas</td></tr><tr><td>R puis L (u aux bornes de L)</td><td>\\(u + \\tau u' = \\tau e'\\)</td><td>\\(L/R\\)</td><td>passe-haut</td></tr></table>
+    <ul><li>Méthode : loi des mailles, relation de l'élément, éliminer l'autre inconnue, mettre sous la forme canonique.</li><li>Échelon \\(e = E\\) à \\(t = 0\\), \\(u(0) = 0\\) : \\(u(t) = U_1 + U_2e^{-t/\\tau}\\) avec \\(U_1 = E\\) (régime permanent) et \\(U_2 = -E\\) (condition initiale) : \\(u = E(1 - e^{-t/\\tau})\\).</li><li>Graphe : \\(0{,}63E\\) à \\(t = \\tau\\), tangente à l'origine qui coupe \\(u = E\\) en \\(\\tau\\), 95 % à \\(3\\tau\\), quasi fini à \\(5\\tau\\).</li></ul>
+    <div class="box key"><h5>« Vérifier qu'une expression est solution »</h5>Dériver l'expression proposée, la remplacer dans l'équation, simplifier, et lire la condition (CC 2024-25 : \\(U_1 = E\\) ; CC 2025-26 : \\(e(t) = E_0\\cos\\omega t\\) ou \\(e = E_0\\)).</div>`],
+  ['5. Régime sinusoïdal', 'sinusoïdal', `<ul><li>\\(e(t) = E_0\\cos(\\omega t)\\) : \\(\\omega\\) est la <b>pulsation</b> (rad/s), \\(\\omega = 2\\pi f\\), période \\(T = \\frac1f\\).</li><li>Passe-bas du 1<sup>er</sup> ordre : amplitude de sortie \\(\\dfrac{E_0}{\\sqrt{1 + (\\omega\\tau)^2}}\\), égale à \\(E_0/\\sqrt2\\) à la pulsation de coupure \\(\\omega_c = \\frac1\\tau\\), soit \\(f_c = \\frac{1}{2\\pi\\tau}\\).</li></ul>`],
+  ['6. Méthode pour le CC2', 'méthode', `<p>1 h, sans document ni calculatrice, toujours le même plan : <b>Ex. 1</b> démo (4 pts), <b>Ex. 2</b> Thévenin à deux sources (6 à 8 pts), <b>Ex. 3</b> RC ou RL (8 à 10 pts). Les questions de l'exercice 3 précisent souvent « vous pouvez répondre sans avoir répondu à la question précédente » : ne reste pas bloqué.</p>
+    <ol><li>Apprends par cœur les trois démos (fiche 1) : 4 points sûrs.</li><li>Thévenin : refais le circuit des annales jusqu'à le faire en 10 minutes.</li><li>RC/RL : BF/HF, filtre, relation de l'élément, équation, \\(\\tau\\), solution : toujours dans cet ordre.</li></ol>`]
+];
+function vCours(open) {
+  app.innerHTML = `<div><p class="eyebrow">Électronique analogique · CC2 du 2/11</p><h1>Le cours utile</h1><p class="lede">Ce qu'il faut savoir pour le CC2, dans l'ordre des exercices des annales : démonstrations, Thévenin, condensateur et bobine, circuits du premier ordre.</p></div>
+    ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
+  mathIn(app);
+  if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
+}
+
+/* ---------- Sujet blanc ---------- */
+let tick = 0;
+const DUR = 3600;
+const EXAM_PLAN = [['Exercice 1 · Démonstration', [['demos', 0]], 4], ['Exercice 2 · Théorème de Thévenin', [['rth', 1], ['eth', 1], ['thev', 1]], 8], ['Exercice 3 · Circuit du premier ordre', [['bfhf', 1], ['edo', 1], ['reponse', 0]], 8]];
+function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+function vBlanc() {
+  const E = ls.get(EK, null);
+  if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
+  if (EXAM) return renderExam();
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Le format des quatre dernières annales : une démonstration (4 pts), Thévenin avec deux sources (8 pts), un circuit RC ou RL (8 pts).</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h)</button><span class="fine">Sans calculatrice : rédige la démo et les schémas sur une feuille, puis reporte les résultats.</span></div></section>
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+}
+function renderExam() {
+  EXAM.exs = examExos(EXAM.seed);
+  app.innerHTML = `<div><p class="eyebrow">Sujet blanc d'électronique</p><h1>CC2 · 1 h</h1></div>`
+    + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div>${p.fig || ''}<div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
+    + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
+      : `<section class="card">${HELP}<div class="row" style="justify-content:center;margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div></section>`);
+  mathIn(app);
+  $$('input[data-expr]', app).forEach(preview);
+  if (EXAM.done && EXAM.fb) Object.entries(EXAM.fb).forEach(([id, h]) => { const fb = $(`.it[data-id="${id}"] .fb`, app); if (fb) fb.innerHTML = h; });
+  startTick();
+}
+function startTick() {
+  clearInterval(tick); const clk = $('#clock');
+  if (!EXAM || EXAM.done) { clk.hidden = true; return; }
+  clk.hidden = false;
+  const upd = () => { const left = DUR - (Date.now() - EXAM.t0) / 1000; clk.textContent = `${Math.floor(Math.max(0, left) / 3600)}:${String(Math.floor(Math.max(0, left) % 3600 / 60)).padStart(2, '0')}:${String(Math.floor(Math.max(0, left) % 60)).padStart(2, '0')}`; clk.classList.toggle('rush', left < 600); if (left <= 0) submitExam(true); };
+  upd(); tick = setInterval(upd, 1000);
+}
+const saveExam = () => { const { exs, ...rest } = EXAM; try { localStorage.setItem(EK, JSON.stringify(rest)); } catch (e) { /* ignore */ } };
+function submitExam(auto) {
+  if (!EXAM || EXAM.done) return;
+  if (!auto && !confirm('Rendre la copie ?')) return;
+  clearInterval(tick);
+  const exs = examExos(EXAM.seed); let note = 0; const fb = {};
+  for (const ex of exs) {
+    const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
+    for (const it of its) { const r = check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += r.st === 'ok' ? 1 : 0; }
+    note += ex.pts * got / its.length;
+  }
+  EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
+  try { localStorage.removeItem(EK); } catch (e) { /* ignore */ }
+  if (auto) toast('Temps écoulé : copie rendue.');
+  renderExam(); window.scrollTo(0, 0);
+}
+
+/* =====================================================================
+   ÉVÉNEMENTS
+   ===================================================================== */
+let saveT = 0;
+document.addEventListener('click', e => {
+  const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab); return; }
+  const fi = e.target.closest('[data-fiche]'); if (fi) { setTab('cours'); vCours(+fi.dataset.fiche); return; }
+  const go = e.target.closest('[data-go]');
+  if (go) { if (CUR && CUR.mode === 'path' && !CUR.done && CUR.k.id === go.dataset.go) { $('#exHost').scrollIntoView({ behavior: 'smooth' }); return; } startEx(skById(go.dataset.go), { user: true }); renderPathTop(); renderMap(); return; }
+  const ft = e.target.closest('[data-ft]'); if (ft) { FREE.id = ft.dataset.ft; vExos(); return; }
+  const fd = e.target.closest('[data-fd]'); if (fd) { FREE.d = +fd.dataset.fd; vExos(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'check') checkCur();
+  else if (act === 'next') nextPath();
+  else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
+  else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
+  else if (act === 'submit') submitExam(false);
+  else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
+});
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.matches('input')) return;
+  const id = t.dataset.id || t.name; if (!id) return;
+  if (t.dataset.expr) preview(t);
+  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; saveExam(); }
+  else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
+});
+document.addEventListener('change', e => { if (e.target.type === 'radio') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); } });
+document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matches && e.target.matches('#exHost details.corr') && e.target.open) { CUR.peek = true; saveCur(); } }, true);
+
+(function () {
+  const ICON = { sun: '☀', moon: '☾', auto: '◐' }, KEY = 'qcm-maths-theme', btn = $('#themeBtn');
+  function apply(t) { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t; btn.textContent = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; btn.dataset.mode = t; btn.title = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t]; }
+  let t = 'auto'; try { t = localStorage.getItem(KEY) || 'auto'; } catch (e) { /* ignore */ }
+  apply(t);
+  btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
+})();
+function wireAccount() {
+  const A = window.SiteAccount; if (!A) return;
+  A.on('data', keys => {
+    if (!keys.some(k => k.startsWith('el2.'))) return;
+    if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
+    if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();
+  });
+}
+if (window.SiteAccount) wireAccount(); else window.addEventListener('siteaccount', wireAccount, { once: true });
+
+window.__EL2 = { GEN, build, ladder, G, rng, fV, check, parseF, evF, texF, parseNum, SK, VD, FICHES };   // tests
+function boot() { const h = location.hash.slice(1); setTab(['home', 'path', 'cours', 'exos', 'blanc'].includes(h) ? h : 'home'); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+</body>
+</html>

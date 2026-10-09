@@ -91,10 +91,39 @@
   const cache = () => get(CACHE, null);
   let busy = false, lastErr = '', weekKey = null;
 
+  // Comparaison avec la version précédente : cours déplacés, changés de salle, ajoutés ou supprimés
+  function diff(prev, next) {
+    const now = Date.now(), P = new Map(prev.filter(e => e.id).map(e => [e.id, e])), N = new Map(next.filter(e => e.id).map(e => [e.id, e]));
+    if (!P.size || !N.size) return [];
+    let common = 0; N.forEach((_, id) => { if (P.has(id)) common++; });
+    if (common < 0.6 * Math.min(P.size, N.size)) return [];   // identifiants régénérés : comparaison impossible
+    const out = [];
+    N.forEach((e, id) => {
+      const o = P.get(id);
+      if (o) { if (e.s > now - 864e5 && (o.s !== e.s || o.e !== e.e || (o.l || '') !== (e.l || '') || o.t !== e.t)) out.push({ k: 'mod', id, t: e.t, s: e.s, e: e.e, l: e.l, os: o.s, oe: o.e, ol: o.l }); }
+      else if (e.s > now) out.push({ k: 'add', id, t: e.t, s: e.s, e: e.e, l: e.l });
+    });
+    P.forEach((o, id) => { if (!N.has(id) && o.s > now) out.push({ k: 'del', id, t: o.t, s: o.s, e: o.e, l: o.l }); });
+    // supprimé puis recréé ailleurs dans les 15 jours : c'est un déplacement
+    out.filter(x => x.k === 'del').forEach(dl => { const a = out.find(x => x.k === 'add' && x.t === dl.t && Math.abs(x.s - dl.s) < 15 * 864e5); if (a) { Object.assign(a, { k: 'mod', os: dl.s, oe: dl.e, ol: dl.l }); dl.k = 'gone'; } });
+    return out.filter(x => x.k !== 'gone');
+  }
+  function mergeChanges(old, fresh) {
+    const now = Date.now(), byId = new Map((old || []).filter(x => x.at > now - 7 * 864e5 && x.s > now - 864e5).map(x => [x.id, x]));
+    fresh.forEach(x => {
+      const o = byId.get(x.id);
+      if (o && o.k === 'mod' && x.k === 'mod') Object.assign(x, { os: o.os, oe: o.oe, ol: o.ol });   // on garde l'horaire d'origine
+      if (x.k === 'mod' && x.os === x.s && x.oe === x.e && (x.ol || '') === (x.l || '') ) { byId.delete(x.id); return; }   // revenu comme avant
+      byId.set(x.id, Object.assign(x, { at: now }));
+    });
+    return [...byId.values()].sort((a, b) => a.s - b.s);
+  }
+  const FRESH = 3 * 60e3;   // au-delà, on relit l'emploi du temps à l'ouverture ou au retour sur la page
+
   async function refresh(force) {
     const p = prefs(), acc = A(), c = cache();
     if (!p.url || busy || !acc || !acc.user || !acc.client) return;
-    if (!force && c && c.url === p.url && Date.now() - c.at < 30 * 60e3) return;
+    if (!force && c && c.url === p.url && Date.now() - c.at < FRESH) return;
     busy = true; lastErr = ''; render();
     try {
       const { data } = await acc.client.auth.getSession();
@@ -108,7 +137,8 @@
       if (!r.ok) { let m = 'Erreur ' + r.status; try { m = JSON.parse(txt).error || m; } catch (e) { /* ignore */ } throw new Error(m); }
       const evs = parseICS(txt);
       if (!evs.length) throw new Error('Calendrier vide : le lien est peut-être expiré.');
-      put(CACHE, { url: p.url, at: Date.now(), evs });
+      const same = c && c.url === p.url && Array.isArray(c.evs);
+      put(CACHE, { url: p.url, at: Date.now(), evs, chg: mergeChanges(same ? c.chg : [], same ? diff(c.evs, evs) : []) });
       fillElecDate(evs);
     } catch (e) { lastErr = e.message || String(e); }
     busy = false; render();
@@ -134,14 +164,29 @@
       <div class="pl-what"><b>${esc(k)}${name ? ' · ' + esc(name) : ''}</b><span>${esc(hm(e.s))}${e.e ? '–' + esc(hm(e.e)) : ''} · ${esc(roomOf(e))}</span><small>${esc(e.t)}</small></div>
       ${link ? `<a class="btn" href="${link}">Réviser</a>` : '<span></span>'}</li>`;
   }
+  // Description d'un changement : « 10h15 → 13h30 · salle B02 → B07 »
+  function changeHTML(x) {
+    const what = [];
+    if (x.k === 'add') what.push('nouveau créneau');
+    else if (x.k === 'del') what.push('supprimé (cours annulé ou déplacé)');
+    else {
+      if (dayKey(x.os) !== dayKey(x.s)) what.push(`déplacé du ${dayLong(x.os)} ${hm(x.os)} au ${dayLong(x.s)} ${hm(x.s)}`);
+      else if (x.os !== x.s || x.oe !== x.e) what.push(`horaire ${hm(x.os)}–${hm(x.oe)} → <b>${hm(x.s)}–${hm(x.e)}</b>`);
+      if ((x.ol || '') !== (x.l || '')) what.push(`salle ${esc(x.ol || '?')} → <b>${esc(x.l || '?')}</b>`);
+      if (!what.length) what.push('intitulé modifié');
+    }
+    return `<li class="pl-c ${x.k}"><span class="d">${esc(dayLong(x.s))} · ${esc(hm(x.s))}</span><span class="t">${esc(x.t)}</span><span class="w">${what.join(' · ')}</span><span class="a">détecté ${esc(ago(x.at))}</span></li>`;
+  }
+  const upcomingChanges = c => ((c && c.chg) || []).filter(x => x.s > Date.now() - 3 * 3600e3);
   function weekHTML(evs, p) {
+    const chg = new Map(upcomingChanges(cache()).map(x => [x.id, x]));
     const days = Array.from({ length: 7 }, (_, i) => addDays(weekKey, i));
     const by = {}; evs.forEach(e => { const k = dayKey(e.s); if (k >= days[0] && k <= days[6] && (p.tiers || !isTiers(e))) (by[k] = by[k] || []).push(e); });
     const label = `${fmt(new Date(days[0] + 'T12:00:00Z'), { day: 'numeric', month: 'long' })} – ${fmt(new Date(days[6] + 'T12:00:00Z'), { day: 'numeric', month: 'long' })}`;
     const today = dayKey(Date.now());
     return `<div class="pl-weekhead"><button type="button" class="btn" data-pl="prev" aria-label="Semaine précédente">←</button><b>${esc(label)}</b><button type="button" class="btn" data-pl="next" aria-label="Semaine suivante">→</button>${weekKey !== mondayOf(Date.now()) ? '<button type="button" class="btn btn-ghost" data-pl="now">Cette semaine</button>' : ''}</div>
       <div class="pl-days">${days.filter((d, i) => i < 5 || by[d]).map(d => `<section class="pl-day${d === today ? ' today' : ''}"><h4>${esc(fmt(new Date(d + 'T12:00:00Z'), { weekday: 'long', day: 'numeric' }))}</h4>
-        ${(by[d] || []).length ? `<ul>${by[d].map(e => `<li class="${isEval(e) && !isRatt(e) ? 'ev' : /réservé/i.test(e.t) ? 'muted' : ''}"><span class="h">${esc(hm(e.s))}${e.e ? '–' + esc(hm(e.e)) : ''}</span><span class="t">${esc(e.t)}</span><span class="l">${esc(e.l && !/cherche la salle/i.test(e.l) ? e.l : '')}</span></li>`).join('')}</ul>` : '<p class="pl-none">Rien</p>'}</section>`).join('')}</div>`;
+        ${(by[d] || []).length ? `<ul>${by[d].map(e => `<li class="${isEval(e) && !isRatt(e) ? 'ev' : /réservé/i.test(e.t) ? 'muted' : ''}${chg.has(e.id) ? ' chg' : ''}"><span class="h">${esc(hm(e.s))}${e.e ? '–' + esc(hm(e.e)) : ''}${chg.has(e.id) ? ` <span class="badge">${chg.get(e.id).k === 'add' ? 'nouveau' : 'modifié'}</span>` : ''}</span><span class="t">${esc(e.t)}</span><span class="l">${esc(e.l && !/cherche la salle/i.test(e.l) ? e.l : '')}</span></li>`).join('')}</ul>` : '<p class="pl-none">Rien</p>'}</section>`).join('')}</div>`;
   }
   function render() {
     const host = document.getElementById('vPlan'); if (!host) { banner(); return; }
@@ -153,8 +198,8 @@
     else {
       const evs = (c && c.url === p.url && c.evs) || [];
       if (!weekKey) weekKey = mondayOf(Date.now());
-      const ev = evalsOf(evs, p);
-      body = `<section class="acc">
+      const ev = evalsOf(evs, p), ch = c && c.url === p.url ? upcomingChanges(c) : [];
+      body = (ch.length ? `<section class="acc pl-chg"><p class="eyebrow" style="margin-bottom:8px">Emploi du temps</p><h2>Changements récents</h2><p class="sub">Ce qui a bougé depuis les lectures précédentes (7 derniers jours).</p><ul>${ch.slice(0, 12).map(changeHTML).join('')}</ul>${ch.length > 12 ? `<p class="fine">… et ${ch.length - 12} autres.</p>` : ''}</section>` : '') + `<section class="acc">
         <div class="acc-row"><div><p class="eyebrow" style="margin-bottom:8px">Planning</p><h2>Prochaines évaluations</h2></div><span class="sp"></span>
           <span class="fine">${busy ? 'Mise à jour…' : c && c.at ? 'Mis à jour ' + esc(ago(c.at)) : ''}</span>
           <button type="button" class="btn" data-pl="refresh" ${busy || !(acc && acc.user) ? 'disabled' : ''}>Actualiser</button></div>
@@ -186,10 +231,13 @@
     const el = document.getElementById('planBanner'); if (!el) return;
     const c = cache(), p = prefs();
     const ev = c && c.evs && c.url === p.url ? evalsOf(c.evs, p) : [];
-    if (!ev.length) { el.hidden = true; el.innerHTML = ''; return; }
-    const e = ev[0], sj = subjOf(e), n = daysUntil(e.s);
+    const soon = c && c.url === p.url ? upcomingChanges(c).filter(x => x.s < Date.now() + 8 * 864e5) : [];
+    const alert = soon.length ? `<p class="pl-alert"><b>⚠ ${soon.length} changement${soon.length > 1 ? 's' : ''} dans ton emploi du temps</b> d'ici une semaine (${soon.slice(0, 2).map(x => esc(x.t.replace(/-S1|\s*GR\s*A/g, '')) + ' le ' + esc(dayLong(x.s))).join(', ')}${soon.length > 2 ? '…' : ''}). <button type="button" class="linkbtn" data-ht="plan">Voir</button></p>` : '';
+    if (!ev.length && !alert) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
-    el.innerHTML = `<div><p class="eyebrow" style="margin-bottom:6px">Prochaine évaluation</p><b>${esc(kindOf(e))}${sj ? ' · ' + esc(SUBJ[sj]) : /QCM/i.test(e.t) ? ' · Maths' : ''}</b> <span>${esc(relDay(n))}, ${esc(dayLong(e.s))} à ${esc(hm(e.s))}</span></div>
+    if (!ev.length) { el.innerHTML = alert; return; }
+    const e = ev[0], sj = subjOf(e), n = daysUntil(e.s);
+    el.innerHTML = alert + `<div><p class="eyebrow" style="margin-bottom:6px">Prochaine évaluation</p><b>${esc(kindOf(e))}${sj ? ' · ' + esc(SUBJ[sj]) : /QCM/i.test(e.t) ? ' · Maths' : ''}</b> <span>${esc(relDay(n))}, ${esc(dayLong(e.s))} à ${esc(hm(e.s))}</span></div>
       <span class="sp"></span>${linkOf(e) ? `<a class="btn btn-primary" href="${linkOf(e)}">Réviser</a>` : ''}<button type="button" class="btn" data-ht="plan">Tout le planning</button>`;
   }
 
@@ -212,12 +260,16 @@
     weekKey = null; refresh(true);
   });
 
-  const Planning = window.SitePlanning = { render, refresh, parseICS, isEval, subjOf };
+  const Planning = window.SitePlanning = { render, refresh, parseICS, isEval, subjOf, diff, mergeChanges };
   function wire() {
     const acc = A(); if (!acc) return;
     acc.on('change', () => { render(); refresh(false); });
     acc.on('data', keys => { if (keys.includes(PREF)) { weekKey = null; render(); refresh(false); } });
     acc.ready.then(() => { render(); refresh(false); });
+    // relecture automatique : au retour sur la page, au retour du réseau, et toutes les 5 minutes si la page est visible
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(false); });
+    window.addEventListener('online', () => refresh(false));
+    setInterval(() => { if (!document.hidden) { refresh(false); if (!busy) render(); } }, 5 * 60e3);
   }
   if (A()) wire(); else window.addEventListener('siteaccount', wire, { once: true });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render); else render();

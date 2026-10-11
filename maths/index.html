@@ -144,6 +144,7 @@ kbd{font:600 11px/1 var(--sans);padding:2px 6px;border:1px solid var(--rule-stro
 .nav-cell{position:relative;aspect-ratio:1;display:grid;place-items:center;padding:0;border:1px solid var(--rule-strong);border-radius:8px;background:var(--sheet);color:var(--ink-2);font:600 13px/1 var(--sans);font-variant-numeric:tabular-nums;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
 .nav-cell:hover{border-color:var(--ink-2);color:var(--ink)}
 .nav-cell.answered{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.nav-cell.skipped{background:var(--sheet-2);border-style:dashed;color:var(--muted);text-decoration:line-through}
 .nav-cell.current{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--ink)}
 .nav-cell.flagged::after,.lg.flagged::after{content:"";position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:var(--flag);box-shadow:0 0 0 2px var(--sheet)}
 .nav-legend{list-style:none;margin:18px 0 0;padding:16px 0 0;border-top:1px solid var(--rule);display:grid;gap:9px;font-size:13px;color:var(--ink-2)}
@@ -282,6 +283,17 @@ dialog::backdrop{background:rgba(20,19,17,.45)}
 .pill.st-part{background:var(--warn-soft);color:var(--warn)}
 .pill.st-bad{background:var(--red-soft);color:var(--red)}
 .pill.st-empty{background:var(--sheet-2);color:var(--ink-2);border:1px solid var(--rule)}
+.pill.st-skip{background:var(--sheet-2);color:var(--muted);border:1px dashed var(--rule-strong)}
+.pill.st-slip{background:var(--pen-soft);color:var(--pen);border:1px solid var(--pen-line)}
+.dot.st-skip,.sw.st-skip{background:transparent;border:1.5px dashed var(--muted)}
+.chart-wrap .bar.st-skip{fill:transparent;stroke:var(--muted);stroke-dasharray:3 2}
+.skip-note{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 18px;padding:12px 16px;border-radius:12px;border:1px dashed var(--rule-strong);background:var(--sheet-2);color:var(--ink-2);font:14px/1.45 var(--sans)}
+.skip-note b{color:var(--ink)}
+.choices.is-skipped{opacity:.4;pointer-events:none}
+.corr[data-skip="1"] .corr-main{opacity:.75}
+.slip-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-4px 0 14px}
+.slip-row .fine{font:13px/1.4 var(--sans);color:var(--muted)}
+.btn.slip-btn[aria-pressed="true"]{color:var(--pen);background:var(--pen-soft);border-color:var(--pen-line)}
 .pts-pos{color:var(--good);font-weight:600}
 .pts-neg{color:var(--red);font-weight:600}
 .time-long{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;background:var(--warn-soft);color:var(--warn);font-weight:600}
@@ -5334,9 +5346,13 @@ def('tvi_interval', 'continuite', 2, g => {
   for (let i = 0; i < 80; i++) { const Mi = (A + B) / 2; if (f(Mi) < 0) A = Mi; else B = Mi; }
   const al = (A + B) / 2, n = Math.floor(al);
   need(al - n > 0.08 && n + 1 - al > 0.08 && (kind !== 'lnx' || n >= 1));
+  // Sans calculatrice : les valeurs approchées utiles sont données, et f(n), f(n+1) ne sont pas trop proches de 0
+  need(Math.abs(f(n)) >= 0.15 && Math.abs(f(n + 1)) >= 0.15);
+  const data = kind === 'expx' ? R`<br><em>On donne : \(e\approx2{,}72\), \(e^2\approx7{,}39\), \(e^3\approx20{,}09\).</em>`
+    : kind === 'lnx' ? R`<br><em>On donne : \(\ln2\approx0{,}69\), \(\ln3\approx1{,}10\), \(\ln5\approx1{,}61\), \(\ln7\approx1{,}95\).</em>` : '';
   const I = j => [R`]${j}\,;${j + 1}[`, j];
   return Object.assign({
-    q: R`Soit \(f\) la fonction définie ${kind === 'lnx' ? R`sur \(]0\,;+\infty[\)` : R`sur \(\mathbb R\)`} par \(f(x)=${fT}\). On admet que l'équation \(f(x)=0\) admet une unique solution \(\alpha\). Dans quel intervalle se trouve \(\alpha\) ?`,
+    q: R`Soit \(f\) la fonction définie ${kind === 'lnx' ? R`sur \(]0\,;+\infty[\)` : R`sur \(\mathbb R\)`} par \(f(x)=${fT}\). On admet que l'équation \(f(x)=0\) admet une unique solution \(\alpha\). Dans quel intervalle se trouve \(\alpha\) ?` + data,
     e: R`${why} : \(f\) est continue et strictement croissante.<br>\(f(${n})\approx${dec3(f(n))}&lt;0\) et \(f(${n + 1})\approx${dec3(f(n + 1))}>0\) : d'après le théorème des valeurs intermédiaires (cas strictement monotone), \(\alpha\in\,]${n}\,;${n + 1}[\).`,
     d: R`TVI : si \(f\) est continue et strictement monotone sur \([a\,;b]\) et si \(f(a)\) et \(f(b)\) sont de signes contraires, l'équation \(f(x)=0\) a une unique solution dans \([a\,;b]\).`,
     _: { kind, chk: () => (f(n) < 0 && f(n + 1) > 0) || 'faux' }
@@ -5423,8 +5439,9 @@ def('suite_sum2', 'suites', 2, g => {
       _: { chk: () => { let s = 0; for (let x = a; x <= last; x += r) s += x; return s === S || 'somme fausse'; } }
     }, mcqv(g, [String(S), S], g.shuffle(bads)));
   }
-  const q = g.pick([2, 3, 2, 5]), n = g.int(4, q === 2 ? 11 : 6), c = g.pick([1, 1, 2, 3]);
+  const q = g.pick([2, 3, 2, 5]), n = g.int(4, q === 2 ? 11 : q === 3 ? 6 : 4), c = g.pick([1, 1, 2, 3]);
   const S = c * (q ** (n + 1) - 1) / (q - 1);
+  need(S <= 5000);
   const bads = [c * (q ** n - 1) / (q - 1), c * q ** (n + 1) / (q - 1), c * (q ** (n + 1) - 1), c * (q ** (n + 2) - 1) / (q - 1)].map(v => [String(v), v]);
   const t = k => (k === 0 ? String(c) : k === 1 ? String(c * q) : c === 1 ? `${q}^{${k}}` : `${c}\\times${q}^{${k}}`);
   return Object.assign({
@@ -5462,27 +5479,32 @@ def('suite_monot', 'suites', 2, g => {
 });
 
 def('suite_seuil', 'suites', 2, g => {
+  // Raisons « calculables de tête » (2, 3, 4, 5 ou 1/2, 1/4, 1/5, 1/10) et calcul exact en entiers : pas de calculatrice
   const up = g.chance(0.5);
-  let u0, q, M, n, tex, e;
+  let u0, n, tex, e, cond, ok;
   if (up) {
-    u0 = g.int(1, 5); q = g.pick([2, 3, 1.5, 1.2]); M = g.pick([100, 500, 1000, 10000]);
-    n = 0; while (u0 * q ** n <= M) n++;
-    tex = R`u_n=${u0 === 1 ? '' : u0 + R`\times`}${String(q).replace('.', '{,}')}^n`;
-    e = R`\(u_n>${M}\iff ${String(q).replace('.', '{,}')}^n>${fx(F(M, u0))}\iff n\ln(${String(q).replace('.', '{,}')})>\ln\left(${fx(F(M, u0), true)}\right)\iff n>\dfrac{\ln(${fx(F(M, u0), true)})}{\ln(${String(q).replace('.', '{,}')})}\approx${dec3(Math.log(M / u0) / Math.log(q))}\)` +
-      R` (on divise par \(\ln(${String(q).replace('.', '{,}')})>0\)).<br>Le plus petit entier qui convient est \(${n}\).`;
+    u0 = g.int(1, 5); const q = g.pick([2, 2, 3, 3, 4, 5]), M = g.pick([100, 500, 1000, 10000]);
+    ok = k => u0 * q ** k > M;
+    n = 0; while (!ok(n)) n++;
+    tex = R`u_n=${u0 === 1 ? '' : u0 + R`\times`}${q}^n`;
+    cond = R`u_n>${M}`;
+    const u = k => (u0 === 1 ? R`${q}^{${k}}` : R`${u0}\times${q}^{${k}}`) + `=${u0 * q ** k}`;
+    e = R`La suite est croissante (\(${q}>1\)). On calcule les termes : \(u_{${n - 1}}=${u(n - 1)}\leqslant${M}\) et \(u_{${n}}=${u(n)}>${M}\).<br>Le plus petit entier qui convient est \(${n}\).`;
   } else {
-    u0 = g.pick([1, 2, 5, 10]); q = g.pick([0.5, 0.8, 0.9, 0.2]); M = g.pick([0.01, 0.001, 0.1]);
-    n = 0; while (u0 * q ** n >= M) n++;
-    tex = R`u_n=${u0 === 1 ? '' : u0 + R`\times`}${String(q).replace('.', '{,}')}^n`;
-    e = R`\(u_n&lt;${String(M).replace('.', '{,}')}\iff n\ln(${String(q).replace('.', '{,}')})&lt;\ln\left(${String(M / u0).replace('.', '{,}')}\right)\iff n>\dfrac{\ln(${String(M / u0).replace('.', '{,}')})}{\ln(${String(q).replace('.', '{,}')})}\approx${dec3(Math.log(M / u0) / Math.log(q))}\)` +
-      R` : on divise par \(\ln(${String(q).replace('.', '{,}')})&lt;0\), le sens change.<br>Le plus petit entier qui convient est \(${n}\).`;
+    u0 = g.pick([1, 2, 5, 10]); const Q = g.pick([2, 2, 4, 5, 10]), m = g.pick([1, 2, 3]), T = u0 * 10 ** m;
+    const qT = { 2: '0{,}5', 4: '0{,}25', 5: '0{,}2', 10: '0{,}1' }[Q], MT = '0{,}' + '0'.repeat(m - 1) + '1';
+    ok = k => Q ** k > T; // u0 × (1/Q)^k < 10^(-m)  ⟺  Q^k > u0 × 10^m
+    n = 0; while (!ok(n)) n++;
+    tex = R`u_n=${u0 === 1 ? '' : u0 + R`\times`}${qT}^n`;
+    cond = R`u_n&lt;${MT}`;
+    e = R`\(${qT}=\dfrac1{${Q}}\), donc \(u_n=\dfrac{${u0}}{${Q}^n}\) et \(u_n&lt;${MT}\iff ${Q}^n>\dfrac{${u0}}{${MT}}=${T}\).<br>` +
+      R`Or \(${Q}^{${n - 1}}=${Q ** (n - 1)}\leqslant${T}\) et \(${Q}^{${n}}=${Q ** n}>${T}\) : le plus petit entier qui convient est \(${n}\).`;
   }
-  need(n >= 3 && n <= 80 && Math.abs(Math.log(M / u0) / Math.log(q) - Math.round(Math.log(M / u0) / Math.log(q))) > 1e-6);
-  const cond = up ? R`u_n>${M}` : R`u_n&lt;${String(M).replace('.', '{,}')}`;
+  need(n >= 3 && n <= 16);
   return Object.assign({
     q: R`Soit \((u_n)\) la suite définie pour tout entier naturel \(n\) par \(${tex}\). Quel est le plus petit entier \(n\) tel que \(${cond}\) ?`,
-    e, d: R`Seuil : on passe au logarithme (croissant), et on change le sens si l'on divise par un \(\ln\) négatif (\(\ln q&lt;0\) quand \(0&lt;q&lt;1\)).`,
-    _: { chk: () => { const ok = k => (up ? u0 * q ** k > M : u0 * q ** k < M); return (ok(n) && !ok(n - 1)) || 'seuil faux'; } }
+    e, d: R`Seuil : on se ramène à une comparaison de puissances (\(q^n\) ou \(\frac1{q^n}\)) et on calcule les puissances successives. Attention au cas d'égalité : il faut une inégalité <strong>stricte</strong>.`,
+    _: { chk: () => (ok(n) && !ok(n - 1)) || 'seuil faux' }
   }, mcqv(g, [String(n), n], g.shuffle([n - 1, n + 1, n + 2, n - 2]).map(v => [String(v), v])));
 });
 
@@ -5493,7 +5515,7 @@ def('suite_rec_terms', 'suites', 2, g => {
   else if (kind === 'lin') { const a = g.pick([2, 3, -2]), b = g.nz(-5, 5); u0 = g.int(-3, 3); f = u => a * u + b; fT = R`${kco(a)}u_n${pm(b)}`; }
   else { const b = g.nz(-3, 3); u0 = g.int(-2, 2); f = u => u * u + b; fT = R`u_n^2${pm(b)}`; k = 3; }
   const U = [u0]; for (let n = 0; n < 5; n++) U.push(f(U[n], n));
-  need(Math.abs(U[k]) <= 2000 && new Set(U.slice(1, 5)).size === 4);
+  need(Math.abs(U[k]) <= 300 && new Set(U.slice(1, 5)).size === 4);
   const alt = []; { let u = u0; for (let n = 1; n <= k; n++) u = f(u, n); alt.push(u); }
   const bads = [U[k - 1], U[k + 1], alt[0], U[k] + 1].map(v => [String(v), v]);
   return Object.assign({
@@ -5633,7 +5655,7 @@ def('denombr', 'binomiale', 2, g => {
   const kind = g.pick(['uplet', 'arr', 'perm', 'anag', 'comb', 'parts', 'mix']);
   let q, val, bads, e;
   if (kind === 'uplet') {
-    const n = g.pick([2, 4, 5, 10, 26]), k = g.int(3, 5); val = n ** k;
+    const n = g.pick([2, 4, 5, 10, 26]), k = n === 26 ? g.int(2, 3) : g.int(3, 5); val = n ** k;
     q = n === 10 ? R`Combien de codes de \(${k}\) chiffres (de \(0\) à \(9\), répétitions autorisées) existe-t-il ?` : n === 26 ? R`Combien de « mots » de \(${k}\) lettres (alphabet de \(26\) lettres, répétitions autorisées) peut-on former ?` : R`On lance \(${k}\) fois de suite un dé à \(${n}\) faces numérotées. Combien y a-t-il de suites de résultats possibles ?`;
     bads = [arr(n, k), binom(n, k), k ** n, n * k];
     e = R`Chaque position a \(${n}\) choix, indépendamment des autres : \(${n}^{${k}}=${val}\) (\(k\)-uplets).`;
@@ -5671,11 +5693,11 @@ def('denombr', 'binomiale', 2, g => {
   }
   return Object.assign({
     q, e, d: R`L'ordre compte-t-il ? Les répétitions sont-elles possibles ? \(n^k\) (\(k\)-uplets), \(\frac{n!}{(n-k)!}\) (ordre, sans répétition), \(\binom nk\) (sans ordre).`, _: { kind }
-  }, mcqv(g, [String(val), val], g.shuffle(bads).map(v => [String(v), v])));
+  }, mcqv(g, [String(val), val], g.shuffle(bads.filter(v => v <= 1e6)).map(v => [String(v), v])));
 });
 
 def('bin_exact', 'binomiale', 2, g => {
-  const [a, d] = g.pick([[1, 2], [1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [1, 5]]), n = g.int(3, 6), k = g.int(1, n - 1);
+  const [a, d] = g.pick([[1, 2], [1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [1, 5]]), n = g.int(3, d >= 4 ? 4 : 6), k = g.int(1, n - 1);
   const p = F(a, d), q = F(d - a, d);
   const P = (x, m) => { let r = F(1); for (let i = 0; i < m; i++) r = r.mul(x); return r; };
   const val = F(binom(n, k)).mul(P(p, k)).mul(P(q, n - k));
@@ -5773,16 +5795,20 @@ def('proba_tot', 'binomiale', 2, g => {
 });
 
 def('bin_seuil', 'binomiale', 2, g => {
-  const P = g.pick([1, 2, 3, 5]), p = P / 10, al = g.pick([0.01, 0.05, 0.001]);
-  let n = 1; while (1 - (1 - p) ** n < 1 - al) n++;
-  const T = v => String(v).replace('.', '{,}');
+  // 1 − p = 1/Q avec Q ∈ {2, 4, 5, 10} : (1 − p)^n ≤ α ⟺ Q^n ≥ 1/α, se calcule de tête (entiers exacts)
+  const Q = g.pick([2, 2, 4, 5, 10]), A = g.pick([20, 100, 1000]);
+  const pT = { 2: '0{,}5', 4: '0{,}75', 5: '0{,}8', 10: '0{,}9' }[Q], qT = { 2: '0{,}5', 4: '0{,}25', 5: '0{,}2', 10: '0{,}1' }[Q];
+  const aT = { 20: '0{,}05', 100: '0{,}01', 1000: '0{,}001' }[A], cT = { 20: '0{,}95', 100: '0{,}99', 1000: '0{,}999' }[A];
+  const ok = k => Q ** k >= A;
+  let n = 1; while (!ok(n)) n++;
+  need(n >= 2);
   return Object.assign({
-    q: R`On répète de façon indépendante une épreuve dont la probabilité de succès est \(${T(p)}\). Combien de répétitions faut-il au minimum pour que la probabilité d'obtenir au moins un succès dépasse \(${T(1 - al)}\) ?`,
-    e: R`Avec \(X\sim\mathcal B(n\,;${T(p)})\) : \(\mathbb P(X\geqslant1)=1-${T(1 - p)}^n\geqslant${T(1 - al)}\iff${T(1 - p)}^n\leqslant${T(al)}\iff n\geqslant\dfrac{\ln(${T(al)})}{\ln(${T(1 - p)})}\approx${dec3(Math.log(al) / Math.log(1 - p))}\)` +
-      R` (on divise par \(\ln(${T(1 - p)})&lt;0\)). Il faut donc \(n=${n}\).`,
+    q: R`On répète de façon indépendante une épreuve dont la probabilité de succès est \(${pT}\). Combien de répétitions faut-il au minimum pour que la probabilité d'obtenir au moins un succès soit supérieure ou égale à \(${cT}\) ?`,
+    e: R`Avec \(X\sim\mathcal B(n\,;${pT})\) : \(\mathbb P(X\geqslant1)=1-\mathbb P(X=0)=1-${qT}^n\).<br>\(1-${qT}^n\geqslant${cT}\iff${qT}^n\leqslant${aT}\iff\dfrac1{${Q}^n}\leqslant\dfrac1{${A}}\iff${Q}^n\geqslant${A}\).<br>` +
+      R`Or \(${Q}^{${n - 1}}=${Q ** (n - 1)}&lt;${A}\) et \(${Q}^{${n}}=${Q ** n}\geqslant${A}\) : il faut donc \(n=${n}\).`,
     d: R`« Au moins un succès » : passer par l'événement contraire \(\{X=0\}\), de probabilité \((1-p)^n\).`,
-    _: { chk: () => (1 - (1 - p) ** n >= 1 - al && 1 - (1 - p) ** (n - 1) < 1 - al) || 'faux' }
-  }, mcqv(g, [String(n), n], g.shuffle([n - 1, n + 1, Math.ceil(Math.log(al) / Math.log(p)), Math.round((1 - al) / p)]).map(v => [String(v), v])));
+    _: { chk: () => (ok(n) && !ok(n - 1)) || 'faux' }
+  }, mcqv(g, [String(n), n], g.shuffle([n - 1, n + 1, n + 2, 2 * n]).map(v => [String(v), v])));
 });
 
 /* =====================================================================
@@ -6218,7 +6244,15 @@ const isUuid = s => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 let controls = ls.get(K.controls, []);
 let attempts = ls.get(K.attempts, []);
 let seen = {};
-function recomputeSeen() { seen = {}; attempts.forEach(a => (a.results || []).forEach(r => { seen[r.qid] = (seen[r.qid] || 0) + 1; })); }
+// Une question passée ou remplacée (« méthode connue ») compte comme vue plusieurs fois : elle revient en dernier
+const SKIP_W = 4;
+function addSeen(r) {
+  seen[r.qid] = (seen[r.qid] || 0) + (r.skip ? SKIP_W : 1);
+  if (r.was) seen[r.was] = (seen[r.was] || 0) + SKIP_W;
+}
+function recomputeSeen() { seen = {}; attempts.forEach(a => (a.results || []).forEach(addSeen)); }
+// Nombre de questions notées (les questions passées ne comptent pas)
+const graded = a => (a.results || []).filter(r => !r.skip).length;
 let prefs = Object.assign({ autoPause: false, gen: { n: 20, dur: 60, mode: 'auto', themes: [], allowSeen: false, src: 'gen' } }, ls.get(K.prefs, {}));
 if (!prefs.gen.src) prefs.gen.src = 'gen';
 if (!ls.get(K.seeded, false)) {
@@ -6240,16 +6274,18 @@ const savePrefs = () => ls.set(K.prefs, prefs);
 function collectObs(ctls = controls, atts = attempts) {
   const obs = [];
   ctls.forEach(c => c.items.forEach(it => { if (it.theme && TH[it.theme]) obs.push({ theme: it.theme, pts: it.pts, max: it.max || 1 }); }));
-  atts.forEach(a => (a.results || []).forEach(r => { if (r.theme && TH[r.theme]) obs.push({ theme: r.theme, pts: r.pts, max: 1 }); }));
+  atts.forEach(a => (a.results || []).forEach(r => { if (!r.skip && r.theme && TH[r.theme]) obs.push({ theme: r.theme, pts: r.pts, max: 1, slip: !!r.slip }); }));
   return obs;
 }
 function themeStats() { return themeStatsFrom(controls, attempts); }
 function themeStatsFrom(ctls, atts) {
   const st = {};
-  THEMES.forEach(t => { st[t.id] = { n: 0, got: 0, max: 0, loss: 0, good: 0, partial: 0, wrong: 0, blank: 0 }; });
+  THEMES.forEach(t => { st[t.id] = { n: 0, got: 0, max: 0, loss: 0, good: 0, partial: 0, wrong: 0, blank: 0, slip: 0 }; });
   collectObs(ctls, atts).forEach(o => {
     const s = st[o.theme];
-    s.n++; s.got += o.pts; s.max += o.max; s.loss += (o.max - o.pts) / o.max;
+    // Erreur de calcul / étourderie : les points restent perdus, mais la méthode est sue → pèse peu dans les points faibles
+    s.n++; s.got += o.pts; s.max += o.max; s.loss += (o.max - o.pts) / o.max * (o.slip ? 0.3 : 1);
+    if (o.slip) s.slip++;
     if (o.pts >= o.max - 1e-9) s.good++; else if (o.pts > 0) s.partial++; else if (o.pts < 0) s.wrong++; else s.blank++;
   });
   THEMES.forEach(t => {
@@ -6409,11 +6445,14 @@ const ST = {
   juste:   { label: 'Juste',        icon: '✓', cls: 'st-good' },
   partiel: { label: 'Partiel',      icon: '◐', cls: 'st-part' },
   faux:    { label: 'Faux',         icon: '✗', cls: 'st-bad' },
-  vide:    { label: 'Sans réponse', icon: '–', cls: 'st-empty' }
+  vide:    { label: 'Sans réponse', icon: '–', cls: 'st-empty' },
+  passe:   { label: 'Passée',       icon: '»', cls: 'st-skip' }
 };
 const ICON = {
   clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h12l-2.5 4.5L17 13H5"/></svg>',
+  skip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5l7 7-7 7"/><path d="M13 5l7 7-7 7"/></svg>',
+  swap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/></svg>',
   erase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
   prev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
   next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>',
@@ -6662,13 +6701,13 @@ function renderBilan() {
     $('#bilanRows').innerHTML = '';
     return;
   }
-  const ctlQ = controls.reduce((s, c) => s + c.items.length, 0), appQ = attempts.reduce((s, a) => s + a.results.length, 0);
+  const ctlQ = controls.reduce((s, c) => s + c.items.length, 0), appQ = attempts.reduce((s, a) => s + graded(a), 0);
   sub.textContent = `D'après ${controls.length} contrôle${controls.length > 1 ? 's' : ''} importé${controls.length > 1 ? 's' : ''} (${ctlQ} questions) et ${attempts.length} épreuve${attempts.length > 1 ? 's' : ''} faite${attempts.length > 1 ? 's' : ''} ici (${appQ} questions). Les thèmes les plus coûteux sont en haut ; une fausse réponse pèse plus qu'une question laissée vide.`;
   const order = THEMES.slice().sort((a, b) => st[b.id].weak - st[a.id].weak);
   const top = new Set(order.filter(t => st[t.id].n >= 1 && st[t.id].rate != null && st[t.id].rate < 0.6).slice(0, 5).map(t => t.id));
   $('#bilanRows').innerHTML = order.map(t => {
     const s = st[t.id], pct = s.rate == null ? null : Math.round(s.rate * 100);
-    const det = s.n ? [`${s.good} juste${s.good > 1 ? 's' : ''}`, s.wrong ? `${s.wrong} fausse${s.wrong > 1 ? 's' : ''}` : '', s.blank ? `${s.blank} vide${s.blank > 1 ? 's' : ''}` : '', s.partial ? `${s.partial} partielle${s.partial > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ') : 'pas encore de données';
+    const det = s.n ? [`${s.good} juste${s.good > 1 ? 's' : ''}`, s.wrong ? `${s.wrong} fausse${s.wrong > 1 ? 's' : ''}` : '', s.blank ? `${s.blank} vide${s.blank > 1 ? 's' : ''}` : '', s.partial ? `${s.partial} partielle${s.partial > 1 ? 's' : ''}` : '', s.slip ? `dont ${s.slip} erreur${s.slip > 1 ? 's' : ''} de calcul` : ''].filter(Boolean).join(' · ') : 'pas encore de données';
     return `<div class="th-row"><div class="nm">${esc(t.short)}${top.has(t.id) ? '<span class="badge-weak">à travailler</span>' : ''}<small>${s.n ? `${s.n} question${s.n > 1 ? 's' : ''}` : '—'}</small></div>
       <div class="bar-cell" style="display:flex;align-items:center"><span class="pct">${pct == null ? '—' : pct + ' %'}</span><div class="bar ${rateClass(s.rate)}" style="flex:1"><i style="width:${pct == null ? 0 : Math.max(3, pct)}%"></i></div></div>
       <div class="cnt">${det}</div>
@@ -6891,14 +6930,21 @@ let activeSince = Date.now(), tickId = null, lastSave = 0, lastRes = null;
 function activate(def) { Q = buildTest(def); N = Q.length; DURATION = def.duration; }
 function fresh(def) {
   return { v: 2, phase: 'intro', def, startedAt: 0, submittedAt: 0, auto: false, cur: 0, paused: false, pausedAt: 0, pauseTotal: 0, pauseCount: 0, recorded: false,
-    answers: Array.from({ length: N }, () => []), flags: Array(N).fill(false), times: Array(N).fill(0) };
+    answers: Array.from({ length: N }, () => []), flags: Array(N).fill(false), times: Array(N).fill(0),
+    skips: Array(N).fill(false), slips: Array(N).fill(false), was: Array(N).fill(null) };
+}
+// Sessions enregistrées avant l'ajout de « passer » / « erreur de calcul »
+function normalize(s) {
+  ['skips', 'slips'].forEach(k => { if (!Array.isArray(s[k]) || s[k].length !== N) s[k] = Array(N).fill(false); });
+  if (!Array.isArray(s.was) || s.was.length !== N) s.was = Array(N).fill(null);
+  return s;
 }
 function load() {
   try {
     const s = ls.get(K.session, null);
     if (s && s.v === 2 && s.def && Array.isArray(s.def.qids)) {
       activate(s.def);
-      if (Array.isArray(s.answers) && s.answers.length === N && Array.isArray(s.times) && s.times.length === N) return s;
+      if (Array.isArray(s.answers) && s.answers.length === N && Array.isArray(s.times) && s.times.length === N) return normalize(s);
     }
   } catch (e) { console.warn('Session illisible', e); }
   return null;
@@ -6959,7 +7005,7 @@ async function openIntro(def) {
     dist.hidden = false;
   } else { dist.hidden = true; dist.innerHTML = ''; }
   $('#introRuleTime').textContent = `Le temps passé sur chaque question est mesuré. La copie est ramassée automatiquement à la fin des ${fmtMin(dm)}.`;
-  $('#introBareme').textContent = `Une question ♣ vaut donc entre −0,5 et +1 (ex. 3 cases justes sur 4 → 0,625). Note finale : total brut sur ${qs.length}, ramené sur 20.`;
+  $('#introBareme').textContent = `Une question ♣ vaut donc entre −0,5 et +1 (ex. 3 cases justes sur 4 → 0,625). Note finale : total brut sur ${qs.length}, ramené sur 20. Une question dont tu connais déjà la méthode peut être passée (elle ne compte plus : note sur ${qs.length - 1}) ou remplacée par une autre du même thème.`;
   $('#autoPause').checked = !!prefs.autoPause;
   setView('intro');
   $('#brandSub').textContent = `${def.title} · ${qs.length} questions · ${fmtMin(dm)}`;
@@ -6994,18 +7040,20 @@ function resumeSession() {
 }
 function updateNav() {
   let answered = 0, flagged = 0;
+  const nGraded = N - S.skips.filter(Boolean).length;
   $$('#navGrid .nav-cell').forEach((c, i) => {
-    const a = S.answers[i].length > 0, f = S.flags[i];
+    const a = S.answers[i].length > 0, f = S.flags[i], sk = S.skips[i];
     if (a) answered++;
     if (f) flagged++;
     c.classList.toggle('answered', a);
     c.classList.toggle('flagged', f);
+    c.classList.toggle('skipped', sk);
     c.classList.toggle('current', i === S.cur);
-    c.setAttribute('aria-label', `Question ${i + 1}${Q[i].multi ? ' (♣)' : ''} : ${a ? 'répondue' : 'non traitée'}${f ? ', marquée à revoir' : ''}`);
+    c.setAttribute('aria-label', `Question ${i + 1}${Q[i].multi ? ' (♣)' : ''} : ${sk ? 'passée (non notée)' : a ? 'répondue' : 'non traitée'}${f ? ', marquée à revoir' : ''}`);
     if (i === S.cur) c.setAttribute('aria-current', 'step'); else c.removeAttribute('aria-current');
   });
-  $('#navCount').textContent = `${answered}/${N}`;
-  $('#progressCount').textContent = `${answered}/${N} répondues`;
+  $('#navCount').textContent = `${answered}/${nGraded}`;
+  $('#progressCount').textContent = `${answered}/${nGraded} répondues`;
   $('#navFlagged').textContent = flagged ? `⚑ ${flagged} question${flagged > 1 ? 's' : ''} à revoir` : '';
   const g = $('#navGrid'), cell = g.children[S.cur];
   if (cell && g.scrollWidth > g.clientWidth + 2) g.scrollLeft = cell.offsetLeft - g.clientWidth / 2 + cell.offsetWidth / 2;
@@ -7020,14 +7068,17 @@ function renderQuestion() {
       </div>
       <div class="q-timer" id="qTimer" title="Temps cumulé passé sur cette question">${ICON.clock}<span id="qTimerText">0:00</span></div>
     </div>
+    ${S.skips[i] ? `<div class="skip-note"><span><b>Question passée.</b> Elle ne compte pas dans la note : le contrôle sera noté sur ${N - S.skips.filter(Boolean).length} questions.</span><button type="button" class="btn" data-act="skip">Annuler</button></div>` : ''}
     ${q.ctx ? `<div class="context"><span class="context-label">Exercice · ${q.ctxRange}</span>${q.ctxText}</div>` : ''}
     <div class="q-body">${q.q}</div>
-    <div class="choices" role="${multi ? 'group' : 'radiogroup'}" aria-label="Propositions">
+    <div class="choices${S.skips[i] ? ' is-skipped' : ''}" role="${multi ? 'group' : 'radiogroup'}" aria-label="Propositions">
       ${q.c.map((c, k) => `<button type="button" class="choice" role="${multi ? 'checkbox' : 'radio'}" aria-checked="false" data-k="${k}"><span class="box" aria-hidden="true">${LETTERS[k]}</span><span class="choice-text">${c}</span></button>`).join('')}
     </div>
     <div class="q-actions">
       <button type="button" class="btn btn-ghost" data-act="clear">${ICON.erase}Effacer</button>
       <button type="button" class="btn btn-ghost" data-act="flag" aria-pressed="false">${ICON.flag}<span>Marquer à revoir</span></button>
+      <button type="button" class="btn btn-ghost" data-act="skip" aria-pressed="${S.skips[i]}" title="Méthode déjà connue : la question ne compte pas, la note est calculée sur les autres">${ICON.skip}<span>${S.skips[i] ? 'Passée' : 'Passer'}</span></button>
+      ${q.ctx ? '' : `<button type="button" class="btn btn-ghost" data-act="swap" title="Remplacer par une autre question du même thème">${ICON.swap}Remplacer</button>`}
       <span class="spacer"></span>
       <button type="button" class="btn" data-act="prev">${ICON.prev}Précédente</button>
       <button type="button" class="btn btn-primary" data-act="next"></button>
@@ -7041,7 +7092,7 @@ function renderQuestion() {
 function syncQuestion() {
   const sel = S.answers[S.cur];
   $$('#qSheet .choice').forEach(b => b.setAttribute('aria-checked', String(sel.includes(+b.dataset.k))));
-  $('#qSheet [data-act="clear"]').disabled = sel.length === 0;
+  $('#qSheet [data-act="clear"]').disabled = sel.length === 0 || S.skips[S.cur];
   const fb = $('#qSheet [data-act="flag"]');
   fb.setAttribute('aria-pressed', String(S.flags[S.cur]));
   fb.querySelector('span').textContent = S.flags[S.cur] ? 'Marquée à revoir' : 'Marquer à revoir';
@@ -7049,7 +7100,7 @@ function syncQuestion() {
   $('#qSheet [data-act="next"]').innerHTML = S.cur === N - 1 ? 'Terminer' : `Suivante${ICON.next}`;
 }
 function toggleChoice(k) {
-  if (S.paused) return;
+  if (S.paused || S.skips[S.cur]) return;
   const q = Q[S.cur];
   if (k < 0 || k >= q.c.length) return;
   const a = S.answers[S.cur];
@@ -7059,6 +7110,56 @@ function toggleChoice(k) {
 }
 function clearAnswer() { if (S.paused || !S.answers[S.cur].length) return; S.answers[S.cur] = []; syncQuestion(); updateNav(); save(); }
 function toggleFlag() { if (S.paused) return; S.flags[S.cur] = !S.flags[S.cur]; syncQuestion(); updateNav(); save(); }
+// Passer : la question n'est pas notée (note sur N − nombre de questions passées)
+function toggleSkip() {
+  if (S.paused) return;
+  const i = S.cur;
+  if (!S.skips[i] && N - S.skips.filter(Boolean).length <= 1) { toast('Il faut garder au moins une question notée.'); return; }
+  S.skips[i] = !S.skips[i];
+  if (S.skips[i]) S.answers[i] = [];
+  save(); renderQuestion();
+  if (S.skips[i]) toast(`Question ${i + 1} passée : note calculée sur ${N - S.skips.filter(Boolean).length} questions.`);
+}
+// Remplacer : une autre question du même thème, en évitant la méthode qu'on vient d'écarter
+function replacementFor(i) {
+  const q = Q[i], inTest = new Set(S.def.qids);
+  const tplOf = id => { const m = /^gen\.([a-z0-9_]+)\./.exec(id); return m ? m[1] : null; };
+  const genId = tpl => `gen.${tpl}.${Math.floor(Math.random() * 2147483647).toString(36)}`;
+  const fromBank = () => {
+    const c = UNITS.filter(u => u.size === 1 && u.theme === q.theme && !inTest.has(u.qids[0]));
+    if (!c.length) return null;
+    const best = Math.min(...c.map(seenCount));
+    const pool = c.filter(u => seenCount(u) === best);
+    return pool[Math.floor(Math.random() * pool.length)].qids[0];
+  };
+  const fromGen = () => {
+    const used = new Set(S.def.qids.map(tplOf).filter(Boolean));
+    const all = Object.values(QGEN.TPL).filter(t => t.theme === q.theme && !t.group);
+    if (!all.length) return null;
+    const cur = tplOf(q.id), fresh = all.filter(t => !used.has(t.id)), other = all.filter(t => t.id !== cur);
+    const pool = fresh.length ? fresh : other.length ? other : all;
+    return genId(pool[Math.floor(Math.random() * pool.length)].id);
+  };
+  // Question de sujet → plutôt une autre question de sujet jamais vue ; question inédite → un autre modèle inédit
+  const unseenBank = () => { const id = fromBank(); return id && !seen[id] ? id : null; };
+  return q.bank === 'gen' ? fromGen() || fromBank() : unseenBank() || fromGen() || fromBank();
+}
+function swapQuestion() {
+  if (S.paused) return;
+  const i = S.cur, q = Q[i];
+  if (q.ctx) return;
+  let id = null;
+  for (let k = 0; k < 6 && !id; k++) { const c = replacementFor(i); if (c && qEntry(c)) id = c; }
+  if (!id) { toast('Aucune autre question disponible pour ce thème. Tu peux la passer.'); return; }
+  commit();
+  if (!S.was[i]) S.was[i] = q.id;           // la question écartée d'origine (pour ne plus la reproposer)
+  S.def.qids[i] = id;
+  activate(S.def);
+  S.answers[i] = []; S.times[i] = 0; S.skips[i] = false; S.flags[i] = false;
+  activeSince = Date.now();
+  save(); renderQuestion();
+  toast('Question remplacée.');
+}
 function go(i) {
   if (S.paused || i < 0 || i >= N || i === S.cur) return;
   commit();
@@ -7125,17 +7226,18 @@ function resumeTest() {
 /* ---------- Remise de la copie ---------- */
 function openConfirm() {
   commit();
-  const un = [], fl = [];
-  S.answers.forEach((a, i) => { if (!a.length) un.push(i); if (S.flags[i]) fl.push(i); });
+  const un = [], fl = [], sk = [];
+  S.answers.forEach((a, i) => { if (S.skips[i]) sk.push(i); else if (!a.length) un.push(i); if (S.flags[i]) fl.push(i); });
   const chips = list => list.map(i => `<button type="button" class="mini-chip" data-jump="${i}">${i + 1}</button>`).join('');
   $('#dlgBody').innerHTML = `
     <div class="dlg-stats">
-      <div class="dlg-stat"><b>${N - un.length}</b><span>répondues</span></div>
+      <div class="dlg-stat"><b>${N - un.length - sk.length}</b><span>répondues</span></div>
       <div class="dlg-stat"><b>${un.length}</b><span>sans réponse</span></div>
       <div class="dlg-stat"><b id="dlgRemain">${fmtClock(remaining())}</b><span>restant</span></div>
     </div>
     ${un.length ? `<p class="dlg-list">Sans réponse : ${chips(un)}</p>` : ''}
     ${fl.length ? `<p class="dlg-list">Marquées à revoir : ${chips(fl)}</p>` : ''}
+    ${sk.length ? `<p class="dlg-list">Passées (non notées, note sur ${N - sk.length}) : ${chips(sk)}</p>` : ''}
     <p class="fine">Une fois la copie rendue, les réponses ne peuvent plus être modifiées.</p>`;
   const d = $('#confirmDlg');
   d.returnValue = '';
@@ -7167,20 +7269,49 @@ function scoreQ(q, sel) {
   pts = Math.round(pts * 1e6) / 1e6;
   return { pts, status: pts >= 1 ? 'juste' : pts > 0 ? 'partiel' : 'faux' };
 }
-const compute = () => Q.map((q, i) => ({ i, q, sel: S.answers[i], t: S.times[i], flag: S.flags[i], ...scoreQ(q, S.answers[i]) }));
+const compute = () => Q.map((q, i) => ({ i, q, sel: S.answers[i], t: S.times[i], flag: S.flags[i], skip: !!S.skips[i], was: S.was[i] || null,
+  ...(S.skips[i] ? { pts: 0, status: 'passe' } : scoreQ(q, S.answers[i])),
+  slip: !S.skips[i] && !!S.slips[i] }));
+// Une erreur de calcul ne s'annote que sur une question où des points ont été perdus
+const canSlip = r => r.status === 'faux' || r.status === 'partiel';
+const nGradedOf = res => res.filter(r => !r.skip).length;
+const noteOf = (raw, n) => (n ? Math.max(0, raw) / n * 20 : 0);
+function resultRow(r) {
+  const o = { qid: r.q.id, theme: r.q.theme, pts: r.pts, status: r.status, t: Math.round(r.t) };
+  if (r.skip) o.skip = true;
+  if (r.slip) o.slip = true;
+  if (r.was) o.was = r.was;
+  return o;
+}
 function recordAttempt(res) {
   if (S.recorded) return;
-  const raw = res.reduce((s, r) => s + r.pts, 0);
+  const raw = res.reduce((s, r) => s + r.pts, 0), ng = nGradedOf(res);
   const rec = { id: uuid(), at: S.submittedAt, pauses: S.pauseCount || 0, defId: S.def.id, kind: S.def.kind, title: S.def.title, N,
-    raw: Math.round(raw * 1e6) / 1e6, note: Math.max(0, raw) / N * 20, used: Math.round((S.submittedAt - S.startedAt - (S.pauseTotal || 0)) / 1000),
-    results: res.map(r => ({ qid: r.q.id, theme: r.q.theme, pts: r.pts, status: r.status, t: Math.round(r.t) })) };
+    raw: Math.round(raw * 1e6) / 1e6, note: noteOf(raw, ng), used: Math.round((S.submittedAt - S.startedAt - (S.pauseTotal || 0)) / 1000),
+    results: res.map(resultRow) };
   attempts.push(rec);
   cloud.pushAttempt(rec);
   attempts = attempts.slice(-400);
   ls.set(K.attempts, attempts);
-  res.forEach(r => { seen[r.q.id] = (seen[r.q.id] || 0) + 1; });
+  rec.results.forEach(addSeen);
   ls.set(K.seen, seen);
   S.recorded = true;
+  S.attemptId = rec.id;
+}
+// Annotation « erreur de calcul » sur la copie rendue : mise à jour de la copie enregistrée (et du compte)
+function toggleSlip(i) {
+  if (!S || S.phase !== 'done' || !lastRes || !lastRes[i] || !canSlip(lastRes[i])) return;
+  S.slips[i] = !S.slips[i];
+  save();
+  const rec = attempts.find(a => a.id === S.attemptId) || attempts.find(a => a.at === S.submittedAt && a.defId === S.def.id);
+  if (rec && rec.results && rec.results[i]) {
+    if (S.slips[i]) rec.results[i].slip = true; else delete rec.results[i].slip;
+    ls.set(K.attempts, attempts);
+    cloud.pushAttempt(rec);
+  }
+  const y = window.scrollY;
+  showResults();
+  window.scrollTo(0, y);
 }
 
 /* ---------- Résultats ---------- */
@@ -7205,20 +7336,23 @@ function corrCard(r) {
     : `<div class="expl official"><h4>Corrigé</h4><p class="empty">Le corrigé d'origine ne détaille pas cette question.</p></div>`;
   const note = q.n ? `<div class="expl note"><h4>Remarque</h4>${q.n}</div>` : '';
   const more = q.d ? `<div class="expl more"><h4>À retenir</h4>${q.d}</div>` : '';
-  return `<article class="corr" id="corr-${r.i}" data-status="${r.status}" data-long="${r.t > LONG ? 1 : 0}" data-flag="${r.flag ? 1 : 0}">
-    <div class="corr-margin"><span class="corr-score">${fmtNum(r.pts, 3)}/1</span></div>
+  const slip = canSlip(r) ? `<div class="slip-row"><button type="button" class="btn slip-btn" data-slip="${r.i}" aria-pressed="${r.slip}">✎ ${r.slip ? 'Annotée : erreur de calcul' : 'C\'était une erreur de calcul'}</button>
+      <span class="fine">${r.slip ? 'Les points restent perdus, mais ce thème pèse moins dans tes points faibles.' : 'Méthode connue, simple étourderie ? Annote-la pour la distinguer d\'un vrai problème de méthode.'}</span></div>` : '';
+  return `<article class="corr" id="corr-${r.i}" data-status="${r.status}" data-long="${r.t > LONG ? 1 : 0}" data-flag="${r.flag ? 1 : 0}" data-slip="${r.slip ? 1 : 0}" data-skip="${r.skip ? 1 : 0}">
+    <div class="corr-margin"><span class="corr-score">${r.skip ? '—' : fmtNum(r.pts, 3) + '/1'}</span></div>
     <div class="corr-main">
       <header class="corr-head">
         <h3>Question ${r.i + 1}${q.multi ? '<span class="club" title="Une ou plusieurs bonnes réponses">♣</span>' : ''}</h3>
         ${r.flag ? `<span class="pill st-empty" style="color:var(--flag)">⚑ À revoir</span>` : ''}
-        <span class="pill ${st.cls}">${st.icon} ${st.label} · ${fmtPts(r.pts)}</span>
+        ${r.slip ? '<span class="pill st-slip">✎ Erreur de calcul</span>' : ''}
+        <span class="pill ${st.cls}">${st.icon} ${st.label}${r.skip ? ' · non notée' : ' · ' + fmtPts(r.pts)}</span>
         <span class="pill st-empty">${timeHTML(r.t)}</span>
         ${TH[q.theme] ? `<button type="button" class="link-m" data-method="${q.theme}" title="Ouvrir la fiche de méthodes">Méthode · ${esc(TH[q.theme].short)}</button>` : ''}
       </header>
       ${q.ctx ? `<div class="context"><span class="context-label">Exercice</span>${q.ctxText}</div>` : ''}
       <div class="q-body">${q.q}</div>
       <div class="corr-choices">${choices}</div>
-      ${official}${note}${more}
+      ${slip}${official}${note}${more}
     </div>
   </article>`;
 }
@@ -7236,9 +7370,9 @@ function renderResults(res) {
   const raw = sum(res);
   const plus = res.reduce((s, r) => s + Math.max(0, r.pts), 0);
   const minus = res.reduce((s, r) => s + Math.min(0, r.pts), 0);
-  const note = Math.max(0, raw) / N * 20;
+  const nG = nGradedOf(res), note = noteOf(raw, nG);
   const by = st => res.filter(r => r.status === st);
-  const cJ = by('juste'), cP = by('partiel'), cF = by('faux'), cV = by('vide');
+  const cJ = by('juste'), cP = by('partiel'), cF = by('faux'), cV = by('vide'), cS = by('passe'), cSl = res.filter(r => r.slip);
   const used = (S.submittedAt - S.startedAt - (S.pauseTotal || 0)) / 1000;
   const seenQ = res.filter(r => r.t >= 1);
   const avg = seenQ.length ? seenQ.reduce((s, r) => s + r.t, 0) / seenQ.length : 0;
@@ -7257,7 +7391,7 @@ function renderResults(res) {
 
   // Bilan par thème pour cette copie
   const tm = {};
-  res.forEach(r => { const t = r.q.theme || '?'; const o = tm[t] || (tm[t] = { n: 0, pts: 0, j: 0, f: 0, v: 0, p: 0 }); o.n++; o.pts += r.pts; if (r.status === 'juste') o.j++; else if (r.status === 'faux') o.f++; else if (r.status === 'vide') o.v++; else o.p++; });
+  res.forEach(r => { if (r.skip) return; const t = r.q.theme || '?'; const o = tm[t] || (tm[t] = { n: 0, pts: 0, j: 0, f: 0, v: 0, p: 0, sl: 0 }); o.n++; o.pts += r.pts; if (r.slip) o.sl++; if (r.status === 'juste') o.j++; else if (r.status === 'faux') o.f++; else if (r.status === 'vide') o.v++; else o.p++; });
   const tRows = Object.entries(tm).sort((a, b) => (a[1].pts / a[1].n) - (b[1].pts / b[1].n));
 
   $('#results').innerHTML = `
@@ -7265,7 +7399,7 @@ function renderResults(res) {
     <div>
       <p class="eyebrow${S.auto ? ' auto' : ''}">${S.auto ? 'Temps écoulé · copie ramassée automatiquement' : 'Copie rendue'} · ${esc(S.def.title)}</p>
       <div class="grade"><span class="grade-value">${fmtNum(note, 2)}</span><span class="grade-max">/20</span></div>
-      <p class="grade-sub">Score brut <strong>${fmtNum(raw, 3)}</strong> / ${N} points${raw < 0 ? ' · note plancher 0' : ''}</p>
+      <p class="grade-sub">Score brut <strong>${fmtNum(raw, 3)}</strong> / ${nG} points${raw < 0 ? ' · note plancher 0' : ''}${cS.length ? ` · ${cS.length} question${cS.length > 1 ? 's' : ''} passée${cS.length > 1 ? 's' : ''}, non notée${cS.length > 1 ? 's' : ''}` : ''}</p>
       <div class="points-split">
         <span><span class="dot st-good"></span>${fmtPts(plus)} gagnés</span>
         <span><span class="dot st-bad"></span>${fmtPts(minus)} perdus</span>
@@ -7277,10 +7411,11 @@ function renderResults(res) {
       </div>
     </div>
     <div class="tiles">
-      ${tile('st-good', `${ST.juste.icon} Justes`, `${cJ.length}<small> /${N}</small>`, ptw(sum(cJ)))}
+      ${tile('st-good', `${ST.juste.icon} Justes`, `${cJ.length}<small> /${nG}</small>`, ptw(sum(cJ)))}
       ${tile('st-part', `${ST.partiel.icon} Partielles <span class="club">♣</span>`, cP.length, ptw(sum(cP)))}
       ${tile('st-bad', `${ST.faux.icon} Fausses`, cF.length, ptw(sum(cF)))}
       ${tile('st-empty', `${ST.vide.icon} Sans réponse`, cV.length, '0 pt')}
+      ${cS.length ? tile('st-skip', `${ST.passe.icon} Passées`, cS.length, `note sur ${nG} au lieu de ${N}`) : ''}
       ${tile('st-time', 'Temps utilisé', fmtMS(used), `sur ${fmtClock(DURATION)}${pauses ? ` · ${pauses} pause${pauses > 1 ? 's' : ''} (${fmtMS(pauseMs / 1000)})` : ''}`)}
       ${tile('st-time', 'Plus de 3 min', longs.length, longs.length ? `${fmtLong(longT)} au total` : 'aucune question')}
     </div>
@@ -7290,7 +7425,7 @@ function renderResults(res) {
     <div class="card-head"><div><h2>Bilan par thème</h2>
       <p class="sub">Où tu as gagné et perdu des points sur cette copie, du plus faible au plus solide. Cette copie compte maintenant dans tes statistiques et dans le choix des prochains contrôles ciblés.</p></div></div>
     <div style="overflow-x:auto"><table class="th-res"><thead><tr><th>Thème</th><th>Questions</th><th>Points</th><th>Détail</th><th></th></tr></thead><tbody>
-      ${tRows.map(([t, o]) => `<tr><td><strong>${esc(themeName(t))}</strong></td><td>${o.n}</td><td class="${o.pts > 0 ? 'pts-pos' : o.pts < 0 ? 'pts-neg' : ''}">${fmtPts(o.pts)} / ${o.n}</td><td>${o.j ? o.j + ' ✓ ' : ''}${o.p ? o.p + ' ◐ ' : ''}${o.f ? o.f + ' ✗ ' : ''}${o.v ? o.v + ' –' : ''}</td><td>${TH[t] ? `<button type="button" class="link-m" data-method="${t}">Méthode</button>` : ''}</td></tr>`).join('')}
+      ${tRows.map(([t, o]) => `<tr><td><strong>${esc(themeName(t))}</strong></td><td>${o.n}</td><td class="${o.pts > 0 ? 'pts-pos' : o.pts < 0 ? 'pts-neg' : ''}">${fmtPts(o.pts)} / ${o.n}</td><td>${o.j ? o.j + ' ✓ ' : ''}${o.p ? o.p + ' ◐ ' : ''}${o.f ? o.f + ' ✗ ' : ''}${o.v ? o.v + ' – ' : ''}${o.sl ? `<span class="pill st-slip" title="Erreurs de calcul annotées">✎ ${o.sl} calcul</span>` : ''}</td><td>${TH[t] ? `<button type="button" class="link-m" data-method="${t}">Méthode</button>` : ''}</td></tr>`).join('')}
     </tbody></table></div>
   </section>
 
@@ -7311,6 +7446,7 @@ function renderResults(res) {
       <span><i class="sw st-part"></i>${ST.partiel.icon} Partielle</span>
       <span><i class="sw st-bad"></i>${ST.faux.icon} Fausse</span>
       <span><i class="sw st-empty"></i>${ST.vide.icon} Sans réponse</span>
+      ${cS.length ? `<span><i class="sw st-skip"></i>${ST.passe.icon} Passée</span>` : ''}
       <span><i class="sw-line"></i>Seuil de 3 min</span>
     </div>
     <div class="chart-wrap" id="chartWrap"></div>
@@ -7335,11 +7471,11 @@ function renderResults(res) {
         <thead><tr><th>N°</th><th>Votre réponse</th><th>Réponse attendue</th><th>Résultat</th><th class="num">Points</th><th class="num">Temps</th></tr></thead>
         <tbody>
           ${res.map(r => `<tr data-go="${r.i}" tabindex="0">
-            <td class="qn">${r.i + 1}${r.q.multi ? '<span class="club">♣</span>' : ''}${r.flag ? '<span class="flag-mini" title="Marquée à revoir">⚑</span>' : ''}</td>
+            <td class="qn">${r.i + 1}${r.q.multi ? '<span class="club">♣</span>' : ''}${r.flag ? '<span class="flag-mini" title="Marquée à revoir">⚑</span>' : ''}${r.slip ? '<span class="flag-mini" style="color:var(--pen)" title="Erreur de calcul">✎</span>' : ''}</td>
             <td>${ansHTML(r.q, r.sel)}</td>
             <td>${ansHTML(r.q, r.q.a)}</td>
             <td><span class="pill ${ST[r.status].cls}">${ST[r.status].icon} ${ST[r.status].label}</span></td>
-            <td class="num">${ptsHTML(r.pts)}</td>
+            <td class="num">${r.skip ? '—' : ptsHTML(r.pts)}</td>
             <td class="num">${timeHTML(r.t)}</td>
           </tr>`).join('')}
         </tbody>
@@ -7356,6 +7492,8 @@ function renderResults(res) {
         ${chip('partiel', 'Partielles', cP.length)}
         ${chip('vide', 'Sans réponse', cV.length)}
         ${chip('juste', 'Justes', cJ.length)}
+        ${chip('slip', 'Erreurs de calcul', cSl.length)}
+        ${chip('passe', 'Passées', cS.length)}
         ${chip('long', '+ de 3 min', longs.length)}
         ${chip('flag', 'Marquées', nFlag)}
       </div>
@@ -7368,7 +7506,7 @@ function renderResults(res) {
 function applyFilter(f) {
   let shown = 0;
   $$('#corrList .corr').forEach(c => {
-    const ok = f === 'all' || (f === 'long' ? c.dataset.long === '1' : f === 'flag' ? c.dataset.flag === '1' : c.dataset.status === f);
+    const ok = f === 'all' || (f === 'long' ? c.dataset.long === '1' : f === 'flag' ? c.dataset.flag === '1' : f === 'slip' ? c.dataset.slip === '1' : c.dataset.status === f);
     c.hidden = !ok;
     if (ok) shown++;
   });
@@ -7432,7 +7570,7 @@ function tipHTML(r) {
   const st = ST[r.status];
   return `<b>Question ${r.i + 1}${r.q.multi ? ' ♣' : ''}</b>
     <div class="tt-row"><span class="tt-k">Temps</span><span>${fmtLong(r.t)}</span></div>
-    <div class="tt-row"><span class="tt-k">Résultat</span><span>${st.icon} ${st.label} (${fmtPts(r.pts)})</span></div>
+    <div class="tt-row"><span class="tt-k">Résultat</span><span>${st.icon} ${st.label}${r.skip ? ' (non notée)' : ` (${fmtPts(r.pts)})`}${r.slip ? ' · erreur de calcul' : ''}</span></div>
     ${r.t > LONG ? '<div class="tt-warn">Plus de 3 minutes</div>' : ''}`;
 }
 function showTip(html, x, y) {
@@ -7588,6 +7726,8 @@ function init() {
     const act = b.dataset.act;
     if (act === 'clear') clearAnswer();
     else if (act === 'flag') toggleFlag();
+    else if (act === 'skip') toggleSkip();
+    else if (act === 'swap') swapQuestion();
     else if (act === 'prev') go(S.cur - 1);
     else if (act === 'next') { if (S.cur === N - 1) openConfirm(); else go(S.cur + 1); }
   });
@@ -7622,6 +7762,8 @@ function init() {
       else if (a.dataset.act === 'retry') ask('Refaire exactement les mêmes questions dans une nouvelle épreuve ?', 'Refaire').then(ok => { if (ok) openIntro(S.def); });
       return;
     }
+    const sl = e.target.closest('[data-slip]');
+    if (sl && sl.tagName === 'BUTTON') { toggleSlip(+sl.dataset.slip); return; }
     const f = e.target.closest('[data-filter]');
     if (f) { applyFilter(f.dataset.filter); return; }
     const hit = e.target.closest('.hit');
@@ -7916,7 +8058,7 @@ function personStats(atts, ctls) {
   const last = atts.reduce((m, a) => Math.max(m, a.at || 0), 0);
   return { n: atts.length, used, avg: notes.length ? notes.reduce((s, x) => s + x, 0) / notes.length : null, best: notes.length ? Math.max(...notes) : null,
     lastNote: atts.length ? atts.slice().sort((a, b) => a.at - b.at).slice(-1)[0].note : null, days: days.size,
-    questions: atts.reduce((s, a) => s + (a.results || []).length, 0), weak: ranked.filter(t => st[t.id].rate < 0.6).slice(0, 3), strong: ranked.slice().reverse().filter(t => st[t.id].rate >= 0.6).slice(0, 3),
+    questions: atts.reduce((s, a) => s + graded(a), 0), weak: ranked.filter(t => st[t.id].rate < 0.6).slice(0, 3), strong: ranked.slice().reverse().filter(t => st[t.id].rate >= 0.6).slice(0, 3),
     st, last, ctls: ctls.length, prog: atts.slice().sort((a, b) => a.at - b.at).slice(-12).map(a => ({ note: a.note, t: a.title, at: a.at })) };
 }
 const fmtHours = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.round(s % 3600 / 60); return h ? `${h} h ${pad(m)}` : `${m} min`; };
@@ -8003,7 +8145,7 @@ function groupHTML() {
   // Questions de la banque les plus ratées
   const qa = {};
   G.attempts.forEach(a => (a.results || []).forEach(r => {
-    if (!qEntry(r.qid)) return;
+    if (r.skip || !qEntry(r.qid)) return;
     const o = qa[r.qid] || (qa[r.qid] = { n: 0, loss: 0, ok: 0, failed: new Set() });
     o.n++; o.loss += 1 - r.pts; if (r.pts >= 1) o.ok++; else o.failed.add(a.user_id);
   }));

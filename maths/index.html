@@ -162,6 +162,8 @@ kbd{font:600 11px/1 var(--sans);padding:2px 6px;border:1px solid var(--rule-stro
 .q-num{font:700 27px/1.1 var(--serif);letter-spacing:-.01em;outline:none}
 .tag{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:500 12.5px/1 var(--sans);color:var(--ink-2);background:var(--sheet-2);border:1px solid var(--rule)}
 .tag-multi{color:var(--pen);background:var(--pen-soft);border-color:var(--pen-line)}
+.tag-qcm{color:var(--warn);background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.tag-new{color:var(--good);background:var(--good-soft);border-color:color-mix(in srgb,var(--good) 30%,transparent)}
 .q-timer{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);font:600 14px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-2);transition:color .2s,background .2s}
 .q-timer svg{width:15px;height:15px}
 .q-timer.long{color:var(--warn);background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 35%,transparent)}
@@ -6325,7 +6327,8 @@ function planTargeted(o) {
   const cap = picked ? Math.ceil(o.n / picked.length) + 2 : Math.max(2, Math.ceil(o.n * 0.22));
   // src : 'gen' (questions inédites), 'bank' (questions des sujets) ou 'mix'
   const src = o.src || 'gen';
-  const pool = src === 'gen' ? [] : UNITS.filter(u => !picked || picked.includes(u.theme));
+  const mastered = masteredTypes();
+  const pool = src === 'gen' ? [] : UNITS.filter(u => (!picked || picked.includes(u.theme)) && keepUnit(u, mastered));
   const used = new Set();
   const chosen = [];
   const counts = {};
@@ -6338,7 +6341,7 @@ function planTargeted(o) {
         .sort((a, b) => seenCount(a) - seenCount(b));
       if (src !== 'bank' && (!picked || picked.includes(t.id))) {
         const fresh = [];
-        for (let i = 0; i < o.n; i++) { const u = QGEN.unit(t.id); if (u) fresh.push(u); }
+        for (let k = 0; fresh.length < o.n && k < o.n * 4; k++) { const u = QGEN.unit(t.id); if (u && keepUnit(u, mastered)) fresh.push(u); }
         avail[t.id] = src === 'gen' ? fresh : shuffle(avail[t.id].concat(fresh)).sort((a, b) => seenCount(a) - seenCount(b));
       }
     });
@@ -6400,6 +6403,31 @@ const EXAM_TPL = new Set();
 Object.values(QGEN.EXAMS).forEach(ex => ex.slots.forEach(sl => Object.keys(sl).forEach(k => EXAM_TPL.add(k))));
 const newTypesOf = th => Object.values(QGEN.TPL).filter(x => x.theme === th && !EXAM_TPL.has(x.id) && !x.group);
 const NEWTYPES = { n: THEMES.filter(t => newTypesOf(t.id).length).length, dur: 50 };
+/* Type d'une question : « type QCM » (question des sujets, ou modèle au format des sujets du prof)
+   ou « nouveau type » (reste du programme de Terminale, pas encore tombé en contrôle). */
+const tplOfId = id => { const m = /^gen\.([a-z0-9_]+)\./.exec(String(id)); return m ? m[1] : null; };
+const typeKey = id => tplOfId(id) || id;   // le modèle du générateur, ou la question de sujet elle-même
+const isQcmType = id => { const t = tplOfId(id); return t ? EXAM_TPL.has(t) : !!QINDEX[id]; };
+const kindTag = id => (isQcmType(id) ? '<span class="tag tag-qcm" title="Ce genre de question est déjà tombé dans les QCM du prof">Type QCM</span>'
+  : '<span class="tag tag-new" title="Question du programme de Terminale qui n\'est pas encore tombée en QCM">Nouveau type</span>');
+/* Type QCM maîtrisé : passé ou remplacé (méthode connue), ou réussi 2 fois de suite.
+   Une vraie erreur le remet en jeu ; une erreur de calcul annotée ne change rien. */
+const KEEP_MASTERED = 0.1;   // un type maîtrisé revient quand même de temps en temps, pour vérifier
+function masteredTypes(atts = attempts) {
+  const st = {};
+  const mark = (id, fn) => { if (!isQcmType(id)) return; const k = typeKey(id); fn(st[k] || (st[k] = { ok: 0, m: false })); };
+  atts.slice().sort((a, b) => (a.at || 0) - (b.at || 0)).forEach(a => (a.results || []).forEach(r => {
+    if (r.was) mark(r.was, x => { x.m = true; });
+    mark(r.qid, x => {
+      if (r.skip) x.m = true;
+      else if (r.pts >= 1) { x.ok++; if (x.ok >= 2) x.m = true; }
+      else if (!r.slip) { x.ok = 0; x.m = false; }
+    });
+  }));
+  return new Set(Object.keys(st).filter(k => st[k].m));
+}
+// Garde une unité de tirage sauf si toutes ses questions sont d'un type QCM maîtrisé (sauf exception aléatoire)
+const keepUnit = (u, mastered) => !u.qids.every(id => mastered.has(typeKey(id))) || Math.random() < KEEP_MASTERED;
 function newTypesDef() {
   const k = ls.get(K.ncount, 0) + 1; ls.set(K.ncount, k);
   const qids = [], themeCount = {};
@@ -6755,9 +6783,11 @@ function renderGenerator() {
     ? (nObs ? `Priorité aux thèmes en rouge (les plus coûteux dans tes copies), avec un peu de tout le reste pour ne rien laisser tomber.` : 'Sans données, le contrôle balaie tous les thèmes. Importe un contrôle pour cibler tes erreurs.')
     : (g.themes.length ? `${g.themes.length} thème${g.themes.length > 1 ? 's' : ''} choisi${g.themes.length > 1 ? 's' : ''}.` : 'Choisis au moins un thème (sinon tous les thèmes sont utilisés).');
   const avail = UNITS.reduce((s, u) => s + u.size, 0), unseen = UNITS.filter(u => seenCount(u) === 0).reduce((s, u) => s + u.size, 0);
-  $('#genInfo').textContent = g.src === 'gen' ? 'Questions inédites : jamais deux fois la même.'
+  const nm = masteredTypes().size, pl = nm > 1 ? 's' : '';
+  $('#genInfo').textContent = (g.src === 'gen' ? 'Questions inédites : jamais deux fois la même.'
     : g.src === 'mix' ? `Questions des sujets (${unseen} jamais faites) complétées par des questions inédites.`
-    : `${unseen} questions des sujets encore jamais faites sur ${avail}.`;
+    : `${unseen} questions des sujets encore jamais faites sur ${avail}.`) +
+    (nm ? ` ${nm} type${pl} QCM maîtrisé${pl} (passé${pl} ou réussi${pl} 2 fois de suite) écarté${pl} : ils ne reviennent que rarement.` : '');
 }
 function generate() {
   const g = prefs.gen;
@@ -7065,6 +7095,7 @@ function renderQuestion() {
       <div class="q-title">
         <h2 class="q-num" tabindex="-1">Question ${i + 1}</h2>
         ${multi ? '<span class="tag tag-multi"><span class="club">♣</span> Plusieurs réponses possibles</span>' : '<span class="tag">Une seule réponse</span>'}
+        ${kindTag(q.id)}
       </div>
       <div class="q-timer" id="qTimer" title="Temps cumulé passé sur cette question">${ICON.clock}<span id="qTimerText">0:00</span></div>
     </div>
@@ -7122,8 +7153,8 @@ function toggleSkip() {
 }
 // Remplacer : une autre question du même thème, en évitant la méthode qu'on vient d'écarter
 function replacementFor(i) {
-  const q = Q[i], inTest = new Set(S.def.qids);
-  const tplOf = id => { const m = /^gen\.([a-z0-9_]+)\./.exec(id); return m ? m[1] : null; };
+  const q = Q[i], inTest = new Set(S.def.qids), mastered = masteredTypes();
+  const tplOf = tplOfId;
   const genId = tpl => `gen.${tpl}.${Math.floor(Math.random() * 2147483647).toString(36)}`;
   const fromBank = () => {
     const c = UNITS.filter(u => u.size === 1 && u.theme === q.theme && !inTest.has(u.qids[0]));
@@ -7134,8 +7165,9 @@ function replacementFor(i) {
   };
   const fromGen = () => {
     const used = new Set(S.def.qids.map(tplOf).filter(Boolean));
-    const all = Object.values(QGEN.TPL).filter(t => t.theme === q.theme && !t.group);
-    if (!all.length) return null;
+    const any = Object.values(QGEN.TPL).filter(t => t.theme === q.theme && !t.group && t.id !== tplOf(q.id));
+    const all = any.filter(t => !mastered.has(t.id)).length ? any.filter(t => !mastered.has(t.id)) : any;
+    if (!all.length) return tplOf(q.id) ? genId(tplOf(q.id)) : null;   // seul modèle du thème : une autre version
     const cur = tplOf(q.id), fresh = all.filter(t => !used.has(t.id)), other = all.filter(t => t.id !== cur);
     const pool = fresh.length ? fresh : other.length ? other : all;
     return genId(pool[Math.floor(Math.random() * pool.length)].id);
@@ -7343,6 +7375,7 @@ function corrCard(r) {
     <div class="corr-main">
       <header class="corr-head">
         <h3>Question ${r.i + 1}${q.multi ? '<span class="club" title="Une ou plusieurs bonnes réponses">♣</span>' : ''}</h3>
+        ${kindTag(q.id)}
         ${r.flag ? `<span class="pill st-empty" style="color:var(--flag)">⚑ À revoir</span>` : ''}
         ${r.slip ? '<span class="pill st-slip">✎ Erreur de calcul</span>' : ''}
         <span class="pill ${st.cls}">${st.icon} ${st.label}${r.skip ? ' · non notée' : ' · ' + fmtPts(r.pts)}</span>

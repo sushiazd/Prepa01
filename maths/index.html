@@ -500,6 +500,15 @@ input:focus-visible,select:focus-visible{outline:2px solid var(--pen);outline-of
 .sj .last{font-size:13px;color:var(--ink-2)}
 .sj-gen{border-color:var(--pen-line);background:var(--pen-soft)}
 .sj-gen .meta-chip{background:var(--sheet)}
+.tab-hc{color:var(--red)}
+.tab-hc:hover{color:var(--red)}
+.tab-hc[aria-current="page"]{background:var(--red);color:var(--paper)}
+.sj-hc{border-color:color-mix(in srgb,var(--red) 35%,transparent);background:var(--red-soft)}
+.sj-hc .meta-chip{background:var(--sheet)}
+.btn-hc{background:var(--red);border-color:var(--red);color:var(--paper)}
+.btn-hc:hover{background:color-mix(in srgb,var(--red) 82%,var(--ink));border-color:color-mix(in srgb,var(--red) 82%,var(--ink))}
+.eyebrow-hc{color:var(--red)}
+.tag-hc{color:var(--red);background:var(--red-soft);border-color:color-mix(in srgb,var(--red) 30%,transparent)}
 .gen-try .data-row{margin-top:10px}
 .try-item{margin-top:14px;display:grid;gap:10px}
 .hist{width:100%;border-collapse:collapse;font-size:14px}
@@ -656,6 +665,7 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
     <button type="button" class="tab" data-tab="sujets">Sujets</button>
     <button type="button" class="tab" data-tab="groupe">Groupe</button>
     <button type="button" class="tab" data-tab="results" id="tabResults" hidden>Dernière copie</button>
+    <button type="button" class="tab tab-hc" data-tab="hardcore">Hardcore</button>
   </nav>
   <div class="clock" id="clock" hidden aria-live="off">
     <span class="clock-label">Temps restant</span>
@@ -764,6 +774,18 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
       <p class="lede">Ton profil, tes stats sur tous tes appareils, et un groupe avec tes potes pour voir ce qui vous fait perdre le plus de points.</p>
     </header>
     <div id="groupeBox" style="display:grid;gap:24px"></div>
+  </section>
+
+  <!-- ============ HARDCORE ============ -->
+  <section class="hub" id="hubHardcore" hidden>
+    <div id="resumeBanner5"></div>
+    <header class="hub-head">
+      <p class="eyebrow eyebrow-hc">Mode Hardcore</p>
+      <h1>Des questions qui font vraiment réfléchir</h1>
+      <p class="lede">Des questions à la limite du programme : il faut trouver la bonne idée (astuce, télescopage, parité, changement de variable, contraire…), pas seulement appliquer une méthode. Tout se fait à la main, sans calculatrice ; quand une valeur approchée est utile, elle est donnée dans l'énoncé.</p>
+    </header>
+    <div class="sj-grid" id="hcGrid"></div>
+    <section class="card"><div class="card-head"><div><h2>Mes copies Hardcore</h2><p class="sub">Même barème que le QCM : −0,5 par réponse fausse, donc laisse vide si tu n'es pas sûr. Ces copies ne comptent pas dans « Mes points faibles » : rater une question hardcore, c'est normal.</p></div></div><div id="hcHist"></div></section>
   </section>
 
   <!-- ============ ÉCRAN D'ACCUEIL D'UNE ÉPREUVE ============ -->
@@ -6143,6 +6165,1062 @@ def('rec_steps', 'recurrence', 2, g => {
 });
 
 /* =====================================================================
+   MODE HARDCORE : questions difficiles, à la limite du programme
+   Modèles marqués « hard » : jamais tirés par les contrôles, les sujets,
+   le duel ni le Streak, seulement par l'onglet Hardcore. Tout se fait
+   sans calculatrice (valeurs approchées données quand il en faut).
+   ===================================================================== */
+function defH(id, theme, make) { TPL[id] = { id, theme, w: 0, make, size: 1, group: false, hard: true }; }
+const eP = k => (k === 0 ? '1' : k === 1 ? 'e' : `e^{${k}}`);
+const setS = xs => R`\left\{${xs.join(R`\,;`)}\right\}`;
+const ivC = (lo, hi) => R`\left[${fx(lo, true)}\,;${fx(hi, true)}\right]`;
+const ppow = (P, n) => { let r = [1]; for (let i = 0; i < n; i++) r = pmul(r, P); return r; };
+const onePlus = a => sum([[1, ''], [a, 'x']]);
+const xp = k => (k === 0 ? '' : k === 1 ? 'x' : `x^{${k}}`);
+const keyN = fn => [1, 2, 3, 4, 5, 6].map(n => fn(n).toFixed(6)).join();
+// ln d'un entier, écrit simplement (2\ln 10, 5\ln 2…)
+function lnI(v) {
+  if (v === 1) return '0';
+  for (const b of [10, 2, 3, 5]) { let k = 0, x = v; while (x % b === 0 && x > 1) { x /= b; k++; } if (x === 1 && k > 1) return `${k}\\ln ${b}`; }
+  return `\\ln ${v}`;
+}
+const lnQ = f => (f.q === 1 ? lnI(f.p) : f.p === 1 ? `-${lnI(f.q)}` : `\\ln\\dfrac{${f.p}}{${f.q}}`);
+// racines réelles d'un polynôme de degré 3 (balayage + dichotomie)
+function cubicRoots(c3, c2, c1, c0) {
+  const P = x => ((c3 * x + c2) * x + c1) * x + c0, out = [];
+  const B = 1 + Math.max(Math.abs(c2), Math.abs(c1), Math.abs(c0)) / Math.abs(c3), N = 40000;
+  let x0 = -B, y0 = P(x0);
+  for (let i = 1; i <= N; i++) {
+    const x1 = -B + 2 * B * i / N, y1 = P(x1);
+    if (y1 === 0) out.push(x1);
+    else if (y0 * y1 < 0) { let a = x0, b = x1; for (let k = 0; k < 60; k++) { const m = (a + b) / 2; if (P(a) * P(m) <= 0) b = m; else a = m; } out.push((a + b) / 2); }
+    x0 = x1; y0 = y1;
+  }
+  return out;
+}
+// changements de signe d'une fonction sur [lo, hi] (pas fin)
+function signChanges(f, lo, hi, n = 40000) {
+  let c = 0, prev = 0;
+  for (let i = 0; i <= n; i++) { const v = f(lo + (hi - lo) * (i + 0.37) / (n + 1)); const s = v > 1e-12 ? 1 : v < -1e-12 ? -1 : 0; if (s && prev && s !== prev) c++; if (s) prev = s; }
+  return c;
+}
+const HC_D = R`On donne : \(\ln2\approx0{,}693\), \(\ln3\approx1{,}099\), \(\ln5\approx1{,}609\), \(\ln10\approx2{,}303\).`;
+
+/* ---------- Polynômes ---------- */
+defH('hc_poly_newton', 'polynomes', g => {
+  const b = g.int(-4, 4), c = g.int(-9, 5), d0 = g.nz(-9, 9);
+  need(18 * b * c * d0 - 4 * b ** 3 * d0 + b * b * c * c - 4 * c ** 3 - 27 * d0 * d0 > 0);
+  for (let r = -Math.abs(d0); r <= Math.abs(d0); r++) need(!(r && r ** 3 + b * r * r + c * r + d0 === 0));
+  const S1 = -b, S2 = c, S3 = -d0;
+  const K = [
+    ['x_1^3+x_2^3+x_3^3', S1 ** 3 - 3 * S1 * S2 + 3 * S3, [S1 ** 3 - 3 * S1 * S2 - 3 * S3, S1 ** 3 - 3 * S1 * S2 + S3, S1 ** 3 + 3 * S1 * S2 + 3 * S3, S1 ** 3 - S1 * S2 + 3 * S3],
+      R`Identité : \(x_1^3+x_2^3+x_3^3-3x_1x_2x_3=\sigma_1\left(\sigma_1^2-3\sigma_2\right)\), donc \(x_1^3+x_2^3+x_3^3=\sigma_1^3-3\sigma_1\sigma_2+3\sigma_3\).`,
+      r => r[0] ** 3 + r[1] ** 3 + r[2] ** 3],
+    ['(x_1+x_2)(x_2+x_3)(x_3+x_1)', S1 * S2 - S3, [S1 * S2 + S3, S3 - S1 * S2, S1 * S2, -S3],
+      R`Astuce : \(x_1+x_2=\sigma_1-x_3\), etc. Le produit vaut \((\sigma_1-x_1)(\sigma_1-x_2)(\sigma_1-x_3)=P(\sigma_1)\) car \(P\) est unitaire, soit \(\sigma_1^3-\sigma_1\cdot\sigma_1^2+\sigma_2\sigma_1-\sigma_3=\sigma_1\sigma_2-\sigma_3\).`,
+      r => (r[0] + r[1]) * (r[1] + r[2]) * (r[2] + r[0])],
+    ['x_1^2x_2^2+x_1^2x_3^2+x_2^2x_3^2', S2 * S2 - 2 * S1 * S3, [S2 * S2 + 2 * S1 * S3, S2 * S2, S2 * S2 - 2 * S3, S1 * S1 - 2 * S2],
+      R`\(\sigma_2^2=(x_1x_2+x_1x_3+x_2x_3)^2=x_1^2x_2^2+x_1^2x_3^2+x_2^2x_3^2+2x_1x_2x_3(x_1+x_2+x_3)\), donc la somme vaut \(\sigma_2^2-2\sigma_1\sigma_3\).`,
+      r => (r[0] * r[1]) ** 2 + (r[0] * r[2]) ** 2 + (r[1] * r[2]) ** 2],
+    [R`\sum_{i\neq j}x_i^2x_j`, S1 * S2 - 3 * S3, [S1 * S2 + 3 * S3, S1 * S2 - S3, S1 * S2, S1 * S1 * S2],
+      R`\(\sigma_1\sigma_2=(x_1+x_2+x_3)(x_1x_2+x_1x_3+x_2x_3)=\sum_{i\neq j}x_i^2x_j+3x_1x_2x_3\), donc la somme vaut \(\sigma_1\sigma_2-3\sigma_3\).`,
+      r => { let s = 0; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (i !== j) s += r[i] * r[i] * r[j]; return s; }]
+  ];
+  const [ask, good, bads, how, fn] = g.pick(K);
+  return Object.assign({
+    q: R`On note \(x_1\), \(x_2\), \(x_3\) les trois racines réelles du polynôme \(P(X)=${poly([d0, c, b, 1], 'X')}\). Que vaut \(${ask}\) ?`,
+    e: R`Les racines ne sont pas « évidentes » : on ne les calcule pas. Relations coefficients–racines : \(\sigma_1=x_1+x_2+x_3=${S1}\), \(\sigma_2=x_1x_2+x_1x_3+x_2x_3=${S2}\), \(\sigma_3=x_1x_2x_3=${S3}\).<br>` + how + R`<br>Ici : \(${good}\).`,
+    d: R`Expression symétrique des racines : l'écrire avec \(\sigma_1,\sigma_2,\sigma_3\) (relations coefficients–racines), sans chercher les racines.`,
+    _: { chk: () => { const r = cubicRoots(1, b, c, d0); return (r.length === 3 && close(fn(r), good, 1e-6)) || 'faux (' + r.length + ' racines)'; } }
+  }, mcqv(g, [String(good), good], bads.map(v => [String(v), v])));
+});
+
+defH('hc_poly_rem', 'polynomes', g => {
+  const [p, q, n0, n1] = g.pick([[1, 2, 5, 9], [-1, 1, 5, 10], [-1, 2, 4, 8], [1, 3, 4, 6], [0, 2, 4, 9], [0, 3, 3, 6], [-2, 2, 4, 7], [1, -2, 4, 8], [-1, 3, 3, 5]]);
+  const n = g.int(n0, n1);
+  const A = m => (q ** m - p ** m) / (q - p), a = A(n), b = p ** n - a * p;
+  const askA = p === 0 || g.chance(0.5);
+  const good = askA ? a : b;
+  const bads = (askA ? [q ** n - p ** n, A(n - 1), A(n + 1), -a, (q ** n + p ** n) / (q - p)] : [p ** n, -b, b + p * q, a, b - (q - p)]).filter(Number.isInteger);
+  const fac = r => (r === 0 ? 'x' : `(x${pm(-r)})`);
+  return Object.assign({
+    q: R`Il existe un polynôme \(Q\) et deux réels \(a\) et \(b\) tels que, pour tout réel \(x\) : \(x^{${n}}=${fac(p)}${fac(q)}\,Q(x)+ax+b\).<br>Que vaut \(${askA ? 'a' : 'b'}\) ?`,
+    e: R`On ne calcule pas \(Q\) : on évalue l'égalité en \(x=${p}\) et en \(x=${q}\), qui annulent \(${fac(p)}${fac(q)}\).<br>\(${sum([[p, 'a'], [1, 'b']])}=${par(p)}^{${n}}=${p ** n}\) et \(${sum([[q, 'a'], [1, 'b']])}=${par(q)}^{${n}}=${q ** n}\).<br>Par différence : \(a=\dfrac{${q ** n}-${par(p ** n)}}{${q}-${par(p)}}=${a}\), puis \(b=${p ** n}-${par(p)}\times${par(a)}=${b}\).`,
+    d: R`Reste de la division par \((x-p)(x-q)\) : évaluer en \(p\) et en \(q\) pour faire disparaître le quotient.`,
+    _: { chk: () => (a * p + b === p ** n && a * q + b === q ** n) || 'reste faux' }
+  }, mcqv(g, [String(good), good], bads.map(v => [String(v), v])));
+});
+
+/* ---------- Puissances et racines ---------- */
+defH('hc_rad_nest', 'puiss_rad', g => {
+  const c = g.pick([2, 3, 5, 6, 7]), q = g.int(1, 2), p = g.int(2, 5);
+  need(p * p > q * q * c);
+  const qT = q === 1 ? '' : String(q), rc = Math.sqrt(c);
+  const plus = g.chance(0.6), op = plus ? '+' : '-';
+  const good = plus ? [String(2 * p), 2 * p] : [`${2 * q}\\sqrt{${c}}`, 2 * q * rc];
+  const other = plus ? [`${2 * q}\\sqrt{${c}}`, 2 * q * rc] : [String(2 * p), 2 * p];
+  if (g.chance(0.5)) {
+    const A = p ** 3 + 3 * p * q * q * c, B = 3 * p * p * q + q ** 3 * c;
+    need(A <= 400);
+    const val = Math.cbrt(A + B * rc) + (plus ? 1 : -1) * Math.cbrt(A - B * rc);
+    return Object.assign({
+      q: R`On note \(\sqrt[3]{y}\) l'unique réel dont le cube vaut \(y\). Que vaut \(\sqrt[3]{${A}+${B}\sqrt{${c}}}${op}\sqrt[3]{${A}-${B}\sqrt{${c}}}\) ?`,
+      e: R`On cherche \(${A}+${B}\sqrt{${c}}\) sous la forme \((a+b\sqrt{${c}})^3=a^3+${3 * c}ab^2+\left(3a^2b+${c}b^3\right)\sqrt{${c}}\) avec \(a,b\) entiers : \(a=${p}\), \(b=${q}\) conviennent.<br>Donc \(\sqrt[3]{${A}+${B}\sqrt{${c}}}=${p}+${qT}\sqrt{${c}}\) et, de même, \(\sqrt[3]{${A}-${B}\sqrt{${c}}}=${p}-${qT}\sqrt{${c}}\).<br>Résultat : \(${good[0]}\).`,
+      d: R`Radical imbriqué : deviner la forme \((a+b\sqrt c)^n\) avec de petits entiers, développer et identifier.`,
+      _: { chk: () => close(val, good[1], 1e-9) || 'valeur fausse ' + val }
+    }, mcqv(g, good, [other, [String(p), p], [String(2 * p + 2), 2 * p + 2], [`${qT}\\sqrt{${c}}`, q * rc], [String(p * p - q * q * c), p * p - q * q * c], [`2\\sqrt[3]{${A}}`, 2 * Math.cbrt(A)]]));
+  }
+  const a0 = p * p + q * q * c, B = 2 * p * q;
+  const val = Math.sqrt(a0 + B * rc) + (plus ? 1 : -1) * Math.sqrt(a0 - B * rc);
+  return Object.assign({
+    q: R`Que vaut \(\sqrt{${a0}+${B}\sqrt{${c}}}${op}\sqrt{${a0}-${B}\sqrt{${c}}}\) ?`,
+    e: R`On cherche \(${a0}+${B}\sqrt{${c}}\) sous la forme \((a+b\sqrt{${c}})^2=a^2+${c}b^2+2ab\sqrt{${c}}\) : \(a=${p}\), \(b=${q}\) conviennent.<br>Donc \(\sqrt{${a0}+${B}\sqrt{${c}}}=${p}+${qT}\sqrt{${c}}\) et \(\sqrt{${a0}-${B}\sqrt{${c}}}=\left|${p}-${qT}\sqrt{${c}}\right|=${p}-${qT}\sqrt{${c}}\) (positif car \(${p * p}>${q * q * c}\)).<br>Résultat : \(${good[0]}\).`,
+    d: R`\(\sqrt{a\pm b\sqrt c}\) : chercher un carré \((x\pm y\sqrt c)^2\), et ne pas oublier que \(\sqrt{A^2}=|A|\).`,
+    _: { chk: () => close(val, good[1], 1e-9) || 'valeur fausse ' + val }
+  }, mcqv(g, good, [other, [String(p), p], [`2\\sqrt{${a0}}`, 2 * Math.sqrt(a0)], [`${qT}\\sqrt{${c}}`, q * rc], [String(2 * p - 1), 2 * p - 1]]));
+});
+
+defH('hc_digits', 'puiss_rad', g => {
+  const kind = g.int(0, 4);
+  let e2, e5, T;
+  if (kind === 0) { const b = g.int(10, 40), a = b + g.int(1, 12); e2 = a; e5 = b; T = R`2^{${a}}\times5^{${b}}`; }
+  else if (kind === 1) { const y = g.int(6, 20), x = g.chance(0.6) ? y + g.int(1, 5) : y - g.int(1, 3); need(x > 1); e2 = 2 * x; e5 = 2 * y; T = R`4^{${x}}\times25^{${y}}`; }
+  else if (kind === 2) { const x = g.int(4, 12), y = g.chance(0.6) ? 3 * x - g.int(1, 10) : 3 * x + g.int(1, 6); need(y > 1); e2 = 3 * x; e5 = y; T = R`8^{${x}}\times5^{${y}}`; }
+  else if (kind === 3) { const a = g.int(10, 40), b = a + g.int(1, 7); e2 = a; e5 = b; T = R`2^{${a}}\times5^{${b}}`; }
+  else { const x = g.int(3, 10), y = Math.round(4 * x / 3) + g.int(-2, 2); need(y > 1); e2 = 4 * x; e5 = 3 * y; T = R`16^{${x}}\times125^{${y}}`; }
+  need(e2 !== e5 && (e2 > e5 ? e2 - e5 <= 14 : e5 - e2 <= 8));
+  const m = Math.min(e2, e5), big = e2 > e5;
+  const rest = big ? 2n ** BigInt(e2 - m) : 5n ** BigInt(e5 - m), rs = String(rest), good = m + rs.length;
+  const restT = big ? (e2 - m === 1 ? '2' : `2^{${e2 - m}}`) : (e5 - m === 1 ? '5' : `5^{${e5 - m}}`);
+  return Object.assign({
+    q: R`Combien de chiffres comporte l'écriture décimale de \(N=${T}\) ?`,
+    e: R`On décompose en facteurs premiers : \(N=2^{${e2}}\times5^{${e5}}\). On regroupe les \(2\times5=10\) : \(N=10^{${m}}\times${restT}=${rs}\times10^{${m}}\).<br>\(${rs}\) s'écrit avec ${rs.length} chiffre${rs.length > 1 ? 's' : ''}, suivi${rs.length > 1 ? 's' : ''} de ${m} zéros : \(N\) a \(${good}\) chiffres.`,
+    d: R`Nombre de chiffres d'un produit de puissances de 2 et de 5 : faire apparaître \(10^m\), puis compter les chiffres du reste.`,
+    _: { chk: () => (String(2n ** BigInt(e2) * 5n ** BigInt(e5)).length === good) || 'compte faux' }
+  }, mcqv(g, [String(good), good], [good - 1, good + 1, Math.max(e2, e5), m, m + 1, e2 + e5].map(v => [String(v), v])));
+});
+
+/* ---------- ln et exp ---------- */
+defH('hc_ln_pow', 'ln_exp', g => {
+  const r1 = g.nz(-3, 3), r2 = g.nz(-3, 3);
+  need(r1 !== r2 && r1 + r2 !== 0);
+  const b = r1 + r2, a = -r1 * r2;
+  const xT = b === 1 ? 'x' : `x^{${b}}`;
+  return Object.assign({
+    q: R`On considère l'équation \(x^{\ln x}=${eP(a)}\,${xT}\) d'inconnue \(x>0\) (rappel : \(x^{y}=e^{y\ln x}\)).<br>Quel est le produit de ses solutions ?`,
+    e: R`Les deux membres sont strictement positifs : on prend le logarithme. \(\ln\left(x^{\ln x}\right)=(\ln x)^2\) et \(\ln\left(${eP(a)}\,${xT}\right)=${sum([[a, ''], [b, '\\ln x']])}\).<br>Avec \(t=\ln x\) : \(${sum([[1, 't^2'], [-b, 't'], [-a, '']])}=0\), de racines \(${Math.min(r1, r2)}\) et \(${Math.max(r1, r2)}\).<br>Les solutions sont \(${eP(r1)}\) et \(${eP(r2)}\), de produit \(e^{${r1}${pm(r2)}}=${eP(b)}\) (la somme des racines en \(t\) vaut \(${b}\)).`,
+    d: R`Une inconnue en exposant et en base : passer au \(\ln\), puis poser \(t=\ln x\). Le produit des solutions en \(x\) est l'exponentielle de la somme des racines en \(t\).`,
+    _: { chk: () => [r1, r2].every(r => close(r * r, a + b * r)) || 'racine fausse' }
+  }, mcqv(g, [eP(b), Math.exp(b)], [[eP(a), Math.exp(a)], [eP(-b), Math.exp(-b)], [eP(-a), Math.exp(-a)], ['1', 1], [String(b), b]]));
+});
+
+defH('hc_ln_tel', 'ln_exp', g => {
+  const kind = g.int(0, 2);
+  let S, good, bads, how, real;
+  if (kind === 0) {
+    const n = g.pick([9, 15, 26, 31, 63, 80, 99, 999]);
+    S = R`\sum_{k=1}^{${n}}\ln\left(1+\dfrac1k\right)`; good = F(n + 1); bads = [F(n), F(n + 2), F(1, n + 1), F(n + 1, n)];
+    how = R`\(\ln\left(1+\dfrac1k\right)=\ln\dfrac{k+1}{k}=\ln(k+1)-\ln k\) : la somme est télescopique et vaut \(\ln(${n + 1})-\ln1\).`;
+    real = () => { let s = 0; for (let k = 1; k <= n; k++) s += Math.log(1 + 1 / k); return s; };
+  } else if (kind === 1) {
+    const n = g.pick([9, 10, 20, 24, 49, 99]);
+    S = R`\sum_{k=2}^{${n}}\ln\left(1-\dfrac1{k^2}\right)`; good = F(n + 1, 2 * n); bads = [F(n + 1, n), F(n - 1, 2 * n), F(1, 2), F(n, 2 * (n + 1))];
+    how = R`\(1-\dfrac1{k^2}=\dfrac{(k-1)(k+1)}{k^2}\), donc \(\ln\left(1-\dfrac1{k^2}\right)=\big(\ln(k-1)-\ln k\big)+\big(\ln(k+1)-\ln k\big)\). Les deux sommes télescopent : \((\ln1-\ln${n})+(\ln${n + 1}-\ln2)=\ln\dfrac{${n + 1}}{${2 * n}}\).`;
+    real = () => { let s = 0; for (let k = 2; k <= n; k++) s += Math.log(1 - 1 / (k * k)); return s; };
+  } else {
+    const n = g.pick([4, 8, 13, 18, 98]);
+    S = R`\sum_{k=1}^{${n}}\ln\dfrac{k+2}{k}`; good = F((n + 1) * (n + 2), 2); bads = [F(n + 2), F((n + 1) * (n + 2)), F(n * (n + 1), 2), F(n + 2, 2)];
+    how = R`\(\ln\dfrac{k+2}{k}=\ln(k+2)-\ln k\) : télescopage « à deux pas », il reste \(\ln${n + 1}+\ln${n + 2}-\ln1-\ln2\).`;
+    real = () => { let s = 0; for (let k = 1; k <= n; k++) s += Math.log((k + 2) / k); return s; };
+  }
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle ${S}\) ?`,
+    e: how + R`<br>Résultat : \(${lnQ(good)}\).`,
+    d: R`Somme de \(\ln\) d'un quotient : écrire chaque terme comme une différence \(\ln a_{k+1}-\ln a_k\) et télescoper.`,
+    _: { chk: () => close(real(), Math.log(good.v), 1e-9) || 'somme fausse' }
+  }, mcqv(g, [lnQ(good), Math.log(good.v)], bads.map(f => [lnQ(f), Math.log(f.v)])));
+});
+
+/* ---------- Équations exponentielles ---------- */
+defH('hc_exp_sys', 'eq_exp', g => {
+  const t1 = g.int(2, 12), t2 = g.int(1, t1 - 1), s = t1 + t2, p = t1 * t2;
+  const diff = g.chance(0.6);
+  const good = diff ? F(t1, t2) : F(t1);
+  const bads = diff ? [F(t1 - t2), F(p), F(t2, t1), F(s)] : [F(t2), F(s), F(p), F(t1 - t2)];
+  return Object.assign({
+    q: R`Le couple de réels \((x\,;y)\), avec \(x>y\), vérifie \(\begin{cases}e^{x}+e^{y}=${s}\\ e^{x+y}=${p}\end{cases}\)<br>Que vaut \(${diff ? 'x-y' : 'x'}\) ?`,
+    e: R`On pose \(X=e^{x}\) et \(Y=e^{y}\) : \(X+Y=${s}\) et \(XY=e^{x+y}=${p}\). \(X\) et \(Y\) sont donc les racines de \(t^2-${s}t+${p}=0\), soit \(${t1}\) et \(${t2}\).<br>Comme \(x>y\), \(X>Y\) : \(x=\ln ${t1}\), \(y=${lnI(t2)}\).` + (diff ? R` Donc \(x-y=\ln\dfrac{${t1}}{${t2}}=${lnQ(good)}\).` : ''),
+    d: R`Somme et produit connus : ce sont les racines de \(t^2-St+P=0\).`,
+    _: { chk: () => (Math.exp(Math.log(t1)) + Math.exp(Math.log(t2)) - s < 1e-9 && t1 > t2) || 'faux' }
+  }, mcqv(g, [lnQ(good), Math.log(good.v)], bads.map(f => [lnQ(f), Math.log(f.v)])));
+});
+
+defH('hc_exp_param', 'eq_exp', g => {
+  const k = g.int(1, 5), K = k * k, kind = g.pick(['two', 'one', 'none']);
+  const S = { two: R`]${k}\,;+\infty[`, one: R`\{${k}\}`, none: R`]-\infty\,;${k}[` };
+  const B = {
+    two: [R`]-\infty\,;-${k}[\,\cup\,]${k}\,;+\infty[`, R`[${k}\,;+\infty[`, R`]${K}\,;+\infty[`, R`]0\,;+\infty[`],
+    one: [R`\{-${k}\,;${k}\}`, R`\{${K}\}`, R`\varnothing`, R`\{0\}`],
+    none: [R`]-${k}\,;${k}[`, R`]-\infty\,;-${k}[`, R`]-\infty\,;${k}]`, R`]-\infty\,;0[`]
+  };
+  const what = { two: 'deux solutions réelles distinctes', one: 'exactement une solution réelle', none: 'aucune solution réelle' }[kind];
+  const count = m => { const D = m * m - K; if (D < 0) return 0; if (D === 0) return m > 0 ? 1 : 0; const r = [m - Math.sqrt(D), m + Math.sqrt(D)]; return r.filter(x => x > 0).length; };
+  const inSet = m => (kind === 'two' ? m > k : kind === 'one' ? m === k : m < k);
+  return Object.assign({
+    q: R`Pour un réel \(m\), on considère l'équation \((E_m)\ :\ e^{2x}-2m\,e^{x}+${K}=0\).<br>L'ensemble des réels \(m\) pour lesquels \((E_m)\) admet ${what} est :`,
+    e: R`Avec \(X=e^{x}>0\) : \(X^2-2mX+${K}=0\), de discriminant réduit \(m^2-${K}\). Le produit des racines vaut \(${K}>0\) : elles sont de même signe, celui de leur somme \(2m\).<br>• \(|m|&lt;${k}\) : pas de racine, aucune solution.<br>• \(m=${k}\) : racine double \(X=${k}>0\), une seule solution \(x=${lnI(k)}\). \(m=-${k}\) : racine double négative, aucune solution.<br>• \(m>${k}\) : deux racines positives distinctes, deux solutions. \(m&lt;-${k}\) : deux racines négatives, aucune solution.<br>Bilan : deux solutions pour \(m>${k}\), une pour \(m=${k}\), aucune pour \(m&lt;${k}\).`,
+    d: R`Équation en \(e^{x}\) avec paramètre : poser \(X=e^{x}\), puis compter les racines <strong>strictement positives</strong> (signe du produit et de la somme).`,
+    _: { chk: () => { for (let i = -60; i <= 60; i++) { const m = i / 4; const c = count(m); if ((kind === 'two' ? c === 2 : kind === 'one' ? c === 1 : c === 0) !== inSet(m)) return 'm=' + m; } return true; } }
+  }, mcq(g, M(S[kind]), B[kind].map(M)));
+});
+
+/* ---------- Fractions ---------- */
+defH('hc_frac_tel', 'fractions', g => {
+  const kind = g.int(0, 3), n = kind < 2 ? g.int(6, 40) : g.int(5, 30);
+  let S, good, bads, how, term;
+  if (kind === 0) {
+    S = R`\sum_{k=1}^{${n}}\dfrac{1}{k(k+1)}`; term = k => 1 / (k * (k + 1));
+    good = F(n, n + 1); bads = [F(n - 1, n), F(n + 1, n + 2), F(1, n + 1), F(n, n + 2)];
+    how = R`\(\dfrac1{k(k+1)}=\dfrac1k-\dfrac1{k+1}\) : la somme télescope et vaut \(1-\dfrac1{${n + 1}}\).`;
+  } else if (kind === 1) {
+    S = R`\sum_{k=1}^{${n}}\dfrac{1}{(2k-1)(2k+1)}`; term = k => 1 / ((2 * k - 1) * (2 * k + 1));
+    good = F(n, 2 * n + 1); bads = [F(2 * n, 2 * n + 1), F(n, 2 * n - 1), F(n + 1, 2 * n + 1), F(1, 2)];
+    how = R`\(\dfrac1{(2k-1)(2k+1)}=\dfrac12\left(\dfrac1{2k-1}-\dfrac1{2k+1}\right)\) : la somme vaut \(\dfrac12\left(1-\dfrac1{${2 * n + 1}}\right)\).`;
+  } else if (kind === 2) {
+    S = R`\sum_{k=1}^{${n}}\dfrac{1}{k(k+2)}`; term = k => 1 / (k * (k + 2));
+    good = F(3, 4).sub(F(2 * n + 3, 2 * (n + 1) * (n + 2)));
+    bads = [F(3, 2).sub(F(1, n + 1)).sub(F(1, n + 2)), F(1, 2).mul(F(1).sub(F(1, n + 2))), F(3, 4).sub(F(1, n + 1)), F(3, 4)];
+    how = R`\(\dfrac1{k(k+2)}=\dfrac12\left(\dfrac1k-\dfrac1{k+2}\right)\) : télescopage à deux pas, il reste \(\dfrac12\left(1+\dfrac12-\dfrac1{${n + 1}}-\dfrac1{${n + 2}}\right)\).`;
+  } else {
+    S = R`\sum_{k=1}^{${n}}\dfrac{1}{k(k+1)(k+2)}`; term = k => 1 / (k * (k + 1) * (k + 2));
+    good = F(1, 4).sub(F(1, 2 * (n + 1) * (n + 2)));
+    bads = [F(1, 2).sub(F(1, (n + 1) * (n + 2))), F(1, 4).sub(F(1, (n + 1) * (n + 2))), F(1, 4), F(1, 6)];
+    how = R`\(\dfrac1{k(k+1)(k+2)}=\dfrac12\left(\dfrac1{k(k+1)}-\dfrac1{(k+1)(k+2)}\right)\) : la somme vaut \(\dfrac12\left(\dfrac12-\dfrac1{${n + 1}\times${n + 2}}\right)\).`;
+  }
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle ${S}\) ?`,
+    e: how + R`<br>Résultat : \(${fx(good)}\).`,
+    d: R`Somme de fractions rationnelles : décomposer le terme en différence \(a_k-a_{k+1}\) (ou \(a_k-a_{k+2}\)) et télescoper.`,
+    _: { chk: () => { let s = 0; for (let k = 1; k <= n; k++) s += term(k); return close(s, good.v, 1e-10) || 'somme fausse'; } }
+  }, mcqF(g, good, bads));
+});
+
+defH('hc_frac_prod', 'fractions', g => {
+  const kind = g.int(0, 2), n = kind === 2 ? g.int(4, 20) : g.int(5, 60);
+  let S, good, bads, how, term, k0;
+  if (kind === 0) {
+    S = R`\prod_{k=2}^{${n}}\left(1-\dfrac1{k^2}\right)`; k0 = 2; term = k => 1 - 1 / (k * k);
+    good = F(n + 1, 2 * n); bads = [F(1, n), F(n - 1, 2 * n), F(n + 1, n), F(1, 2)];
+    how = R`\(1-\dfrac1{k^2}=\dfrac{k-1}{k}\times\dfrac{k+1}{k}\). \(\prod_{k=2}^{${n}}\dfrac{k-1}{k}=\dfrac1{${n}}\) et \(\prod_{k=2}^{${n}}\dfrac{k+1}{k}=\dfrac{${n + 1}}{2}\) (télescopage).`;
+  } else if (kind === 1) {
+    S = R`\prod_{k=1}^{${n}}\left(1+\dfrac1{k(k+2)}\right)`; k0 = 1; term = k => 1 + 1 / (k * (k + 2));
+    good = F(2 * (n + 1), n + 2); bads = [F(n + 1, n + 2), F(2 * n, n + 1), F(2), F(n + 1, 2 * (n + 2))];
+    how = R`\(1+\dfrac1{k(k+2)}=\dfrac{k^2+2k+1}{k(k+2)}=\dfrac{k+1}{k}\times\dfrac{k+1}{k+2}\). \(\prod_{k=1}^{${n}}\dfrac{k+1}{k}=${n + 1}\) et \(\prod_{k=1}^{${n}}\dfrac{k+1}{k+2}=\dfrac{2}{${n + 2}}\).`;
+  } else {
+    S = R`\prod_{k=2}^{${n}}\dfrac{k^3-1}{k^3+1}`; k0 = 2; term = k => (k ** 3 - 1) / (k ** 3 + 1);
+    good = F(2 * (n * n + n + 1), 3 * n * (n + 1)); bads = [F(2, 3), F(n * n + n + 1, 3 * n * (n + 1)), F(2 * (n * n - n + 1), 3 * n * (n + 1)), F(2, n * (n + 1))];
+    how = R`\(k^3-1=(k-1)(k^2+k+1)\) et \(k^3+1=(k+1)(k^2-k+1)\), avec \(k^2+k+1=(k+1)^2-(k+1)+1\).<br>\(\prod\dfrac{k-1}{k+1}=\dfrac{1\times2}{${n}\times${n + 1}}\) et \(\prod\dfrac{k^2+k+1}{k^2-k+1}=\dfrac{${n * n + n + 1}}{3}\) (télescopage).`;
+  }
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle ${S}\) ?`,
+    e: how + R`<br>Résultat : \(${fx(good)}\).`,
+    d: R`Produit télescopique : factoriser chaque terme en quotients \(\dfrac{a_{k+1}}{a_k}\) qui se simplifient en chaîne.`,
+    _: { chk: () => { let s = 1; for (let k = k0; k <= n; k++) s *= term(k); return close(s, good.v, 1e-10) || 'produit faux'; } }
+  }, mcqF(g, good, bads));
+});
+
+/* ---------- Développement ---------- */
+defH('hc_binom_coef', 'developpement', g => {
+  const kind = g.int(0, 2);
+  let q, e, good, bads, chk;
+  if (kind === 0) {
+    const n = g.pick([4, 6, 8]), a = g.pick([1, 2, -1, -2, 3, -3]), h = n / 2;
+    good = binom(n, h) * a ** h; need(Math.abs(good) <= 20000);
+    bads = [binom(n, h), a ** h, binom(n, h) * a ** n, -good, binom(n, h - 1) * a ** h];
+    q = R`Quel est le terme constant du développement de \(\left(x${a < 0 ? '-' : '+'}\dfrac{${Math.abs(a)}}{x}\right)^{${n}}\) ?`;
+    e = R`Formule du binôme : le terme général est \(\binom{${n}}{k}x^{${n}-k}\left(\dfrac{${a}}{x}\right)^{k}=\binom{${n}}{k}${par(a)}^{k}x^{${n}-2k}\). Il est constant pour \(k=${h}\) : \(\binom{${n}}{${h}}\times${par(a)}^{${h}}=${binom(n, h)}\times${par(a ** h)}=${good}\).`;
+    chk = () => (ppow([a, 0, 1], n)[n] === good) || 'coef faux';
+  } else if (kind === 1) {
+    const n = g.pick([3, 6]), a = g.pick([1, 2, -1, -2, 3]), k = 2 * n / 3;
+    good = binom(n, k) * a ** k;
+    bads = [binom(n, k), binom(n, k) * a ** (n - k), -good, binom(n, k) * a ** n, a ** k];
+    q = R`Quel est le terme constant du développement de \(\left(x^2${a < 0 ? '-' : '+'}\dfrac{${Math.abs(a)}}{x}\right)^{${n}}\) ?`;
+    e = R`Terme général : \(\binom{${n}}{k}\left(x^2\right)^{${n}-k}\left(\dfrac{${a}}{x}\right)^{k}=\binom{${n}}{k}${par(a)}^{k}x^{${2 * n}-3k}\). Constant pour \(3k=${2 * n}\), soit \(k=${k}\) : \(\binom{${n}}{${k}}\times${par(a)}^{${k}}=${good}\).`;
+    chk = () => (ppow([a, 0, 0, 1], n)[n] === good) || 'coef faux';
+  } else {
+    const n = g.int(4, 8), j = g.int(2, 2 * n - 2);
+    good = j % 2 ? 0 : (-1) ** (j / 2) * binom(n, j / 2);
+    bads = [binom(2 * n, j), j <= n ? binom(n, j) : n, (-1) ** j * binom(n, Math.min(j, n)), binom(n, Math.floor(j / 2)), -binom(n, Math.floor(j / 2))];
+    q = R`Quel est le coefficient de \(x^{${j}}\) dans le développement de \((1+x)^{${n}}(1-x)^{${n}}\) ?`;
+    e = R`On ne développe pas les deux puissances : \((1+x)^{${n}}(1-x)^{${n}}=\left(1-x^2\right)^{${n}}=\sum_k\binom{${n}}{k}(-1)^kx^{2k}\). Seules les puissances paires de \(x\) apparaissent.<br>` +
+      (j % 2 ? R`\(x^{${j}}\) est une puissance impaire : son coefficient est \(0\).` : R`Pour \(x^{${j}}\), \(k=${j / 2}\) : coefficient \(${j === 2 ? '-' : R`(-1)^{${j / 2}}`}\binom{${n}}{${j / 2}}=${good}\).`);
+    chk = () => ((pmul(ppow([1, 1], n), ppow([1, -1], n))[j] || 0) === good) || 'coef faux';
+  }
+  return Object.assign({ q, e, d: R`Formule du binôme : écrire le terme général \(\binom nk a^{n-k}b^k\), puis chercher \(k\) qui donne la bonne puissance de \(x\).`, _: { chk } },
+    mcqv(g, [String(good), good], bads.map(v => [String(v), v])));
+});
+
+defH('hc_coef_sum', 'developpement', g => {
+  const al = g.nz(-3, 3), be = g.nz(-3, 3), ga = g.int(-3, 3);
+  const s1 = al + be + ga, s2 = al - be + ga, Mx = Math.max(Math.abs(s1), Math.abs(s2));
+  need(Mx >= 2 && Mx <= 4);
+  const n = g.int(3, Mx === 2 ? 9 : Mx === 3 ? 6 : 5), even = g.chance(0.5);
+  const P1 = s1 ** n, P2 = s2 ** n, good = even ? (P1 + P2) / 2 : (P1 - P2) / 2;
+  const sumT = even ? R`a_0+a_2+a_4+\dots+a_{${2 * n}}` : R`a_1+a_3+\dots+a_{${2 * n - 1}}`;
+  return Object.assign({
+    q: R`On développe \(P(x)=\left(${poly([ga, be, al])}\right)^{${n}}\) sous la forme \(a_0+a_1x+\dots+a_{${2 * n}}x^{${2 * n}}\).<br>Que vaut \(${sumT}\) ?`,
+    e: R`On ne développe surtout pas ! \(P(1)=a_0+a_1+a_2+\dots=${par(s1)}^{${n}}=${P1}\) et \(P(-1)=a_0-a_1+a_2-\dots=${par(s2)}^{${n}}=${P2}\).<br>${even ? 'En ajoutant' : 'En retranchant'}, les coefficients de degré ${even ? 'impair' : 'pair'} disparaissent : \(${sumT}=\dfrac{P(1)${even ? '+' : '-'}P(-1)}{2}=\dfrac{${P1}${even ? pm(P2) : pm(-P2)}}{2}=${good}\).`,
+    d: R`Sommes de coefficients : évaluer en \(x=1\) et \(x=-1\). Coefficients pairs : \(\frac{P(1)+P(-1)}2\) ; impairs : \(\frac{P(1)-P(-1)}2\).`,
+    _: { chk: () => { const C = ppow([ga, be, al], n); let s = 0; C.forEach((c, i) => { if (i % 2 === (even ? 0 : 1)) s += c; }); return s === good || 'somme fausse'; } }
+  }, mcqv(g, [String(good), good], [P1, P2, even ? (P1 - P2) / 2 : (P1 + P2) / 2, P1 + P2, P1 - P2, -good].map(v => [String(v), v])));
+});
+
+/* ---------- Équations ---------- */
+defH('hc_sym_xy', 'equations', g => {
+  const s = g.nz(-6, 6), p = g.nz(-9, 9), D = s * s - 4 * p;
+  need(D > 0 && !Number.isInteger(Math.sqrt(D)));
+  const s2 = s * s - 2 * p, kind = g.int(0, 3);
+  let ask, good, bads, how, fn;
+  if (kind === 0) {
+    ask = 'x^3+y^3'; good = F(s ** 3 - 3 * p * s); bads = [s ** 3 - p * s, s ** 3 + 3 * p * s, s ** 3 - 3 * p, s ** 3].map(v => F(v));
+    how = R`\(x^3+y^3=(x+y)^3-3xy(x+y)=${par(s)}^3-3\times${par(p)}\times${par(s)}=${fx(good)}\).`; fn = (x, y) => x ** 3 + y ** 3;
+  } else if (kind === 1) {
+    ask = 'x^4+y^4'; good = F(s2 * s2 - 2 * p * p); bads = [s2 * s2, s2 * s2 + 2 * p * p, s ** 4 - 2 * p * p, (s * s - p) ** 2 - 2 * p * p].map(v => F(v));
+    how = R`\(x^4+y^4=\left(x^2+y^2\right)^2-2(xy)^2=${s2}^2-2\times${p * p}=${fx(good)}\).`; fn = (x, y) => x ** 4 + y ** 4;
+  } else if (kind === 2) {
+    ask = R`\dfrac xy+\dfrac yx`; good = F(s2, p); bads = [F(s * s, p), F(s * s + 2 * p, p), F(s2, p * p), F(s * s - 4 * p, p)];
+    how = R`\(\dfrac xy+\dfrac yx=\dfrac{x^2+y^2}{xy}=\dfrac{${s2}}{${p}}=${fx(good)}\).`; fn = (x, y) => x / y + y / x;
+  } else {
+    ask = R`\dfrac1{x^2}+\dfrac1{y^2}`; good = F(s2, p * p); bads = [F(s * s, p * p), F(s2, p), F(s * s + 2 * p, p * p), F(1, p * p)];
+    how = R`\(\dfrac1{x^2}+\dfrac1{y^2}=\dfrac{x^2+y^2}{(xy)^2}=\dfrac{${s2}}{${p * p}}=${fx(good)}\).`; fn = (x, y) => 1 / (x * x) + 1 / (y * y);
+  }
+  return Object.assign({
+    q: R`Soient \(x\) et \(y\) deux réels tels que \(x+y=${s}\) et \(xy=${p}\). Que vaut \(${ask}\) ?`,
+    e: R`Inutile de calculer \(x\) et \(y\) (racines de \(${sum([[1, 't^2'], [-s, 't'], [p, '']])}=0\), avec \(\sqrt{${D}}\)). On passe par \(x^2+y^2=(x+y)^2-2xy=${s * s}${pm(-2 * p)}=${s2}\).<br>` + how,
+    d: R`Expression symétrique en \(x\) et \(y\) : tout exprimer avec \(x+y\) et \(xy\).`,
+    _: { chk: () => { const x = (s + Math.sqrt(D)) / 2, y = (s - Math.sqrt(D)) / 2; return close(fn(x, y), good.v, 1e-8) || 'valeur fausse'; } }
+  }, mcqF(g, good, bads));
+});
+
+defH('hc_abs_ineq', 'equations', g => {
+  const a = g.int(-6, 5), b = a + g.int(1, 6), d0 = b - a, r = g.f();
+  let c;
+  if (r < 0.7) c = d0 + g.int(1, 7); else if (r < 0.85) c = d0; else { need(d0 >= 2); c = g.int(1, d0 - 1); }
+  const lo = F(a + b - c, 2), hi = F(a + b + c, 2);
+  const good = c > d0 ? ivC(lo, hi) : c === d0 ? ivC(a, b) : R`\varnothing`;
+  const bads = [ivC(a - c, b + c), ivC(a, b), ivC(lo, hi), R`\varnothing`, ivC(F(a - c, 2), F(b + c, 2)), R`\left]${fx(lo, true)}\,;${fx(hi, true)}\right[`];
+  const concl = c > d0 ? R`Pour \(x\geqslant${b}\) : \(${lin(2, -(a + b))}\leqslant${c}\iff x\leqslant${fx(hi, true)}\). Pour \(x\leqslant${a}\) : \(${sum([[-2, 'x'], [a + b, '']])}\leqslant${c}\iff x\geqslant${fx(lo, true)}\). Solutions : \(${good}\).`
+    : c === d0 ? R`Le minimum \(${d0}\) est atteint exactement sur \([${a}\,;${b}]\), et la somme est plus grande ailleurs : solutions \([${a}\,;${b}]\).`
+      : R`La somme vaut au moins \(${d0}>${c}\) : aucune solution.`;
+  return Object.assign({
+    q: R`L'ensemble des solutions dans \(\mathbb R\) de l'inéquation \(|${lin(1, -a)}|+|${lin(1, -b)}|\leqslant ${c}\) est :`,
+    e: R`\(|${lin(1, -a)}|+|${lin(1, -b)}|\) est la somme des distances de \(x\) aux points \(${a}\) et \(${b}\). Entre \(${a}\) et \(${b}\), elle vaut toujours \(${d0}\) ; à droite de \(${b}\) elle vaut \(${lin(2, -(a + b))}\), à gauche de \(${a}\) elle vaut \(${sum([[-2, 'x'], [a + b, '']])}\).<br>` + concl,
+    d: R`Valeurs absolues : découper \(\mathbb R\) aux points où elles changent d'expression, ou raisonner en distances.`,
+    _: { chk: () => { for (let i = -400; i <= 400; i++) { const x = i / 8 + 0.01; const ok = Math.abs(x - a) + Math.abs(x - b) <= c; const inS = c > d0 ? x >= lo.v && x <= hi.v : c === d0 ? x >= a && x <= b : false; if (ok !== inS) return 'x=' + x; } return true; } }
+  }, mcq(g, M(good), bads.map(M)));
+});
+
+defH('hc_sqrt_eq', 'equations', g => {
+  const p = g.int(1, 7), q = g.int(0, 6);
+  need(p !== q);
+  const x0 = g.int(-6, 8), a = p * p - x0, b = q * q - x0;
+  const plus = p < q || g.chance(0.5), c = plus ? p + q : p - q;
+  const L = x => Math.sqrt(x + a) + (plus ? 1 : -1) * Math.sqrt(x + b);
+  const step = plus ? R`\(\sqrt{${lin(1, a)}}=${c}-\sqrt{${lin(1, b)}}\), on élève au carré : \(${lin(1, a)}=${c * c}-${2 * c}\sqrt{${lin(1, b)}}+${lin(1, b)}\), d'où \(\sqrt{${lin(1, b)}}=\dfrac{${c * c}${pm(b - a)}}{${2 * c}}=${q}\)`
+    : R`\(\sqrt{${lin(1, a)}}=${c}+\sqrt{${lin(1, b)}}\), on élève au carré : \(${lin(1, a)}=${c * c}+${2 * c}\sqrt{${lin(1, b)}}+${lin(1, b)}\), d'où \(\sqrt{${lin(1, b)}}=\dfrac{${a - b}-${c * c}}{${2 * c}}=${q}\)`;
+  return Object.assign({
+    q: R`L'équation \(\sqrt{${lin(1, a)}}${plus ? '+' : '-'}\sqrt{${lin(1, b)}}=${c}\) admet une unique solution réelle. Laquelle ?`,
+    e: R`Le membre de gauche est ${plus ? 'strictement croissant (somme de deux fonctions croissantes)' : R`strictement décroissant (sa dérivée \(\frac1{2\sqrt{${lin(1, a)}}}-\frac1{2\sqrt{${lin(1, b)}}}\) est négative)`} : au plus une solution.<br>` + step + R`, donc \(x=${q * q}${b ? pm(-b) : ''}=${x0}\). Vérification : \(\sqrt{${x0 + a}}${plus ? '+' : '-'}\sqrt{${x0 + b}}=${p}${plus ? '+' : '-'}${q}=${c}\).`,
+    d: R`Équation avec deux racines carrées : isoler une racine, élever au carré (une seule racine reste), recommencer, puis <strong>vérifier</strong>.`,
+    _: { chk: () => (close(L(x0), c, 1e-9) && (plus ? L(x0 + 1) > c : L(x0 + 1) < c)) || 'solution fausse' }
+  }, mcqv(g, [String(x0), x0], [x0 + p * q, x0 - p * q, x0 + 1, c * c - a - b, -x0].map(v => [String(v), v])));
+});
+
+/* ---------- Domaine ---------- */
+defH('hc_domain', 'domaine', g => {
+  const kind = g.int(0, 2);
+  let fT, good, bads, e, pred, mem;
+  if (kind === 0) {
+    const k = g.int(2, 7);
+    fT = R`\ln\left(e^{2x}-${k + 1}e^{x}+${k}\right)`;
+    good = R`]-\infty\,;0[\,\cup\,]\ln ${k}\,;+\infty[`;
+    bads = [R`]\ln ${k}\,;+\infty[`, R`]0\,;\ln ${k}[`, R`]-\infty\,;1[\,\cup\,]${k}\,;+\infty[`, R`\mathbb R\setminus\{0\,;\ln ${k}\}`];
+    e = R`Il faut \(e^{2x}-${k + 1}e^{x}+${k}>0\). Avec \(X=e^x\) : \(X^2-${k + 1}X+${k}=(X-1)(X-${k})>0\iff X&lt;1\) ou \(X>${k}\), soit \(x&lt;0\) ou \(x>\ln ${k}\).`;
+    pred = x => Math.exp(2 * x) - (k + 1) * Math.exp(x) + k > 0; mem = x => x < 0 || x > Math.log(k);
+  } else if (kind === 1) {
+    const k = g.pick([2, 3, 5, 7]);
+    fT = R`\dfrac{\sqrt{${k}-e^{x}}}{\ln(x+1)}`;
+    good = R`]-1\,;0[\,\cup\,]0\,;\ln ${k}]`;
+    bads = [R`]-1\,;\ln ${k}]`, R`]0\,;\ln ${k}]`, R`]-1\,;0[\,\cup\,]0\,;${k}]`, R`]-1\,;0[\,\cup\,]0\,;\ln ${k}[`];
+    e = R`Trois conditions : \(x+1>0\) (pour le \(\ln\)) ; \(\ln(x+1)\neq0\iff x\neq0\) (dénominateur) ; \(${k}-e^x\geqslant0\iff x\leqslant\ln ${k}\) (racine, borne incluse).`;
+    pred = x => x > -1 && Math.abs(x) > 1e-12 && k - Math.exp(x) >= 0; mem = x => (x > -1 && x < 0) || (x > 0 && x <= Math.log(k));
+  } else {
+    const k = g.int(2, 6);
+    fT = R`\dfrac{\ln\left(x^2-${k + 1}x+${k}\right)}{\sqrt{e^{x}-1}}`;
+    good = R`]0\,;1[\,\cup\,]${k}\,;+\infty[`;
+    bads = [R`]-\infty\,;1[\,\cup\,]${k}\,;+\infty[`, R`]1\,;${k}[`, R`[0\,;1[\,\cup\,]${k}\,;+\infty[`, R`]${k}\,;+\infty[`];
+    e = R`\(x^2-${k + 1}x+${k}=(x-1)(x-${k})>0\iff x&lt;1\) ou \(x>${k}\). La racine est au dénominateur : \(e^x-1>0\iff x>0\) (strict). On croise les deux conditions.`;
+    pred = x => x * x - (k + 1) * x + k > 0 && Math.exp(x) - 1 > 0; mem = x => (x > 0 && x < 1) || x > k;
+  }
+  return Object.assign({
+    q: R`Quel est l'ensemble de définition de la fonction \(f:x\mapsto ${fT}\) ?`,
+    e: e + R`<br>Domaine : \(${good}\).`,
+    d: R`Domaine : lister <strong>toutes</strong> les conditions (\(\ln u\) : \(u>0\) ; \(\sqrt u\) : \(u\geqslant0\) ; dénominateur \(\neq0\)), puis les croiser.`,
+    _: { chk: () => { for (let i = 0; i < 4000; i++) { const x = -8 + i * 0.005 + 0.0013; if (pred(x) !== mem(x)) return 'x=' + x; } return true; } }
+  }, mcq(g, M(good), bads.map(M)));
+});
+
+/* ---------- Dérivées ---------- */
+defH('hc_dn', 'derivees', g => {
+  const a = g.pick([2, -1, -2, 3, 1]), kind = g.int(0, 2), n = g.int(4, 7);
+  const b = kind === 1 ? g.nz(-3, 3) : 0;
+  const P = kind === 0 ? [0, 1] : kind === 1 ? [b, 1] : [0, 0, 1];
+  const step = Q => padd(pder(Q), psc(Q, a));
+  const at = m => { let Q = P; for (let i = 0; i < m; i++) Q = step(Q); return Q[0] || 0; };
+  const good = at(n);
+  need(good !== 0 && Math.abs(good) <= 50000);
+  const fT = kind === 0 ? R`x${ekx(a)}` : kind === 1 ? R`(${lin(1, b)})${ekx(a)}` : R`x^2${ekx(a)}`;
+  const gen = kind === 2 ? R`\left(a^nx^2+2na^{n-1}x+n(n-1)a^{n-2}\right)e^{ax}` : R`\left(a^nx+${kind === 1 ? 'a^nb+' : ''}na^{n-1}\right)e^{ax}`;
+  const val = kind === 0 ? R`${n}\times${par(a)}^{${n - 1}}` : kind === 1 ? R`${par(a)}^{${n}}\times${par(b)}+${n}\times${par(a)}^{${n - 1}}` : R`${n}\times${n - 1}\times${par(a)}^{${n - 2}}`;
+  return Object.assign({
+    q: R`Soit \(f(x)=${fT}\). Que vaut \(f^{(${n})}(0)\), la dérivée ${n}-ième de \(f\) en \(0\) ?`,
+    e: R`Si \(f(x)=Q(x)e^{ax}\) avec \(a=${a}\), alors \(f'(x)=\big(Q'(x)+aQ(x)\big)e^{ax}\). En dérivant plusieurs fois, on conjecture puis on démontre par récurrence que \(f^{(n)}(x)=${gen}\).<br>En \(0\) : \(f^{(${n})}(0)=${val}=${good}\).`,
+    d: R`Dérivées successives de \(P(x)e^{ax}\) : calculer les 2 ou 3 premières, repérer la forme, la prouver par récurrence (ou formule de Leibniz).`,
+    _: { chk: () => { let s = 0; for (let k = 0; k <= n; k++) s += binom(n, k) * fact(k) * (P[k] || 0) * a ** (n - k); return s === good || 'Leibniz ' + s; } }
+  }, mcqv(g, [String(good), good], [at(n - 1), at(n + 1), n * a ** n, -good, (n + 1) * a ** (n - 1), n * (n - 1) * a ** (n - 1)].map(v => [String(v), v])));
+});
+
+defH('hc_tan_pass', 'derivees', g => {
+  const kind = g.int(0, 2);
+  if (kind === 0) {
+    const k = g.int(-3, 3), a = k + 1;
+    return Object.assign({
+      q: R`Une tangente à la courbe de \(x\mapsto e^{x}\) passe par le point \(A(${k}\,;0)\). Quelle est l'abscisse de son point de contact ?`,
+      e: R`La tangente au point d'abscisse \(a\) a pour équation \(y=e^{a}(x-a)+e^{a}=e^{a}(x-a+1)\). Elle passe par \(A\) si \(e^{a}(${k}-a+1)=0\), soit \(a=${a}\) (car \(e^a\neq0\)).`,
+      d: R`Tangente passant par un point extérieur : écrire la tangente en un point \(a\) <strong>inconnu</strong>, puis imposer qu'elle passe par le point.`,
+      _: { chk: () => close(Math.exp(a) * (k - a + 1), 0) || 'faux' }
+    }, mcqv(g, [String(a), a], [k, k - 1, k + 2, -a].map(v => [String(v), v])));
+  }
+  if (kind === 1) {
+    const m = g.int(-2, 2), a = Math.exp(m + 1);
+    return Object.assign({
+      q: R`Une tangente à la courbe de la fonction \(\ln\) passe par le point \(B(0\,;${m})\). Quelle est l'abscisse de son point de contact ?`,
+      e: R`La tangente en \(a>0\) : \(y=\dfrac1a(x-a)+\ln a=\dfrac xa+\ln a-1\). En \(x=0\) : \(\ln a-1=${m}\), donc \(a=${eP(m + 1)}\).`,
+      d: R`Tangente passant par un point extérieur : écrire la tangente en un point \(a\) <strong>inconnu</strong>, puis imposer qu'elle passe par le point.`,
+      _: { chk: () => close(Math.log(a) - 1, m) || 'faux' }
+    }, mcqv(g, [eP(m + 1), a], [[eP(m), Math.exp(m)], [eP(m - 1), Math.exp(m - 1)], [eP(-m - 1), Math.exp(-m - 1)], [String(m + 1), m + 1]]));
+  }
+  const c = g.int(-3, 3), x0 = g.int(-3, 3), t = g.int(1, 4), y0 = x0 * x0 + c - t * t;
+  const S = (u, v) => setS([u, v].sort((x, y) => x - y).map(String));
+  const good = S(2 * x0 - 2 * t, 2 * x0 + 2 * t);
+  const bads = [S(2 * x0 - t, 2 * x0 + t), S(x0 - t, x0 + t), x0 ? S(-2 * t, 2 * t) : S(-t, t), setS([String(2 * x0 + 2 * t)])];
+  return Object.assign({
+    q: R`Quelles sont les pentes des tangentes à la parabole d'équation \(y=${poly([c, 0, 1])}\) qui passent par le point \(A(${x0}\,;${y0})\) ?`,
+    e: R`Tangente au point d'abscisse \(a\) : \(y=2a(x-a)+a^2${c ? pm(c) : ''}=2ax-a^2${c ? pm(c) : ''}\). Elle passe par \(A\) si \(${y0}=${sum([[2 * x0, 'a'], [-1, 'a^2'], [c, '']])}\), soit \(${sum([[1, 'a^2'], [-2 * x0, 'a'], [y0 - c, '']])}=0\) : \(a=${x0 - t}\) ou \(a=${x0 + t}\).<br>Les pentes \(2a\) valent \(${2 * x0 - 2 * t}\) et \(${2 * x0 + 2 * t}\).`,
+    d: R`Tangente passant par un point extérieur : écrire la tangente en un point \(a\) <strong>inconnu</strong>, puis imposer qu'elle passe par le point.`,
+    _: { chk: () => [x0 - t, x0 + t].every(a => close(2 * a * x0 - a * a + c, y0)) || 'faux' }
+  }, mcq(g, M(good), bads.map(M)));
+});
+
+/* ---------- Intégrales ---------- */
+defH('hc_ipp', 'integrales', g => {
+  const L = [
+    [R`\int_0^1x^2e^{x}\,\mathrm dx`, R`e-2`, Math.E - 2, x => x * x * Math.exp(x), 0, 1, [[R`e-1`, Math.E - 1], [R`e`, Math.E], [R`3-e`, 3 - Math.E], [R`2e-2`, 2 * Math.E - 2]], R`Deux IPP : \(\int_0^1x^2e^x=e-2\int_0^1xe^x\) et \(\int_0^1xe^x=e-(e-1)=1\).`],
+    [R`\int_1^ex\ln x\,\mathrm dx`, R`\dfrac{e^2+1}{4}`, (Math.E ** 2 + 1) / 4, x => x * Math.log(x), 1, Math.E, [[R`\dfrac{e^2-1}{4}`, (Math.E ** 2 - 1) / 4], [R`\dfrac{e^2}{2}`, Math.E ** 2 / 2], [R`\dfrac{e^2+1}{2}`, (Math.E ** 2 + 1) / 2]], R`IPP avec \(u=\ln x\), \(v'=x\) : \(\left[\dfrac{x^2}2\ln x\right]_1^e-\int_1^e\dfrac x2\,\mathrm dx=\dfrac{e^2}2-\dfrac{e^2-1}4\).`],
+    [R`\int_1^ex^2\ln x\,\mathrm dx`, R`\dfrac{2e^3+1}{9}`, (2 * Math.E ** 3 + 1) / 9, x => x * x * Math.log(x), 1, Math.E, [[R`\dfrac{2e^3-1}{9}`, (2 * Math.E ** 3 - 1) / 9], [R`\dfrac{e^3}{3}`, Math.E ** 3 / 3], [R`\dfrac{e^3+1}{9}`, (Math.E ** 3 + 1) / 9]], R`IPP avec \(u=\ln x\), \(v'=x^2\) : \(\left[\dfrac{x^3}3\ln x\right]_1^e-\int_1^e\dfrac{x^2}3\,\mathrm dx=\dfrac{e^3}3-\dfrac{e^3-1}9\).`],
+    [R`\int_1^e(\ln x)^2\,\mathrm dx`, R`e-2`, Math.E - 2, x => Math.log(x) ** 2, 1, Math.E, [[R`1`, 1], [R`e-1`, Math.E - 1], [R`2`, 2], [R`e`, Math.E]], R`IPP avec \(u=(\ln x)^2\), \(v'=1\) : \(\left[x(\ln x)^2\right]_1^e-2\int_1^e\ln x\,\mathrm dx=e-2\times1\) (car \(\int_1^e\ln x\,\mathrm dx=[x\ln x-x]_1^e=1\)).`],
+    [R`\int_0^{\pi}x\sin x\,\mathrm dx`, R`\pi`, Math.PI, x => x * Math.sin(x), 0, Math.PI, [[R`0`, 0], [R`2\pi`, 2 * Math.PI], [R`-\pi`, -Math.PI], [R`2`, 2]], R`IPP avec \(u=x\), \(v'=\sin x\) : \([-x\cos x]_0^{\pi}+\int_0^{\pi}\cos x\,\mathrm dx=\pi+[\sin x]_0^{\pi}=\pi\).`],
+    [R`\int_0^{\pi/2}x\cos x\,\mathrm dx`, R`\dfrac{\pi}{2}-1`, Math.PI / 2 - 1, x => x * Math.cos(x), 0, Math.PI / 2, [[R`\dfrac{\pi}{2}+1`, Math.PI / 2 + 1], [R`1-\dfrac{\pi}{2}`, 1 - Math.PI / 2], [R`\dfrac{\pi}{2}`, Math.PI / 2], [R`1`, 1]], R`IPP avec \(u=x\), \(v'=\cos x\) : \([x\sin x]_0^{\pi/2}-\int_0^{\pi/2}\sin x\,\mathrm dx=\dfrac\pi2-1\).`],
+    [R`\int_0^1xe^{-x}\,\mathrm dx`, R`1-\dfrac{2}{e}`, 1 - 2 / Math.E, x => x * Math.exp(-x), 0, 1, [[R`1-\dfrac1e`, 1 - 1 / Math.E], [R`\dfrac2e-1`, 2 / Math.E - 1], [R`\dfrac1e`, 1 / Math.E]], R`IPP avec \(u=x\), \(v'=e^{-x}\) : \(\left[-xe^{-x}\right]_0^1+\int_0^1e^{-x}\,\mathrm dx=-\dfrac1e+1-\dfrac1e\).`],
+    [R`\int_0^{\pi}x^2\sin x\,\mathrm dx`, R`\pi^2-4`, Math.PI ** 2 - 4, x => x * x * Math.sin(x), 0, Math.PI, [[R`\pi^2`, Math.PI ** 2], [R`\pi^2+4`, Math.PI ** 2 + 4], [R`\pi^2-2`, Math.PI ** 2 - 2], [R`4-\pi^2`, 4 - Math.PI ** 2]], R`Deux IPP : \(\left[-x^2\cos x\right]_0^{\pi}+2\int_0^{\pi}x\cos x\,\mathrm dx=\pi^2+2\left([x\sin x]_0^\pi-\int_0^\pi\sin x\,\mathrm dx\right)=\pi^2+2(0-2)\).`],
+    [R`\int_1^e\dfrac{\ln x}{x^2}\,\mathrm dx`, R`1-\dfrac{2}{e}`, 1 - 2 / Math.E, x => Math.log(x) / (x * x), 1, Math.E, [[R`\dfrac1e`, 1 / Math.E], [R`1-\dfrac1e`, 1 - 1 / Math.E], [R`\dfrac12`, 0.5]], R`IPP avec \(u=\ln x\), \(v'=\dfrac1{x^2}\) : \(\left[-\dfrac{\ln x}x\right]_1^e+\int_1^e\dfrac{\mathrm dx}{x^2}=-\dfrac1e+1-\dfrac1e\).`],
+    [R`\int_0^{\ln2}xe^{x}\,\mathrm dx`, R`2\ln2-1`, 2 * Math.log(2) - 1, x => x * Math.exp(x), 0, Math.log(2), [[R`2\ln2`, 2 * Math.log(2)], [R`2\ln2+1`, 2 * Math.log(2) + 1], [R`\ln2-1`, Math.log(2) - 1], [R`1-\ln2`, 1 - Math.log(2)]], R`IPP : \(\left[xe^x\right]_0^{\ln2}-\int_0^{\ln2}e^x\,\mathrm dx=2\ln2-(2-1)\).`],
+    [R`\int_0^{\ln3}xe^{x}\,\mathrm dx`, R`3\ln3-2`, 3 * Math.log(3) - 2, x => x * Math.exp(x), 0, Math.log(3), [[R`3\ln3-3`, 3 * Math.log(3) - 3], [R`3\ln3`, 3 * Math.log(3)], [R`3\ln3-1`, 3 * Math.log(3) - 1], [R`\ln3-2`, Math.log(3) - 2]], R`IPP : \(\left[xe^x\right]_0^{\ln3}-\int_0^{\ln3}e^x\,\mathrm dx=3\ln3-(3-1)\).`],
+    [R`\int_1^{e^2}\dfrac{\ln x}{\sqrt x}\,\mathrm dx`, R`4`, 4, x => Math.log(x) / Math.sqrt(x), 1, Math.E ** 2, [[R`2e`, 2 * Math.E], [R`4e-4`, 4 * Math.E - 4], [R`2`, 2], [R`4e`, 4 * Math.E]], R`IPP avec \(u=\ln x\), \(v'=\dfrac1{\sqrt x}\), \(v=2\sqrt x\) : \(\left[2\sqrt x\ln x\right]_1^{e^2}-\int_1^{e^2}\dfrac{2}{\sqrt x}\,\mathrm dx=4e-\left[4\sqrt x\right]_1^{e^2}=4e-(4e-4)\).`],
+    [R`\int_0^{\pi}e^{x}\sin x\,\mathrm dx`, R`\dfrac{e^{\pi}+1}{2}`, (Math.exp(Math.PI) + 1) / 2, x => Math.exp(x) * Math.sin(x), 0, Math.PI, [[R`\dfrac{e^{\pi}-1}{2}`, (Math.exp(Math.PI) - 1) / 2], [R`e^{\pi}+1`, Math.exp(Math.PI) + 1], [R`\dfrac{e^{\pi}}{2}`, Math.exp(Math.PI) / 2]], R`Deux IPP « en boucle » : \(I=[-e^x\cos x]_0^{\pi}+\int_0^{\pi}e^x\cos x\,\mathrm dx=e^{\pi}+1+\left([e^x\sin x]_0^{\pi}-I\right)\), donc \(2I=e^{\pi}+1\).`]
+  ];
+  const [I, gT, gv, f, a, b, bads, e] = g.pick(L);
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle ${I}\) ?`,
+    e: e + R`<br>Résultat : \(${gT}\).`,
+    d: R`Intégration par parties : dériver le facteur qui se simplifie (\(x^n\), \(\ln x\)) et intégrer l'autre. Parfois deux fois de suite.`,
+    _: { chk: () => close(simpson(f, a, b), gv, 1e-7) || 'valeur fausse' }
+  }, mcqv(g, [gT, gv], bads));
+});
+
+defH('hc_isuite', 'integrales', g => {
+  const pos = g.chance(0.6), n = pos ? g.int(2, 4) : g.int(2, 3);
+  // pos : I_n = ∫₀¹ xⁿeˣ = αe + β ; sinon J_n = ∫₀¹ xⁿe⁻ˣ = α + β/e
+  const seq = (n0, r1, r2) => { let A = 1, B = -1; for (let k = 0; k < n0; k++) { if (pos) { A = r1 - (k + 1) * A; B = -(k + 1) * B; } else { A = (k + 1) * A; B = (k + 1) * B - r2; } } return [A, B]; };
+  const T = ([A, B]) => (pos ? (A < 0 && B > 0 ? sum([[B, ''], [A, 'e']]) : sum([[A, 'e'], [B, '']])) : B < 0 ? R`${A}-\dfrac{${-B}}{e}` : R`${A}+\dfrac{${B}}{e}`);
+  const V = ([A, B]) => (pos ? A * Math.E + B : A + B / Math.E);
+  const good = seq(n, 1, 1);
+  const bads = [[good[0], -good[1]], seq(n, -1, -1), [good[1], good[0]], seq(n + 1, 1, 1), seq(n - 1, 1, 1)].map(x => [T(x), V(x)]);
+  const I = pos ? R`\int_0^1x^{${n}}e^{x}\,\mathrm dx` : R`\int_0^1x^{${n}}e^{-x}\,\mathrm dx`;
+  const rec = pos ? R`\(I_{k+1}=\int_0^1x^{k+1}e^x\,\mathrm dx=\left[x^{k+1}e^x\right]_0^1-(k+1)\int_0^1x^ke^x\,\mathrm dx=e-(k+1)I_k\), avec \(I_0=e-1\).`
+    : R`\(J_{k+1}=\int_0^1x^{k+1}e^{-x}\,\mathrm dx=\left[-x^{k+1}e^{-x}\right]_0^1+(k+1)\int_0^1x^ke^{-x}\,\mathrm dx=(k+1)J_k-\dfrac1e\), avec \(J_0=1-\dfrac1e\).`;
+  const steps = []; for (let k = 1; k <= n; k++) steps.push(R`\(${pos ? 'I' : 'J'}_{${k}}=${T(seq(k, 1, 1))}\)`);
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle ${I}\) ?`,
+    e: R`On intègre par parties de façon répétée, ce qui revient à la relation de récurrence ` + rec + '<br>' + steps.join(', ') + '.',
+    d: R`Intégrale de \(x^ne^{\pm x}\) : une IPP fait baisser la puissance de \(x\) de 1 ; on obtient une relation de récurrence entre \(I_{n+1}\) et \(I_n\).`,
+    _: { chk: () => close(simpson(x => x ** n * Math.exp(pos ? x : -x), 0, 1), V(good), 1e-9) || 'valeur fausse' }
+  }, mcqv(g, [T(good), V(good)], bads));
+});
+
+defH('hc_iparite', 'integrales', g => {
+  const ODD = [[R`x^3\cos x`, x => x ** 3 * Math.cos(x)], [R`x\,e^{x^2}`, x => x * Math.exp(x * x)], [R`\sin(x)\,e^{x^2}`, x => Math.sin(x) * Math.exp(x * x)], [R`x^5-4x^3`, x => x ** 5 - 4 * x ** 3],
+    [R`x\ln\left(1+x^2\right)`, x => x * Math.log(1 + x * x)], [R`\sin^3x`, x => Math.sin(x) ** 3], [R`\dfrac{x}{1+x^4}`, x => x / (1 + x ** 4)]];
+  const [oT, of] = g.pick(ODD), a = g.int(1, 3), c = g.nz(-3, 6), sq = g.chance(0.5);
+  need(!(oT.includes('e^{x^2}') && a > 2));
+  const good = sq ? F(2 * c * a ** 3, 3) : F(2 * a * c);
+  const evT = sq ? sum([[c, 'x^2']]) : String(c);
+  const bads = sq ? [F(0), F(c * a ** 3, 3), F(2 * c * a ** 3), F(4 * c * a ** 3, 3)] : [F(0), F(a * c), F(4 * a * c), F(2 * c)];
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle\int_{-${a}}^{${a}}\left(${oT}${c < 0 ? '' : '+'}${evT}\right)\mathrm dx\) ?`,
+    e: R`La fonction \(x\mapsto ${oT}\) est <strong>impaire</strong> et l'intervalle \([-${a}\,;${a}]\) est symétrique : son intégrale est nulle (inutile de chercher une primitive).<br>Il reste \(\displaystyle\int_{-${a}}^{${a}}${evT}\,\mathrm dx=${sq ? R`\left[\dfrac{${kco(c)}x^3}{3}\right]_{-${a}}^{${a}}` : R`${c}\times${2 * a}`}=${fx(good)}\).`,
+    d: R`Intégrale sur \([-a\,;a]\) : repérer la partie impaire (intégrale nulle) avant de calculer quoi que ce soit.`,
+    _: { chk: () => close(simpson(x => of(x) + (sq ? c * x * x : c), -a, a, 20000), good.v, 1e-6) || 'valeur fausse' }
+  }, mcqF(g, good, bads));
+});
+
+/* ---------- Limites ---------- */
+defH('hc_lim_fn', 'limites', g => {
+  const kind = g.int(0, 7), INFV = Infinity;
+  const a = g.nz(-4, 5), ap = g.int(1, 6);
+  let L, good, bads, e, f, x;
+  const Fq = v => [fx(v), F(v).v];
+  if (kind === 0) {
+    L = R`\lim_{x\to+\infty}\left(\sqrt{${sum([[1, 'x^2'], [a, 'x']])}}-x\right)`; good = Fq(F(a, 2)); bads = [['0', 0], Fq(F(a)), [INF, INFV], Fq(F(a * a, 2))];
+    e = R`Quantité conjuguée : \(\sqrt{${sum([[1, 'x^2'], [a, 'x']])}}-x=\dfrac{${kco(a)}x}{\sqrt{${sum([[1, 'x^2'], [a, 'x']])}}+x}=\dfrac{${a}}{\sqrt{1${pm(a)}/x}+1}\to\dfrac{${a}}{2}\).`;
+    f = x => Math.sqrt(x * x + a * x) - x; x = 1e7;
+  } else if (kind === 1) {
+    L = R`\lim_{x\to+\infty}x\left(e^{${a}/x}-1\right)`; good = Fq(F(a)); bads = [['0', 0], ['1', 1], [eP(a), Math.exp(a)], [INF, INFV]];
+    e = R`On pose \(h=\dfrac1x\to0^+\) : \(\dfrac{e^{${kco(a)}h}-1}{h}\to\) dérivée de \(h\mapsto e^{${kco(a)}h}\) en \(0\), soit \(${a}\).`;
+    f = x => x * (Math.exp(a / x) - 1); x = 1e6;
+  } else if (kind === 2) {
+    L = R`\lim_{x\to+\infty}\left(1${a < 0 ? '-' : '+'}\dfrac{${Math.abs(a)}}{x}\right)^{x}`; good = [eP(a), Math.exp(a)]; bads = [['1', 1], [INF, INFV], ['e', Math.E], [String(a), a]];
+    e = R`\(\left(1${a < 0 ? '-' : '+'}\frac{${Math.abs(a)}}{x}\right)^{x}=e^{x\ln\left(1${a < 0 ? '-' : '+'}\frac{${Math.abs(a)}}{x}\right)}\) et \(x\ln\left(1+\frac{${a}}{x}\right)=${a}\times\dfrac{\ln(1+h)}{h}\) avec \(h=\frac{${a}}{x}\to0\) : cela tend vers \(${a}\) (dérivée de \(\ln\) en 1). Limite : \(${eP(a)}\). Forme « \(1^\infty\) » : la réponse n'est pas 1 !`;
+    f = x => Math.exp(x * Math.log1p(a / x)); x = 1e8;
+  } else if (kind === 3) {
+    const b = g.nz(-4, 4); need(b !== a);
+    L = R`\lim_{x\to0}\dfrac{${ekx(a)}-${ekx(b)}}{x}`; good = Fq(F(a - b)); bads = [Fq(F(a + b)), ['0', 0], [eP(a - b), Math.exp(a - b)], ['1', 1]];
+    e = R`\(\dfrac{${ekx(a)}-${ekx(b)}}{x}=\dfrac{${ekx(a)}-1}{x}-\dfrac{${ekx(b)}-1}{x}\to${a}-${par(b)}\) (dérivées en 0 de \(${ekx(a)}\) et \(${ekx(b)}\)).`;
+    f = x => (Math.exp(a * x) - Math.exp(b * x)) / x; x = 1e-7;
+  } else if (kind === 4) {
+    L = R`\lim_{x\to0}\dfrac{\sqrt{${onePlus(a)}}-1}{x}`; good = Fq(F(a, 2)); bads = [Fq(F(a)), ['0', 0], Fq(F(2 * a)), Fq(F(1, 2))];
+    e = R`C'est le taux d'accroissement en \(0\) de \(u(x)=\sqrt{${onePlus(a)}}\), qui tend vers \(u'(0)=\dfrac{${a}}{2\sqrt1}=${fx(F(a, 2))}\).`;
+    f = x => (Math.sqrt(1 + a * x) - 1) / x; x = 1e-8;
+  } else if (kind === 5) {
+    L = R`\lim_{x\to+\infty}x\ln\left(\dfrac{x+${ap}}{x-${ap}}\right)`; good = Fq(F(2 * ap)); bads = [Fq(F(ap)), ['0', 0], ['1', 1], [INF, INFV]];
+    e = R`\(x\ln\dfrac{x+${ap}}{x-${ap}}=x\ln\left(1+\frac{${ap}}{x}\right)-x\ln\left(1-\frac{${ap}}{x}\right)\to${ap}-(-${ap})=${2 * ap}\), car \(x\ln\left(1+\frac cx\right)\to c\).`;
+    f = x => x * Math.log((x + ap) / (x - ap)); x = 1e6;
+  } else if (kind === 6) {
+    const n = g.int(2, 5);
+    L = R`\lim_{x\to1}\dfrac{\ln x}{x^{${n}}-1}`; good = Fq(F(1, n)); bads = [Fq(F(n)), ['0', 0], ['1', 1], [INF, INFV]];
+    e = R`\(\dfrac{\ln x}{x^{${n}}-1}=\dfrac{\frac{\ln x-\ln1}{x-1}}{\frac{x^{${n}}-1}{x-1}}\to\dfrac{\ln'(1)}{${n}}=\dfrac1{${n}}\).`;
+    f = x => Math.log(x) / (x ** n - 1); x = 1 + 1e-7;
+  } else {
+    L = R`\lim_{x\to+\infty}\left(\sqrt{x+${ap}}-\sqrt x\right)\sqrt x`; good = Fq(F(ap, 2)); bads = [['0', 0], Fq(F(ap)), [INF, INFV], ['1', 1]];
+    e = R`Quantité conjuguée : \(\left(\sqrt{x+${ap}}-\sqrt x\right)\sqrt x=\dfrac{${ap}\sqrt x}{\sqrt{x+${ap}}+\sqrt x}=\dfrac{${ap}}{\sqrt{1+${ap}/x}+1}\to\dfrac{${ap}}{2}\).`;
+    f = x => (Math.sqrt(x + ap) - Math.sqrt(x)) * Math.sqrt(x); x = 1e8;
+  }
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle ${L}\) ?`,
+    e: e,
+    d: R`Forme indéterminée : quantité conjuguée, ou reconnaître un taux d'accroissement \(\frac{f(a+h)-f(a)}{h}\to f'(a)\).`,
+    _: { chk: () => close(f(x), good[1], 1e-3) || 'limite fausse ' + f(x) }
+  }, mcqv(g, good, bads));
+});
+
+defH('hc_lim_sum', 'limites', g => {
+  const kind = g.int(0, 5), a = g.int(2, 5);
+  let S, good, bads, e, u, tol = 2e-3;
+  if (kind === 0) {
+    S = R`\sum_{k=1}^{${a}n}\dfrac{n}{n^2+k}`; good = F(a); bads = [F(0), F(1), F(1, a), F(a * a)];
+    e = R`Chaque terme est entre \(\dfrac{n}{n^2+${a}n}\) et \(\dfrac n{n^2}\), et il y en a \(${a}n\) : \(\dfrac{${a}n^2}{n^2+${a}n}\leqslant u_n\leqslant ${a}\). Gendarmes : \(${a}\).`;
+    u = n => { let s = 0; for (let k = 1; k <= a * n; k++) s += n / (n * n + k); return s; };
+  } else if (kind === 1) {
+    S = R`\sum_{k=1}^{n}\dfrac{k}{n^2+k}`; good = F(1, 2); bads = [F(0), F(1), F(1, 4), F(2)];
+    e = R`\(\dfrac{k}{n^2+n}\leqslant\dfrac{k}{n^2+k}\leqslant\dfrac{k}{n^2}\), et \(\sum_{k=1}^nk=\dfrac{n(n+1)}2\) : \(\dfrac{n(n+1)}{2(n^2+n)}=\dfrac12\leqslant u_n\leqslant\dfrac{n(n+1)}{2n^2}\to\dfrac12\).`;
+    u = n => { let s = 0; for (let k = 1; k <= n; k++) s += k / (n * n + k); return s; };
+  } else if (kind === 2) {
+    S = R`\sum_{k=1}^{n}\dfrac{1}{\sqrt{n^2+k}}`; good = F(1); bads = [F(0), F(1, 2), F(2), F(a)];
+    e = R`\(\dfrac{n}{\sqrt{n^2+n}}\leqslant u_n\leqslant\dfrac n{\sqrt{n^2+1}}\), et les deux bornes tendent vers \(1\).`;
+    u = n => { let s = 0; for (let k = 1; k <= n; k++) s += 1 / Math.sqrt(n * n + k); return s; };
+  } else if (kind === 3) {
+    S = R`\sum_{k=1}^{n}\dfrac{1}{n+\sqrt k}`; good = F(1); bads = [F(0), F(1, 2), F(2), F(a)];
+    e = R`\(\sqrt k\) est entre \(1\) et \(\sqrt n\) : \(\dfrac{n}{n+\sqrt n}\leqslant u_n\leqslant\dfrac{n}{n+1}\), et \(\dfrac{n}{n+\sqrt n}=\dfrac1{1+1/\sqrt n}\to1\).`;
+    u = n => { let s = 0; for (let k = 1; k <= n; k++) s += 1 / (n + Math.sqrt(k)); return s; }; tol = 1e-2;
+  } else if (kind === 4) {
+    S = R`\sum_{k=1}^{n}\dfrac{${a}n+k}{n^2}`; good = F(2 * a + 1, 2); bads = [F(a), F(a + 1), F(1, 2), F(2 * a)];
+    e = R`Calcul exact : \(u_n=\dfrac{${a}n\times n+\frac{n(n+1)}2}{n^2}=${a}+\dfrac{n+1}{2n}\to${a}+\dfrac12\).`;
+    u = n => { let s = 0; for (let k = 1; k <= n; k++) s += (a * n + k) / (n * n); return s; };
+  } else {
+    S = R`\dfrac{1}{n^3}\sum_{k=1}^{n}k^2`; good = F(1, 3); bads = [F(1, 2), F(0), F(1, 6), F(1)];
+    e = R`\(\sum_{k=1}^nk^2=\dfrac{n(n+1)(2n+1)}6\sim\dfrac{2n^3}{6}\) : la limite vaut \(\dfrac13\).`;
+    u = n => { let s = 0; for (let k = 1; k <= n; k++) s += k * k; return s / n ** 3; };
+  }
+  return Object.assign({
+    q: R`Soit \(u_n=\displaystyle ${S}\) pour \(n\geqslant1\). Quelle est la limite de \((u_n)\) ?`,
+    e: e,
+    d: R`Somme de \(n\) termes qui dépendent de \(n\) : encadrer chaque terme par le plus petit et le plus grand, multiplier par le nombre de termes, puis gendarmes.`,
+    _: { chk: () => close(u(100000), good.v, tol) || 'limite fausse ' + u(100000) }
+  }, mcqF(g, good, bads));
+});
+
+/* ---------- Suites ---------- */
+defH('hc_homog', 'suites', g => {
+  const k = g.int(1, 4), a = g.int(1, 7);
+  need(a !== k);
+  const u0 = g.int(0, 9);
+  need(u0 !== k);
+  const q = F(a - k, a + k), askQ = g.chance(0.6);
+  const fT = R`\dfrac{${a === 1 ? '' : a}u_n+${k * k}}{u_n+${a}}`;
+  const e = R`\(u_{n+1}-${k}=\dfrac{${a}u_n+${k * k}-${k}u_n-${a * k}}{u_n+${a}}=\dfrac{${a - k}(u_n-${k})}{u_n+${a}}\) et \(u_{n+1}+${k}=\dfrac{${a + k}(u_n+${k})}{u_n+${a}}\).<br>En divisant : \(v_{n+1}=\dfrac{${a - k}}{${a + k}}v_n\) : \((v_n)\) est géométrique de raison \(${fx(q)}\).` +
+    (askQ ? '' : R`<br>Comme \(|q|&lt;1\), \(v_n\to0\). Or \(v_n=\dfrac{u_n-${k}}{u_n+${k}}\iff u_n=\dfrac{${k}(1+v_n)}{1-v_n}\), donc \(u_n\to${k}\).`);
+  const sim = () => { let u = u0; const v = []; for (let i = 0; i < 200; i++) { v.push((u - k) / (u + k)); u = (a * u + k * k) / (u + a); } return [u, v]; };
+  return Object.assign({
+    q: R`Soit \((u_n)\) définie par \(u_0=${u0}\) et \(u_{n+1}=${fT}\). On admet que \(u_n>0\) pour tout \(n\), et on pose \(v_n=\dfrac{u_n-${k}}{u_n+${k}}\).<br>` +
+      (askQ ? R`La suite \((v_n)\) est géométrique. Quelle est sa raison ?` : R`Quelle est la limite de \((u_n)\) ?`),
+    e, d: R`Suite homographique : les points fixes \(\pm${k}\) de \(f\) donnent la suite auxiliaire \(\frac{u_n-${k}}{u_n+${k}}\), géométrique. Calculer \(u_{n+1}-${k}\) et \(u_{n+1}+${k}\) séparément.`,
+    _: { chk: () => { const [u, v] = sim(); return (askQ ? close(v[1] / v[0], q.v, 1e-9) && close(v[2] / v[1], q.v, 1e-9) : close(u, k, 1e-9)) || 'faux'; } }
+  }, askQ ? mcqF(g, q, [F(a + k, a - k), F(a - k, a), F(k, a), q.neg(), F(1, a + k)]) : mcqv(g, [String(k), k], [-k, a, k * k, 0, a - k].map(v => [String(v), v])));
+});
+
+defH('hc_sum_closed', 'suites', g => {
+  const L = [
+    [R`\sum_{k=1}^{n}k\,2^{k}`, R`(n-1)2^{n+1}+2`, n => (n - 1) * 2 ** (n + 1) + 2, k => k * 2 ** k, 1,
+      [[R`n\,2^{n+1}-2`, n => n * 2 ** (n + 1) - 2], [R`(n-1)2^{n}+2`, n => (n - 1) * 2 ** n + 2], [R`n\,2^{n}`, n => n * 2 ** n], [R`(n+1)2^{n+1}-2^{n+2}`, n => (n + 1) * 2 ** (n + 1) - 2 ** (n + 2)]]],
+    [R`\sum_{k=0}^{n}(2k+1)3^{k}`, R`n\,3^{n+1}+1`, n => n * 3 ** (n + 1) + 1, k => (2 * k + 1) * 3 ** k, 0,
+      [[R`(n+1)3^{n+1}-1`, n => (n + 1) * 3 ** (n + 1) - 1], [R`n\,3^{n}+1`, n => n * 3 ** n + 1], [R`(2n+1)3^{n}`, n => (2 * n + 1) * 3 ** n], [R`n\,3^{n+1}-1`, n => n * 3 ** (n + 1) - 1]]],
+    [R`\sum_{k=1}^{n}\dfrac{k}{2^{k}}`, R`2-\dfrac{n+2}{2^{n}}`, n => 2 - (n + 2) / 2 ** n, k => k / 2 ** k, 1,
+      [[R`2-\dfrac{n+1}{2^{n}}`, n => 2 - (n + 1) / 2 ** n], [R`2-\dfrac{n}{2^{n}}`, n => 2 - n / 2 ** n], [R`1-\dfrac{n}{2^{n+1}}`, n => 1 - n / 2 ** (n + 1)], [R`\dfrac{n+2}{2^{n}}`, n => (n + 2) / 2 ** n]]],
+    [R`\sum_{k=1}^{n}k\times k!`, R`(n+1)!-1`, n => fact(n + 1) - 1, k => k * fact(k), 1,
+      [[R`(n+1)!`, n => fact(n + 1)], [R`n\times n!`, n => n * fact(n)], [R`n!-1`, n => fact(n) - 1], [R`(n+1)!+1`, n => fact(n + 1) + 1]]]
+  ];
+  const [S, gT, gf, term, k0, bads] = g.pick(L);
+  const real = n => { let s = 0; for (let k = k0; k <= n; k++) s += term(k); return s; };
+  return Object.assign({
+    q: R`Pour tout entier \(n\geqslant1\), la somme \(\displaystyle ${S}\) est égale à :`,
+    e: R`Tester \(n=1\) puis \(n=2\) élimine les mauvaises formules (\(n=1\) : \(${real(1)}\), \(n=2\) : \(${real(2)}\)). La bonne se démontre par récurrence : si elle est vraie au rang \(n\), on ajoute le terme \(k=n+1\) et on factorise pour retrouver la formule au rang \(n+1\).<br>Résultat : \(${gT}\).`,
+    d: R`Pour choisir entre des formules : les tester sur \(n=1,2,3\). Pour la prouver : récurrence.`,
+    _: { chk: () => keyN(gf) === keyN(real) || 'formule fausse' }
+  }, mcqv(g, [gT, keyN(gf)], g.shuffle(bads).map(([t, fn]) => [t, keyN(fn)])));
+});
+
+/* ---------- Probabilités ---------- */
+defH('hc_bin_seuil', 'binomiale', g => {
+  const kind = g.int(0, 2);
+  let q, num, den, ok, lbl;   // plus petit n tel que (num/den)^n ≤ seuil
+  if (kind === 0) {
+    const k = g.int(2, 5), T = 10n ** BigInt(k);
+    ok = n => 2n ** BigInt(n) >= T;
+    q = R`On lance \(n\) fois une pièce équilibrée. Quel est le plus petit entier \(n\) pour lequel la probabilité d'obtenir au moins un « pile » est supérieure ou égale à \(1-10^{-${k}}\) ?`;
+    lbl = R`\(1-\left(\frac12\right)^n\geqslant1-10^{-${k}}\iff2^n\geqslant10^{${k}}\iff n\geqslant\dfrac{${k}\ln10}{\ln2}\approx${dec3(k * 2.303 / 0.693).replace(/(\{,\}\d)\d+/, '$1')}\)`;
+  } else if (kind === 1) {
+    const [aN, aD, aT] = g.pick([[1, 10, '0{,}9'], [1, 20, '0{,}95'], [1, 100, '0{,}99']]);
+    ok = n => BigInt(aD) * 2n ** BigInt(n) <= BigInt(aN) * 3n ** BigInt(n);
+    q = R`Une urne contient 1 boule rouge et 2 boules noires. On tire \(n\) fois une boule avec remise. Quel est le plus petit \(n\) pour lequel la probabilité d'obtenir au moins une boule rouge est supérieure ou égale à \(${aT}\) ?`;
+    lbl = R`\(1-\left(\frac23\right)^n\geqslant${aT}\iff\left(\frac23\right)^n\leqslant\frac1{${aD}}\iff n\geqslant\dfrac{\ln${aD}}{\ln3-\ln2}\approx${dec3(Math.log(aD) / Math.log(1.5)).replace(/(\{,\}\d)\d+/, '$1')}\)`;
+  } else {
+    const [sN, sD, sT] = g.pick([[1, 2, R`\frac12`], [3, 4, R`\frac34`], [9, 10, '0{,}9']]);
+    ok = n => BigInt(sD - sN) * 6n ** BigInt(n) >= BigInt(sD) * 5n ** BigInt(n);
+    q = R`On lance \(n\) fois un dé équilibré à six faces. Quel est le plus petit \(n\) pour lequel la probabilité d'obtenir au moins un 6 est supérieure ou égale à \(${sT}\) ?`;
+    lbl = R`\(1-\left(\frac56\right)^n\geqslant${sT}\iff\left(\frac56\right)^n\leqslant${fx(F(sD - sN, sD), true)}\iff n\geqslant\dfrac{\ln${fx(F(sD, sD - sN), true)}}{\ln6-\ln5}\approx${dec3(Math.log(sD / (sD - sN)) / Math.log(1.2)).replace(/(\{,\}\d)\d+/, '$1')}\)`;
+  }
+  let n = 1; while (!ok(n)) n++;
+  return Object.assign({
+    q: q + '<br><em>' + HC_D + '</em>',
+    e: R`L'événement contraire est « aucun succès », de probabilité \(q^n\). ` + lbl + R` (le \(\ln\) d'un nombre \(&lt;1\) est négatif : l'inégalité change de sens).<br>Donc \(n=${n}\).`,
+    d: R`« Au moins un » : passer par l'événement contraire, puis résoudre \(q^n\leqslant\alpha\) avec \(\ln\) (attention au sens de l'inégalité).`,
+    _: { chk: () => (ok(n) && !ok(n - 1)) || 'seuil faux' }
+  }, mcqv(g, [String(n), n], [n - 1, n + 1, n + 2, n - 2].map(v => [String(v), v])));
+});
+
+defH('hc_bayes', 'binomiale', g => {
+  const N = g.pick([10, 20, 50, 100]), s = g.pick([F(9, 10), F(19, 20), F(99, 100), F(4, 5)]), f = g.pick([F(1, 10), F(1, 20), F(1, 50), F(1, 100)]);
+  const p = F(1, N), ps = p.mul(s), tot = ps.add(F(1).sub(p).mul(f)), good = ps.div(tot);
+  need(good.q <= 2000);
+  const pc = x => String(Math.round(x.v * 1000) / 10).replace('.', '{,}');
+  return Object.assign({
+    q: R`Une maladie touche une personne sur \(${N}\). Un test de dépistage est positif chez \(${pc(s)}\,\%\) des malades, et chez \(${pc(f)}\,\%\) des personnes saines. Une personne prise au hasard a un test positif.<br>Quelle est la probabilité qu'elle soit malade ?`,
+    e: R`Arbre : \(P(M\cap T)=\dfrac1{${N}}\times${fx(s, true)}=${fx(ps, true)}\) et \(P(\overline M\cap T)=\dfrac{${N - 1}}{${N}}\times${fx(f, true)}\).<br>Probabilités totales : \(P(T)=${fx(tot, true)}\). Donc \(P_T(M)=\dfrac{P(M\cap T)}{P(T)}=${fx(good)}\).<br>Bien plus faible que \(${fx(s, true)}\) : la maladie est rare, la plupart des positifs sont des faux positifs.`,
+    d: R`Probabilité « inversée » \(P_T(M)\) : arbre, formule des probabilités totales pour \(P(T)\), puis \(P_T(M)=\frac{P(M\cap T)}{P(T)}\).`,
+    _: { chk: () => close((1 / N * s.v) / (1 / N * s.v + (1 - 1 / N) * f.v), good.v, 1e-12) || 'faux' }
+  }, mcqF(g, good, [s, ps, ps.div(ps.add(f)), F(1).sub(f), tot]));
+});
+
+defH('hc_denomb', 'binomiale', g => {
+  const kind = g.int(0, 2);
+  if (kind === 0) {
+    const w = g.pick(['ANANAS', 'BANANE', 'BAOBAB', 'CHOCOLAT', 'TATOUAGE', 'ESIRPRAC', 'MISSISSIPPI', 'ABRACADABRA', 'COCORICO', 'PAPAYE']);
+    const cnt = {}; [...w].forEach(c => { cnt[c] = (cnt[c] || 0) + 1; });
+    const reps = Object.entries(cnt).filter(([, m]) => m > 1), n = w.length;
+    const good = fact(n) / reps.reduce((s, [, m]) => s * fact(m), 1);
+    const noFact = fact(n) / reps.reduce((s, [, m]) => s * m, 1);
+    return Object.assign({
+      q: R`Combien d'anagrammes (mots de ${n} lettres, ayant un sens ou non) peut-on former avec les lettres du mot \(\text{${w}}\) ?`,
+      e: R`\(${n}!\) façons de ranger ${n} lettres, mais échanger des lettres identiques donne le même mot : on divise par \(${reps.map(([c, m]) => m + '!').join(R`\times `)}\) (${reps.map(([c, m]) => `${m} « ${c} »`).join(', ')}).<br>\(\dfrac{${n}!}{${reps.map(([, m]) => m + '!').join(R`\times `)}}=${good}\).`,
+      d: R`Anagrammes : \(\dfrac{n!}{m_1!\,m_2!\cdots}\) où les \(m_i\) sont les nombres de répétitions de chaque lettre.`,
+      _: { chk: () => { let r = 1, left = n; Object.values(cnt).forEach(m => { r *= binom(left, m); left -= m; }); return r === good || 'faux'; } }
+    }, mcqv(g, [String(good), good], [fact(n), noFact, good * 2, good / 2].filter(Number.isInteger).map(v => [String(v), v])));
+  }
+  if (kind === 1) {
+    const fe = g.int(3, 7), h = g.int(3, 7), k = g.int(3, 4);
+    const good = binom(fe + h, k) - binom(h, k), over = fe * binom(fe + h - 1, k - 1);
+    return Object.assign({
+      q: R`Un groupe compte \(${fe}\) filles et \(${h}\) garçons. Combien de comités de \(${k}\) personnes contenant <strong>au moins une fille</strong> peut-on former ?`,
+      e: R`On passe par le contraire : tous les comités \(\binom{${fe + h}}{${k}}=${binom(fe + h, k)}\), moins ceux sans fille \(\binom{${h}}{${k}}=${binom(h, k)}\) : \(${good}\).<br>Piège : « je choisis une fille (${fe} façons), puis ${k - 1} personnes parmi les ${fe + h - 1} autres » donne \(${over}\), car un comité avec plusieurs filles est compté plusieurs fois.`,
+      d: R`« Au moins un » en dénombrement : total moins le cas « aucun ». Ne jamais « choisir d'abord le premier » : on compte plusieurs fois le même ensemble.`,
+      _: { chk: () => { let c = 0; for (let m = 0; m < 1 << (fe + h); m++) { let b = 0, x = m, fg = 0; for (let i = 0; i < fe + h; i++) { if (x & 1) { b++; if (i < fe) fg++; } x >>= 1; } if (b === k && fg > 0) c++; } return c === good || 'faux ' + c; } }
+    }, mcqv(g, [String(good), good], [over, binom(fe + h, k), fe * binom(h, k - 1), binom(fe, k)].map(v => [String(v), v])));
+  }
+  const a = g.int(4, 7), b = g.int(3, 6), c = g.int(1, a - 1), d0 = g.int(1, b - 1);
+  const good = binom(c + d0, c) * binom(a - c + b - d0, a - c);
+  return Object.assign({
+    q: R`Sur un quadrillage, on va du point \((0\,;0)\) au point \((${a}\,;${b})\) en ne faisant que des pas d'une unité vers la droite ou vers le haut. Combien de ces chemins passent par le point \((${c}\,;${d0})\) ?`,
+    e: R`Un chemin de \((0;0)\) à \((p;q)\) est une suite de \(p+q\) pas dont on choisit les \(p\) pas « droite » : \(\binom{p+q}{p}\) chemins.<br>Jusqu'à \((${c};${d0})\) : \(\binom{${c + d0}}{${c}}=${binom(c + d0, c)}\). Ensuite \(${a - c}\) pas à droite et \(${b - d0}\) vers le haut : \(\binom{${a - c + b - d0}}{${a - c}}=${binom(a - c + b - d0, a - c)}\). Principe multiplicatif : \(${good}\).`,
+    d: R`Chemins sur un quadrillage : \(\binom{p+q}{p}\). Passer par un point impose un produit de deux comptages.`,
+    _: { chk: () => { const W = (x1, y1, x2, y2) => { const D = []; for (let i = x1; i <= x2; i++) { D[i] = []; for (let j = y1; j <= y2; j++) D[i][j] = i === x1 && j === y1 ? 1 : (i > x1 ? D[i - 1][j] : 0) + (j > y1 ? D[i][j - 1] : 0); } return D[x2][y2]; }; return W(0, 0, c, d0) * W(c, d0, a, b) === good || 'faux'; } }
+  }, mcqv(g, [String(good), good], [binom(a + b, a), binom(c + d0, c) + binom(a - c + b - d0, a - c), binom(a + b, a) - good, binom(c + d0, c) * binom(a + b, a)].map(v => [String(v), v])));
+});
+
+defH('hc_bt', 'binomiale', g => {
+  if (g.chance(0.6)) {
+    const p = g.pick([F(1, 2), F(1, 5), F(1, 10), F(2, 5)]), dl = g.pick([F(1, 10), F(1, 20), F(1, 50)]), al = g.pick([F(1, 20), F(1, 10), F(1, 100)]);
+    const ceil = f => Math.ceil(f.p / f.q - 1e-12);
+    const V = p.mul(F(1).sub(p)), lim = V.div(al.mul(dl).mul(dl)), good = ceil(lim);
+    need(good <= 300000);
+    const dec = f => String(f.v).replace('.', '{,}');
+    return Object.assign({
+      q: R`On répète \(n\) fois, de façon indépendante, une expérience qui réussit avec probabilité \(p=${dec(p)}\), et on note \(M_n\) la fréquence de succès. Quel est le plus petit \(n\) pour lequel l'inégalité de Bienaymé-Tchebychev garantit \(P\left(|M_n-p|\geqslant${dec(dl)}\right)\leqslant${dec(al)}\) ?`,
+      e: R`\(E(M_n)=p\) et \(V(M_n)=\dfrac{p(1-p)}{n}=\dfrac{${fx(V, true)}}{n}\). Bienaymé-Tchebychev : \(P\left(|M_n-p|\geqslant\delta\right)\leqslant\dfrac{V(M_n)}{\delta^2}\).<br>Il suffit que \(\dfrac{${fx(V, true)}}{n\times${dec(dl)}^2}\leqslant${dec(al)}\), soit \(n\geqslant\dfrac{${fx(V, true)}}{${dec(al)}\times${dec(dl)}^2}=${fx(lim, true)}\). Donc \(n=${good}\).`,
+      d: R`Bienaymé-Tchebychev pour une moyenne : \(V(M_n)=\frac{V(X)}n\), puis \(\frac{V(X)}{n\delta^2}\leqslant\alpha\). Ne pas oublier le carré sur \(\delta\).`,
+      _: { chk: () => (good >= V.v / (al.v * dl.v * dl.v) - 1e-9 && good - 1 < V.v / (al.v * dl.v * dl.v) - 1e-9) || 'faux' }
+    }, mcqv(g, [String(good), good], [ceil(V.div(al.mul(dl))), ceil(F(1, 4).div(al.mul(dl).mul(dl))), ceil(p.div(al.mul(dl).mul(dl))), ceil(V.div(dl.mul(dl)))].map(v => [String(v), v])));
+  }
+  const n1 = g.int(2, 12), p1 = g.pick([F(1, 2), F(1, 3), F(1, 4)]), n2 = g.int(2, 12), p2 = g.pick([F(1, 2), F(1, 3), F(2, 3)]), a = g.nz(-3, 3), b = g.int(1, 3), c = g.int(-5, 5);
+  const V1 = p1.mul(F(1).sub(p1)).mul(n1), V2 = p2.mul(F(1).sub(p2)).mul(n2);
+  const good = V1.mul(a * a).add(V2.mul(b * b));
+  return Object.assign({
+    q: R`\(X\) suit la loi binomiale \(\mathcal B\left(${n1}\,;${fx(p1, true)}\right)\), \(Y\) suit \(\mathcal B\left(${n2}\,;${fx(p2, true)}\right)\), et \(X\) et \(Y\) sont indépendantes. Que vaut \(V\left(${sum([[a, 'X'], [-b, 'Y'], [c, '']])}\right)\) ?`,
+    e: R`\(V(X)=np(1-p)=${fx(V1, true)}\), \(V(Y)=${fx(V2, true)}\). Les constantes ne changent pas la variance, \(V(aX)=a^2V(X)\), et, par indépendance, les variances s'ajoutent (même pour une différence !) :<br>\(${a * a}\times${fx(V1, true)}+${b * b}\times${fx(V2, true)}=${fx(good)}\).`,
+    d: R`Variance : \(V(aX+bY+c)=a^2V(X)+b^2V(Y)\) si \(X,Y\) indépendantes. Les signes disparaissent (carrés) et la constante aussi.`,
+    _: { chk: () => close(a * a * V1.v + b * b * V2.v, good.v) || 'faux' }
+  }, mcqF(g, good, [V1.mul(a * a).sub(V2.mul(b * b)), V1.mul(a).sub(V2.mul(b)), V1.mul(Math.abs(a)).add(V2.mul(b)), good.add(c * c)]));
+});
+
+/* ---------- Espace ---------- */
+const v3x = (u, v) => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+defH('hc_plane', 'espace', g => {
+  const [base, nr] = g.pick([[[1, 2, 2], 3], [[2, 3, 6], 7], [[1, 4, 8], 9], [[4, 4, 7], 9], [[2, 6, 9], 11], [[2, 10, 11], 15]]);
+  const n = g.shuffle(base).map(x => x * g.sign());
+  const H = [g.int(-3, 3), g.int(-3, 3), g.int(-3, 3)], t = g.pick([-2, -1, 1, 2]);
+  const A = H.map((h, i) => h + t * n[i]), d0 = -(n[0] * H[0] + n[1] * H[1] + n[2] * H[2]), As = A.map((a, i) => H[i] - t * n[i]);
+  need(A.every(x => Math.abs(x) <= 24));
+  const pt = P => `(${P.join(R`\,;`)})`, kind = g.int(0, 2);
+  const plane = sum([[n[0], 'x'], [n[1], 'y'], [n[2], 'z'], [d0, '']]) + '=0';
+  const core = R`Le projeté \(H\) de \(A\) sur \(\mathcal P\) est sur la droite \((A,\vec n)\), \(\vec n(${n.join(';')})\) : \(H=A+k\vec n\). En reportant dans l'équation de \(\mathcal P\) : \(${nr * nr}k${pm(t * nr * nr)}=0\), \(k=${-t}\), donc \(H${pt(H)}\).`;
+  let q, good, bads, e;
+  if (kind === 0) {
+    q = R`Quelle est la distance du point \(A${pt(A)}\) au plan \(\mathcal P\ :\ ${plane}\) ?`;
+    good = [String(Math.abs(t) * nr), Math.abs(t) * nr]; bads = [Math.abs(t) * nr * nr, Math.abs(t), 2 * Math.abs(t) * nr, Math.abs(t) * (nr + 1)].map(v => [String(v), v]);
+    e = core + R`<br>\(AH=|k|\times\|\vec n\|=${Math.abs(t)}\times\sqrt{${n.map(x => x * x).join('+')}}=${Math.abs(t) * nr}\). (Formule directe : \(\dfrac{|${n[0]}x_A${pm(n[1])}y_A${pm(n[2])}z_A${pm(d0)}|}{\sqrt{${nr * nr}}}\).)`;
+  } else if (kind === 1) {
+    q = R`Soit \(H\) le projeté orthogonal du point \(A${pt(A)}\) sur le plan \(\mathcal P\ :\ ${plane}\). Que vaut \(x_H+y_H+z_H\) ?`;
+    const sH = H[0] + H[1] + H[2];
+    good = [String(sH), sH]; bads = [A[0] + A[1] + A[2], As[0] + As[1] + As[2], sH + (n[0] + n[1] + n[2]), -sH].map(v => [String(v), v]);
+    e = core + R`<br>\(x_H+y_H+z_H=${sH}\).`;
+  } else {
+    q = R`Quelles sont les coordonnées du symétrique \(A'\) du point \(A${pt(A)}\) par rapport au plan \(\mathcal P\ :\ ${plane}\) ?`;
+    good = [pt(As), pt(As)]; bads = [pt(H), pt(A.map((a, i) => a + t * n[i])), pt(A.map(x => -x)), pt(H.map((h, i) => h - 2 * t * n[i]))].map(v => [v, v]);
+    e = core + R`<br>\(H\) est le milieu de \([AA']\) : \(A'=2H-A=${pt(As)}\).`;
+  }
+  return Object.assign({ q, e, d: R`Distance, projeté, symétrique par rapport à un plan : passer par la droite orthogonale \(A+k\vec n\), puis par son intersection avec le plan.`,
+    _: { chk: () => (n[0] * H[0] + n[1] * H[1] + n[2] * H[2] + d0 === 0 && As.every((x, i) => x + A[i] === 2 * H[i])) || 'faux' } }, mcqv(g, good, bads));
+});
+
+defH('hc_coplan', 'espace', g => {
+  const P = () => [g.int(-3, 3), g.int(-3, 3), g.int(-3, 3)];
+  const A = P(), B = P(), C = P();
+  const AB = B.map((x, i) => x - A[i]), AC = C.map((x, i) => x - A[i]), n = v3x(AB, AC);
+  need(n.some(x => x !== 0) && n[2] !== 0);
+  const dx = g.int(-4, 4), dy = g.int(-4, 4);
+  const m = F(A[2]).sub(F(n[0] * (dx - A[0]) + n[1] * (dy - A[1]), n[2]));
+  need(m.q <= 6 && Math.abs(m.v) <= 30);
+  const pt = Q => `(${Q.join(R`\,;`)})`;
+  const d0 = -(n[0] * A[0] + n[1] * A[1] + n[2] * A[2]);
+  return Object.assign({
+    q: R`On donne \(A${pt(A)}\), \(B${pt(B)}\), \(C${pt(C)}\) et \(D(${dx}\,;${dy}\,;m)\). Pour quelle valeur de \(m\) les points \(A\), \(B\), \(C\), \(D\) sont-ils coplanaires ?`,
+    e: R`\(\overrightarrow{AB}(${AB.join(';')})\) et \(\overrightarrow{AC}(${AC.join(';')})\) ne sont pas colinéaires. Un vecteur \(\vec n(a;b;c)\) orthogonal aux deux (système \(\vec n\cdot\overrightarrow{AB}=0\), \(\vec n\cdot\overrightarrow{AC}=0\)) : \(\vec n(${n.join(';')})\).<br>Plan \((ABC)\) : \(${sum([[n[0], 'x'], [n[1], 'y'], [n[2], 'z'], [d0, '']])}=0\). \(D\) est dans ce plan si \(${sum([[n[2], 'm'], [n[0] * dx + n[1] * dy + d0, '']])}=0\), soit \(m=${fx(m)}\).`,
+    d: R`Coplanarité : équation cartésienne du plan par trois points (vecteur normal orthogonal à deux vecteurs du plan), puis on y remplace le quatrième point.`,
+    _: { chk: () => { const AD = [dx - A[0], dy - A[1], m.v - A[2]], c = v3x(AB, AC); return close(c[0] * AD[0] + c[1] * AD[1] + c[2] * AD[2], 0, 1e-9) || 'faux'; } }
+  }, mcqF(g, m, [m.neg(), m.add(1), F(A[2] + C[2] - B[2]), F(A[2]).add(F(n[0] * (dx - A[0]) + n[1] * (dy - A[1]), n[2]))]));
+});
+
+/* ---------- Géométrie plane ---------- */
+defH('hc_circle_tan', 'geometrie', g => {
+  const [a, r, s] = g.pick([[5, 3, 4], [5, 4, 3], [13, 5, 12], [13, 12, 5], [10, 6, 8], [10, 8, 6], [17, 8, 15], [17, 15, 8], [25, 7, 24]]);
+  const onX = g.chance(0.5), m = onX ? F(r, s) : F(s, r);
+  const S2 = f => R`\left\{-${fx(f, true)}\,;${fx(f, true)}\right\}`;
+  const good = S2(m), bads = [S2(onX ? F(s, r) : F(r, s)), S2(F(r, a)), R`\left\{${fx(m, true)}\right\}`, S2(F(s, a))];
+  const C = onX ? `(${a}\\,;0)` : `(0\\,;${a})`;
+  return Object.assign({
+    q: R`Pour quelles valeurs du réel \(m\) la droite d'équation \(y=mx\) est-elle tangente au cercle de centre \(\Omega${C}\) et de rayon \(${r}\) ?`,
+    e: R`La droite \(mx-y=0\) est tangente au cercle si sa distance au centre vaut le rayon : \(\dfrac{|${onX ? `${a}m` : `-${a}`}|}{\sqrt{m^2+1}}=${r}\).<br>En élevant au carré : \(${onX ? `${a * a}m^2=${r * r}(m^2+1)` : `${a * a}=${r * r}(m^2+1)`}\), soit \(m^2=${fx(m.mul(m), true)}\) et \(m=\pm${fx(m, true)}\).`,
+    d: R`Tangence droite–cercle : distance du centre à la droite \(=\) rayon, avec \(d=\dfrac{|ax_0+by_0+c|}{\sqrt{a^2+b^2}}\).`,
+    _: { chk: () => [m.v, -m.v].every(k => close(Math.abs(onX ? k * a : -a) / Math.sqrt(k * k + 1), r, 1e-12)) || 'faux' }
+  }, mcq(g, M(good), bads.map(M)));
+});
+
+/* ---------- Trigonométrie ---------- */
+defH('hc_trig_count', 'trigo', g => {
+  const p = g.int(2, 6), q = g.int(1, p - 1), co = g.chance(0.5), fn = co ? '\\cos' : '\\sin';
+  const sol = new Map();
+  const add = f => { sol.set(f.p + '/' + f.q, f); };
+  for (let k = 0; k < p - q; k++) add(F(2 * k, p - q));
+  for (let k = 0; k < p + q; k++) add(co ? F(2 * k, p + q) : F(2 * k + 1, p + q));
+  const list = [...sol.values()].filter(f => f.v >= 0 && f.v < 2), good = list.length;
+  const piT = f => (f.p === 0 ? '0' : f.q === 1 ? `${f.p === 1 ? '' : f.p}\\pi` : `\\frac{${f.p === 1 ? '' : f.p}\\pi}{${f.q}}`);
+  const listT = list.sort((x, y) => x.v - y.v).map(piT).join(R`\,;\ `);
+  return Object.assign({
+    q: R`Combien l'équation \(${fn}(${p}x)=${fn}(${q === 1 ? '' : q}x)\) admet-elle de solutions dans l'intervalle \([0\,;2\pi[\) ?`,
+    e: (co ? R`\(\cos a=\cos b\iff a=b+2k\pi\) ou \(a=-b+2k\pi\). Ici : \(${kco(p - q)}x=2k\pi\) ou \(${p + q}x=2k\pi\), soit \(x=${p - q === 1 ? R`2k\pi` : R`\dfrac{2k\pi}{${p - q}}`}\) ou \(x=\dfrac{2k\pi}{${p + q}}\).`
+      : R`\(\sin a=\sin b\iff a=b+2k\pi\) ou \(a=\pi-b+2k\pi\). Ici : \(${kco(p - q)}x=2k\pi\) ou \(${p + q}x=\pi+2k\pi\), soit \(x=${p - q === 1 ? R`2k\pi` : R`\dfrac{2k\pi}{${p - q}}`}\) ou \(x=\dfrac{(2k+1)\pi}{${p + q}}\).`) +
+      R`<br>Dans \([0\,;2\pi[\), en retirant les doublons : \(${listT}\), soit <strong>${good}</strong> solutions.`,
+    d: R`\(\cos a=\cos b\) / \(\sin a=\sin b\) : deux familles de solutions. Les lister sur l'intervalle et <strong>retirer les valeurs communes</strong>.`,
+    _: { chk: () => { const f = x => (co ? Math.cos(p * x) - Math.cos(q * x) : Math.sin(p * x) - Math.sin(q * x)); if (!list.every(s => Math.abs(f(s.v * Math.PI)) < 1e-9)) return 'racine fausse'; for (let i = 0; i < 200000; i++) { const x1 = i * 2 * Math.PI / 200000, x2 = (i + 1) * 2 * Math.PI / 200000; if (f(x1) * f(x2) < 0 && !list.some(s => Math.abs(s.v * Math.PI - (x1 + x2) / 2) < 1e-3)) return 'racine oubliée ' + x1; } return true; } }
+  }, mcqv(g, [String(good), good], [2 * p, p + q, good - 1, good + 1, p, 2 * (p + q)].map(v => [String(v), v])));
+});
+
+defH('hc_trig_ext', 'trigo', g => {
+  const k = g.pick([F(1), F(-1), F(3), F(-3), F(4), F(1, 2), F(3, 2), F(-3, 2)]), sw = g.chance(0.5), mx = g.chance(0.7);
+  const ak = k.abs(), small = ak.v <= 2;
+  const good = mx ? (small ? F(1).add(k.mul(k).div(4)) : ak) : ak.neg();
+  const fT = sum([[1, sw ? R`\sin^2x` : R`\cos^2x`], [k, sw ? R`\cos x` : R`\sin x`]]);
+  const X = sw ? R`\cos x` : R`\sin x`;
+  const bads = mx ? [F(1).add(ak), small ? ak : F(1).add(k.mul(k).div(4)), k.mul(k).div(4), F(1)] : [F(-1).sub(ak), F(1).sub(ak), F(0), k.mul(k).div(4).neg()];
+  return Object.assign({
+    q: R`Quel est le ${mx ? 'maximum' : 'minimum'} sur \(\mathbb R\) de la fonction \(f:x\mapsto ${fT}\) ?`,
+    e: R`On pose \(X=${X}\in[-1\,;1]\) : \(f(x)=1-X^2${k.p < 0 ? '-' : '+'}${fx(ak, true)}X=g(X)\). \(g\) est un trinôme concave, de sommet en \(X_0=${fx(k.div(2), true)}\).<br>` +
+      (mx ? (small ? R`\(X_0\in[-1\,;1]\) : le maximum est \(g(X_0)=1+\dfrac{${fx(k.mul(k), true)}}{4}=${fx(good)}\).` : R`\(X_0\notin[-1\,;1]\) : \(g\) est monotone sur \([-1\,;1]\), le maximum est atteint en \(X=${k.p > 0 ? 1 : -1}\) : \(${fx(good)}\).`)
+        : R`Une fonction concave atteint son minimum sur \([-1\,;1]\) en une borne : \(g(1)=${fx(k, true)}\), \(g(-1)=${fx(k.neg(), true)}\). Minimum : \(${fx(good)}\).`),
+    d: R`Fonction de \(\sin x\) ou \(\cos x\) : poser \(X=\sin x\) (ou \(\cos x\)) et étudier sur \([-1\,;1]\) seulement (le sommet peut être en dehors !).`,
+    _: { chk: () => { let v = mx ? -Infinity : Infinity; for (let i = 0; i <= 100000; i++) { const x = i * 2 * Math.PI / 100000, y = (sw ? Math.sin(x) ** 2 + k.v * Math.cos(x) : Math.cos(x) ** 2 + k.v * Math.sin(x)); v = mx ? Math.max(v, y) : Math.min(v, y); } return close(v, good.v, 1e-6) || 'extremum faux ' + v; } }
+  }, mcqF(g, good, bads));
+});
+
+/* ---------- Équations différentielles ---------- */
+defH('hc_edo_min', 'equa_diff', g => {
+  const b = g.int(-3, 3), C = g.int(1, 5), y0 = C + b - 1;
+  const gT = C === 1 ? String(b) : (b ? `${b}+\\ln ${C}` : `\\ln ${C}`);
+  const T = (c, v) => [c === 1 ? String(v) : (v ? `${v}+\\ln ${c}` : `\\ln ${c}`), v + Math.log(c)];
+  return Object.assign({
+    q: R`Soit \(f\) la solution sur \(\mathbb R\) de l'équation différentielle \(y'+y=${lin(1, b)}\) telle que \(f(0)=${y0}\). Quel est le minimum de \(f\) sur \(\mathbb R\) ?`,
+    e: R`Solution particulière affine \(y=ax+c\) : \(a+ax+c=${lin(1, b)}\) donne \(a=1\), \(c=${b - 1}\). Donc \(f(x)=Ke^{-x}+${lin(1, b - 1)}\), et \(f(0)=${sum([[1, 'K'], [b - 1, '']])}=${y0}\) : \(K=${C}\).<br>\(f'(x)=-${C === 1 ? '' : C}e^{-x}+1\) s'annule en \(x=${lnI(C)}\) (négative avant, positive après) : minimum \(f(${lnI(C)})=${C === 1 ? sum([[1, ''], [b - 1, '']]) : `1+${lnI(C)}${b - 1 ? pm(b - 1) : ''}`}=${gT}\).`,
+    d: R`\(y'+ay=\) polynôme : chercher une solution particulière polynomiale du même degré, ajouter \(Ke^{-ax}\), puis fixer \(K\) avec la condition initiale.`,
+    _: { chk: () => { let m = Infinity; for (let i = -4000; i <= 4000; i++) { const x = i / 500; m = Math.min(m, C * Math.exp(-x) + x + b - 1); } return close(m, b + Math.log(C), 1e-5) || 'min faux ' + m; } }
+  }, mcqv(g, [gT, b + Math.log(C)], [T(C, b - 1), T(C, b + 1), T(C, 0), [String(y0), y0], [String(b + C), b + C]]));
+});
+
+defH('hc_edo_sol', 'equa_diff', g => {
+  const a = g.int(1, 3), y0 = g.int(-2, 3), sg = g.pick([-1, 1]);
+  // y' − sg·a·y = e^{sg·a·x}, y(0)=y0 → y = (x + y0)e^{sg·a·x}
+  const r = sg * a, E = ekx(r);
+  const cand = [[R`(${lin(1, y0)})${E}`, x => (x + y0) * Math.exp(r * x)], [R`(${lin(y0, 1)})${E}`, x => (1 + y0 * x) * Math.exp(r * x)], [R`x${E}${pm(y0)}`, x => x * Math.exp(r * x) + y0],
+    [R`(${lin(-1, y0)})${E}`, x => (y0 - x) * Math.exp(r * x)], [R`\left(${lin(a, y0)}\right)${E}`, x => (a * x + y0) * Math.exp(r * x)], [R`(${lin(1, y0)})${ekx(-r)}`, x => (x + y0) * Math.exp(-r * x)]];
+  const key = f => [0.3, 0.7, 1.1].map(x => f(x).toFixed(8)).join();
+  const sol = cand[0][1];
+  return Object.assign({
+    q: R`Quelle est la solution de l'équation différentielle \(y'${r < 0 ? '+' : '-'}${a === 1 ? '' : a}y=${E}\) vérifiant \(y(0)=${y0}\) ?`,
+    e: R`On cherche une solution particulière de la forme \(u(x)=\lambda x${E}\) (le second membre est une solution de l'équation homogène, il faut donc un facteur \(x\)) : \(u'(x)=\lambda ${E}${r < 0 ? '-' : '+'}${Math.abs(r) === 1 ? '' : Math.abs(r)}\lambda x${E}\), donc \(u'${r < 0 ? '+' : '-'}${a === 1 ? '' : a}u=\lambda ${E}\) : \(\lambda=1\).<br>Solutions : \(y=(x+K)${E}\), et \(y(0)=K=${y0}\).<br>Méthode QCM : on peut aussi vérifier chaque proposition (condition initiale puis équation).`,
+    d: R`QCM d'équations différentielles : tester les propositions (valeur en 0, puis dérivée) va souvent plus vite que résoudre.`,
+    _: { chk: () => [0.2, 0.5, 1.3].every(x => close((sol(x + 1e-6) - sol(x - 1e-6)) / 2e-6 - r * sol(x), Math.exp(r * x), 1e-5)) && sol(0) === y0 || 'faux' }
+  }, mcqv(g, [cand[0][0], key(sol)], cand.slice(1).map(([t, f]) => [t, key(f)])));
+});
+
+/* ---------- Continuité ---------- */
+defH('hc_cont_ext', 'continuite', g => {
+  const a = g.nz(-4, 5), kind = g.int(0, 5);
+  const L = [
+    [R`\dfrac{${ekx(a)}-1}{x}`, F(a), x => (Math.exp(a * x) - 1) / x, R`le taux d'accroissement en \(0\) de \(x\mapsto ${ekx(a)}\), qui tend vers sa dérivée en \(0\) : \(${a}\)`, [F(1), F(0), F(1, a)]],
+    [R`\dfrac{\sqrt{${onePlus(a)}}-1}{x}`, F(a, 2), x => (Math.sqrt(1 + a * x) - 1) / x, R`le taux d'accroissement en \(0\) de \(x\mapsto\sqrt{${onePlus(a)}}\), qui tend vers sa dérivée en \(0\) : \(\dfrac{${a}}{2}\)`, [F(a), F(0), F(1, 2)]],
+    [R`\dfrac{\ln(${onePlus(a)})}{x}`, F(a), x => Math.log1p(a * x) / x, R`le taux d'accroissement en \(0\) de \(x\mapsto\ln(${onePlus(a)})\), qui tend vers sa dérivée en \(0\) : \(${a}\)`, [F(1), F(0), F(1, a)]],
+    [R`\dfrac{\sin(${kco(a)}x)}{x}`, F(a), x => Math.sin(a * x) / x, R`le taux d'accroissement en \(0\) de \(x\mapsto\sin(${kco(a)}x)\), qui tend vers sa dérivée en \(0\) : \(${a}\cos0=${a}\)`, [F(1), F(0), F(1, a)]],
+    [R`\dfrac{\cos(${kco(a)}x)-1}{x}`, F(0), x => (Math.cos(a * x) - 1) / x, R`le taux d'accroissement en \(0\) de \(x\mapsto\cos(${kco(a)}x)\), qui tend vers sa dérivée en \(0\) : \(-${par(a)}\sin0=0\)`, [F(a), F(-a), F(1)]],
+    [R`\dfrac{${ekx(a)}-${ekx(-a)}}{x}`, F(2 * a), x => (Math.exp(a * x) - Math.exp(-a * x)) / x, R`la différence de deux taux d'accroissement en \(0\) : \(\dfrac{${ekx(a)}-1}{x}-\dfrac{${ekx(-a)}-1}{x}\to${a}-${par(-a)}=${2 * a}\)`, [F(a), F(0), F(1)]]
+  ];
+  const [fT, good, f, why, bads] = L[kind];
+  return Object.assign({
+    q: R`On définit \(f(x)=${fT}\) pour \(x\neq0\). Quelle valeur faut-il donner à \(f(0)\) pour que \(f\) soit continue en \(0\) ?`,
+    e: R`Il faut \(f(0)=\lim_{x\to0}f(x)\). Or \(f(x)\) est ` + why + '.',
+    d: R`Limite en \(0\) d'un quotient \(\frac{u(x)-u(0)}{x}\) : c'est \(u'(0)\) (taux d'accroissement).`,
+    _: { chk: () => close(f(1e-7), good.v, 1e-5) || 'limite fausse ' + f(1e-7) }
+  }, mcqF(g, good, bads.concat([F(a * a), good.add(1)])));
+});
+
+defH('hc_nsol', 'continuite', g => {
+  const kind = g.int(0, 2);
+  let q, good, e, chk;
+  if (kind === 0) {
+    const [kT, k] = g.pick([['-2', -2], [R`-\frac12`, -0.5], ['1', 1], ['2', 2], ['e', Math.E], ['3', 3], ['4', 4], ['2e', 2 * Math.E]]);
+    good = k < 0 ? 1 : k < Math.E - 1e-12 ? 0 : Math.abs(k - Math.E) < 1e-12 ? 1 : 2;
+    q = R`Combien l'équation \(e^{x}=${kT === '1' ? '' : kT}x\) admet-elle de solutions réelles ?`;
+    e = R`\(x=0\) n'est pas solution ; pour \(x\neq0\), l'équation équivaut à \(\dfrac{e^x}{x}=${kT}\). \(h(x)=\dfrac{e^x}{x}\) a pour dérivée \(\dfrac{(x-1)e^x}{x^2}\) : sur \(]-\infty;0[\), \(h\) décroît de \(0\) à \(-\infty\) ; sur \(]0;+\infty[\), elle décroît de \(+\infty\) à \(h(1)=e\) puis croît vers \(+\infty\).<br>Valeur \(${kT}\) : ${k < 0 ? 'une solution (négative)' : k < Math.E - 1e-12 ? 'aucune solution (\\(0\\leqslant k&lt;e\\))' : Math.abs(k - Math.E) < 1e-12 ? 'une seule solution, \\(x=1\\) (tangence)' : 'deux solutions positives (\\(k>e\\))'}.`;
+    chk = () => (Math.abs(k - Math.E) < 1e-12 ? close(Math.exp(1), k * 1) : signChanges(x => Math.exp(x) - k * x, -30, 30) === good) || 'compte faux';
+  } else if (kind === 1) {
+    const m = g.pick([-3, -2, -1, 0, 1, 2, 3, 5]);
+    good = Math.abs(m) < 2 ? 3 : Math.abs(m) === 2 ? 2 : 1;
+    q = R`Combien l'équation \(x^3-3x${m ? pm(m) : ''}=0\) admet-elle de solutions réelles ?`;
+    e = R`On étudie \(h(x)=x^3-3x\) : \(h'(x)=3(x-1)(x+1)\). \(h\) croît jusqu'à \(h(-1)=2\), décroît jusqu'à \(h(1)=-2\), puis croît. L'équation s'écrit \(h(x)=${-m}\) : ${Math.abs(m) < 2 ? '\\(-2&lt;' + -m + '&lt;2\\), trois solutions (TVI sur chaque intervalle de monotonie)' : Math.abs(m) === 2 ? 'valeur égale à un extremum local : deux solutions (dont une double)' : 'valeur hors de \\([-2\\,;2]\\) : une seule solution'}.`;
+    chk = () => (Math.abs(m) === 2 ? cubicRoots(1, 0, -3, m + (m > 0 ? -1e-9 : 1e-9)).length >= 1 : cubicRoots(1, 0, -3, m).length === good) || 'compte faux';
+  } else {
+    const [kT, k] = g.pick([['-1', -1], ['0', 0], [R`\frac1e`, 1 / Math.E], [R`\frac14`, 0.25], [R`\frac13`, 1 / 3], [R`\frac12`, 0.5], ['1', 1]]);
+    good = k <= 0 ? 1 : k < 1 / Math.E - 1e-12 ? 2 : Math.abs(k - 1 / Math.E) < 1e-12 ? 1 : 0;
+    q = R`Combien l'équation \(\ln x=${kT === '1' ? 'x' : kT === '-1' ? '-x' : kT === '0' ? '0' : kT + 'x'}\) admet-elle de solutions dans \(]0\,;+\infty[\) ?`;
+    e = R`L'équation équivaut à \(\dfrac{\ln x}{x}=${kT}\). \(h(x)=\dfrac{\ln x}{x}\) a pour dérivée \(\dfrac{1-\ln x}{x^2}\) : \(h\) croît de \(-\infty\) à \(h(e)=\dfrac1e\approx0{,}37\), puis décroît vers \(0\) (sans l'atteindre).<br>Valeur \(${kT}\) : ${k <= 0 ? 'une solution (dans \\(]0\\,;1]\\))' : k < 1 / Math.E - 1e-12 ? 'deux solutions (\\(0&lt;k&lt;\\frac1e\\)), car \\(\\frac13\\approx0{,}33\\) et \\(\\frac14\\) sont bien sous \\(\\frac1e\\approx0{,}37\\)' : Math.abs(k - 1 / Math.E) < 1e-12 ? 'une seule solution, \\(x=e\\)' : 'aucune solution (\\(k>\\frac1e\\))'}.`;
+    chk = () => (Math.abs(k - 1 / Math.E) < 1e-12 ? close(Math.log(Math.E), k * Math.E) : signChanges(x => Math.log(x) - k * x, 1e-6, 200, 400000) === good) || 'compte faux';
+  }
+  return Object.assign({ q, e, d: R`Nombre de solutions de \(f(x)=k\) : isoler le paramètre, étudier les variations de la fonction obtenue, puis lire le tableau (TVI sur chaque intervalle de monotonie).`, _: { chk } },
+    mcq(g, M(String(good)), ['0', '1', '2', '3'].filter(x => +x !== good).map(M)));
+});
+
+/* ---------- Étude de fonction ---------- */
+defH('hc_inflex', 'etude_fonction', g => {
+  const c = g.nz(-5, 5);
+  const L = [
+    [R`x\,e^{-x^2}`, x => (4 * x ** 3 - 6 * x) * Math.exp(-x * x), -6, 6, R`f''(x)=(4x^3-6x)e^{-x^2}=2x(2x^2-3)e^{-x^2}`, R`trois racines simples \(0\) et \(\pm\sqrt{3/2}\)`],
+    [R`e^{-x^2}`, x => (4 * x * x - 2) * Math.exp(-x * x), -6, 6, R`f''(x)=(4x^2-2)e^{-x^2}`, R`deux racines simples \(\pm\frac{1}{\sqrt2}\)`],
+    [R`\ln\left(1+x^2\right)`, x => 2 * (1 - x * x) / (1 + x * x) ** 2, -10, 10, R`f''(x)=\dfrac{2(1-x^2)}{(1+x^2)^2}`, R`deux racines simples \(\pm1\)`],
+    [R`x^4`, x => 12 * x * x, -5, 5, R`f''(x)=12x^2\geqslant0`, R`\(f''\) s'annule en \(0\) mais <strong>ne change pas de signe</strong>`],
+    [sum([[1, 'x^4'], [-6, 'x^2'], [c, 'x']]), x => 12 * x * x - 12, -5, 5, R`f''(x)=12x^2-12`, R`deux racines simples \(\pm1\) (le terme en \(x\) disparaît)`],
+    [R`x^3e^{x}`, x => x * (x * x + 6 * x + 6) * Math.exp(x), -15, 5, R`f''(x)=(x^3+6x^2+6x)e^x=x(x^2+6x+6)e^x`, R`trois racines simples \(0\) et \(-3\pm\sqrt3\)`],
+    [R`\dfrac{x}{1+x^2}`, x => 2 * x * (x * x - 3) / (1 + x * x) ** 3, -10, 10, R`f''(x)=\dfrac{2x(x^2-3)}{(1+x^2)^3}`, R`trois racines simples \(0\) et \(\pm\sqrt3\)`],
+    [R`x\,e^{x}`, x => (x + 2) * Math.exp(x), -15, 5, R`f''(x)=(x+2)e^x`, R`une racine simple \(-2\)`],
+    [R`x^2\ln x\quad(x>0)`, x => 2 * Math.log(x) + 3, 1e-4, 10, R`f''(x)=2\ln x+3`, R`une racine \(e^{-3/2}\) avec changement de signe`],
+    [R`x^5-5x^4`, x => 20 * x ** 3 - 60 * x * x, -5, 8, R`f''(x)=20x^3-60x^2=20x^2(x-3)`, R`\(f''\) change de signe en \(3\), mais pas en \(0\) (facteur \(x^2\))`],
+    [R`(x^2-1)e^{x}`, x => (x * x + 4 * x + 1) * Math.exp(x), -15, 5, R`f''(x)=(x^2+4x+1)e^x`, R`deux racines simples \(-2\pm\sqrt3\)`],
+    [R`x^6-15x^4`, x => 30 * x ** 4 - 180 * x * x, -5, 5, R`f''(x)=30x^4-180x^2=30x^2(x^2-6)`, R`changements de signe en \(\pm\sqrt6\) seulement (pas en \(0\))`]
+  ];
+  const [fT, f2, lo, hi, d2, why] = g.pick(L);
+  const good = signChanges(f2, lo, hi);
+  return Object.assign({
+    q: R`Combien la courbe de la fonction \(f:x\mapsto ${fT}\) possède-t-elle de points d'inflexion ?`,
+    e: R`\(${d2}\) : ${why}. Un point d'inflexion correspond à un <strong>changement de signe</strong> de \(f''\) (pas seulement une annulation) : ${good} point${good > 1 ? 's' : ''} d'inflexion.`,
+    d: R`Point d'inflexion : \(f''\) s'annule <strong>en changeant de signe</strong>. Un facteur \(x^2\) dans \(f''\) ne donne pas d'inflexion.`,
+    _: { chk: () => (good >= 0 && good <= 3) || 'compte ' + good }
+  }, mcq(g, M(String(good)), ['0', '1', '2', '3', '4'].filter(x => +x !== good).map(M)));
+});
+
+defH('hc_fmax', 'etude_fonction', g => {
+  const kind = g.int(0, 2), n = g.int(1, kind === 0 ? 4 : 3);
+  let fT, good, bads, e, f, lo, hi, mx = true;
+  const nT = n === 1 ? '' : String(n), eR = n === 1 ? 'e' : `e^{1/${n}}`;
+  if (kind === 0) {
+    const v = n ** n;
+    fT = R`x^{${n}}e^{-x}`.replace('x^{1}', 'x'); lo = 0; hi = 60; f = x => x ** n * Math.exp(-x);
+    good = [n === 1 ? R`e^{-1}` : R`${v}e^{-${n}}`, v * Math.exp(-n)];
+    bads = [[R`e^{-${n}}`, Math.exp(-n)], [R`${n}e^{-${n}}`, n * Math.exp(-n)], [R`${v}e^{${n}}`, v * Math.exp(n)], [R`${n === 1 ? '' : v}e^{-1}`, v / Math.E]];
+    e = R`\(f'(x)=${n === 1 ? R`(1-x)e^{-x}` : R`\left(${n}${xp(n - 1)}-x^{${n}}\right)e^{-x}=${xp(n - 1)}(${n}-x)e^{-x}`}\) : positive avant \(${n}\), négative après. Maximum \(f(${n})=${n}^{${n}}e^{-${n}}=${good[0]}\).`;
+  } else if (kind === 1) {
+    fT = n === 1 ? R`\dfrac{\ln x}{x}` : R`\dfrac{\ln x}{x^{${n}}}`; lo = 1e-3; hi = 50; f = x => Math.log(x) / x ** n;
+    good = [R`\dfrac{1}{${nT}e}`, 1 / (n * Math.E)];
+    bads = [[R`\dfrac1e`, 1 / Math.E], [eR, Math.exp(1 / n)], [R`\dfrac{${n}}{e}`, n / Math.E], [R`\dfrac{1}{e^{${n}}}`, Math.exp(-n)]];
+    e = R`\(f'(x)=\dfrac{1-${nT}\ln x}{x^{${n + 1}}}\) (dérivée d'un quotient), nulle pour \(\ln x=${fx(F(1, n))}\), soit \(x=${eR}\) (positive avant, négative après). Maximum \(f\left(${eR}\right)=\dfrac{${fx(F(1, n), true)}}{e}=\dfrac1{${nT}e}\).`;
+  } else {
+    mx = false;
+    fT = n === 1 ? R`x\ln x` : R`x^{${n}}\ln x`; lo = 1e-6; hi = 1; f = x => x ** n * Math.log(x);
+    good = [R`-\dfrac{1}{${nT}e}`, -1 / (n * Math.E)];
+    bads = [[R`-\dfrac1e`, -1 / Math.E], [R`0`, 0], [R`-\dfrac{${n}}{e}`, -n / Math.E], [R`-e^{-${n}}`, -Math.exp(-n)]];
+    e = R`\(f'(x)=${xp(n - 1)}(${nT}\ln x+1)\), nulle pour \(\ln x=-${fx(F(1, n), true)}\) (négative avant, positive après). Minimum : \(e^{-1}\times\left(-${fx(F(1, n), true)}\right)=-\dfrac1{${nT}e}\).`;
+  }
+  return Object.assign({
+    q: R`Quel est le ${mx ? 'maximum' : 'minimum'} de la fonction \(f:x\mapsto ${fT}\) sur ${kind === 0 ? R`\([0\,;+\infty[\)` : kind === 1 ? R`\(]0\,;+\infty[\)` : R`\(]0\,;1]\)`} ?`,
+    e, d: R`Extremum : signe de \(f'\) (factoriser !), puis valeur de \(f\) au point critique. Simplifier \(\ln\left(e^{a}\right)=a\).`,
+    _: { chk: () => { let v = mx ? -Infinity : Infinity; for (let i = 0; i <= 200000; i++) { const x = lo + (hi - lo) * i / 200000, y = f(x); v = mx ? Math.max(v, y) : Math.min(v, y); } return close(v, good[1], 1e-6) || 'extremum faux ' + v; } }
+  }, mcqv(g, good, bads));
+});
+
+/* ---------- Inégalités ♣ ---------- */
+defH('hc_ineq_multi', 'inegalites', g => {
+  const P = [
+    [R`Pour tout \(x>0\), \(\ln x\leqslant x-1\).`, true, R`la courbe de \(\ln\) est sous sa tangente en 1 (\(\ln\) est concave).`, x => Math.log(x) <= x - 1 + 1e-12, 1e-3, 50],
+    [R`Pour tout réel \(x\), \(e^{x}\geqslant1+x\).`, true, R`\(\exp\) est convexe : au-dessus de sa tangente en 0.`, x => Math.exp(x) >= 1 + x - 1e-12, -20, 20],
+    [R`Pour tout \(x>-1\), \(\ln(1+x)\geqslant x\).`, false, R`c'est l'inverse : \(\ln(1+x)\leqslant x\) (tangente en 0) ; par exemple \(\ln 2&lt;1\).`, x => Math.log1p(x) >= x - 1e-12, -0.99, 20],
+    [R`Pour tout \(x>0\), \(\ln x\leqslant\dfrac{x}{e}\).`, true, R`la tangente à \(\ln\) en \(e\) est \(y=\frac xe\), et \(\ln\) est concave.`, x => Math.log(x) <= x / Math.E + 1e-12, 1e-3, 100],
+    [R`Pour tout \(x\geqslant0\), \(\sin x\leqslant x\).`, true, R`\(h(x)=x-\sin x\) a pour dérivée \(1-\cos x\geqslant0\) et \(h(0)=0\).`, x => Math.sin(x) <= x + 1e-12, 0, 30],
+    [R`Pour tout réel \(x\), \(\cos x\geqslant1-\dfrac{x^2}{2}\).`, true, R`\(h(x)=\cos x-1+\frac{x^2}2\) : \(h'(x)=x-\sin x\geqslant0\) pour \(x\geqslant0\), \(h(0)=0\), et \(h\) est paire.`, x => Math.cos(x) >= 1 - x * x / 2 - 1e-12, -20, 20],
+    [R`Pour tout réel \(x\), \(e^{x}\leqslant1+x+x^2\).`, false, R`faux pour \(x=3\) : \(e^3\approx20>13\) (l'exponentielle l'emporte sur tout polynôme).`, x => Math.exp(x) <= 1 + x + x * x + 1e-12, -5, 10],
+    [R`Pour tout \(x\geqslant0\), \(\dfrac{x}{1+x}\leqslant\ln(1+x)\).`, true, R`\(h(x)=\ln(1+x)-\frac{x}{1+x}\) : \(h'(x)=\frac{x}{(1+x)^2}\geqslant0\) et \(h(0)=0\).`, x => x / (1 + x) <= Math.log1p(x) + 1e-12, 0, 50],
+    [R`Pour tout \(x\geqslant0\), \(\ln(1+x)\leqslant x-\dfrac{x^2}{2}\).`, false, R`c'est l'inverse : \(\ln(1+x)\geqslant x-\frac{x^2}2\) (étudier la différence) ; par exemple \(x=2\) : \(\ln3>0\).`, x => Math.log1p(x) <= x - x * x / 2 + 1e-12, 0, 5],
+    [R`Pour tout \(x\geqslant0\), \(\sqrt{1+x}\leqslant1+\dfrac{x}{2}\).`, true, R`les deux membres sont positifs et \(\left(1+\frac x2\right)^2=1+x+\frac{x^2}4\geqslant1+x\).`, x => Math.sqrt(1 + x) <= 1 + x / 2 + 1e-12, 0, 50],
+    [R`Pour tout \(x>0\), \(\ln x\geqslant1-\dfrac1x\).`, true, R`on applique \(\ln u\leqslant u-1\) à \(u=\frac1x\) : \(-\ln x\leqslant\frac1x-1\).`, x => Math.log(x) >= 1 - 1 / x - 1e-12, 1e-3, 50],
+    [R`Pour tout réel \(x\), \(e^{x}\geqslant x^2\).`, false, R`faux pour \(x=-1\) : \(e^{-1}\approx0{,}37&lt;1\).`, x => Math.exp(x) >= x * x - 1e-12, -5, 10],
+    [R`Pour tout \(x>0\), \(x\ln x\geqslant-\dfrac13\).`, false, R`le minimum de \(x\ln x\) est \(-\frac1e\approx-0{,}368&lt;-\frac13\) (atteint en \(x=\frac1e\)).`, x => x * Math.log(x) >= -1 / 3 - 1e-12, 1e-4, 5],
+    [R`Pour tout \(x>0\), \(x\ln x\geqslant-\dfrac12\).`, true, R`le minimum de \(x\ln x\) est \(-\frac1e\approx-0{,}368>-\frac12\).`, x => x * Math.log(x) >= -0.5 - 1e-12, 1e-4, 5],
+    [R`Pour tout réel \(x\), \(e^{x}\geqslant e\,x\).`, true, R`la tangente à \(\exp\) en \(1\) est \(y=ex\), et \(\exp\) est convexe.`, x => Math.exp(x) >= Math.E * x - 1e-9, -10, 10],
+    [R`Pour tout \(x>0\), \(e^{x}\geqslant x^3\).`, false, R`faux pour \(x=4\) : \(e^4\approx54{,}6&lt;64\).`, x => Math.exp(x) >= x ** 3 - 1e-9, 0.01, 6],
+    [R`Pour tout entier \(n\geqslant1\), \(\left(1+\dfrac1n\right)^{n}\leqslant e\).`, true, R`\(n\ln\left(1+\frac1n\right)\leqslant n\times\frac1n=1\) (car \(\ln(1+u)\leqslant u\)).`, n => (1 + 1 / n) ** n <= Math.E + 1e-12, 1, 2000, true]
+  ];
+  return Object.assign(multi(g, P.map(([t, ok, why]) => ({ t, ok, why }))), {
+    q: R`Parmi les inégalités suivantes, lesquelles sont vraies ?`,
+    d: R`Inégalité de fonctions : étudier la différence (dérivée + valeur en un point), ou utiliser la convexité (courbe au-dessus / au-dessous de ses tangentes). Un seul contre-exemple suffit à réfuter.`,
+    _: { chk: () => { for (const [t, ok, , pr, lo, hi, int] of P) { let all = true; const N = int ? hi - lo : 20000; for (let i = 0; i <= N; i++) { const x = int ? lo + i : lo + (hi - lo) * i / N; if (!pr(x)) { all = false; break; } } if (all !== ok) return 'faux : ' + t; } return true; } }
+  });
+});
+
+/* ---------- Récurrence ---------- */
+defH('hc_rec_n0', 'recurrence', g => {
+  const B = BigInt, fac = n => { let r = 1n; for (let i = 2n; i <= n; i++) r *= i; return r; };
+  const L = [
+    [R`2^n\geqslant n^2`, n => 2n ** n >= n * n, R`\(2^{n+1}=2\cdot2^n\geqslant2n^2\geqslant(n+1)^2\) dès que \(n\geqslant3\)`],
+    [R`2^n\geqslant n^3`, n => 2n ** n >= n ** 3n, R`\(2^{n+1}\geqslant2n^3\geqslant(n+1)^3\) dès que \(\left(1+\frac1n\right)^3\leqslant2\), vrai pour \(n\geqslant4\)`],
+    [R`2^n>10n`, n => 2n ** n > 10n * n, R`\(2^{n+1}>20n\geqslant10(n+1)\) dès que \(n\geqslant1\)`],
+    [R`n!>3^n`, n => fac(n) > 3n ** n, R`\((n+1)!=(n+1)\,n!>(n+1)3^n\geqslant3^{n+1}\) dès que \(n\geqslant2\)`],
+    [R`n!\geqslant2^n`, n => fac(n) >= 2n ** n, R`\((n+1)!\geqslant(n+1)2^n\geqslant2^{n+1}\)`],
+    [R`3^n\geqslant n^4`, n => 3n ** n >= n ** 4n, R`\(3^{n+1}\geqslant3n^4\geqslant(n+1)^4\) dès que \(\left(1+\frac1n\right)^4\leqslant3\), vrai pour \(n\geqslant4\)`],
+    [R`n!>4^n`, n => fac(n) > 4n ** n, R`\((n+1)!>(n+1)4^n\geqslant4^{n+1}\) dès que \(n\geqslant3\)`],
+    [R`2^n\geqslant4n+1`, n => 2n ** n >= 4n * n + 1n, R`\(2^{n+1}\geqslant8n+2\geqslant4(n+1)+1\) dès que \(n\geqslant1\)`]
+  ];
+  const [P, pr, her] = g.pick(L);
+  let n0 = 300; while (n0 > 0 && pr(B(n0 - 1))) n0--;
+  const tab = []; for (let n = Math.max(0, n0 - 2); n <= n0; n++) tab.push(R`\(n=${n}\) : ${pr(B(n)) ? 'vrai' : 'faux'}`);
+  return Object.assign({
+    q: R`Quel est le plus petit entier naturel \(n_0\) tel que, pour tout entier \(n\geqslant n_0\), \(${P}\) ?`,
+    e: R`On teste les petites valeurs : ${tab.join(' ; ')}. La propriété est fausse en \(n=${n0 - 1}\) et vraie à partir de \(n=${n0}\).<br>Hérédité (pour prouver qu'elle reste vraie) : ${her}.<br>Donc \(n_0=${n0}\).`,
+    d: R`« À partir de quel rang » : calculer les premières valeurs à la main, puis vérifier l'hérédité. Attention : la propriété peut être vraie pour de petits \(n\), devenir fausse, puis redevenir vraie.`,
+    _: { chk: () => { for (let n = n0; n <= 300; n++) if (!pr(B(n))) return 'faux en ' + n; return !pr(B(n0 - 1)) || 'n0 trop grand'; } }
+  }, mcqv(g, [String(n0), n0], [n0 - 1, n0 + 1, n0 + 2, n0 - 2].filter(x => x >= 0).map(v => [String(v), v])));
+});
+
+defH('hc_div', 'recurrence', g => {
+  const B = BigInt;
+  const L = [
+    [R`4^n+6n-1`, n => 4n ** n + 6n * n - 1n, 0, R`\(u_{n+1}=4u_n-18n+9\) : si \(9\mid u_n\), alors \(9\mid u_{n+1}\)`],
+    [R`7^n-1`, n => 7n ** n - 1n, 1, R`\(7^{n+1}-1=7(7^n-1)+6\)`],
+    [R`3^{2n}-2^n`, n => 9n ** n - 2n ** n, 0, R`\(9^{n+1}-2^{n+1}=9\left(9^n-2^n\right)+7\cdot2^n\)`],
+    [R`n^3-n`, n => n ** 3n - n, 0, R`\(n^3-n=(n-1)n(n+1)\) : produit de 3 entiers consécutifs, donc divisible par 2 et par 3`],
+    [R`5^n-4n-1`, n => 5n ** n - 4n * n - 1n, 0, R`\(u_{n+1}=5u_n+16n\)`],
+    [R`2^{3n}-1`, n => 8n ** n - 1n, 0, R`\(8^{n+1}-1=8\left(8^n-1\right)+7\)`],
+    [R`3^{2n+1}+2^{n+2}`, n => 3n * 9n ** n + 4n * 2n ** n, 0, R`\(u_{n+1}=9\cdot3^{2n+1}+2\cdot2^{n+2}=9u_n-7\cdot2^{n+2}\)`],
+    [R`n^5-n`, n => n ** 5n - n, 0, R`\(n^5-n=(n-1)n(n+1)(n^2+1)\) est divisible par 2, 3 et 5 (étudier les restes)`],
+    [R`9^n-8n-1`, n => 9n ** n - 8n * n - 1n, 0, R`\(u_{n+1}=9u_n+64n\)`]
+  ];
+  const [T, f, st, her] = g.pick(L);
+  let G = 0n; for (let n = st; n <= 25; n++) { let x = f(B(n)); if (x < 0n) x = -x; let a = G, b = x; while (b) [a, b] = [b, a % b]; G = a; }
+  const good = Number(G);
+  const vals = []; for (let n = st; n < st + 4; n++) vals.push(String(f(B(n))));
+  const sp = [2, 3, 5, 7].find(p => good % p === 0) || good;
+  return Object.assign({
+    q: R`Quel est le plus grand entier qui divise \(${T}\) pour tout entier \(n\geqslant${st}\) ?`,
+    e: R`Premières valeurs (\(n=${st},${st + 1},${st + 2},${st + 3}\)) : \(${vals.join(R`,\ `)}\). Le plus grand diviseur commun de ces nombres est \(${good}\) : c'est le seul candidat.<br>On le prouve par récurrence : ${her}.`,
+    d: R`« Divisible par … pour tout \(n\) » : calculer les premiers termes pour trouver le candidat (leur PGCD), puis récurrence en exprimant \(u_{n+1}\) à l'aide de \(u_n\).`,
+    _: { chk: () => { for (let n = st; n <= 40; n++) if (f(B(n)) % G !== 0n) return 'faux en ' + n; return good > 1 || 'pgcd 1'; } }
+  }, mcqv(g, [String(good), good], [good * 2, good / sp, good * sp, good * 3, good + 1].filter(x => Number.isInteger(x) && x > 1).map(v => [String(v), v])));
+});
+
+/* =====================================================================
    API
    ===================================================================== */
 const EXAMS = {
@@ -6183,7 +7261,7 @@ function entry(qid) {
 const qidsOf = (id, s36) => (TPL[id].group ? Array.from({ length: TPL[id].size }, (_, k) => `gen.${id}.${s36}.${k}`) : [`gen.${id}.${s36}`]);
 const wpick = (obj, rnd) => { const ks = Object.keys(obj), tot = ks.reduce((s, k) => s + obj[k], 0); let r = rnd() * tot; for (const k of ks) { if ((r -= obj[k]) < 0) return k; } return ks[ks.length - 1]; };
 const byTheme = {};
-Object.values(TPL).forEach(t => { (byTheme[t.theme] = byTheme[t.theme] || {})[t.id] = t.w; });
+Object.values(TPL).filter(t => !t.hard).forEach(t => { (byTheme[t.theme] = byTheme[t.theme] || {})[t.id] = t.w; });
 function unit(theme, rnd = Math.random) {
   if (!byTheme[theme]) return null;
   const id = wpick(byTheme[theme], rnd), t = TPL[id], s = newSeed();
@@ -6278,7 +7356,7 @@ const savePrefs = () => ls.set(K.prefs, prefs);
 function collectObs(ctls = controls, atts = attempts) {
   const obs = [];
   ctls.forEach(c => c.items.forEach(it => { if (it.theme && TH[it.theme]) obs.push({ theme: it.theme, pts: it.pts, max: it.max || 1 }); }));
-  atts.forEach(a => (a.results || []).forEach(r => { if (!r.skip && r.theme && TH[r.theme]) obs.push({ theme: r.theme, pts: r.pts, max: 1, slip: !!r.slip }); }));
+  atts.forEach(a => a.kind !== 'hardcore' && (a.results || []).forEach(r => { if (!r.skip && r.theme && TH[r.theme]) obs.push({ theme: r.theme, pts: r.pts, max: 1, slip: !!r.slip }); }));
   return obs;
 }
 function themeStats() { return themeStatsFrom(controls, attempts); }
@@ -6403,14 +7481,14 @@ function genExamDef(kind) {
 K.ncount = 'qcmhub.ncount.v1';
 const EXAM_TPL = new Set();
 Object.values(QGEN.EXAMS).forEach(ex => ex.slots.forEach(sl => Object.keys(sl).forEach(k => EXAM_TPL.add(k))));
-const newTypesOf = th => Object.values(QGEN.TPL).filter(x => x.theme === th && !EXAM_TPL.has(x.id) && !x.group);
+const newTypesOf = th => Object.values(QGEN.TPL).filter(x => x.theme === th && !EXAM_TPL.has(x.id) && !x.group && !x.hard);
 const NEWTYPES = { n: THEMES.filter(t => newTypesOf(t.id).length).length, dur: 50 };
 /* Type d'une question : « type QCM » (question des sujets, ou modèle au format des sujets du prof)
    ou « nouveau type » (reste du programme de Terminale, pas encore tombé en contrôle). */
 const tplOfId = id => { const m = /^gen\.([a-z0-9_]+)\./.exec(String(id)); return m ? m[1] : null; };
 const typeKey = id => tplOfId(id) || id;   // le modèle du générateur, ou la question de sujet elle-même
 const isQcmType = id => { const t = tplOfId(id); return t ? EXAM_TPL.has(t) : !!QINDEX[id]; };
-const kindTag = id => (isQcmType(id) ? '<span class="tag tag-qcm" title="Ce genre de question est déjà tombé dans les QCM du prof">Type QCM</span>'
+const kindTag = id => (QGEN.TPL[tplOfId(id)] && QGEN.TPL[tplOfId(id)].hard ? '<span class="tag tag-hc" title="Question du mode Hardcore, à la limite du programme">Hardcore</span>' : isQcmType(id) ? '<span class="tag tag-qcm" title="Ce genre de question est déjà tombé dans les QCM du prof">Type QCM</span>'
   : '<span class="tag tag-new" title="Question du programme de Terminale qui n\'est pas encore tombée en QCM">Nouveau type</span>');
 /* Type QCM maîtrisé : passé ou remplacé (méthode connue), ou réussi 2 fois de suite.
    Une vraie erreur le remet en jeu ; une erreur de calcul annotée ne change rien. */
@@ -6441,6 +7519,37 @@ function newTypesDef() {
   });
   return { id: 'n' + Date.now(), kind: 'newtypes', title: `Sujet nouveaux types n° ${k}`, eyebrow: 'Sujet inédit · questions pas encore tombées en contrôle',
     qids, duration: NEWTYPES.dur * 60, themeCount };
+}
+/* Épreuve Hardcore : une question difficile par thème (thèmes tirés au hasard), en privilégiant
+   les modèles les moins vus dans les copies Hardcore précédentes. */
+const HC_MODES = {
+  eclair: { n: 10, dur: 30, name: 'Éclair', sub: '10 questions en 30 minutes : 3 minutes par question, il faut voir vite la bonne idée.' },
+  reflexion: { n: 10, dur: 60, name: 'Réflexion', sub: '10 questions en 1 heure : le temps de chercher vraiment, de tester des pistes et de vérifier.' },
+  marathon: { n: 20, dur: 60, name: 'Marathon', sub: '20 questions en 1 heure, presque un thème par question : endurance et sang-froid.' }
+};
+K.hcount = 'qcmhub.hcount.v1';
+const HARD = Object.values(QGEN.TPL).filter(t => t.hard);
+const hcModeOf = a => (/^h:([a-z]+):/.exec(String(a.defId)) || [])[1];
+function hardcoreDef(mode) {
+  const m = HC_MODES[mode], k = ls.get(K.hcount, 0) + 1;
+  ls.set(K.hcount, k);
+  const used = {};
+  attempts.forEach(a => { if (a.kind === 'hardcore') (a.results || []).forEach(r => { const t = tplOfId(r.qid); if (t) used[t] = (used[t] || 0) + 1; }); });
+  const byTh = {};
+  HARD.forEach(t => (byTh[t.theme] = byTh[t.theme] || []).push(t));
+  const chosen = [];
+  while (chosen.length < Math.min(m.n, HARD.length)) {
+    for (const th of shuffle(Object.keys(byTh))) {
+      if (chosen.length >= m.n) break;
+      const left = shuffle(byTh[th].filter(t => !chosen.includes(t))).sort((x, y) => (used[x.id] || 0) - (used[y.id] || 0));
+      if (left.length) chosen.push(left[0]);
+    }
+  }
+  chosen.sort((x, y) => TH[x.theme].order - TH[y.theme].order);
+  const themeCount = {};
+  chosen.forEach(t => { themeCount[t.theme] = (themeCount[t.theme] || 0) + 1; });
+  return { id: `h:${mode}:${Date.now()}`, kind: 'hardcore', title: `Hardcore ${m.name} n° ${k}`, eyebrow: `Mode Hardcore · ${m.name} · sans calculatrice`,
+    qids: chosen.map(t => `gen.${t.id}.${Math.floor(Math.random() * 2147483647).toString(36)}`), duration: m.dur * 60, themeCount };
 }
 /* Construit l'épreuve (questions complètes + contexte d'exercice) à partir d'une définition */
 function buildTest(def) {
@@ -6720,7 +7829,7 @@ function renderBanners() {
     const rem = S.paused ? DURATION - (S.pausedAt - S.startedAt - S.pauseTotal) / 1000 : remaining();
     return `<div class="banner"><div><b>${S.paused ? '⏸ Épreuve en pause' : '⏱ Épreuve en cours'} : ${esc(S.def.title)}</b><p>${answered}/${total} questions répondues · ${fmtClock(rem)} restant${S.paused ? ' (chrono arrêté)' : ' (le chrono tourne !)'}</p></div><span class="spacer"></span><button type="button" class="btn btn-primary" data-resume>${S.paused ? 'Reprendre' : 'Revenir à l\'épreuve'}</button></div>`;
   })();
-  ['#resumeBanner1', '#resumeBanner2', '#resumeBanner3', '#resumeBanner4'].forEach(id => { const el = $(id); if (el) el.innerHTML = html; });
+  ['#resumeBanner1', '#resumeBanner2', '#resumeBanner3', '#resumeBanner4', '#resumeBanner5'].forEach(id => { const el = $(id); if (el) el.innerHTML = html; });
 }
 function renderBilan() {
   const st = themeStats();
@@ -6947,7 +8056,28 @@ function renderSujets() {
       <button type="button" class="btn btn-primary" data-bank="${b}">Commencer</button></article>`;
   }).join('');
   const rows = attempts.slice().reverse().slice(0, 25);
-  $('#histBox').innerHTML = rows.length ? `<div style="overflow-x:auto"><table class="hist"><thead><tr><th>Date</th><th>Épreuve</th><th>Questions</th><th>Note</th><th>Temps</th></tr></thead><tbody>${rows.map(a => `<tr><td>${fmtDate(a.at)}</td><td>${a.kind === 'targeted' || a.kind === 'genexam' || a.kind === 'newtypes' ? '<span class="tag-t">' + esc(a.title) + '</span>' : esc(a.title)}</td><td>${a.N}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used || 0)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="fine">Aucune épreuve rendue pour le moment.</p>';
+  $('#histBox').innerHTML = rows.length ? `<div style="overflow-x:auto"><table class="hist"><thead><tr><th>Date</th><th>Épreuve</th><th>Questions</th><th>Note</th><th>Temps</th></tr></thead><tbody>${rows.map(a => `<tr><td>${fmtDate(a.at)}</td><td>${a.kind === 'targeted' || a.kind === 'genexam' || a.kind === 'newtypes' || a.kind === 'hardcore' ? '<span class="tag-t">' + esc(a.title) + '</span>' : esc(a.title)}</td><td>${a.N}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used || 0)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="fine">Aucune épreuve rendue pour le moment.</p>';
+}
+
+/* =====================================================================
+   VUE « HARDCORE »
+   ===================================================================== */
+function renderHardcore() {
+  renderBanners();
+  const hc = attempts.filter(a => a.kind === 'hardcore');
+  $('#hcGrid').innerHTML = Object.entries(HC_MODES).map(([k, m]) => {
+    const mine = hc.filter(a => hcModeOf(a) === k);
+    const best = mine.reduce((b, a) => (!b || a.note > b.note ? a : b), null), last = mine[mine.length - 1];
+    return `<article class="card sj sj-hc"><h3>${m.name}</h3><p class="sub">${m.sub}</p>
+      <div class="meta-chips"><span class="meta-chip">${m.n} questions</span><span class="meta-chip">${fmtMin(m.dur)}</span><span class="meta-chip">Sans calculatrice</span></div>
+      <p class="last">${best ? `Record : <strong>${fmtNum(best.note, 2)}/20</strong> · ${mine.length} copie${mine.length > 1 ? 's' : ''} · dernière : ${fmtNum(last.note, 2)}/20` : 'Pas encore tenté.'}</p>
+      <button type="button" class="btn btn-hc" data-hc="${k}">Lancer</button></article>`;
+  }).join('');
+  const rows = hc.slice().reverse().slice(0, 25);
+  $('#hcHist').innerHTML = rows.length ? `<div style="overflow-x:auto"><table class="hist"><thead><tr><th>Date</th><th>Épreuve</th><th>Justes</th><th>Note</th><th>Temps</th></tr></thead><tbody>${rows.map(a => {
+    const ok = (a.results || []).filter(r => !r.skip && r.pts >= 1).length;
+    return `<tr><td>${fmtDate(a.at)}</td><td><span class="tag-t">${esc(a.title)}</span></td><td>${ok}/${a.N}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used || 0)}</td></tr>`;
+  }).join('')}</tbody></table></div>` : '<p class="fine">Aucune copie Hardcore pour le moment. Commence par « Réflexion » pour prendre la mesure.</p>';
 }
 
 /* =====================================================================
@@ -6998,6 +8128,7 @@ function setView(v) {
   $('#hubCatalogue').hidden = v !== 'catalogue';
   $('#hubSujets').hidden = v !== 'sujets';
   $('#hubGroupe').hidden = v !== 'groupe';
+  $('#hubHardcore').hidden = v !== 'hardcore';
   $('#intro').hidden = v !== 'intro';
   $('#test').hidden = v !== 'test';
   $('#results').hidden = v !== 'results';
@@ -7017,11 +8148,12 @@ function showTab(tab) {
   else if (tab === 'catalogue') { setView('catalogue'); renderCatalogue(); }
   else if (tab === 'sujets') { setView('sujets'); renderSujets(); }
   else if (tab === 'groupe') { setView('groupe'); renderGroupe(); }
+  else if (tab === 'hardcore') { setView('hardcore'); renderHardcore(); }
   else if (tab === 'results' && S && S.phase === 'done') { activate(S.def); showResults(); }
 }
 async function openIntro(def) {
   if (S && S.phase === 'test' && !await ask("Une épreuve est en cours (ou en pause). L'abandonner pour en commencer une nouvelle ?", 'Abandonner')) return;
-  introFrom = document.body.dataset.view === 'controls' || def.kind === 'targeted' ? 'controls' : 'sujets';
+  introFrom = def.kind === 'hardcore' ? 'hardcore' : document.body.dataset.view === 'controls' || def.kind === 'targeted' ? 'controls' : 'sujets';
   pendingDef = def;
   const qs = buildTest(def), multi = qs.filter(q => q.multi).length, dm = def.duration / 60;
   $('#introEyebrow').textContent = def.eyebrow || '';
@@ -7167,7 +8299,12 @@ function replacementFor(i) {
   };
   const fromGen = () => {
     const used = new Set(S.def.qids.map(tplOf).filter(Boolean));
-    const any = Object.values(QGEN.TPL).filter(t => t.theme === q.theme && !t.group && t.id !== tplOf(q.id));
+    if (S.def.kind === 'hardcore') {
+      const hard = HARD.filter(t => t.id !== tplOf(q.id) && !used.has(t.id)), same = hard.filter(t => t.theme === q.theme);
+      const pool = same.length ? same : hard;
+      return pool.length ? genId(pool[Math.floor(Math.random() * pool.length)].id) : genId(tplOf(q.id));
+    }
+    const any = Object.values(QGEN.TPL).filter(t => t.theme === q.theme && !t.group && !t.hard && t.id !== tplOf(q.id));
     const all = any.filter(t => !mastered.has(t.id)).length ? any.filter(t => !mastered.has(t.id)) : any;
     if (!all.length) return tplOf(q.id) ? genId(tplOf(q.id)) : null;   // seul modèle du thème : une autre version
     const cur = tplOf(q.id), fresh = all.filter(t => !used.has(t.id)), other = all.filter(t => t.id !== cur);
@@ -7440,7 +8577,7 @@ function renderResults(res) {
         <span><span class="dot st-bad"></span>${fmtPts(minus)} perdus</span>
       </div>
       <div class="hero-actions">
-        <button type="button" class="btn btn-primary" data-act="targeted">Créer un contrôle ciblé</button>
+        ${S.def.kind === 'hardcore' ? '<button type="button" class="btn btn-hc" data-act="hardcore">Nouveau Hardcore</button>' : '<button type="button" class="btn btn-primary" data-act="targeted">Créer un contrôle ciblé</button>'}
         <button type="button" class="btn" data-act="retry">Refaire cette épreuve</button>
         <button type="button" class="btn btn-ghost" data-act="print">Imprimer</button>
       </div>
@@ -7458,7 +8595,7 @@ function renderResults(res) {
 
   <section class="card">
     <div class="card-head"><div><h2>Bilan par thème</h2>
-      <p class="sub">Où tu as gagné et perdu des points sur cette copie, du plus faible au plus solide. Cette copie compte maintenant dans tes statistiques et dans le choix des prochains contrôles ciblés.</p></div></div>
+      <p class="sub">Où tu as gagné et perdu des points sur cette copie, du plus faible au plus solide. ${S.def.kind === 'hardcore' ? 'Copie Hardcore : elle ne compte pas dans tes points faibles ni dans le choix des contrôles ciblés.' : 'Cette copie compte maintenant dans tes statistiques et dans le choix des prochains contrôles ciblés.'}</p></div></div>
     <div style="overflow-x:auto"><table class="th-res"><thead><tr><th>Thème</th><th>Questions</th><th>Points</th><th>Détail</th><th></th></tr></thead><tbody>
       ${tRows.map(([t, o]) => `<tr><td><strong>${esc(themeName(t))}</strong></td><td>${o.n}</td><td class="${o.pts > 0 ? 'pts-pos' : o.pts < 0 ? 'pts-neg' : ''}">${fmtPts(o.pts)} / ${o.n}</td><td>${o.j ? o.j + ' ✓ ' : ''}${o.p ? o.p + ' ◐ ' : ''}${o.f ? o.f + ' ✗ ' : ''}${o.v ? o.v + ' – ' : ''}${o.sl ? `<span class="pill st-slip" title="Erreurs de calcul annotées">✎ ${o.sl} calcul</span>` : ''}</td><td>${TH[t] ? `<button type="button" class="link-m" data-method="${t}">Méthode</button>` : ''}</td></tr>`).join('')}
     </tbody></table></div>
@@ -7666,6 +8803,8 @@ function init() {
     const gx = e.target.closest('[data-genexam]');
     if (gx) { openIntro(genExamDef(gx.dataset.genexam)); return; }
     if (e.target.closest('[data-newtypes]')) { openIntro(newTypesDef()); return; }
+    const hcb = e.target.closest('[data-hc]');
+    if (hcb && HC_MODES[hcb.dataset.hc]) { openIntro(hardcoreDef(hcb.dataset.hc)); return; }
     const nq = e.target.closest('[data-newq]');
     if (nq) { showNewQuestion(nq.dataset.newq, nq); return; }
     const dr = e.target.closest('[data-drill]');
@@ -7793,6 +8932,7 @@ function init() {
     const a = e.target.closest('[data-act]');
     if (a) {
       if (a.dataset.act === 'print') window.print();
+      else if (a.dataset.act === 'hardcore') showTab('hardcore');
       else if (a.dataset.act === 'targeted') { showTab('controls'); $('#genCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       else if (a.dataset.act === 'retry') ask('Refaire exactement les mêmes questions dans une nouvelle épreuve ?', 'Refaire').then(ok => { if (ok) openIntro(S.def); });
       return;
@@ -7948,6 +9088,7 @@ function refreshViews() {
   if (v === 'groupe') renderGroupe();
   else if (v === 'controls') renderControls();
   else if (v === 'sujets') renderSujets();
+  else if (v === 'hardcore') renderHardcore();
 }
 async function doAuth(form) {
   if (authBusy) return;

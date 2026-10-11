@@ -6,7 +6,7 @@ Le site regroupe plusieurs outils de révision :
 |---|---|
 | `index.html` | la page d'accueil : connexion au compte et lien vers chaque outil |
 | `account.js` | le compte du site (connexion unique) et la synchronisation de la progression entre appareils |
-| `maths/index.html` | le QCM de maths (QCM, import de PDF, catalogue, comptes, groupes) |
+| `maths/index.html` | le QCM de maths (QCM, import de PDF, catalogue, comptes, groupes, onglet Hardcore : questions difficiles sans calculatrice, 10 q / 30 min, 10 q / 1 h ou 20 q / 1 h) |
 | `elec/index.html` | l'entraînement au CC1 d'électronique (cours, démos, exos générés, annales, sujets blancs) |
 | `ato/index.html` | l'entraînement au CC d'atomistique (partie 1 « L'atome ») : parcours guidé, cours résumé, exercices générés corrigés, sujet blanc d'1 h |
 | `algo/index.html` | l'entraînement au DS d'algorithmique (chapitres 1 à 4 : bases de Python, fonctions, complexité, tableaux, dictionnaires) : parcours guidé, fonctions à écrire testées en Python dans le navigateur (Pyodide, dans un Worker), cours résumé, sujet blanc d'1 h 30 |

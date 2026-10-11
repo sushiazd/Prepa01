@@ -236,7 +236,7 @@ const SRC = {
 };
 // Thème tiré au hasard (tous les thèmes ont la même chance), puis un modèle de ce thème, en évitant les derniers vus
 function drawQuestion(src, recent) {
-  const tpls = Object.values(QGEN.TPL).filter(SRC[src].keep);
+  const tpls = Object.values(QGEN.TPL).filter(t => !t.hard && SRC[src].keep(t));   // jamais de modèle Hardcore
   const themes = [...new Set(tpls.map(t => t.theme))];
   for (let k = 0; k < 20; k++) {
     const th = pick(themes);

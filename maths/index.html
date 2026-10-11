@@ -2489,6 +2489,8 @@ function sum(terms, small) {
 const mono = (v, k) => (k === 0 ? '' : k === 1 ? v : `${v}^{${k}}`);
 const poly = (low, v = 'x', small) => sum(low.map((c, k) => [c, mono(v, k)]).reverse(), small);
 const par = n => (F(n).p < 0 ? `\\left(${fx(n)}\\right)` : fx(n));
+// Base d'une puissance : parenthèses aussi pour une fraction, sinon (3/5)^n s'afficherait 3/5^n
+const parP = n => (F(n).isInt && F(n).p >= 0 ? fx(n) : `\\left(${fx(n)}\\right)`);
 const pm = n => (F(n).p < 0 ? '-' : '+') + fx(F(n).abs());
 const pmS = n => (F(n).p < 0 ? '-' : '+') + fx(F(n).abs(), true);
 const lin = (a, b, v = 'x') => sum([[a, v], [b, '']]);
@@ -2585,7 +2587,7 @@ def('poly_viete', 'polynomes', 1, g => {
     good = S1.mul(S1).sub(S2.mul(2));
     bads = [S1.mul(S1), S1.mul(S1).add(S2.mul(2)), S1.mul(S1).sub(S2), S2.mul(2).sub(S1.mul(S1)).abs(), S1.mul(S1).sub(S3.mul(2))];
     ask = R`x_1^2+x_2^2+x_3^2`;
-    how = R`\(x_1^2+x_2^2+x_3^2=(x_1+x_2+x_3)^2-2(x_1x_2+x_1x_3+x_2x_3)=${par(S1)}^2-2\times${par(S2)}=${fx(good)}\).`;
+    how = R`\(x_1^2+x_2^2+x_3^2=(x_1+x_2+x_3)^2-2(x_1x_2+x_1x_3+x_2x_3)=${parP(S1)}^2-2\times${par(S2)}=${fx(good)}\).`;
   } else {
     good = S2.div(S3);
     bads = [S1, S3.div(S2), good.neg(), S1.inv(), S2.div(S3.neg()).add(1)];
@@ -3514,7 +3516,7 @@ function suiteBase(g) {
   const q2 = (() => {
     const good = U(v0, l);
     const bads = g.shuffle([U(F(u0), l), U(F(u0).add(l), l.neg()), U(v0, l.neg()), U(v0.neg(), l), U(v0, l, r.inv())].map(M));
-    const e = R`\((v_n)\) est géométrique : \(v_n=v_0\times${par(r)}^n=${fx(v0)}\times${par(r)}^n\).<br>Comme \(u_n=v_n${pm(l)}\) : \(${good}\)` + (inv ? R` (on a écrit \(${par(r)}^n=\left(${fx(r.inv(), true)}\right)^{-n}\)).` : '.');
+    const e = R`\((v_n)\) est géométrique : \(v_n=v_0\times${parP(r)}^n=${fx(v0)}\times${parP(r)}^n\).<br>Comme \(u_n=v_n${pm(l)}\) : \(${good}\)` + (inv ? R` (on a écrit \(${parP(r)}^n=\left(${fx(r.inv(), true)}\right)^{-n}\)).` : '.');
     return Object.assign({ q: R`Une expression du terme général de \((u_n)\) est :`, e, d: R`\(u_n=v_n+\ell\) avec \(v_n=v_0q^n\) : attention, \(v_0=u_0-\ell\), pas \(u_0\).` }, mcq(g, M(good), bads));
   })();
   return { r, s, l, u0, v0, ctx, q1, q2, big };
@@ -3523,8 +3525,8 @@ function suiteLim(g, S) {
   const { r, l, u0, v0, big } = S;
   const good = big ? (v0.p > 0 ? INF : NINF) : fx(l);
   const bads = g.shuffle(['0', fx(F(u0)), INF, fx(r), fx(l.neg()), fx(F(S.s)), NINF].filter(x => x !== good));
-  const e = big ? R`\(${fx(r)}>1\) donc \(${par(r)}^n\to+\infty\) ; comme \(v_0=${fx(v0)}\), \(u_n\to${good}\).`
-    : R`\(-1&lt;${fx(r)}&lt;1\) donc \(${par(r)}^n\to0\) : \(v_n\to0\) et \(u_n=v_n${pm(l)}\to${good}\).`;
+  const e = big ? R`\(${fx(r)}>1\) donc \(${parP(r)}^n\to+\infty\) ; comme \(v_0=${fx(v0)}\), \(u_n\to${good}\).`
+    : R`\(-1&lt;${fx(r)}&lt;1\) donc \(${parP(r)}^n\to0\) : \(v_n\to0\) et \(u_n=v_n${pm(l)}\to${good}\).`;
   return Object.assign({ q: R`La limite de \((u_n)\) est :`, e, d: R`Si \(-1&lt;q&lt;1\), \(q^n\to0\) : la suite \(u_n=v_n+\ell\) tend vers \(\ell\).` }, mcq(g, M(good), bads.map(M)));
 }
 def('suite', 'suites', 3, g => { const S = suiteBase(g); return { ctx: S.ctx, items: [S.q1, S.q2, suiteLim(g, S)], _: { r: S.r.v, s: S.s, u0: S.u0, l: S.l.v } }; }, 3);
@@ -3532,13 +3534,13 @@ def('suite_sum', 'suites', 1, g => {
   const S = suiteBase(g);
   need(!S.big);
   const { r, v0 } = S;
-  const T = (K, ex) => R`S_n=${sum([[K, R`\left(1-${par(r).replace('\\dfrac', '\\frac')}^{${ex}}\right)`]])}`;
+  const T = (K, ex) => R`S_n=${sum([[K, R`\left(1-${parP(r).replace('\\dfrac', '\\frac')}^{${ex}}\right)`]])}`;
   const K = v0.div(F(1).sub(r));
   const good = T(K, 'n+1');
   const bads = g.shuffle([T(K, 'n'), T(v0.div(F(1).add(r)), 'n+1'), T(v0, 'n+1'), T(F(S.u0).div(F(1).sub(r)), 'n+1')].map(M));
   const q3 = Object.assign({
     q: R`La somme \(S_n=v_0+v_1+\dots+v_n\) vaut :`,
-    e: R`Somme de \(n+1\) termes d'une suite géométrique : \(S_n=v_0\dfrac{1-q^{n+1}}{1-q}=${fx(v0)}\times\dfrac{1-${par(r)}^{n+1}}{${fx(F(1).sub(r))}}\), soit \(${good}\).`,
+    e: R`Somme de \(n+1\) termes d'une suite géométrique : \(S_n=v_0\dfrac{1-q^{n+1}}{1-q}=${fx(v0)}\times\dfrac{1-${parP(r)}^{n+1}}{${fx(F(1).sub(r))}}\), soit \(${good}\).`,
     d: R`\(v_0+\dots+v_n\) compte \(n+1\) termes : l'exposant est \(n+1\).`
   }, mcq(g, M(good), bads));
   return { ctx: S.ctx, items: [S.q1, S.q2, q3], _: { r: r.v, v0: v0.v } };
@@ -3761,7 +3763,7 @@ def('poly_param', 'polynomes', 2, g => {
   const good = F(m);
   const P = R`X^3+mX^2${plus(sum([[b, 'X'], [c, '']]))}`;
   const bads = g.shuffle([() => F(k, r * r), () => F(-k, r), () => F(r ** 3 + b * r - c, r * r), () => F(-k, 2 * r)]).concat([() => good.add(1), () => good.sub(2)]);
-  const e = R`\(${r}\) est racine si et seulement si \(P(${r})=0\) : \(${par(r)}^3+m\times${par(r)}^2${pm(b)}\times${par(r)}${pm(c)}=0\),<br>soit \(${sum([[r ** 3, ''], [r * r, 'm'], [b * r, ''], [c, '']])}=0\), c'est-à-dire \(${sum([[r * r, 'm'], [k, '']])}=0\), donc \(m=${fx(good)}\).`;
+  const e = R`\(${r}\) est racine si et seulement si \(P(${r})=0\) : \(${parP(r)}^3+m\times${parP(r)}^2${pm(b)}\times${par(r)}${pm(c)}=0\),<br>soit \(${sum([[r ** 3, ''], [r * r, 'm'], [b * r, ''], [c, '']])}=0\), c'est-à-dire \(${sum([[r * r, 'm'], [k, '']])}=0\), donc \(m=${fx(good)}\).`;
   return Object.assign({
     q: R`Pour quelle valeur du réel \(m\) le polynôme \(P(X)=${P}\) admet-il \(${r}\) pour racine ?`,
     e, d: R`« \(r\) est racine de \(P\) » signifie \(P(r)=0\) : on remplace \(X\) par \(r\), puis on résout en \(m\). Attention à \((-r)^2=r^2\).`,
@@ -5260,7 +5262,7 @@ def('geo_scal', 'geometrie', 2, g => {
   const st = [
     { t: M(R`\vec u\cdot\vec v=${dot}`), ok: true, why: R`\(${a}\times${par(c)}+${par(b)}\times${par(d)}=${dot}\).` },
     { t: M(R`\vec u\cdot\vec v=${a * d + b * c}`), ok: a * d + b * c === dot, why: R`\(\vec u\cdot\vec v=xx'+yy'=${dot}\).` },
-    { t: M(R`\|\vec u\|=${rT(n2)}`), ok: true, why: R`\(\sqrt{${a}^2+${par(b)}^2}=\sqrt{${n2}}\).` },
+    { t: M(R`\|\vec u\|=${rT(n2)}`), ok: true, why: R`\(\sqrt{${a}^2+${parP(b)}^2}=\sqrt{${n2}}\).` },
     { t: M(R`\|\vec u\|=${Math.abs(a) + Math.abs(b)}`), ok: (Math.abs(a) + Math.abs(b)) ** 2 === n2, why: R`\(\|\vec u\|=\sqrt{x^2+y^2}=${rT(n2)}\).` },
     { t: R`\(\vec u\) et \(\vec v\) sont orthogonaux`, ok: dot === 0, why: dot === 0 ? R`\(\vec u\cdot\vec v=0\).` : R`\(\vec u\cdot\vec v=${dot}\neq0\).` },
     { t: R`\(\vec u\) et \(\vec v\) sont colinéaires`, ok: det === 0, why: det === 0 ? R`\(xy'-x'y=0\).` : R`\(xy'-x'y=${det}\neq0\).` },
@@ -5422,7 +5424,7 @@ def('suite_terms', 'suites', 2, g => {
   const bads = [() => P(q, k).mul(u1), () => P(q, k - 2).mul(u1), () => F(u1).add(q.mul(k - 1)), () => P(q.neg(), k - 1).mul(u1)];
   return Object.assign({
     q: R`Soit \((u_n)\) une suite géométrique telle que \(u_1=${u1}\) et \(u_4=${fx(u4)}\). On sait que sa raison est un nombre ${q.isInt ? 'entier' : 'rationnel'}. Que vaut \(u_{${k}}\) ?`,
-    e: R`\(u_4=u_1\times q^3\), donc \(q^3=\dfrac{${fx(u4, true)}}{${u1}}=${fx(P(q, 3))}\) et \(q=${fx(q)}\).<br>Puis \(u_{${k}}=u_1\times q^{${k - 1}}=${u1}\times${par(q)}^{${k - 1}}=${fx(val)}\).`,
+    e: R`\(u_4=u_1\times q^3\), donc \(q^3=\dfrac{${fx(u4, true)}}{${u1}}=${fx(P(q, 3))}\) et \(q=${fx(q)}\).<br>Puis \(u_{${k}}=u_1\times q^{${k - 1}}=${u1}\times${parP(q)}^{${k - 1}}=${fx(val)}\).`,
     d: R`Suite géométrique : \(u_n=u_p\times q^{n-p}\). Attention à l'exposant : de \(u_1\) à \(u_{${k}}\), il y a \(${k - 1}\) multiplications par \(q\).`,
     _: { chk: () => (P(q, 3).mul(u1).eq(u4) && val.eq(P(q, k - 1).mul(u1))) || 'faux' }
   }, mcqF(g, val, g.shuffle(bads)));
@@ -5468,10 +5470,10 @@ def('suite_monot', 'suites', 2, g => {
     e = R`\(u_n=\dfrac{${b}(n+1)${pm(c)}}{n+1}=${b}${pm(c)}\times\dfrac{1}{n+1}\)` + (c ? R` et \(\dfrac1{n+1}\) est décroissante : comme \(${c}${c > 0 ? '>' : '&lt;'}0\), la suite est ${W[ans]}.` : R`\(=${b}\) : la suite est constante.`);
   } else if (kind === 'geo') {
     const q = g.pick([F(1, 2), F(2, 3), F(1, 3), F(-1, 2), F(3), F(-2)]), k = g.nz(-3, 3);
-    def0 = R`u_n=${kco(k)}${par(q).replace('\\dfrac', '\\frac')}^n`;
+    def0 = R`u_n=${kco(k)}${parP(q).replace('\\dfrac', '\\frac')}^n`;
     ans = q.v < 0 ? 'no' : (q.v > 1) === (k > 0) ? 'inc' : 'dec';
     e = q.v < 0 ? R`La raison \(${fx(q)}\) est négative : les termes changent de signe à chaque rang, la suite n'est pas monotone.`
-      : R`\(u_{n+1}-u_n=${kco(k)}${par(q).replace('\\dfrac', '\\frac')}^n\left(${fx(q, true)}-1\right)\) est du signe de \(${k}\times(${fx(q, true)}-1)\) : la suite est ${W[ans]}.`;
+      : R`\(u_{n+1}-u_n=${kco(k)}${parP(q).replace('\\dfrac', '\\frac')}^n\left(${fx(q, true)}-1\right)\) est du signe de \(${k}\times(${fx(q, true)}-1)\) : la suite est ${W[ans]}.`;
   } else { def0 = R`u_n=n-\ln(n+1)`; ans = 'inc'; e = R`\(u_{n+1}-u_n=1-\ln\left(\dfrac{n+2}{n+1}\right)\) et \(\dfrac{n+2}{n+1}\leqslant2&lt;e\), donc \(\ln\left(\dfrac{n+2}{n+1}\right)&lt;1\) : la suite est strictement croissante.`; }
   const all = ['inc', 'dec', 'cst', 'no'];
   return Object.assign({
@@ -5724,7 +5726,7 @@ def('va_lin', 'binomiale', 2, g => {
     const V = g.int(1, 9), a = g.nz(-4, 4), b = g.nz(-6, 6); val = F(a * a * V);
     q = R`Soit \(X\) une variable aléatoire de variance \(\mathbb V(X)=${V}\). Que vaut \(\mathbb V(${sum([[a, 'X'], [b, '']])})\) ?`;
     bads = [() => F(a * V), () => F(a * a * V + b), () => F(a * V + b), () => F(Math.abs(a) * V)];
-    e = R`\(\mathbb V(aX+b)=a^2\,\mathbb V(X)\) : la constante \(b\) ne change pas la dispersion. \(${par(a)}^2\times${V}=${a * a * V}\).`;
+    e = R`\(\mathbb V(aX+b)=a^2\,\mathbb V(X)\) : la constante \(b\) ne change pas la dispersion. \(${parP(a)}^2\times${V}=${a * a * V}\).`;
   } else if (kind === 'sumV') {
     const v1 = g.int(1, 9), v2 = g.int(1, 9), a = g.pick([1, 2, 3]), b = g.pick([1, -1, 2, -2]); val = F(a * a * v1 + b * b * v2);
     q = R`Soient \(X\) et \(Y\) deux variables aléatoires indépendantes de variances \(\mathbb V(X)=${v1}\) et \(\mathbb V(Y)=${v2}\). Que vaut \(\mathbb V(${sum([[a, 'X'], [b, 'Y']])})\) ?`;
@@ -5913,7 +5915,7 @@ def('esp_vec', 'espace', 2, g => {
   const st = [
     { t: M(R`\vec u\cdot\vec v=${dt}`), ok: true, why: R`\(xx'+yy'+zz'=${dt}\).` },
     { t: M(R`\vec u\cdot\vec v=${dt + g.pick([1, -2, 3])}`), ok: false, why: R`\(\vec u\cdot\vec v=${dt}\).` },
-    { t: M(R`\|\vec u\|=${rT(n2)}`), ok: true, why: R`\(\sqrt{${u.map(x => `${par(x)}^2`).join('+')}}=\sqrt{${n2}}\).` },
+    { t: M(R`\|\vec u\|=${rT(n2)}`), ok: true, why: R`\(\sqrt{${u.map(x => `${parP(x)}^2`).join('+')}}=\sqrt{${n2}}\).` },
     { t: M(R`\|\vec u\|=${n2}`), ok: n2 === 1, why: R`c'est \(\|\vec u\|^2\) ; \(\|\vec u\|=${rT(n2)}\).` },
     { t: R`\(\vec u\) et \(\vec v\) sont orthogonaux`, ok: dt === 0, why: dt === 0 ? R`\(\vec u\cdot\vec v=0\).` : R`\(\vec u\cdot\vec v=${dt}\neq0\).` },
     { t: R`\(\vec u\) et \(\vec v\) sont colinéaires`, ok: col, why: col ? R`leurs coordonnées sont proportionnelles.` : R`leurs coordonnées ne sont pas proportionnelles.` },

@@ -8126,7 +8126,7 @@ function load() {
   } catch (e) { console.warn('Session illisible', e); }
   return null;
 }
-function save() { lastSave = Date.now(); ls.set(K.session, S); }
+function save() { if (S && S.rv) return; lastSave = Date.now(); ls.set(K.session, S); }   // S.rv : copie passée réaffichée, jamais enregistrée comme session
 // Ajoute au compteur de la question courante le temps écoulé depuis le dernier point (jamais pendant une pause).
 function commit() {
   if (!S || S.phase !== 'test' || S.paused) return;
@@ -8466,7 +8466,7 @@ function scoreQ(q, sel) {
   return { pts, status: pts >= 1 ? 'juste' : pts > 0 ? 'partiel' : 'faux' };
 }
 const compute = () => Q.map((q, i) => ({ i, q, sel: S.answers[i], t: S.times[i], flag: S.flags[i], skip: !!S.skips[i], was: S.was[i] || null,
-  ...(S.skips[i] ? { pts: 0, status: 'passe' } : scoreQ(q, S.answers[i])),
+  ...(S.rv ? { pts: S.rv[i].pts, status: S.rv[i].status } : S.skips[i] ? { pts: 0, status: 'passe' } : scoreQ(q, S.answers[i])),
   slip: !S.skips[i] && !!S.slips[i] }));
 // Une erreur de calcul ne s'annote que sur une question où des points ont été perdus
 const canSlip = r => r.status === 'faux' || r.status === 'partiel';
@@ -9268,6 +9268,21 @@ async function createGroupTest() {
   openGroup(G.gid);
   openIntro(groupTestDef(row));
 }
+function openPastCopy(att, t) {
+  const results = att.results || [];
+  const qids = results.map(r => r.qid);
+  if (!qids.length || !qids.every(id => qEntry(id))) { toast('Cette copie ne peut pas être réaffichée : ses questions sont introuvables.'); return; }
+  const g = t && myGroups.find(x => x.id === t.group_id);
+  const def = { id: att.defId, kind: att.kind, gid: t ? t.group_id : undefined, title: att.title, eyebrow: g ? `Contrôle du groupe · ${g.name}` : '', qids, duration: t ? t.duration_s : Math.max(60, att.used || 60) };
+  activate(def);
+  const R = fresh(def);
+  Object.assign(R, { phase: 'done', recorded: true, attemptId: att.id, startedAt: att.at - (att.used || 0) * 1000, submittedAt: att.at, pauseTotal: 0, pauseCount: att.pauses || 0,
+    answers: results.map(r => (r.sel || []).slice()), times: results.map(r => r.t || 0), skips: results.map(r => !!r.skip), slips: results.map(r => !!r.slip), was: results.map(r => r.was || null),
+    rv: results.map(r => ({ pts: r.pts, status: r.status })) });
+  S = R;
+  showResults();
+  if (!results.some(r => r.sel)) toast('Copie rendue avant l\'enregistrement des réponses : tu vois ta note et le résultat de chaque question, mais pas les cases cochées.', 6000);
+}
 const ST_TXT = { juste: 'juste', faux: 'faux', partiel: 'partiel', vide: 'sans réponse', passe: 'passée' };
 function toggleGroupReview(tid) {
   const el = $('#gtq-' + tid), t = G && G.tests.find(x => x.id === tid);
@@ -9554,7 +9569,7 @@ function groupHTML() {
     const board = Object.values(best).sort((a, b) => b.note - a.note);
     const mine = best[me.id];
     return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(t.title)}</h3><p class="meta">${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${esc(G.pseudo(t.created_by) || 'un membre')} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
-      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.start ? '🔴 Rejoindre (départ dans ' + fmtCd((w.start - now) / 1000) + ')' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}<button type="button" class="btn" data-gtq="${t.id}">Questions et corrigé</button>${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
+      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.start ? '🔴 Rejoindre (départ dans ' + fmtCd((w.start - now) / 1000) + ')' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${mine ? `<button type="button" class="btn" data-gtcopy="${t.id}">Voir ma copie</button>` : `<button type="button" class="btn" data-gtq="${t.id}">Questions et corrigé</button>`}${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
       <div class="ctl-detail gtq" id="gtq-${t.id}" hidden></div>
       <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(G.pseudo(a.user_id) || '?')}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>`;
   }).join('');
@@ -9612,6 +9627,8 @@ function initGroupeEvents() {
     if (gt && G) { const t = G.tests.find(x => x.id === gt.dataset.gt); if (t) { const def = groupTestDef(t); if (def.qids.length) openIntro(def); } return; }
     const bd = e.target.closest('[data-board]'); if (bd) { const el = $('#board-' + bd.dataset.board); el.hidden = !el.hidden; return; }
     const gq = e.target.closest('[data-gtq]'); if (gq) { toggleGroupReview(gq.dataset.gtq); return; }
+    const gc = e.target.closest('[data-gtcopy]');
+    if (gc && G) { const t = G.tests.find(x => x.id === gc.dataset.gtcopy), a = G.attempts.filter(x => x.user_id === me.id && x.defId === 'g:' + gc.dataset.gtcopy).sort((x, y) => y.at - x.at)[0]; if (a) openPastCopy(attempts.find(x => x.id === a.id) || a, t); return; }
     const pr = e.target.closest('[data-prof]'); if (pr) openProfile(pr.dataset.prof);
   });
   box.addEventListener('keydown', e => { const pr = e.target.closest('tr[data-prof]'); if (pr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openProfile(pr.dataset.prof); } });

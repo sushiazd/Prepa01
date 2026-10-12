@@ -9278,7 +9278,7 @@ function groupTestDef(t) {
   const g = myGroups.find(x => x.id === t.group_id) || (G && G.group);
   const def = { id: 'g:' + t.id, kind: 'group', gid: t.group_id, title: t.title, eyebrow: `Contrôle du groupe · ${g ? g.name : ''}`, qids, duration: t.duration_s, themeCount: t.theme_count || null };
   const w = t.created_at ? liveWin(t) : null;
-  if (w && Date.now() < w.end) { def.live = { start: w.start, end: w.end, tid: t.id, owner: t.created_by }; def.eyebrow = 'Contrôle du groupe en direct · ' + (g ? g.name : ''); }
+  if (w && Date.now() < w.end) { def.live = { start: w.start, end: w.end, tid: t.id, owner: t.created_by, mgr: !!me && (t.created_by === me.id || !!(g && g.created_by === me.id)) }; def.eyebrow = 'Contrôle du groupe en direct · ' + (g ? g.name : ''); }
   return def;
 }
 
@@ -9413,7 +9413,7 @@ function liveLeave() {
 function renderLive() {
   const L = [...liveMembers.entries()].sort((a, b) => String(a[1].pseudo).localeCompare(String(b[1].pseudo)));
   const inTest = S && S.phase === 'test' && S.live, def = inTest ? S.def : pendingDef;
-  const owner = def && def.live && me && def.live.owner === me.id, lobby = liveState(def) === 'lobby';
+  const owner = !!(def && def.live && def.live.mgr), lobby = liveState(def) === 'lobby';
   const acts = !def || !def.live ? '' : `<div class="live-actions">${owner && lobby && !inTest ? '<button type="button" class="btn btn-primary" data-lact="start">Démarrer maintenant</button>' : ''}${inTest ? '<button type="button" class="btn" data-lact="quit">Quitter sans rendre</button>' : ''}${owner ? `<button type="button" class="btn btn-danger" data-lact="cancel">${inTest ? 'Annuler pour tout le groupe' : 'Annuler le contrôle'}</button>` : ''}</div>`;
   const html = `<div class="live-box"><p class="live-h">🔴 En direct${L.length ? ` · ${L.length} participant${L.length > 1 ? 's' : ''}` : ''}</p>${L.length ? `<ul>${L.map(([id, x]) =>
     `<li class="${id === (me && me.id) ? 'me' : ''}${x.st === 'done' ? ' done' : ''}"><b>${esc(x.pseudo || '?')}${id === (me && me.id) ? ' (toi)' : ''}</b><span>${x.st === 'done' ? 'a rendu' : x.st === 'test' ? `${x.n}/${x.N} répondues` : 'en salle d\'attente'}</span></li>`).join('')}</ul>` : ''}${acts}</div>`;
@@ -9521,8 +9521,8 @@ function groupHTML() {
     const best = {}; res.forEach(a => { if (!best[a.user_id] || a.note > best[a.user_id].note) best[a.user_id] = a; });
     const board = Object.values(best).sort((a, b) => b.note - a.note);
     const mine = best[me.id];
-    return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(t.title)}</h3><p class="meta">${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${esc(G.pseudo(t.created_by) || 'un membre')} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
-      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.start ? '🔴 Rejoindre (départ dans ' + fmtCd((w.start - now) / 1000) + ')' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${t.created_by === me.id ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
+    return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(t.title)}</h3><p class="meta">${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${esc(G.pseudo(t.created_by) || 'un membre')} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
+      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.start ? '🔴 Rejoindre (départ dans ' + fmtCd((w.start - now) / 1000) + ')' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
       <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(G.pseudo(a.user_id) || '?')}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>`;
   }).join('');
   return `
@@ -9537,17 +9537,18 @@ function groupHTML() {
       </div>
     </section>
 
+    <section class="card"><div class="card-head"><div><h2>Contrôles du groupe</h2><p class="sub">Un contrôle commun, construit sur les points faibles du groupe, à faire <b>ensemble en direct</b> : il démarre 1 minute après sa création, tout le groupe le voit en haut de la page et peut le rejoindre, chacun répond de son côté avec le même chrono, puis vous comparez vos notes. Une fois le temps écoulé, on peut encore le faire seul.</p></div></div>
+      <div class="data-row"><select id="gtN" aria-label="Longueur"><option value="10">10 questions · 30 min</option><option value="20" selected>20 questions · 1 h</option><option value="37">37 questions · 1 h 30</option></select><button type="button" class="btn btn-primary" data-g="newTest">Lancer un contrôle en direct</button></div>
+      <h3 style="margin:22px 0 4px;font:600 17px/1.3 var(--serif)">Historique des contrôles${G.tests.length ? ` (${G.tests.length})` : ''}</h3><p class="fine">Du plus récent au plus ancien : « Classement » montre les notes de chacun.${G.group && G.group.created_by === me.id ? ' En tant que propriétaire du groupe, tu peux supprimer n\'importe quel contrôle.' : ''}</p>
+      <div style="margin-top:10px">${tests || '<p class="fine">Aucun contrôle de groupe pour le moment.</p>'}</div></section>
+
     <section class="card"><div class="card-head"><div><h2>Membres</h2><p class="sub">Clique sur un membre pour voir son profil détaillé. Le temps compte les épreuves faites sur le site, pauses exclues.</p></div></div>
       <div style="overflow-x:auto"><table class="hist members"><thead><tr><th>Pseudo</th><th>Temps</th><th>Épreuves</th><th>Moyenne</th><th>Dernière</th><th>Point faible</th><th>Actif</th></tr></thead><tbody>
       ${rows.map(({ m, ps }) => `<tr data-prof="${m.id}" tabindex="0"><td><strong>${esc(m.pseudo)}</strong>${m.isMe ? ' <span class="fine">(toi)</span>' : ''}</td><td>${fmtHours(ps.used)}</td><td>${ps.n}</td><td>${ps.avg == null ? '—' : fmtNum(ps.avg, 1)}</td><td>${ps.lastNote == null ? '—' : fmtNum(ps.lastNote, 1)}</td><td>${ps.weak[0] ? esc(ps.weak[0].short) : '—'}</td><td>${ps.last ? fmtDate(ps.last) : '—'}</td></tr>`).join('')}
       </tbody></table></div>${hid ? `<p class="fine" style="margin-top:10px">${hid} membre${hid > 1 ? 's ont' : ' a'} choisi de masquer ${hid > 1 ? 'leurs' : 'ses'} stats : elles ne comptent pas dans les vues de groupe.</p>` : ''}</section>
 
     <section class="card"><div class="card-head"><div><h2>Ce qui fait perdre le plus de points au groupe</h2><p class="sub">Thèmes classés par points perdus en moyenne par question, sur les copies importées et les épreuves de tous les membres visibles.</p></div></div>
-      ${themes.length ? `<div class="th-rows">${themes.map(t => { const s = st[t.id], pct = Math.round(s.rate * 100); return `<div class="th-row"><div class="nm">${esc(t.short)}<small>${s.n} réponses · ${strug[t.id] || 0} membre${(strug[t.id] || 0) > 1 ? 's' : ''} en difficulté</small></div><div class="bar-cell" style="display:flex;align-items:center"><span class="pct">${pct} %</span><div class="bar ${rateClass(s.rate)}" style="flex:1"><i style="width:${Math.max(3, pct)}%"></i></div></div><div class="cnt">${s.wrong} fausses · ${s.blank} vides</div><button type="button" class="btn" data-method="${t.id}">Méthode</button></div>`; }).join('')}</div>` : '<p class="fine">Pas encore de données dans ce groupe.</p>'}</section>
-
-    <section class="card"><div class="card-head"><div><h2>Contrôles du groupe</h2><p class="sub">Un contrôle commun, construit sur les points faibles du groupe, à faire <b>ensemble en direct</b> : il démarre 1 minute après sa création, tout le groupe le voit en haut de la page et peut le rejoindre, chacun répond de son côté avec le même chrono, puis vous comparez vos notes. Une fois le temps écoulé, on peut encore le faire seul.</p></div></div>
-      <div class="data-row"><select id="gtN" aria-label="Longueur"><option value="10">10 questions · 30 min</option><option value="20" selected>20 questions · 1 h</option><option value="37">37 questions · 1 h 30</option></select><button type="button" class="btn btn-primary" data-g="newTest">Lancer un contrôle en direct</button></div>
-      <div style="margin-top:14px">${tests || '<p class="fine">Aucun contrôle de groupe pour le moment.</p>'}</div></section>`;
+      ${themes.length ? `<div class="th-rows">${themes.map(t => { const s = st[t.id], pct = Math.round(s.rate * 100); return `<div class="th-row"><div class="nm">${esc(t.short)}<small>${s.n} réponses · ${strug[t.id] || 0} membre${(strug[t.id] || 0) > 1 ? 's' : ''} en difficulté</small></div><div class="bar-cell" style="display:flex;align-items:center"><span class="pct">${pct} %</span><div class="bar ${rateClass(s.rate)}" style="flex:1"><i style="width:${Math.max(3, pct)}%"></i></div></div><div class="cnt">${s.wrong} fausses · ${s.blank} vides</div><button type="button" class="btn" data-method="${t.id}">Méthode</button></div>`; }).join('')}</div>` : '<p class="fine">Pas encore de données dans ce groupe.</p>'}</section>`;
 }
 function initGroupeEvents() {
   const box = $('#groupeBox');

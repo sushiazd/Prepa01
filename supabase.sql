@@ -206,16 +206,26 @@ drop policy if exists attempts_write on public.attempts;
 create policy attempts_write on public.attempts for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
+-- Propriétaire du groupe : peut supprimer ou démarrer n'importe quel contrôle du groupe
+create or replace function public.owns_group(gid uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.groups g where g.id = gid and g.created_by = auth.uid())
+$$;
+revoke all on function public.owns_group(uuid) from public, anon;
+grant execute on function public.owns_group(uuid) to authenticated;
+
 drop policy if exists group_tests_select on public.group_tests;
 create policy group_tests_select on public.group_tests for select to authenticated using (public.is_member(group_id));
 drop policy if exists group_tests_insert on public.group_tests;
 create policy group_tests_insert on public.group_tests for insert to authenticated
   with check (public.is_member(group_id) and created_by = auth.uid());
 drop policy if exists group_tests_delete on public.group_tests;
-create policy group_tests_delete on public.group_tests for delete to authenticated using (created_by = auth.uid());
+create policy group_tests_delete on public.group_tests for delete to authenticated
+  using (created_by = auth.uid() or public.owns_group(group_id));
 drop policy if exists group_tests_update on public.group_tests;
 create policy group_tests_update on public.group_tests for update to authenticated
-  using (created_by = auth.uid()) with check (created_by = auth.uid());
+  using (created_by = auth.uid() or public.owns_group(group_id))
+  with check (created_by = auth.uid() or public.owns_group(group_id));
 grant update (starts_at) on public.group_tests to authenticated;
 
 -- ---------- 1v1 : liste des joueurs inscrits ----------

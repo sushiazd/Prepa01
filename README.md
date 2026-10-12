@@ -16,7 +16,7 @@ Le site regroupe plusieurs outils de révision :
 | `meca/index.html` | l'entraînement au CC d'ingénierie mécanique (statique : vecteurs, moments, torseurs, liaisons, PFS) : parcours guidé avec schémas SVG générés, exercices du DS 2023-24, cours résumé, sujet blanc d'1 h 30 |
 | `phys/index.html` | l'entraînement au CC de mécanique du point (chapitres II à V : PFD, énergie, oscillateurs, moment cinétique) : parcours guidé, formules littérales vérifiées par tirage de valeurs, cours résumé + démos à savoir refaire, sujet blanc d'1 h 30 |
 | `duel/index.html` | le multijoueur : 1v1 (défis et duels en direct) et FFA (salle jusqu'à 8 joueurs, le dernier survivant gagne) sur le QCM de maths |
-| `streak/index.html` | le mode Streak : des questions du QCM de maths à la suite jusqu'à la première erreur, avec records (tout le programme, nouveaux types, format du QCM) |
+| `streak/index.html` | le mode Streak (plus lié depuis le site depuis le 12/10/2026) : des questions du QCM de maths à la suite jusqu'à la première erreur, avec records (tout le programme, nouveaux types, format du QCM) |
 | `planning.js` | l'onglet Planning de l'accueil : emploi du temps ADE (lien d'export `.shu` enregistré dans le compte), prochaines évaluations repérées automatiquement |
 | `supabase/functions/planning/` | la fonction Supabase qui relaie l'emploi du temps (le serveur de l'université bloque la lecture directe depuis le site) ; déjà déployée sous le nom `planning` |
 | `presence.js` | la présence en ligne (pastille verte) et les invitations 1v1 et FFA, chargé par toutes les pages |
@@ -24,7 +24,7 @@ Le site regroupe plusieurs outils de révision :
 | `supabase.sql` | la base de données et ses règles de sécurité (étape 2) |
 | `README.md` | ce guide |
 
-Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/` `…/Prepa01/elec/`, `…/Prepa01/duel/` et `…/Prepa01/streak/`.
+Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/` `…/Prepa01/elec/` et `…/Prepa01/duel/`.
 
 On se connecte une seule fois, sur la page d'accueil : la session vaut pour toutes les pages. Une fois connecté, la progression d'élec (parcours, stats, copies, planning, date du CC) est enregistrée dans la table `user_data` et fusionnée à chaque ouverture de page, donc on la retrouve sur tous ses appareils. Sans compte, elle reste dans le navigateur.
 

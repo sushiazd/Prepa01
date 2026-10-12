@@ -78,9 +78,6 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
 .duel{grid-column:1/-1;grid-template-columns:auto 1fr auto;align-items:center;column-gap:20px;border-color:var(--pen-line)}
 .duel .ic{background:var(--pen);color:var(--pen-ink);font-family:var(--sans);font-size:22px}
 .duel .go{margin-top:0;white-space:nowrap}
-.streak{border-color:color-mix(in srgb,var(--flag) 40%,transparent)}
-.streak .ic{background:var(--flag);color:#fff;font-size:26px}
-.streak .go{color:var(--flag)}
 .acc-recs{display:flex;gap:8px;flex-wrap:wrap}
 .acc-recs span{display:inline-flex;align-items:baseline;gap:6px;padding:6px 12px;border-radius:999px;background:var(--flag-soft);color:var(--ink-2);font-size:13.5px}
 .acc-recs b{color:var(--flag);font:700 16px/1 var(--sans)}
@@ -277,16 +274,6 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
       <span class="meta" id="el2Meta"></span>
       <span class="go">Ouvrir →</span>
     </a>
-    <a class="tool duel streak" href="streak/">
-      <span class="ic" aria-hidden="true">∞</span>
-      <div>
-        <span class="kind">Défi solo</span>
-        <h2>Streak</h2>
-        <p>Les questions s'enchaînent tant que tu réponds juste : à la première erreur, la série s'arrête. Bats ton record, y compris sur les nouveaux types de questions qui ne sont pas encore tombés en contrôle. Maths pour l'instant.</p>
-        <span class="meta" id="streakMeta"></span>
-      </div>
-      <span class="go">Jouer →</span>
-    </a>
     <a class="tool duel" href="duel/">
       <span class="ic" aria-hidden="true">⚔</span>
       <div>
@@ -362,8 +349,6 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   const ep2 = get('el2.path.v1', null), eSk2 = ep2 && ep2.sk ? Object.values(ep2.sk).filter(s => s.m >= 100).length : 0, eH2 = get('el2.hist.v1', []);
   document.getElementById('el2Meta').innerHTML = [eSk2 ? `<b>${eSk2}/9</b> compétences validées` : '', eH2.length ? `dernier sujet blanc : <b>${String(eH2[eH2.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   document.getElementById('atoMeta').innerHTML = [aSk ? `<b>${aSk}/12</b> compétences validées` : '', aH.length ? `dernier sujet blanc : <b>${String(aH[aH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
-  const sk = get('streak.v1', null), best = sk && sk.best ? Math.max(0, ...Object.values(sk.best).map(b => b.n || 0)) : 0;
-  document.getElementById('streakMeta').innerHTML = sk && sk.cur ? `Série en cours : <b>${sk.cur.n}</b> d'affilée · record <b>${best}</b>` : best ? `Record : <b>${best}</b> d'affilée` : '';
   orderTools();
   }
 
@@ -424,19 +409,13 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
     if (/Failed to fetch|NetworkError|network/i.test(m)) return 'Pas de connexion au serveur. Vérifie ta connexion Internet.';
     return m || 'Erreur inconnue.';
   }
-  function streakRecs() {
-    const sk = get('streak.v1', null), B = (sk && sk.best) || {}, N = { all: 'tout le programme', new: 'nouveaux types', exam: 'format du QCM' };
-    const items = Object.keys(N).filter(k => B['maths:' + k] && B['maths:' + k].n).map(k => `<span><b>${B['maths:' + k].n}</b> d'affilée · ${N[k]}</span>`);
-    return items.length ? `<div><p class="eyebrow" style="margin-bottom:8px">Records Streak · maths</p><div class="acc-recs">${items.join('')}</div></div>` : '';
-  }
   function render() {
     const A = window.SiteAccount;
     if (!A || !A.configured) { box.hidden = true; return; }
     const u = A.user, p = A.profile;
     if (u) {
       box.innerHTML = `<div class="acc-row"><div><p class="eyebrow" style="margin-bottom:8px">Mon compte</p><h2>Connecté : ${esc(p ? p.pseudo : '…')}</h2></div><span class="sp"></span><span class="sync ${A.status}">${SYNC_TXT[A.status] || ''}</span></div>
-        ${streakRecs()}
-        <p class="sub">Ta progression d'élec (parcours, sujets blancs, stats), tes records Streak et tes contrôles et épreuves de maths sont enregistrés sur ton compte. Connecte-toi avec le même e-mail sur ta tablette ou ton téléphone pour tout retrouver.</p>
+        <p class="sub">Ta progression d'élec (parcours, sujets blancs, stats) et tes contrôles et épreuves de maths sont enregistrés sur ton compte. Connecte-toi avec le même e-mail sur ta tablette ou ton téléphone pour tout retrouver.</p>
         ${A.status === 'notable' ? '<p class="acc-msg err">La base de données n\'a pas encore la table de synchronisation : il faut relancer <b>supabase.sql</b> dans Supabase (SQL Editor). En attendant, la progression reste sur cet appareil.</p>' : ''}
         <div class="acc-row"><span class="fine">${esc(u.email || '')}</span><span class="sp"></span><button type="button" class="btn" data-acc="sync">Synchroniser maintenant</button><button type="button" class="btn" data-acc="out">Me déconnecter</button></div>`;
     } else {

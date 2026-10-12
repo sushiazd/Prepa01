@@ -8043,11 +8043,7 @@ function renderSujets() {
       <div class="meta-chips"><span class="meta-chip">${NEWTYPES.n} questions</span><span class="meta-chip">${fmtMin(NEWTYPES.dur)}</span><span class="meta-chip">Toujours nouveau</span></div>
       <p class="last">${lastN ? `Dernière copie : <strong>${fmtNum(lastN.note, 2)}/20</strong> (${fmtDate(lastN.at)})` : 'Pas encore tenté.'}</p>
       <button type="button" class="btn btn-primary" data-newtypes="1">Générer et commencer</button></article>`;
-  const streakCard = `<article class="card sj sj-gen"><h3>Mode Streak</h3><p class="sub">Des questions à la suite tant que tu as juste : à la première erreur, c'est fini. Choisis « Nouveaux types » pour t'entraîner sur les questions qui ne sont pas encore tombées.</p>
-      <div class="meta-chips"><span class="meta-chip">Sans chrono</span><span class="meta-chip">Record à battre</span></div>
-      <p class="last">&nbsp;</p>
-      <a class="btn btn-primary" href="../streak/">Jouer</a></article>`;
-  $('#sjGrid').innerHTML = genCards + newCard + streakCard + BANK_ORDER.map(b => {
+  $('#sjGrid').innerHTML = genCards + newCard + BANK_ORDER.map(b => {
     const Q = BANKS[b].Q, m = BANK_META[b], last = attempts.filter(a => a.defId === b).slice(-1)[0];
     const multi = Q.filter(q => q.multi).length;
     return `<article class="card sj"><h3>${m.title}</h3><p class="sub">${m.sub}</p>

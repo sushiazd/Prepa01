@@ -695,7 +695,7 @@ const HELP = '<p class="fine" style="margin-top:12px">Formules : tape par exempl
    COMPÉTENCES ET PROGRESSION (mêmes règles que les autres matières)
    ===================================================================== */
 const PK = 'phys.path.v1', HK = 'phys.hist.v1', EK = 'phys.exam.v1', VAL = 100, MMAX = 130;
-const CH = ['Rappels de cinématique', 'Dynamique : le PFD', 'Énergie', 'Oscillateurs', 'Moment cinétique et gravitation'];
+const CH = ['Rappels de cinématique', 'Dynamique : le PFD', 'Énergie', 'Oscillateurs (peu au CC2)', 'Moment cinétique et gravitation (peu au CC2)'];
 const SK = [
   { id: 'polar', ch: 0, name: 'Vitesse et accélération en polaires', fiche: 0 },
   { id: 'chute', ch: 0, name: 'Tir dans le champ de pesanteur', fiche: 0 },
@@ -823,16 +823,24 @@ function vHome() {
   const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Physique · Mécanique du point · B. Bêche</p><h1>Réussir le CC de mécanique</h1>
-    <p class="lede">Le CC du mercredi 2/12 dure 1 h 30. Le premier CC (28/09) a porté sur le début du cours ; celui-ci devrait couvrir les <b>chapitres II à V</b> : dynamique (PFD, frottements, référentiels non galiléens, chocs), énergie (travail, potentiel, stabilité), oscillateurs (libre, amorti, forcé) et moment cinétique (forces centrales, gravitation). La cinématique du chapitre I sert partout pour projeter le PFD.</p></div>
+    <p class="lede">Le CC du mercredi 2/12 dure 1 h 30, sans document ni calculatrice. D'après le prof, il porte <b>en majorité sur les chapitres II et III</b> : dynamique (PFD, frottements, référentiels non galiléens, chocs) et énergie (travail, théorème de l'énergie cinétique, énergie potentielle, stabilité). Comme dans les sujets des années passées, l'oscillateur et le moment cinétique peuvent revenir dans une partie plus courte.</p></div>
     <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC de physique : ${esc(when)}</span></div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du tir parabolique jusqu'aux orbites, avec une progression qui s'adapte à tes résultats.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
-      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">4 exercices notés sur 20 : dynamique, énergie, oscillateurs, chocs et gravitation. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">Calqué sur les CC2 de 2022 et 2023 : un problème sur 12 points (plan incliné, travaux, énergie), un exercice sur les référentiels non galiléens (5 points), chocs et oscillateur (3 points). ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
         <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
     </div>
-    <section class="card"><h2>Pas d'annales sur Moodle</h2><p class="sub">Aucun CC des années précédentes n'est en ligne. Les exercices reprennent ceux du poly de TD (plan incliné, goutte d'eau, bactérie, chocs, rebonds, ressort, pendule, bouchon, météorite…). Au CC, on attend surtout des <b>expressions littérales</b> démontrées puis des applications numériques : ici, tes formules sont vérifiées automatiquement (tu tapes par exemple <code>sqrt(2*g*h)</code>). L'onglet Cours liste aussi les démonstrations à savoir refaire.</p></section>`;
+    <section class="card"><h2>Ce que montrent les anciens CC2</h2><p class="sub">Sujets de janvier 2022 et de 2023 (dossier <code>ANNALES_CC</code>) : 1 h 30, 3 pages, parties indépendantes, <b>sans calculatrice</b>, donc tout se fait en <b>littéral</b>.</p>
+      <ul class="sub" style="margin:10px 0 0 18px;display:grid;gap:6px">
+        <li><b>Problème (12 points)</b> : un mobile glisse sur un plan incliné avec frottement solide. Bilan des forces et leurs composantes dans la base \\((\\vec i',\\vec j')\\), travail de chaque force de A à B, théorème de l'énergie cinétique pour obtenir \\(v_B\\). En 2022, le mobile comprime ensuite un ressort : PFD, équation \\(\\ddot x+\\omega_0^2x=0\\), solution \\(A\\cos(\\omega t+\\varphi)\\) avec les conditions initiales, durée jusqu'à l'arrêt, \\(E_p\\) déduite de la force, puis \\(E_m\\).</li>
+        <li><b>Référentiel non galiléen (3 à 6 points)</b> : direction et sens de l'accélération de Coriolis \\(2\\vec\\omega\\wedge\\vec v_r\\) sur un schéma (2022) ; bille en rotation tenue par deux fils : accélération centripète, PFD projeté, tensions des fils (2023).</li>
+        <li><b>Exercice et cours (≈ 5 points)</b> : vitesse en coordonnées polaires, moment cinétique \\(\\vec L_O=\\overrightarrow{OM}\\wedge m\\vec v\\), énoncé du théorème du moment cinétique.</li>
+        <li><b>Bonus (1 point)</b> : retrouver l'équation du pendule à partir de \\(E_m\\) constante.</li>
+      </ul>
+      <p class="sub" style="margin-top:10px">Beaucoup de questions commencent par « Énoncer », « Établir » ou « Démontrer » : il faut savoir réciter le PFD, le théorème de l'énergie cinétique et celui du moment cinétique, et refaire les démonstrations de l'onglet Cours. Ici, certains exercices demandent aussi une valeur numérique pour vérifier ton résultat ; au CC, garde la formule littérale.</p></section>`;
+  mathIn(app);
 }
 function renderPathTop() {
   const el = $('#pathTop'); if (!el) return;
@@ -913,7 +921,7 @@ const FICHES = [
     <div class="box key"><h5>Conseil</h5>Recopie chaque démonstration une fois, puis refais-la de mémoire sur une feuille blanche : c'est ce qui sera demandé au CC.</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Chapitres II à V · CC du 2/12</p><h1>Le cours utile</h1><p class="lede">Le cours de B. Bêche condensé en 9 fiches : lois, formules, méthodes et pièges. Chaque fiche dit à quel type d'exercice elle sert.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Surtout chapitres II et III · CC du 2/12</p><h1>Le cours utile</h1><p class="lede">Le cours de B. Bêche condensé en 9 fiches : lois, formules, méthodes et pièges. Chaque fiche dit à quel type d'exercice elle sert.</p></div>
     ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
   mathIn(app);
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
@@ -922,14 +930,15 @@ function vCours(open) {
 /* ---------- Sujet blanc ---------- */
 let tick = 0;
 const DUR = 5400;
-const EXAM_PLAN = [['Exercice 1 · Dynamique', [['plan', 1], ['visq', 1]], 5], ['Exercice 2 · Énergie', [['tec', 1], ['pot', 1]], 5], ['Exercice 3 · Oscillateurs', [['oh', 1], ['amorti', 1]], 5], ['Exercice 4 · Chocs et gravitation', [['choc', 1], ['kepler', 1]], 5]];
+// Calqué sur les CC2 de 2022 et 2023 : un problème (plan incliné, travaux, énergie), un exercice en référentiel non galiléen, une partie plus courte
+const EXAM_PLAN = [['Problème · Plan incliné, travaux et énergie', [['plan', 1], ['travail', 1], ['tec', 1], ['pot', 1]], 12], ['Exercice · Référentiel non galiléen', [['inert', 1]], 5], ['Exercice · Chocs et oscillateur', [['choc', 1], ['oh', 1]], 3]];
 function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">4 exercices de 5 points dans le style du TD : dynamique (plan incliné, frottement fluide), énergie (théorème de l'énergie cinétique, potentiel), oscillateurs (harmonique, amorti), chocs et gravitation. Les formules littérales sont corrigées automatiquement.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Calqué sur les CC2 de 2022 et 2023 : un problème de 12 points (plan incliné avec frottement, travaux, théorème de l'énergie cinétique, énergie potentielle), un exercice de 5 points en référentiel non galiléen, et 3 points sur les chocs et l'oscillateur. Les formules littérales sont corrigées automatiquement.</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button><span class="fine">Fais les démonstrations sur une feuille, puis reporte les résultats.</span></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }

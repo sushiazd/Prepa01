@@ -71,6 +71,8 @@ create table if not exists public.group_tests (
   created_at  timestamptz not null default now()
 );
 create index if not exists group_tests_group_idx on public.group_tests (group_id);
+-- Contrôle en direct : heure de départ avancée par le créateur (« Démarrer maintenant »)
+alter table public.group_tests add column if not exists starts_at timestamptz;
 
 -- ---------- Fonctions d'aide (security definer : évitent les boucles de règles) ----------
 create or replace function public.is_member(g uuid) returns boolean
@@ -211,6 +213,10 @@ create policy group_tests_insert on public.group_tests for insert to authenticat
   with check (public.is_member(group_id) and created_by = auth.uid());
 drop policy if exists group_tests_delete on public.group_tests;
 create policy group_tests_delete on public.group_tests for delete to authenticated using (created_by = auth.uid());
+drop policy if exists group_tests_update on public.group_tests;
+create policy group_tests_update on public.group_tests for update to authenticated
+  using (created_by = auth.uid()) with check (created_by = auth.uid());
+grant update (starts_at) on public.group_tests to authenticated;
 
 -- ---------- 1v1 : liste des joueurs inscrits ----------
 -- Le 1v1 propose d'affronter n'importe quel inscrit : seuls l'identifiant et le pseudo sont exposés

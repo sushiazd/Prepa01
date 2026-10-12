@@ -414,6 +414,9 @@ body[data-view="test"] .topnav{display:none}
 .live-box li.me b{color:var(--pen)}
 .live-box li.done span{color:var(--good)}
 .intro #introLive .live-box{margin-top:16px}
+.live-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.live-actions .btn{min-height:34px;padding:0 12px;font-size:13px}
+.live-actions .btn-danger{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent)}
 .banner .spacer{flex:1}
 .banner p{font-size:14.5px;color:var(--ink-2)}
 .card h2{font:600 22px/1.2 var(--serif)}
@@ -8202,7 +8205,7 @@ function startTest() {
 }
 function enterTest() {
   setView('test');
-  if (S.live) { $('#pauseBtn').hidden = true; liveJoin(S.def); } else $('#liveBox').innerHTML = '';
+  if (S.live) { $('#pauseBtn').hidden = true; liveJoin(S.def); renderLive(); } else $('#liveBox').innerHTML = '';
   $('#brandSub').textContent = `${S.def.title} · ${N} questions`;
   $('#navGrid').innerHTML = Q.map((q, i) => `<button type="button" class="nav-cell" data-go="${i}">${i + 1}</button>`).join('');
   if (S.paused) { renderQuestion(); showPause(); return; }
@@ -8821,6 +8824,8 @@ function init() {
     const gx = e.target.closest('[data-genexam]');
     if (gx) { openIntro(genExamDef(gx.dataset.genexam)); return; }
     if (e.target.closest('[data-newtypes]')) { openIntro(newTypesDef()); return; }
+    const la = e.target.closest('[data-lact]');
+    if (la) { liveAction(la.dataset.lact); return; }
     const lv = e.target.closest('[data-live]');
     if (lv) { const t = LIVE.find(x => x.id === lv.dataset.live); if (t) { const def = groupTestDef(t); if (def.qids.length) openIntro(def); } return; }
     const hcb = e.target.closest('[data-hc]');
@@ -8902,7 +8907,7 @@ function init() {
 
   // Intro
   $('#startBtn').addEventListener('click', startTest);
-  $('#introBack').addEventListener('click', () => showTab(introFrom));
+  $('#introBack').addEventListener('click', () => { if (pendingDef && pendingDef.live) { clearInterval(liveIntroTick); liveLeave(); } showTab(introFrom); });
   $('#autoPause').addEventListener('change', e => { prefs.autoPause = e.target.checked; savePrefs(); });
 
   // Épreuve
@@ -9242,12 +9247,23 @@ async function createGroupTest() {
   openGroup(G.gid);
   openIntro(groupTestDef(row));
 }
+async function deleteGroupTest(tid) {
+  const t = G && G.tests.find(x => x.id === tid); if (!t) return;
+  if (!await ask(`Supprimer « ${t.title} » pour tout le groupe ? Il disparaît de la liste avec son classement, et tes copies de ce contrôle sont effacées.`, 'Supprimer')) return;
+  if (liveId === tid && liveCh) await Promise.resolve(liveCh.send({ type: 'broadcast', event: 'ctl', payload: { type: 'cancel', tid, by: me.pseudo } })).catch(() => {});
+  const { error } = await sb.from('group_tests').delete().eq('id', tid);
+  if (error) { toast(frErr(error), 5000); return; }
+  dropGroupAttempts(tid);
+  LIVE = LIVE.filter(x => x.id !== tid);
+  toast('Contrôle supprimé.');
+  openGroup(G.gid);
+}
 function groupTestDef(t) {
   const qids = (Array.isArray(t.qids) ? t.qids : []).filter(id => qEntry(id));
   const g = myGroups.find(x => x.id === t.group_id) || (G && G.group);
   const def = { id: 'g:' + t.id, kind: 'group', gid: t.group_id, title: t.title, eyebrow: `Contrôle du groupe · ${g ? g.name : ''}`, qids, duration: t.duration_s, themeCount: t.theme_count || null };
   const w = t.created_at ? liveWin(t) : null;
-  if (w && Date.now() < w.end) { def.live = { start: w.start, end: w.end, tid: t.id }; def.eyebrow = 'Contrôle du groupe en direct · ' + (g ? g.name : ''); }
+  if (w && Date.now() < w.end) { def.live = { start: w.start, end: w.end, tid: t.id, owner: t.created_by }; def.eyebrow = 'Contrôle du groupe en direct · ' + (g ? g.name : ''); }
   return def;
 }
 
@@ -9259,7 +9275,8 @@ function groupTestDef(t) {
 const LIVE_LOBBY = 60e3;
 let LIVE = [], liveCh = null, liveId = null, liveMembers = new Map(), liveIntroTick = 0, liveTrackT = 0, livePollT = 0;
 const fmtCd = sec => { sec = Math.max(0, Math.round(sec)); return sec >= 3600 ? fmtClock(sec) : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
-const liveWin = t => { const start = Date.parse(t.created_at) + LIVE_LOBBY; return { start, end: start + t.duration_s * 1000 }; };
+const liveWin = t => { const start = t.starts_at ? Date.parse(t.starts_at) : Date.parse(t.created_at) + LIVE_LOBBY; return { start, end: start + t.duration_s * 1000 }; };
+const liveHidden = new Set();   // contrôles quittés : plus de bandeau « Rejoindre »
 function liveState(def, now = Date.now()) { return !def || !def.live ? null : now < def.live.start ? 'lobby' : now < def.live.end ? 'run' : null; }
 async function pollLive() {
   if (!livePollT) livePollT = setInterval(() => { pollLive(); if (LIVE.length && document.body.dataset.view !== 'test') renderBanners(); }, 15000);
@@ -9268,12 +9285,14 @@ async function pollLive() {
   const { data, error } = await sb.from('group_tests').select('*').in('group_id', myGroups.map(g => g.id)).gte('created_at', since).order('created_at', { ascending: false });
   if (error) { console.warn(error); return; }
   const now = Date.now();
+  const mineId = S && S.phase === 'test' && S.live ? S.def.live.tid : pendingDef && pendingDef.live && document.body.dataset.view === 'intro' ? pendingDef.live.tid : null;
+  if (mineId && !(data || []).some(t => t.id === mineId)) liveCanceled(mineId, null);
   LIVE = (data || []).filter(t => liveWin(t).end > now && !attempts.some(a => a.defId === 'g:' + t.id));
   if (document.body.dataset.view !== 'test') renderBanners();
 }
 function liveBannersHTML() {
   const now = Date.now();
-  return LIVE.filter(t => liveWin(t).end > now && !(S && S.phase === 'test' && S.def.id === 'g:' + t.id)).map(t => {
+  return LIVE.filter(t => liveWin(t).end > now && !liveHidden.has(t.id) && !(S && S.phase === 'test' && S.def.id === 'g:' + t.id)).map(t => {
     const w = liveWin(t), g = myGroups.find(x => x.id === t.group_id), lobby = now < w.start;
     return `<div class="banner live"><div><b>🔴 Contrôle de groupe en direct : ${esc(t.title)}</b><p>${esc(g ? g.name : '')} · ${(t.qids || []).length} questions · ${lobby ? `commence dans ${fmtCd((w.start - now) / 1000)}` : `en cours, il reste ${fmtCd((w.end - now) / 1000)}`}</p></div><span class="spacer"></span><button type="button" class="btn btn-primary" data-live="${t.id}">Rejoindre</button></div>`;
   }).join('');
@@ -9290,6 +9309,7 @@ function liveIntro(def) {
     else { clearInterval(liveIntroTick); b.disabled = false; b.textContent = 'Commencer l\'épreuve'; }
   };
   upd(); liveIntroTick = setInterval(upd, 500);
+  renderLive();
 }
 function liveJoin(def) {
   if (!cloud.on() || !me || !def.live) return;
@@ -9297,7 +9317,8 @@ function liveJoin(def) {
   liveLeave();
   liveId = def.live.tid;
   try {
-    const ch = liveCh = sb.channel('gt-live-' + liveId, { config: { presence: { key: me.id } } });
+    const ch = liveCh = sb.channel('gt-live-' + liveId, { config: { presence: { key: me.id }, broadcast: { self: false } } });
+    ch.on('broadcast', { event: 'ctl' }, ({ payload: q }) => { if (!q) return; if (q.type === 'start') applyStart(q.tid, q.at); else if (q.type === 'cancel') liveCanceled(q.tid, q.by); });
     ch.on('presence', { event: 'sync' }, () => {
       const st = ch.presenceState(), m = new Map();
       Object.entries(st).forEach(([id, metas]) => { if (metas && metas.length) m.set(id, metas[metas.length - 1]); });
@@ -9312,14 +9333,75 @@ function liveTrack() {
   const meta = { pseudo: me.pseudo, st: mine ? (S.phase === 'done' ? 'done' : 'test') : 'lobby', n: mine ? S.answers.filter(a => a.length).length : 0, N: mine ? N : 0 };
   Promise.resolve(liveCh.track(meta)).catch(() => {});
 }
+function applyStart(tid, at) {
+  LIVE.forEach(t => { if (t.id === tid) t.starts_at = new Date(at).toISOString(); });
+  [pendingDef, S && S.def].forEach(d => { if (d && d.live && d.live.tid === tid && Date.now() < d.live.start) { d.live.start = at; d.live.end = at + d.duration * 1000; } });
+  renderLive();
+}
+async function liveStartNow(def) {
+  const at = Date.now();
+  const { error } = await sb.from('group_tests').update({ starts_at: new Date(at).toISOString() }).eq('id', def.live.tid);
+  if (error) { toast(frErr(error), 5000); return; }
+  if (liveCh) Promise.resolve(liveCh.send({ type: 'broadcast', event: 'ctl', payload: { type: 'start', tid: def.live.tid, at } })).catch(() => {});
+  applyStart(def.live.tid, at);
+}
+// Retire mes copies d'un contrôle de groupe (ici et sur le compte)
+function dropGroupAttempts(tid) {
+  const did = 'g:' + tid;
+  if (!attempts.some(a => a.defId === did)) return;
+  attempts = attempts.filter(a => a.defId !== did); ls.set(K.attempts, attempts); recomputeSeen();
+  if (cloud.on()) sb.from('attempts').delete().eq('user_id', me.id).eq('def_id', did).then(({ error }) => { if (error) console.warn(error); });
+}
+async function liveCancel(def) {
+  if (!await ask('Annuler ce contrôle pour tout le groupe ? Il est supprimé, avec son classement, et personne n\'a de note.', 'Annuler le contrôle')) return;
+  const tid = def.live.tid;
+  if (liveCh) await Promise.resolve(liveCh.send({ type: 'broadcast', event: 'ctl', payload: { type: 'cancel', tid, by: me.pseudo } })).catch(() => {});
+  const { error } = await sb.from('group_tests').delete().eq('id', tid);
+  if (error) { toast(frErr(error), 5000); return; }
+  dropGroupAttempts(tid);
+  liveCanceled(tid, null, true);
+}
+function discardLive() {
+  stopTick(); S = null; ls.del(K.session);
+  $('#pauseLayer').hidden = true; document.title = 'QCM mathématiques';
+}
+function liveCanceled(tid, by, mine) {
+  LIVE = LIVE.filter(t => t.id !== tid);
+  const inTest = S && S.phase === 'test' && S.live && S.def.live.tid === tid;
+  const inLobby = document.body.dataset.view === 'intro' && pendingDef && pendingDef.live && pendingDef.live.tid === tid;
+  if (inTest) discardLive();
+  if (inLobby) { clearInterval(liveIntroTick); pendingDef = null; }
+  if (liveId === tid) liveLeave();
+  if (inTest || inLobby || mine) {
+    toast(mine ? 'Contrôle annulé pour tout le groupe.' : `Le contrôle a été annulé${by ? ' par ' + by : ''} : aucune note n'est enregistrée.`, 5000);
+    showTab('groupe');
+    if (curGroup) openGroup(curGroup);
+  } else renderBanners();
+}
+async function liveQuit() {
+  if (!S || !S.live) return;
+  if (!await ask('Quitter ce contrôle sans rendre ta copie ? Aucune note n\'est enregistrée et les autres continuent.', 'Quitter')) return;
+  const tid = S.def.live.tid;
+  liveHidden.add(tid); discardLive(); liveLeave();
+  toast('Tu as quitté le contrôle : aucune note enregistrée.');
+  showTab('groupe');
+}
+function liveAction(a) {
+  const def = S && S.phase === 'test' && S.live ? S.def : pendingDef;
+  if (!def || !def.live) return;
+  if (a === 'start') liveStartNow(def); else if (a === 'cancel') liveCancel(def); else if (a === 'quit') liveQuit();
+}
 function liveLeave() {
   if (liveCh) { try { sb.removeChannel(liveCh); } catch (e) { /* ignore */ } }
   liveCh = null; liveId = null; liveMembers = new Map();
 }
 function renderLive() {
   const L = [...liveMembers.entries()].sort((a, b) => String(a[1].pseudo).localeCompare(String(b[1].pseudo)));
-  const html = !L.length ? '' : `<div class="live-box"><p class="live-h">🔴 En direct · ${L.length} participant${L.length > 1 ? 's' : ''}</p><ul>${L.map(([id, x]) =>
-    `<li class="${id === (me && me.id) ? 'me' : ''}${x.st === 'done' ? ' done' : ''}"><b>${esc(x.pseudo || '?')}${id === (me && me.id) ? ' (toi)' : ''}</b><span>${x.st === 'done' ? 'a rendu' : x.st === 'test' ? `${x.n}/${x.N} répondues` : 'en salle d\'attente'}</span></li>`).join('')}</ul></div>`;
+  const inTest = S && S.phase === 'test' && S.live, def = inTest ? S.def : pendingDef;
+  const owner = def && def.live && me && def.live.owner === me.id, lobby = liveState(def) === 'lobby';
+  const acts = !def || !def.live ? '' : `<div class="live-actions">${owner && lobby && !inTest ? '<button type="button" class="btn btn-primary" data-lact="start">Démarrer maintenant</button>' : ''}${inTest ? '<button type="button" class="btn" data-lact="quit">Quitter sans rendre</button>' : ''}${owner ? `<button type="button" class="btn btn-danger" data-lact="cancel">${inTest ? 'Annuler pour tout le groupe' : 'Annuler le contrôle'}</button>` : ''}</div>`;
+  const html = `<div class="live-box"><p class="live-h">🔴 En direct${L.length ? ` · ${L.length} participant${L.length > 1 ? 's' : ''}` : ''}</p>${L.length ? `<ul>${L.map(([id, x]) =>
+    `<li class="${id === (me && me.id) ? 'me' : ''}${x.st === 'done' ? ' done' : ''}"><b>${esc(x.pseudo || '?')}${id === (me && me.id) ? ' (toi)' : ''}</b><span>${x.st === 'done' ? 'a rendu' : x.st === 'test' ? `${x.n}/${x.N} répondues` : 'en salle d\'attente'}</span></li>`).join('')}</ul>` : ''}${acts}</div>`;
   const a = $('#introLive'); if (a) a.innerHTML = html;
   const b = $('#liveBox'); if (b) b.innerHTML = S && S.live ? html : '';
 }
@@ -9425,7 +9507,7 @@ function groupHTML() {
     const board = Object.values(best).sort((a, b) => b.note - a.note);
     const mine = best[me.id];
     return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(t.title)}</h3><p class="meta">${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${esc(G.pseudo(t.created_by) || 'un membre')} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
-      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.start ? '🔴 Rejoindre (départ dans ' + fmtCd((w.start - now) / 1000) + ')' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}</div></div>
+      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.start ? '🔴 Rejoindre (départ dans ' + fmtCd((w.start - now) / 1000) + ')' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${t.created_by === me.id ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
       <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(G.pseudo(a.user_id) || '?')}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>`;
   }).join('');
   return `
@@ -9475,6 +9557,8 @@ function initGroupeEvents() {
       return;
     }
     const o = e.target.closest('[data-open]'); if (o) { openGroup(o.dataset.open); return; }
+    const gd = e.target.closest('[data-gtdel]');
+    if (gd && G) { deleteGroupTest(gd.dataset.gtdel); return; }
     const gt = e.target.closest('[data-gt]');
     if (gt && G) { const t = G.tests.find(x => x.id === gt.dataset.gt); if (t) { const def = groupTestDef(t); if (def.qids.length) openIntro(def); } return; }
     const bd = e.target.closest('[data-board]'); if (bd) { const el = $('#board-' + bd.dataset.board); el.hidden = !el.hidden; return; }

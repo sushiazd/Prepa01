@@ -6183,6 +6183,453 @@ def('rec_steps', 'recurrence', 2, g => {
 });
 
 /* =====================================================================
+   NOUVEAUX TYPES (2) : variété pour les contrôles de groupe et ciblés
+   Niveau QCM, sans calculatrice, programme de Terminale spé.
+   ===================================================================== */
+const NT_W = 2;
+
+// ---------- Polynômes ----------
+def('poly_quad_sym', 'polynomes', NT_W, g => {
+  const a = g.pick([1, 1, 2, -1, 3]), b = g.nz(-7, 7), c = g.nz(-9, 9), D = b * b - 4 * a * c;
+  need(D > 0 && !Number.isInteger(Math.sqrt(D)));
+  const S = F(-b, a), P = F(c, a), kind = g.int(0, 2);
+  let ask, good, bads, how;
+  if (kind === 0) { ask = 'x_1^2+x_2^2'; good = S.mul(S).sub(P.mul(2)); bads = [S.mul(S), S.mul(S).add(P.mul(2)), S.mul(S).sub(P)]; how = R`\(x_1^2+x_2^2=(x_1+x_2)^2-2x_1x_2=${parP(S)}^2-2\times${par(P)}\)`; }
+  else if (kind === 1) { ask = R`\dfrac1{x_1}+\dfrac1{x_2}`; good = S.div(P); bads = [P.div(S), S.neg().div(P), S.mul(P)]; how = R`\(\dfrac1{x_1}+\dfrac1{x_2}=\dfrac{x_1+x_2}{x_1x_2}=\dfrac{${fx(S, true)}}{${fx(P, true)}}\)`; }
+  else { ask = '(x_1-x_2)^2'; good = S.mul(S).sub(P.mul(4)); bads = [S.mul(S).sub(P.mul(2)), S.mul(S).add(P.mul(4)), F(D)]; how = R`\((x_1-x_2)^2=(x_1+x_2)^2-4x_1x_2=${parP(S)}^2-4\times${par(P)}\)`; }
+  return Object.assign({
+    q: R`On note \(x_1\) et \(x_2\) les deux racines réelles de \(${poly([c, b, a])}=0\). Que vaut \(${ask}\) ?`,
+    e: R`Sans calculer les racines : \(x_1+x_2=-\dfrac ba=${fx(S)}\) et \(x_1x_2=\dfrac ca=${fx(P)}\).<br>` + how + R`\(=${fx(good)}\).`,
+    d: R`Expression symétrique des racines d'un trinôme : passer par la somme \(-\frac ba\) et le produit \(\frac ca\).`,
+    _: { chk: () => { const r1 = (-b + Math.sqrt(D)) / (2 * a), r2 = (-b - Math.sqrt(D)) / (2 * a), v = kind === 0 ? r1 * r1 + r2 * r2 : kind === 1 ? 1 / r1 + 1 / r2 : (r1 - r2) ** 2; return close(v, good.v, 1e-9) || 'faux'; } }
+  }, mcqF(g, good, bads));
+});
+
+def('poly_double', 'polynomes', NT_W, g => {
+  const c = g.int(1, 7), a = g.pick([1, 1, 4, 9]), ra = Math.sqrt(a);
+  // aX² + kX + c² a une racine double ⇔ Δ = k² − 4ac² = 0 ⇔ k = ±2c√a
+  const k = 2 * c * ra;
+  const S = v => setT([`-${v}`, String(v)]);
+  return Object.assign({
+    q: R`Pour quelles valeurs du réel \(k\) l'équation \(${a === 1 ? '' : a}x^2+kx+${c * c}=0\) admet-elle une unique solution réelle ?`,
+    e: R`Une seule solution \(\iff\Delta=0\) : \(k^2-4\times${a}\times${c * c}=0\iff k^2=${k * k}\iff k=-${k}\) ou \(k=${k}\).`,
+    d: R`Racine double \(\iff\Delta=0\). Ne pas oublier la valeur négative quand on résout \(k^2=\dots\)`,
+    _: { chk: () => (k * k - 4 * a * c * c === 0) || 'faux' }
+  }, mcq(g, M(S(k)), [M(setT([String(k)])), M(S(c * ra)), M(S(k * k)), M(S(2 * c))]));
+});
+
+// ---------- Puissances et racines ----------
+def('pow_compare', 'puiss_rad', NT_W, g => {
+  const k = g.pick([5, 10, 12, 20]);
+  const reps = g.shuffle([[2, 3, 8], [3, 2, 9], [2, 2, 4], [7, 1, 7], [5, 1, 5], [6, 1, 6], [10, 1, 10], [2, 1, 2], [3, 1, 3]]).slice(0, 3);
+  need(new Set(reps.map(r => r[2])).size === 3);
+  const T = r => r[1] === 1 ? `${r[0]}^{${k}}` : `${r[0]}^{${r[1] * k}}`;
+  const best = reps.slice().sort((x, y) => y[2] - x[2])[0];
+  return Object.assign({
+    q: R`Lequel de ces trois nombres est le plus grand : \(${reps.map(T).join(R`,\ `)}\) ?`,
+    e: R`On écrit tout avec le même exposant \(${k}\) : ${reps.map(r => R`\(${T(r)}=${r[2]}^{${k}}\)`).join(', ')}. La fonction \(x\mapsto x^{${k}}\) est croissante sur \([0;+\infty[\) : le plus grand est celui de plus grande base, \(${T(best)}\).`,
+    d: R`Comparer des puissances : se ramener au même exposant (\(2^{3k}=8^k\)) ou à la même base.`,
+    _: { chk: () => reps.every(r => r[0] ** r[1] === r[2]) || 'faux' }
+  }, mcq(g, M(T(best)), reps.filter(r => r !== best).map(r => M(T(r)))));
+});
+
+def('rad_sum', 'puiss_rad', NT_W, g => {
+  const k = g.pick([2, 3, 5, 6, 7]), s = g.int(2, 5), t = g.int(2, 5), u = g.int(1, 4), a = g.int(1, 3), b = g.int(1, 3), c = g.int(1, 3);
+  need(new Set([s, t, u]).size === 3);
+  const tot = a * s + b * t - c * u;
+  need(tot !== 0);
+  const rT = (m, x) => R`${m === 1 ? '' : m}\sqrt{${k * x * x}}`;
+  const ans = v => (v === 1 ? R`\sqrt{${k}}` : v === -1 ? R`-\sqrt{${k}}` : R`${v}\sqrt{${k}}`);
+  return Object.assign({
+    q: R`Simplifier \(${rT(a, s)}+${rT(b, t)}-${rT(c, u)}\).`,
+    e: R`On extrait les carrés : \(\sqrt{${k * s * s}}=${s}\sqrt{${k}}\), \(\sqrt{${k * t * t}}=${t}\sqrt{${k}}\), \(\sqrt{${k * u * u}}=${u}\sqrt{${k}}\).<br>Donc \((${a * s}+${b * t}-${c * u})\sqrt{${k}}=${ans(tot)}\).`,
+    d: R`Somme de racines : écrire chaque radicande sous la forme \(n^2\times k\) pour faire apparaître la même racine \(\sqrt k\).`,
+    _: { chk: () => close(a * Math.sqrt(k * s * s) + b * Math.sqrt(k * t * t) - c * Math.sqrt(k * u * u), tot * Math.sqrt(k)) || 'faux' }
+  }, mcqv(g, [ans(tot), tot * Math.sqrt(k)], [[ans(a * s + b * t + c * u), (a * s + b * t + c * u) * Math.sqrt(k)], [ans(tot + 1), (tot + 1) * Math.sqrt(k)], [ans(a + b - c), (a + b - c) * Math.sqrt(k)], [ans(tot - 1), (tot - 1) * Math.sqrt(k)]]));
+});
+
+// ---------- ln et exp ----------
+def('ln_ineq', 'ln_exp', NT_W, g => {
+  const a = g.int(1, 4), b = g.int(-5, 5), le = g.chance(0.5);
+  // ln(ax+b) ≤ 0 (ou > 0) : domaine ax+b>0, puis ax+b ≤ 1
+  const lo = F(-b, a), hi = F(1 - b, a);
+  const good = le ? R`\left]${fx(lo, true)}\,;${fx(hi, true)}\right]` : R`\left]${fx(hi, true)}\,;+\infty\right[`;
+  const bads = le ? [R`\left]-\infty\,;${fx(hi, true)}\right]`, R`\left[${fx(lo, true)}\,;${fx(hi, true)}\right]`, R`\left]${fx(lo, true)}\,;+\infty\right[`, R`\left]0\,;${fx(hi, true)}\right]`]
+    : [R`\left]${fx(lo, true)}\,;+\infty\right[`, R`\left[${fx(hi, true)}\,;+\infty\right[`, R`\left]-\infty\,;${fx(hi, true)}\right[`, R`\left]0\,;+\infty\right[`];
+  return Object.assign({
+    q: R`L'ensemble des solutions de l'inéquation \(\ln(${lin(a, b)})${le ? R`\leqslant` : '>'}0\) est :`,
+    e: R`Domaine : \(${lin(a, b)}>0\iff x>${fx(lo, true)}\). Puis, \(\ln\) étant croissante et \(\ln1=0\) : \(\ln(${lin(a, b)})${le ? R`\leqslant` : '>'}0\iff ${lin(a, b)}${le ? R`\leqslant` : '>'}1\iff x${le ? R`\leqslant` : '>'}${fx(hi, true)}\).<br>Solutions : \(${good}\).`,
+    d: R`Inéquation avec \(\ln\) : toujours commencer par le domaine (argument \(>0\)), puis comparer l'argument à 1.`,
+    _: { chk: () => { for (let i = -400; i <= 400; i++) { const x = i / 40 + 0.0123, v = a * x + b; const ok = v > 0 && (le ? Math.log(v) <= 0 : Math.log(v) > 0); const inS = le ? x > lo.v && x <= hi.v : x > hi.v; if (ok !== inS) return 'x=' + x; } return true; } }
+  }, mcq(g, M(good), bads.map(M)));
+});
+
+// ---------- Fractions ----------
+def('frac_decomp', 'fractions', NT_W, g => {
+  const a = g.int(-4, 4), b = g.int(-4, 4), c = g.nz(-6, 6);
+  need(a !== b);
+  const A = F(c, b - a), B = F(c, a - b), askA = g.chance(0.5);
+  const xa = lin(1, a), xb = lin(1, b);
+  return Object.assign({
+    q: R`Il existe deux réels \(A\) et \(B\) tels que, pour tout \(x\neq${-a},${-b}\) : \(\dfrac{${c}}{(${xa})(${xb})}=\dfrac{A}{${xa}}+\dfrac{B}{${xb}}\). Que vaut \(${askA ? 'A' : 'B'}\) ?`,
+    e: R`On réduit au même dénominateur : \(A(${xb})+B(${xa})=${c}\) pour tout \(x\).<br>En \(x=${-a}\) : \(A\times(${b - a})=${c}\), donc \(A=${fx(A)}\). En \(x=${-b}\) : \(B\times(${a - b})=${c}\), donc \(B=${fx(B)}\).`,
+    d: R`Décomposition en éléments simples : multiplier par un facteur puis remplacer \(x\) par la valeur qui l'annule.`,
+    _: { chk: () => [0.3, 1.7, -2.9].every(x => close(c / ((x + a) * (x + b)), A.v / (x + a) + B.v / (x + b), 1e-9)) || 'faux' }
+  }, mcqF(g, askA ? A : B, [askA ? B : A, F(c, a + b === 0 ? 1 : a + b), F(c), (askA ? A : B).mul(2)]));
+});
+
+def('frac_lin_eq', 'fractions', NT_W, g => {
+  const b = g.pick([2, 3, 4, 5]), d = g.pick([2, 3, 4, 6]), a = g.int(-5, 5), c = g.int(-5, 5), e0 = g.int(-3, 4);
+  need(b !== d);
+  // (x+a)/b − (x−c)/d = e0  ⇔ d(x+a) − b(x−c) = e0·bd
+  const coef = d - b, rhs = e0 * b * d - d * a - b * c;
+  need(coef !== 0);
+  const x = F(rhs, coef);
+  return Object.assign({
+    q: R`Résoudre \(\dfrac{${lin(1, a)}}{${b}}-\dfrac{${lin(1, -c)}}{${d}}=${e0}\).`,
+    e: R`On multiplie par \(${b * d}\) : \(${d}(${lin(1, a)})-${b}(${lin(1, -c)})=${e0 * b * d}\), soit \(${lin(coef, d * a + b * c)}=${e0 * b * d}\) (attention au signe devant la 2ᵉ fraction : \(-${b}\times(${-c})=${b * c}\)).<br>Donc \(x=${fx(x)}\).`,
+    d: R`Équation avec des fractions : tout multiplier par le dénominateur commun, en distribuant le « − » sur tout le numérateur.`,
+    _: { chk: () => close((x.v + a) / b - (x.v - c) / d, e0, 1e-9) || 'faux' }
+  }, mcqF(g, x, [F(rhs + 2 * b * c, coef), F(-rhs, coef), F(e0 * b * d - d * a + b * c, coef), F(rhs, d + b)]));
+});
+
+// ---------- Développement ----------
+def('dev_cube_coef', 'developpement', NT_W, g => {
+  const a = g.nz(-3, 3), b = g.nz(-4, 4), deg = g.int(1, 2);
+  const P = [b ** 3, 3 * a * b * b, 3 * a * a * b, a ** 3], good = P[deg];
+  return Object.assign({
+    q: R`Quel est le coefficient de \(x${deg === 2 ? '^2' : ''}\) dans le développement de \((${lin(a, b)})^3\) ?`,
+    e: R`\((u+v)^3=u^3+3u^2v+3uv^2+v^3\) avec \(u=${kco(a)}x\), \(v=${b}\) : le terme en \(x${deg === 2 ? '^2' : ''}\) est \(${deg === 2 ? R`3\times${par(a)}^2\times${par(b)}` : R`3\times${par(a)}\times${par(b)}^2`}=${good}\).`,
+    d: R`\((u+v)^3=u^3+3u^2v+3uv^2+v^3\) : bien mettre au carré le bon terme.`,
+    _: { chk: () => (ppow([b, a], 3)[deg] === good) || 'faux' }
+  }, mcqv(g, [String(good), good], [deg === 2 ? 3 * a * b * b : 3 * a * a * b, a * a * b, 3 * a * b, -good].map(v => [String(v), v])));
+});
+
+def('dev_prod3', 'developpement', NT_W, g => {
+  const a = g.nz(-5, 5), b = g.nz(-5, 5), c = g.nz(-5, 5), deg = g.int(0, 2);
+  const P = pmul(pmul([a, 1], [b, 1]), [c, 1]), good = P[deg];
+  const what = deg === 0 ? 'le terme constant' : deg === 1 ? R`le coefficient de \(x\)` : R`le coefficient de \(x^2\)`;
+  const how = deg === 0 ? R`\(${a}\times${par(b)}\times${par(c)}\)` : deg === 1 ? R`\(${a}\times${par(b)}+${par(a)}\times${par(c)}+${par(b)}\times${par(c)}\)` : R`\(${a}${pm(b)}${pm(c)}\)`;
+  return Object.assign({
+    q: R`On développe \((${lin(1, a)})(${lin(1, b)})(${lin(1, c)})\). Quel est ${what} ?`,
+    e: R`Pour \((x+a)(x+b)(x+c)=x^3+(a+b+c)x^2+(ab+ac+bc)x+abc\) : ${what} vaut ` + how + R` \(=${good}\).`,
+    d: R`Produit de trois facteurs \((x+a)(x+b)(x+c)\) : \(x^2\) → somme, \(x\) → somme des produits deux à deux, constante → produit.`,
+    _: { chk: () => (pmul(pmul([a, 1], [b, 1]), [c, 1])[deg] === good) || 'faux' }
+  }, mcqv(g, [String(good), good], [P[(deg + 1) % 3], P[(deg + 2) % 3], -good, a * b + c].map(v => [String(v), v])));
+});
+
+// ---------- Équations ----------
+def('eq_abs', 'equations', NT_W, g => {
+  const a = g.int(1, 4), b = g.int(-8, 8), c = g.int(0, 9), ask = g.int(0, 1);
+  if (c === 0) need(g.chance(0.3));
+  const s1 = F(b - c, a), s2 = F(b + c, a);
+  const sols = c === 0 ? [s1] : [s1, s2];
+  const set = setT(sols.map(x => fx(x, true)));
+  return Object.assign({
+    q: R`L'ensemble des solutions de \(|${lin(a, -b)}|=${c}\) est :`,
+    e: c === 0 ? R`\(|X|=0\iff X=0\) : \(${lin(a, -b)}=0\iff x=${fx(s1)}\).` : R`\(|X|=${c}\iff X=${c}\) ou \(X=-${c}\) : \(${lin(a, -b)}=${c}\iff x=${fx(s2)}\), et \(${lin(a, -b)}=-${c}\iff x=${fx(s1)}\).`,
+    d: R`\(|X|=c\) (avec \(c>0\)) a deux cas : \(X=c\) ou \(X=-c\).`,
+    _: { chk: () => sols.every(x => close(Math.abs(a * x.v - b), c)) || 'faux' }
+  }, mcq(g, M(set), [M(setT([fx(s2, true)])), M(setT([fx(F(-b - c, a), true), fx(F(-b + c, a), true)])), M(R`\varnothing`), M(setT([fx(F(b, a), true)]))].filter(x => x !== M(set))));
+});
+
+// ---------- Domaine ----------
+def('dom_ln_quot', 'domaine', NT_W, g => {
+  const a = g.int(-6, 5), b = a + g.int(1, 6);
+  const sw = g.chance(0.5);   // ln((x−a)/(x−b)) ou ln((x−b)/(x−a))
+  const num = lin(1, -(sw ? b : a)), den = lin(1, -(sw ? a : b));
+  const good = R`]-\infty\,;${a}[\,\cup\,]${b}\,;+\infty[`;
+  return Object.assign({
+    q: R`Quel est l'ensemble de définition de \(f:x\mapsto\ln\left(\dfrac{${num}}{${den}}\right)\) ?`,
+    e: R`Il faut \(\dfrac{${num}}{${den}}>0\) (et le dénominateur non nul). Un quotient est positif quand numérateur et dénominateur ont le même signe : tableau de signes avec les valeurs \(${a}\) et \(${b}\) : \(x&lt;${a}\) ou \(x>${b}\).`,
+    d: R`\(\ln\frac{u}{v}\) : tableau de signes du quotient, en excluant la valeur interdite.`,
+    _: { chk: () => { for (let i = -300; i <= 300; i++) { const x = i / 20 + 0.013, q = (x - (sw ? b : a)) / (x - (sw ? a : b)); if ((q > 0) !== (x < a || x > b)) return 'x=' + x; } return true; } }
+  }, mcq(g, M(good), [R`]${a}\,;${b}[`, R`]${b}\,;+\infty[`, R`\mathbb R\setminus\{${sw ? a : b}\}`, R`]-\infty\,;${a}]\,\cup\,]${b}\,;+\infty[`].map(M)));
+});
+
+def('dom_sqrt_ln', 'domaine', NT_W, g => {
+  const k = g.int(-2, 3), up = g.chance(0.5);
+  const eT = k === 0 ? '1' : k === 1 ? 'e' : `e^{${k}}`;
+  const good = up ? R`\left]0\,;${eT}\right]` : R`\left[${eT}\,;+\infty\right[`;
+  const fT = up ? R`\sqrt{${k}-\ln x}` : R`\sqrt{\ln x${pm(-k)}}`;
+  return Object.assign({
+    q: R`Quel est l'ensemble de définition de \(f:x\mapsto ${fT.replace('+0', '').replace('{0-', '{-')}\) ?`,
+    e: R`Il faut \(x>0\) (pour \(\ln\)) et ${up ? R`\(${k}-\ln x\geqslant0\iff\ln x\leqslant${k}\iff x\leqslant ${eT}\)` : R`\(\ln x\geqslant${k}\iff x\geqslant ${eT}\)`} (\(\exp\) est croissante).`,
+    d: R`\(\sqrt{u}\) : \(u\geqslant0\) ; avec \(\ln\) dedans, ne pas oublier \(x>0\), puis passer à l'exponentielle.`,
+    _: { chk: () => { for (let i = 1; i < 4000; i++) { const x = i / 100 + 0.0007, ok = x > 0 && (up ? k - Math.log(x) >= 0 : Math.log(x) - k >= 0), inS = up ? x <= Math.exp(k) : x >= Math.exp(k); if (ok !== inS) return 'x=' + x; } return true; } }
+  }, mcq(g, M(good), (up ? [R`\left]-\infty\,;${eT}\right]`, R`\left[${eT}\,;+\infty\right[`, R`\left]0\,;${k}\right]`, R`\left[0\,;${eT}\right]`] : [R`\left]0\,;${eT}\right]`, R`\left[${k}\,;+\infty\right[`, R`\left]${eT}\,;+\infty\right[`, R`\left]0\,;+\infty\right[`]).map(M)));
+});
+
+def('dom_inv_exp', 'domaine', NT_W, g => {
+  const k = g.pick([2, 3, 5, 7, -1, -2]), two = g.chance(0.4);
+  const ex = two ? 'e^{2x}' : 'e^{x}';
+  const val = two ? R`\dfrac{\ln ${k}}{2}` : R`\ln ${k}`;
+  const good = k > 0 ? R`\mathbb R\setminus\left\{${val}\right\}` : R`\mathbb R`;
+  return Object.assign({
+    q: R`Quel est l'ensemble de définition de \(f:x\mapsto\dfrac{1}{${ex}${pm(-k)}}\) ?`,
+    e: k > 0 ? R`Le dénominateur s'annule si \(${ex}=${k}\iff ${two ? '2x' : 'x'}=\ln ${k}\iff x=${val}\). On retire cette seule valeur.` : R`\(${ex}>0\) donc \(${ex}${pm(-k)}>0\) : le dénominateur ne s'annule jamais.`,
+    d: R`Dénominateur avec une exponentielle : résoudre \(e^{u}=k\) (aucune solution si \(k\leqslant0\)).`,
+    _: { chk: () => (k > 0 ? close(Math.exp((two ? 2 : 1) * (two ? Math.log(k) / 2 : Math.log(k))), k) : true) || 'faux' }
+  }, mcq(g, M(good), [k > 0 ? R`\mathbb R` : R`\mathbb R\setminus\{0\}`, R`\mathbb R\setminus\{${Math.abs(k)}\}`, k > 0 ? R`\left]${val}\,;+\infty\right[` : R`\left]0\,;+\infty\right[`, R`\mathbb R\setminus\{0\}`].map(M)));
+});
+
+// ---------- Dérivées ----------
+def('deriv_quot_val', 'derivees', NT_W, g => {
+  const a = g.nz(-4, 4), b = g.int(-5, 5), c = g.nz(-3, 3), d = g.nz(-5, 5), x0 = g.int(0, 2);
+  need(a * d - b * c !== 0 && c * x0 + d !== 0);
+  const good = F(a * d - b * c, (c * x0 + d) ** 2);
+  return Object.assign({
+    q: R`Soit \(f(x)=\dfrac{${lin(a, b)}}{${lin(c, d)}}\). Que vaut \(f'(${x0})\) ?`,
+    e: R`\(\left(\dfrac uv\right)'=\dfrac{u'v-uv'}{v^2}\) : \(f'(x)=\dfrac{${a}(${lin(c, d)})-${par(c)}(${lin(a, b)})}{(${lin(c, d)})^2}=\dfrac{${a * d - b * c}}{(${lin(c, d)})^2}\).<br>\(f'(${x0})=\dfrac{${a * d - b * c}}{${par(c * x0 + d)}^2}=${fx(good)}\).`,
+    d: R`Pour \(\dfrac{ax+b}{cx+d}\), la dérivée vaut \(\dfrac{ad-bc}{(cx+d)^2}\) : attention à l'ordre \(u'v-uv'\).`,
+    _: { chk: () => { const f = x => (a * x + b) / (c * x + d); return close((f(x0 + 1e-6) - f(x0 - 1e-6)) / 2e-6, good.v, 1e-5) || 'faux'; } }
+  }, mcqF(g, good, [F(b * c - a * d, (c * x0 + d) ** 2), F(a * d - b * c, c * x0 + d), F(a, c), F(a * d + b * c, (c * x0 + d) ** 2)]));
+});
+
+def('deriv_comp_val', 'derivees', NT_W, g => {
+  const k = g.int(1, 6), lnk = g.chance(0.5), x0 = g.int(1, 2);
+  if (lnk) {
+    const good = F(2 * x0, x0 * x0 + k);
+    return Object.assign({
+      q: R`Soit \(f(x)=\ln\left(x^2+${k}\right)\). Que vaut \(f'(${x0})\) ?`,
+      e: R`\((\ln u)'=\dfrac{u'}{u}\) : \(f'(x)=\dfrac{2x}{x^2+${k}}\), donc \(f'(${x0})=\dfrac{${2 * x0}}{${x0 * x0 + k}}=${fx(good)}\).`,
+      d: R`\((\ln u)'=\dfrac{u'}{u}\) : ne pas oublier \(u'\) au numérateur.`,
+      _: { chk: () => close((Math.log((x0 + 1e-6) ** 2 + k) - Math.log((x0 - 1e-6) ** 2 + k)) / 2e-6, good.v, 1e-5) || 'faux' }
+    }, mcqF(g, good, [F(1, x0 * x0 + k), F(2 * x0, k), F(x0, x0 * x0 + k), F(2, x0 * x0 + k)]));
+  }
+  const ex = x0 * x0 - k * x0, val = (2 * x0 - k) * Math.exp(ex);
+  const eT = ex === 0 ? '' : ex === 1 ? 'e' : `e^{${ex}}`;
+  const T = (m, e) => (m === 0 ? '0' : e === '' ? String(m) : m === 1 ? e : m === -1 ? '-' + e : `${m}${e}`);
+  return Object.assign({
+    q: R`Soit \(f(x)=e^{x^2-${kco(k)}x}\). Que vaut \(f'(${x0})\) ?`,
+    e: R`\((e^u)'=u'e^u\) : \(f'(x)=(2x-${k})e^{x^2-${kco(k)}x}\), donc \(f'(${x0})=${T(2 * x0 - k, eT)}\).`,
+    d: R`\((e^u)'=u'e^u\) : la dérivée de l'exposant vient devant.`,
+    _: { chk: () => { const f = x => Math.exp(x * x - k * x); return close((f(x0 + 1e-6) - f(x0 - 1e-6)) / 2e-6, val, 1e-5) || 'faux'; } }
+  }, mcqv(g, [T(2 * x0 - k, eT), val], [[eT || '1', Math.exp(ex)], [T(2 * x0, eT), 2 * x0 * Math.exp(ex)], [T(k - 2 * x0, eT), (k - 2 * x0) * Math.exp(ex)], [T(ex, eT), ex * Math.exp(ex)]]));
+});
+
+// ---------- Intégrales ----------
+def('integ_exp_lin', 'integrales', NT_W, g => {
+  const a = g.pick([1, 2, 3, -1, -2]), up = g.pick([1, 1, 2]);
+  const ea = a * up, eT = ea === 1 ? 'e' : `e^{${ea}}`, good = (Math.exp(ea) - 1) / a;
+  const gT = a === 1 ? R`${eT}-1` : a === -1 ? R`1-${eT}` : a > 0 ? R`\dfrac{${eT}-1}{${a}}` : R`\dfrac{1-${eT}}{${-a}}`;
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle\int_0^{${up}}${ekx(a)}\,\mathrm dx\) ?`,
+    e: R`Une primitive de \(${ekx(a)}\) est \(\dfrac{1}{${a}}${ekx(a)}\). Donc l'intégrale vaut \(\dfrac{1}{${a}}\left(${eT}-1\right)=${gT}\).`,
+    d: R`Primitive de \(e^{ax}\) : \(\frac1a e^{ax}\) (ne pas oublier le \(\frac1a\)).`,
+    _: { chk: () => close(simpson(x => Math.exp(a * x), 0, up), good, 1e-7) || 'faux' }
+  }, mcqv(g, [gT, good], [[R`${eT}-1`, Math.exp(ea) - 1], [R`${a}\left(${eT}-1\right)`, a * (Math.exp(ea) - 1)], [R`${eT}`, Math.exp(ea)], [Math.abs(a) === 1 ? R`${eT}+1` : R`\dfrac{${eT}+1}{${Math.abs(a)}}`, (Math.exp(ea) + 1) / Math.abs(a)]]));
+});
+
+def('integ_ln_uprime', 'integrales', NT_W, g => {
+  const k = g.int(1, 8), b = g.int(0, 3), up = 1;
+  // ∫₀¹ (2x+b)/(x²+bx+k) dx = ln((1+b+k)/k)
+  const fr = F(1 + b + k, k), good = Math.log(fr.v);
+  const lnT = f => (f.q === 1 ? `\\ln ${f.p}` : `\\ln\\dfrac{${f.p}}{${f.q}}`);
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle\int_0^{1}\dfrac{${lin(2, b)}}{${poly([k, b, 1])}}\,\mathrm dx\) ?`,
+    e: R`Le numérateur est la dérivée du dénominateur \(u(x)=${poly([k, b, 1])}>0\) : une primitive est \(\ln u\). L'intégrale vaut \(\ln u(1)-\ln u(0)=\ln ${1 + b + k}-\ln ${k}=${lnT(fr)}\).`,
+    d: R`Forme \(\dfrac{u'}{u}\) (avec \(u>0\)) : primitive \(\ln u\).`,
+    _: { chk: () => close(simpson(x => (2 * x + b) / (x * x + b * x + k), 0, up), good, 1e-7) || 'faux' }
+  }, mcqv(g, [lnT(fr), good], [[`\\ln ${1 + b + k}`, Math.log(1 + b + k)], [`\\dfrac{${1 + b + k}}{${k}}`, (1 + b + k) / k], [`\\ln\\dfrac{${k}}{${1 + b + k}}`, -good], [`2\\ln ${1 + b + k}`, 2 * Math.log(1 + b + k)]]));
+});
+
+// ---------- Limites ----------
+def('lim_rational', 'limites', NT_W, g => {
+  const p = g.int(1, 3), q = g.int(1, 3), a = g.nz(-5, 5), b = g.nz(-5, 5);
+  const num = [g.int(-6, 6), g.int(-6, 6), g.int(-6, 6), 0].slice(0, p).concat([a]), den = [g.int(-6, 6), g.int(-6, 6), g.int(-6, 6), 0].slice(0, q).concat([b]);
+  const good = p === q ? [fx(F(a, b)), F(a, b).v] : p < q ? ['0', 0] : (a / b > 0 ? [INF, Infinity] : [NINF, -Infinity]);
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle\lim_{x\to+\infty}\dfrac{${poly(num)}}{${poly(den)}}\) ?`,
+    e: R`On factorise par le terme de plus haut degré en haut et en bas : la limite est celle de \(\dfrac{${kco(a)}x${p > 1 ? `^{${p}}` : ''}}{${kco(b)}x${q > 1 ? `^{${q}}` : ''}}\)` + (p === q ? R`\(=\dfrac{${a}}{${b}}\).` : p < q ? R`, qui tend vers \(0\) (degré du bas plus grand).` : R`, qui tend vers \(${good[0]}\) (degré du haut plus grand, signe de \(\frac{${a}}{${b}}\)).`),
+    d: R`Limite en \(\pm\infty\) d'une fraction rationnelle : quotient des termes de plus haut degré.`,
+    _: { chk: () => { const x = 1e7, v = pev(num, x) / pev(den, x); return (isFinite(good[1]) ? close(v, good[1], 1e-4) : Math.sign(v) === Math.sign(good[1]) && Math.abs(v) > 1e3) || 'faux ' + v; } }
+  }, mcqv(g, good, [['0', 0], [INF, Infinity], [NINF, -Infinity], [fx(F(a, b)), F(a, b).v]]));
+});
+
+def('lim_exp_quot', 'limites', NT_W, g => {
+  const a = g.nz(-4, 5), b = g.nz(-5, 5), c = g.nz(-3, 4), d = g.nz(-5, 5), plus = g.chance(0.5);
+  need(a * d - b * c !== 0);
+  const good = plus ? F(a, c) : F(b, d);
+  return Object.assign({
+    q: R`Que vaut \(\displaystyle\lim_{x\to${plus ? '+' : '-'}\infty}\dfrac{${sum([[a, 'e^{x}'], [b, '']])}}{${sum([[c, 'e^{x}'], [d, '']])}}\) ?`,
+    e: plus ? R`En \(+\infty\), \(e^x\to+\infty\) : on factorise par \(e^x\), \(\dfrac{${a}${pm(b)}e^{-x}}{${c}${pm(d)}e^{-x}}\to\dfrac{${a}}{${c}}=${fx(good)}\).` : R`En \(-\infty\), \(e^x\to0\) : la limite vaut \(\dfrac{${b}}{${d}}=${fx(good)}\).`,
+    d: R`\(e^x\to+\infty\) en \(+\infty\) mais \(e^x\to0\) en \(-\infty\) : la réponse change selon le côté.`,
+    _: { chk: () => { const x = plus ? 50 : -50, v = (a * Math.exp(x) + b) / (c * Math.exp(x) + d); return close(v, good.v, 1e-8) || 'faux'; } }
+  }, mcqF(g, good, [plus ? F(b, d) : F(a, c), F(a + b, c + d === 0 ? 1 : c + d), F(0), F(a, d)]));
+});
+
+// ---------- Inégalités ♣ ----------
+def('ineq_order', 'inegalites', NT_W, g => {
+  const pos = g.chance(0.5);
+  const ctx = pos ? R`0&lt;a&lt;b` : R`a&lt;b&lt;0`;
+  const st = [
+    [R`\(a^2&lt;b^2\)`, pos, pos ? R`le carré est croissant sur \([0;+\infty[\).` : R`faux : sur \(]-\infty;0]\) le carré est décroissant (\(-3&lt;-1\) mais \(9>1\)).`],
+    [R`\(\dfrac1a>\dfrac1b\)`, true, R`la fonction inverse est décroissante sur chacun des intervalles \(]-\infty;0[\) et \(]0;+\infty[\).`],
+    [R`\(-a>-b\)`, true, R`multiplier par \(-1\) change le sens.`],
+    [R`\(a^3&lt;b^3\)`, true, R`le cube est croissant sur \(\mathbb R\).`],
+    [R`\(ab>0\)`, true, R`\(a\) et \(b\) sont de même signe.`],
+    [R`\(|a|&lt;|b|\)`, pos, pos ? R`\(|a|=a\) et \(|b|=b\).` : R`faux : \(a\) est plus loin de 0 que \(b\) (\(|-3|>|-1|\)).`],
+    [R`\(e^a&lt;e^b\)`, true, R`\(\exp\) est croissante sur \(\mathbb R\).`],
+    [R`\(\dfrac ab&lt;1\)`, pos, pos ? R`\(b>0\) et \(a&lt;b\).` : R`faux : \(\frac{-3}{-1}=3>1\) (diviser par \(b&lt;0\) change le sens).`],
+    [R`\(a-b>0\)`, false, R`faux : \(a&lt;b\iff a-b&lt;0\).`],
+    [R`\(a+b>0\)`, pos, pos ? R`somme de deux positifs.` : R`faux : somme de deux négatifs.`]
+  ].map(([t, ok, why]) => ({ t, ok, why }));
+  return Object.assign(multi(g, st), {
+    q: R`Soient deux réels \(a\) et \(b\) tels que \(${ctx}\). Parmi les affirmations suivantes, lesquelles sont vraies ?`,
+    d: R`Comparer des images : utiliser le sens de variation de la fonction (carré, inverse, exp…) sur l'intervalle où se trouvent \(a\) et \(b\).`,
+    _: { chk: () => { const ex = pos ? [[1, 3], [0.5, 2]] : [[-3, -1], [-2, -0.5]]; const T = [(a, b) => a * a < b * b, (a, b) => 1 / a > 1 / b, (a, b) => -a > -b, (a, b) => a ** 3 < b ** 3, (a, b) => a * b > 0, (a, b) => Math.abs(a) < Math.abs(b), (a, b) => Math.exp(a) < Math.exp(b), (a, b) => a / b < 1, (a, b) => a - b > 0, (a, b) => a + b > 0]; const truth = [pos, true, true, true, true, pos, true, pos, false, pos]; return T.every((f, i) => ex.every(([a, b]) => f(a, b) === truth[i])) || 'faux'; } }
+  });
+});
+
+def('ineq_square', 'inegalites', NT_W, g => {
+  const c = g.int(1, 7), a = g.int(-4, 4), kind = g.int(0, 2);
+  let q, good, bads, e;
+  if (kind === 0) { q = R`x^2\geqslant${c * c}`; good = R`]-\infty\,;-${c}]\,\cup\,[${c}\,;+\infty[`; bads = [R`[${c}\,;+\infty[`, R`[-${c}\,;${c}]`, R`]-\infty\,;-${c}]`]; e = R`\(x^2\geqslant${c * c}\iff|x|\geqslant${c}\iff x\leqslant-${c}\) ou \(x\geqslant${c}\).`; }
+  else if (kind === 1) { q = R`x^2&lt;${c * c}`; good = R`]-${c}\,;${c}[`; bads = [R`]-\infty\,;${c}[`, R`]-\infty\,;-${c}[\,\cup\,]${c}\,;+\infty[`, R`[-${c}\,;${c}]`]; e = R`\(x^2&lt;${c * c}\iff|x|&lt;${c}\iff-${c}&lt;x&lt;${c}\).`; }
+  else { q = R`(${lin(1, -a)})^2\leqslant${c * c}`; good = R`[${a - c}\,;${a + c}]`; bads = [R`]-\infty\,;${a + c}]`, R`[${-c}\,;${c}]`, R`]-\infty\,;${a - c}]\,\cup\,[${a + c}\,;+\infty[`]; e = R`\((${lin(1, -a)})^2\leqslant${c * c}\iff|${lin(1, -a)}|\leqslant${c}\iff${a - c}\leqslant x\leqslant${a + c}\).`; }
+  return Object.assign({
+    q: R`L'ensemble des solutions de l'inéquation \(${q}\) est :`,
+    e, d: R`\(X^2\leqslant c^2\iff|X|\leqslant c\) : ne pas « prendre la racine » en oubliant la partie négative.`,
+    _: { chk: () => true }
+  }, mcq(g, M(good), bads.map(M)));
+});
+
+// ---------- Suites ----------
+def('suite_rank', 'suites', NT_W, g => {
+  const u0 = g.int(-10, 20), r = g.nz(-6, 7), n = g.int(10, 60), un = u0 + n * r;
+  return Object.assign({
+    q: R`\((u_n)\) est la suite arithmétique de premier terme \(u_0=${u0}\) et de raison \(${r}\). Pour quel entier \(n\) a-t-on \(u_n=${un}\) ?`,
+    e: R`\(u_n=u_0+nr=${u0}${pm(r)}n\). On résout \(${u0}${pm(r)}n=${un}\) : \(n=\dfrac{${un}${pm(-u0)}}{${r}}=${n}\).`,
+    d: R`Suite arithmétique : \(u_n=u_0+nr\) (ou \(u_n=u_1+(n-1)r\) si elle commence à 1).`,
+    _: { chk: () => (u0 + n * r === un) || 'faux' }
+  }, mcqv(g, [String(n), n], [n + 1, n - 1, un - u0, Math.round(un / r)].map(v => [String(v), v])));
+});
+
+def('suite_geo_find', 'suites', NT_W, g => {
+  const q = g.pick([F(2), F(3), F(-2), F(1, 2), F(-3), F(1, 3)]), u0 = g.nz(-5, 5) * (q.q === 1 ? 1 : q.q ** 3);
+  const k = g.int(1, 2), m = k + g.int(2, 3);
+  const U = n => F(u0).mul(F(q.p ** n, q.q ** n));
+  const askQ = g.chance(0.5);
+  return Object.assign({
+    q: R`\((u_n)\) est une suite géométrique telle que \(u_{${k}}=${fx(U(k))}\) et \(u_{${m}}=${fx(U(m))}\). Que vaut ${askQ ? 'sa raison \\(q\\)' : '\\(u_0\\)'} ?`,
+    e: R`\(u_{${m}}=u_{${k}}\times q^{${m - k}}\), donc \(q^{${m - k}}=\dfrac{${fx(U(m), true)}}{${fx(U(k), true)}}=${fx(F(q.p ** (m - k), q.q ** (m - k)))}\) et \(q=${fx(q)}\)` + (askQ ? '.' : R`. Puis \(u_0=\dfrac{u_{${k}}}{${k === 1 ? 'q' : `q^{${k}}`}}=${u0}\).`),
+    d: R`Suite géométrique : \(u_m=u_k\,q^{m-k}\). Avec un exposant pair, vérifier le signe de \(q\) grâce aux termes.`,
+    _: { chk: () => close(U(m).v / U(k).v, q.v ** (m - k)) || 'faux' }
+  }, askQ ? mcqF(g, q, [q.neg(), q.inv(), q.mul(q), F(q.p * (m - k), q.q)]) : mcqF(g, F(u0), [U(k), F(-u0), F(u0).mul(q), F(u0).div(q.mul(q))]));
+});
+
+// ---------- Étude de fonction ----------
+def('fct_min_inv', 'etude_fonction', NT_W, g => {
+  const r = g.pick([1, 1, 2, 3]), t = g.int(1, 6), a = r * r, b = t * t;
+  const xm = t / r, mn = 2 * r * t, xmT = fx(F(t, r), true);
+  return Object.assign({
+    q: R`Quel est le minimum sur \(]0\,;+\infty[\) de la fonction \(f:x\mapsto ${a === 1 ? '' : a}x+\dfrac{${b}}{x}\) ?`,
+    e: R`\(f'(x)=${a}-\dfrac{${b}}{x^2}=\dfrac{${a === 1 ? '' : a}x^2-${b}}{x^2}\), qui s'annule en \(x=${xmT}\) (négative avant, positive après).<br>Minimum : \(f\left(${xmT}\right)=${mn}\).`,
+    d: R`Extremum : signe de \(f'\), puis valeur de \(f\) au point où \(f'\) s'annule.`,
+    _: { chk: () => { let m = Infinity; for (let i = 1; i < 20000; i++) { const x = i / 1000; m = Math.min(m, a * x + b / x); } return close(m, mn, 1e-5) || 'faux'; } }
+  }, mcqv(g, [String(mn), mn], [[xmT, xm], [String(mn / 2), mn / 2], [String(a + b), a + b], [String(2 * b), 2 * b]]));
+});
+
+def('fct_asym_hom', 'etude_fonction', NT_W, g => {
+  const a = g.nz(-5, 5), b = g.int(-6, 6), c = g.nz(-3, 3), d = g.int(-6, 6);
+  need(a * d - b * c !== 0);
+  const h = F(a, c), v = F(-d, c);
+  const good = R`y=${fx(h, true)}\ \text{et}\ x=${fx(v, true)}`;
+  return Object.assign({
+    q: R`Quelles sont les asymptotes à la courbe de \(f:x\mapsto\dfrac{${lin(a, b)}}{${lin(c, d)}}\) ?`,
+    e: R`En \(\pm\infty\), \(f(x)\to\dfrac{${a}}{${c}}\) (quotient des termes en \(x\)) : asymptote horizontale \(y=${fx(h, true)}\).<br>Le dénominateur s'annule en \(x=${fx(v, true)}\) (et pas le numérateur) : asymptote verticale \(x=${fx(v, true)}\).`,
+    d: R`Fonction homographique \(\dfrac{ax+b}{cx+d}\) : asymptote horizontale \(y=\frac ac\), verticale \(x=-\frac dc\).`,
+    _: { chk: () => close((a * 1e7 + b) / (c * 1e7 + d), h.v, 1e-5) || 'faux' }
+  }, mcq(g, M(good), [R`y=${fx(F(b, d === 0 ? 1 : d), true)}\ \text{et}\ x=${fx(v, true)}`, R`y=${fx(h, true)}\ \text{et}\ x=${fx(F(d, c), true)}`, R`y=${fx(v, true)}\ \text{et}\ x=${fx(h, true)}`, R`y=0\ \text{et}\ x=${fx(v, true)}`].map(M)));
+});
+
+// ---------- Probabilités ----------
+def('bin_esp_var', 'binomiale', NT_W, g => {
+  const n = g.pick([10, 12, 20, 25, 30, 50, 100]), p = g.pick([F(1, 2), F(1, 4), F(1, 5), F(1, 10), F(2, 5), F(3, 4)]), kind = g.int(0, 2);
+  const E = p.mul(n), V = E.mul(F(1).sub(p)), a = g.int(2, 3), b = g.nz(-4, 5);
+  let ask, good, bads;
+  if (kind === 0) { ask = 'V(X)'; good = V; bads = [E, E.mul(p), F(1).sub(p).mul(n)]; }
+  else if (kind === 1) { ask = R`E(${a}X${pm(b)})`; good = E.mul(a).add(b); bads = [E.mul(a), E.add(b), E.mul(a * a).add(b)]; }
+  else { ask = R`V(${a}X${pm(b)})`; good = V.mul(a * a); bads = [V.mul(a), V.mul(a * a).add(b), V.mul(a).add(b)]; }
+  return Object.assign({
+    q: R`\(X\) suit la loi binomiale de paramètres \(n=${n}\) et \(p=${fx(p, true)}\). Que vaut \(${ask}\) ?`,
+    e: R`\(E(X)=np=${fx(E)}\) et \(V(X)=np(1-p)=${fx(V)}\).` + (kind === 1 ? R`<br>Linéarité : \(E(aX+b)=aE(X)+b=${fx(good)}\).` : kind === 2 ? R`<br>\(V(aX+b)=a^2V(X)=${fx(good)}\) (la constante ne change pas la variance).` : ''),
+    d: R`\(E(aX+b)=aE(X)+b\) mais \(V(aX+b)=a^2V(X)\).`,
+    _: { chk: () => close(good.v, kind === 0 ? n * p.v * (1 - p.v) : kind === 1 ? a * n * p.v + b : a * a * n * p.v * (1 - p.v)) || 'faux' }
+  }, mcqF(g, good, bads));
+});
+
+// ---------- Espace ----------
+def('esp_dist', 'espace', NT_W, g => {
+  const [base, nr] = g.pick([[[1, 2, 2], 3], [[2, 3, 6], 7], [[1, 4, 8], 9], [[4, 4, 7], 9], [[2, 6, 9], 11], [[2, 2, 1], 3]]);
+  const v = g.shuffle(base).map(x => x * g.sign()), A = [g.int(-4, 4), g.int(-4, 4), g.int(-4, 4)], B = A.map((x, i) => x + v[i]);
+  const pt = P => `(${P.join(R`\,;`)})`;
+  return Object.assign({
+    q: R`Dans un repère orthonormé, quelle est la distance entre \(A${pt(A)}\) et \(B${pt(B)}\) ?`,
+    e: R`\(\overrightarrow{AB}(${v.join(';')})\), donc \(AB=\sqrt{${v.map(x => par(x) + '^2').join('+')}}=\sqrt{${nr * nr}}=${nr}\).`,
+    d: R`\(AB=\sqrt{(x_B-x_A)^2+(y_B-y_A)^2+(z_B-z_A)^2}\) : bien mettre les carrés (les signes disparaissent).`,
+    _: { chk: () => (v.reduce((s, x) => s + x * x, 0) === nr * nr) || 'faux' }
+  }, mcqv(g, [String(nr), nr], [[String(nr * nr), nr * nr], [String(v.reduce((s, x) => s + Math.abs(x), 0)), v.reduce((s, x) => s + Math.abs(x), 0)], [R`\sqrt{${Math.abs(v.reduce((s, x) => s + x, 0)) || 1}}`, Math.sqrt(Math.abs(v.reduce((s, x) => s + x, 0)) || 1)], [String(nr + 1), nr + 1]]));
+});
+
+def('esp_ortho_m', 'espace', NT_W, g => {
+  const u = [g.nz(-4, 4), g.nz(-4, 4)], w = [g.nz(-4, 4), g.nz(-4, 4), g.nz(-3, 3)];
+  const m = F(-(u[0] * w[0] + u[1] * w[1]), w[2]);
+  return Object.assign({
+    q: R`Pour quelle valeur de \(m\) les vecteurs \(\vec u(${u[0]}\,;${u[1]}\,;m)\) et \(\vec v(${w.join(R`\,;`)})\) sont-ils orthogonaux ?`,
+    e: R`\(\vec u\perp\vec v\iff\vec u\cdot\vec v=0\iff ${u[0]}\times${par(w[0])}+${par(u[1])}\times${par(w[1])}+${par(w[2])}m=0\iff m=${fx(m)}\).`,
+    d: R`Orthogonalité \(\iff\) produit scalaire nul : \(xx'+yy'+zz'=0\).`,
+    _: { chk: () => close(u[0] * w[0] + u[1] * w[1] + m.v * w[2], 0, 1e-12) || 'faux' }
+  }, mcqF(g, m, [m.neg(), F(u[0] * w[0] + u[1] * w[1]), F(-(u[0] * w[0] - u[1] * w[1]), w[2]), m.add(1)]));
+});
+
+// ---------- Trigonométrie ----------
+def('trig_ident', 'trigo', NT_W, g => {
+  const L = [['\\cos(\\pi-x)', '-\\cos x', 'symétrie par rapport à l\'axe des ordonnées'], ['\\sin(\\pi-x)', '\\sin x', 'symétrie par rapport à l\'axe des ordonnées'], ['\\cos(\\pi+x)', '-\\cos x', 'symétrie par rapport à l\'origine'], ['\\sin(\\pi+x)', '-\\sin x', 'symétrie par rapport à l\'origine'],
+    ['\\cos\\left(\\frac{\\pi}{2}-x\\right)', '\\sin x', 'symétrie par rapport à la première bissectrice'], ['\\sin\\left(\\frac{\\pi}{2}-x\\right)', '\\cos x', 'symétrie par rapport à la première bissectrice'], ['\\cos(-x)', '\\cos x', 'parité du cosinus'], ['\\sin(-x)', '-\\sin x', 'imparité du sinus'], ['\\sin\\left(x+\\frac{\\pi}{2}\\right)', '\\cos x', 'rotation d\'un quart de tour'], ['\\cos\\left(x+\\frac{\\pi}{2}\\right)', '-\\sin x', 'rotation d\'un quart de tour']];
+  const [lhs, good, why] = g.pick(L);
+  const F4 = ['\\cos x', '-\\cos x', '\\sin x', '-\\sin x'];
+  const val = { '\\cos x': x => Math.cos(x), '-\\cos x': x => -Math.cos(x), '\\sin x': x => Math.sin(x), '-\\sin x': x => -Math.sin(x) };
+  const lf = { '\\cos(\\pi-x)': x => Math.cos(Math.PI - x), '\\sin(\\pi-x)': x => Math.sin(Math.PI - x), '\\cos(\\pi+x)': x => Math.cos(Math.PI + x), '\\sin(\\pi+x)': x => Math.sin(Math.PI + x), '\\cos\\left(\\frac{\\pi}{2}-x\\right)': x => Math.cos(Math.PI / 2 - x), '\\sin\\left(\\frac{\\pi}{2}-x\\right)': x => Math.sin(Math.PI / 2 - x), '\\cos(-x)': x => Math.cos(-x), '\\sin(-x)': x => Math.sin(-x), '\\sin\\left(x+\\frac{\\pi}{2}\\right)': x => Math.sin(x + Math.PI / 2), '\\cos\\left(x+\\frac{\\pi}{2}\\right)': x => Math.cos(x + Math.PI / 2) }[lhs];
+  return Object.assign({
+    q: R`Pour tout réel \(x\), \(${lhs}\) est égal à :`,
+    e: R`Sur le cercle trigonométrique (${why}) : \(${lhs}=${good}\). Vérification avec \(x=0\) ou \(x=\frac\pi2\).`,
+    d: R`Formules d'angles associés : les retrouver en plaçant les points sur le cercle trigonométrique, ou en testant \(x=0\).`,
+    _: { chk: () => [0.3, 1.1, 2.4].every(x => close(lf(x), val[good](x), 1e-12)) || 'faux' }
+  }, mcq(g, M(good), F4.filter(x => x !== good).map(M)));
+});
+
+def('trig_parity', 'trigo', NT_W, g => {
+  const L = [['x\\sin x', 'paire', x => x * Math.sin(x)], ['x^2\\cos x', 'paire', x => x * x * Math.cos(x)], ['x\\cos x', 'impaire', x => x * Math.cos(x)], ['\\sin(x)\\cos(x)', 'impaire', x => Math.sin(x) * Math.cos(x)], ['\\sin x+\\cos x', 'ni paire ni impaire', x => Math.sin(x) + Math.cos(x)],
+    ['\\cos(2x)+x^2', 'paire', x => Math.cos(2 * x) + x * x], ['\\sin^2 x', 'paire', x => Math.sin(x) ** 2], ['x+\\sin x', 'impaire', x => x + Math.sin(x)], ['\\cos x - x', 'ni paire ni impaire', x => Math.cos(x) - x], ['\\dfrac{\\sin x}{x}\\ (x\\neq0)', 'paire', x => Math.sin(x) / x]];
+  const [fT, good, f] = g.pick(L);
+  return Object.assign({
+    q: R`La fonction \(f:x\mapsto ${fT}\) est :`,
+    e: R`On calcule \(f(-x)\) avec \(\cos(-x)=\cos x\) et \(\sin(-x)=-\sin x\) : ${good === 'paire' ? R`\(f(-x)=f(x)\)` : good === 'impaire' ? R`\(f(-x)=-f(x)\)` : R`\(f(-x)\) n'est égal ni à \(f(x)\) ni à \(-f(x)\) (tester \(x=\frac\pi4\))`}, donc \(f\) est ${good}.`,
+    d: R`Parité : comparer \(f(-x)\) à \(f(x)\). Produit de deux fonctions impaires = paire ; paire × impaire = impaire.`,
+    _: { chk: () => { const xs = [0.4, 1.3, 2.2]; const ev = xs.every(x => close(f(-x), f(x), 1e-12)), od = xs.every(x => close(f(-x), -f(x), 1e-12)); return (good === 'paire' ? ev : good === 'impaire' ? od : !ev && !od) || 'faux'; } }
+  }, mcq(g, good, ['paire', 'impaire', 'ni paire ni impaire', 'paire et impaire'].filter(x => x !== good)));
+});
+
+// ---------- Récurrence ----------
+def('rec_conj', 'recurrence', NT_W, g => {
+  const kind = g.int(0, 2), a = g.int(-3, 5), n = g.pick([10, 12, 15, 20]);
+  let def0, fn, formula, val, bads;
+  if (kind === 0) { def0 = R`u_0=${a}\) et \(u_{n+1}=u_n+2n+1`; fn = k => k * k + a; formula = R`u_n=n^2${a ? pm(a) : ''}`; bads = [n * n + a + 2 * n + 1, (n - 1) ** 2 + a, n * n]; }
+  else if (kind === 1) { def0 = R`u_0=${a}\) et \(u_{n+1}=u_n+${2}(n+1)`; fn = k => k * (k + 1) + a; formula = R`u_n=n(n+1)${a ? pm(a) : ''}`; bads = [n * n + a, (n + 1) * (n + 2) + a, n * (n + 1)]; }
+  else { def0 = R`u_0=${a}\) et \(u_{n+1}=2u_n${pm(-a)}`; fn = k => a === 0 ? 0 : a * 1 + 0 * k; formula = R`u_n=${a}`; need(a !== 0); bads = [a * 2 ** n, a + n, 2 * a]; }
+  val = fn(n);
+  const terms = [0, 1, 2, 3].map(fn);
+  return Object.assign({
+    q: R`La suite \((u_n)\) est définie par \(${def0}\). Que vaut \(u_{${n}}\) ?`,
+    e: R`Premiers termes : \(${terms.map((t, i) => `u_${i}=${t}`).join(',\\ ')}\). On conjecture \(${formula}\), que l'on démontre par récurrence (hérédité : on remplace \(u_n\) par la formule dans la relation). Donc \(u_{${n}}=${val}\).`,
+    d: R`Suite définie par récurrence : calculer les premiers termes, conjecturer une formule explicite, la démontrer par récurrence.`,
+    _: { chk: () => { let u = a; for (let k = 0; k < n; k++) u = kind === 0 ? u + 2 * k + 1 : kind === 1 ? u + 2 * (k + 1) : 2 * u - a; return u === val || 'faux ' + u; } }
+  }, mcqv(g, [String(val), val], bads.map(v => [String(v), v])));
+});
+
+/* =====================================================================
    MODE HARDCORE : questions difficiles, à la limite du programme
    Modèles marqués « hard » : jamais tirés par les contrôles ni les
    sujets, seulement par l'onglet Hardcore. Tout se fait

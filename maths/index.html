@@ -9263,7 +9263,7 @@ async function createGroupTest() {
   if (plan.qids.length < 3) { toast('Pas assez de questions disponibles.'); return; }
   const { data: row, error } = await sb.from('group_tests').insert({ group_id: G.gid, title: `Contrôle du groupe n° ${G.tests.length + 1}`, qids: plan.qids, duration_s: dur * 60, theme_count: plan.themeCount, created_by: me.id }).select().single();
   if (error) { toast(frErr(error), 5000); return; }
-  toast('Contrôle en direct créé : il commence dans 1 minute pour tout le groupe.', 5000);
+  toast('Salle d\'attente ouverte : le groupe la voit en haut de la page. Clique sur « Démarrer maintenant » quand tout le monde est là.', 6000);
   LIVE = [row].concat(LIVE.filter(t => t.id !== row.id));
   openGroup(G.gid);
   openIntro(groupTestDef(row));
@@ -9330,16 +9330,16 @@ function groupTestDef(t) {
 }
 
 /* ---------- Contrôle de groupe en direct ----------
-   Un contrôle de groupe démarre 1 minute après sa création, pour tout le groupe en même temps.
+   Un contrôle de groupe ouvre une salle d'attente ; le créateur ou le propriétaire du groupe lance le départ (starts_at).
    Pendant sa durée, chacun peut le rejoindre : le chrono est commun (pas de pause), chacun répond
    de son côté, et la liste des participants (avancement, copie rendue) passe par le temps réel
    de Supabase (présence sur un canal par contrôle). Après la fin, il se fait seul, comme avant. */
-const LIVE_LOBBY = 60e3;
 let LIVE = [], liveCh = null, liveId = null, liveMembers = new Map(), liveIntroTick = 0, liveTrackT = 0, livePollT = 0;
 const fmtCd = sec => { sec = Math.max(0, Math.round(sec)); return sec >= 3600 ? fmtClock(sec) : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
-const liveWin = t => { const start = t.starts_at ? Date.parse(t.starts_at) : Date.parse(t.created_at) + LIVE_LOBBY; return { start, end: start + t.duration_s * 1000 }; };
+const LOBBY_MAX = 30 * 60e3;   // une salle d'attente jamais lancée se ferme au bout de 30 min
+const liveWin = t => { if (!t.starts_at) return { start: Infinity, end: Date.parse(t.created_at) + LOBBY_MAX }; const start = Date.parse(t.starts_at); return { start, end: start + t.duration_s * 1000 }; };
 const liveHidden = new Set();   // contrôles quittés : plus de bandeau « Rejoindre »
-function liveState(def, now = Date.now()) { return !def || !def.live ? null : now < def.live.start ? 'lobby' : now < def.live.end ? 'run' : null; }
+function liveState(def, now = Date.now()) { return !def || !def.live || now >= def.live.end ? null : now < def.live.start ? 'lobby' : 'run'; }
 async function pollLive() {
   if (!livePollT) livePollT = setInterval(() => { pollLive(); if (LIVE.length && document.body.dataset.view !== 'test') renderBanners(); }, 15000);
   if (!cloud.on() || !me || !myGroups.length || document.hidden) return;
@@ -9349,6 +9349,7 @@ async function pollLive() {
   const now = Date.now();
   const mineId = S && S.phase === 'test' && S.live ? S.def.live.tid : pendingDef && pendingDef.live && document.body.dataset.view === 'intro' ? pendingDef.live.tid : null;
   if (mineId && !(data || []).some(t => t.id === mineId)) liveCanceled(mineId, null);
+  (data || []).forEach(t => { if (t.starts_at && pendingDef && pendingDef.live && pendingDef.live.tid === t.id && liveState(pendingDef) === 'lobby') applyStart(t.id, Date.parse(t.starts_at)); });
   LIVE = (data || []).filter(t => liveWin(t).end > now && !attempts.some(a => a.defId === 'g:' + t.id));
   if (document.body.dataset.view !== 'test') renderBanners();
 }
@@ -9356,7 +9357,7 @@ function liveBannersHTML() {
   const now = Date.now();
   return LIVE.filter(t => liveWin(t).end > now && !liveHidden.has(t.id) && !(S && S.phase === 'test' && S.def.id === 'g:' + t.id)).map(t => {
     const w = liveWin(t), g = myGroups.find(x => x.id === t.group_id), lobby = now < w.start;
-    return `<div class="banner live"><div><b>🔴 Contrôle de groupe en direct : ${esc(t.title)}</b><p>${esc(g ? g.name : '')} · ${(t.qids || []).length} questions · ${lobby ? `commence dans ${fmtCd((w.start - now) / 1000)}` : `en cours, il reste ${fmtCd((w.end - now) / 1000)}`}</p></div><span class="spacer"></span><button type="button" class="btn btn-primary" data-live="${t.id}">Rejoindre</button></div>`;
+    return `<div class="banner live"><div><b>🔴 Contrôle de groupe en direct : ${esc(t.title)}</b><p>${esc(g ? g.name : '')} · ${(t.qids || []).length} questions · ${lobby ? 'salle d\'attente ouverte, le départ est lancé par le créateur' : `en cours, il reste ${fmtCd((w.end - now) / 1000)}`}</p></div><span class="spacer"></span><button type="button" class="btn btn-primary" data-live="${t.id}">Rejoindre</button></div>`;
   }).join('');
 }
 function liveIntro(def) {
@@ -9366,7 +9367,7 @@ function liveIntro(def) {
   const upd = () => {
     const st = liveState(def), b = $('#startBtn'), now = Date.now();
     if (pendingDef !== def || document.body.dataset.view !== 'intro') { clearInterval(liveIntroTick); return; }
-    if (st === 'lobby') { waited = true; b.disabled = true; b.textContent = `Départ dans ${fmtCd((def.live.start - now) / 1000)}`; }
+    if (st === 'lobby') { waited = true; b.disabled = true; b.textContent = def.live.mgr ? 'Clique sur « Démarrer maintenant » quand tout le monde est là' : 'En attente du départ…'; }
     else if (st === 'run') { if (waited) { clearInterval(liveIntroTick); startTest(); return; } b.disabled = false; b.textContent = `Rejoindre · il reste ${fmtCd((def.live.end - now) / 1000)}`; }
     else { clearInterval(liveIntroTick); b.disabled = false; b.textContent = 'Commencer l\'épreuve'; }
   };
@@ -9569,7 +9570,7 @@ function groupHTML() {
     const board = Object.values(best).sort((a, b) => b.note - a.note);
     const mine = best[me.id];
     return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(t.title)}</h3><p class="meta">${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${esc(G.pseudo(t.created_by) || 'un membre')} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
-      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.start ? '🔴 Rejoindre (départ dans ' + fmtCd((w.start - now) / 1000) + ')' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${mine ? `<button type="button" class="btn" data-gtcopy="${t.id}">Voir ma copie</button>` : `<button type="button" class="btn" data-gtq="${t.id}">Questions et corrigé</button>`}${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
+      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.end && now < w.start ? '🔴 Rejoindre la salle d\'attente' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${mine ? `<button type="button" class="btn" data-gtcopy="${t.id}">Voir ma copie</button>` : `<button type="button" class="btn" data-gtq="${t.id}">Questions et corrigé</button>`}${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
       <div class="ctl-detail gtq" id="gtq-${t.id}" hidden></div>
       <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(G.pseudo(a.user_id) || '?')}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>`;
   }).join('');
@@ -9585,7 +9586,7 @@ function groupHTML() {
       </div>
     </section>
 
-    <section class="card"><div class="card-head"><div><h2>Contrôles du groupe</h2><p class="sub">Un contrôle commun, construit sur les points faibles du groupe, à faire <b>ensemble en direct</b> : il démarre 1 minute après sa création, tout le groupe le voit en haut de la page et peut le rejoindre, chacun répond de son côté avec le même chrono, puis vous comparez vos notes. Une fois le temps écoulé, on peut encore le faire seul.</p></div></div>
+    <section class="card"><div class="card-head"><div><h2>Contrôles du groupe</h2><p class="sub">Un contrôle commun, construit sur les points faibles du groupe, à faire <b>ensemble en direct</b> : une salle d'attente s'ouvre, tout le groupe la voit en haut de la page et la rejoint, puis le créateur (ou le propriétaire du groupe) lance le départ ; chacun répond de son côté avec le même chrono, puis vous comparez vos notes. Une fois le temps écoulé, on peut encore le faire seul.</p></div></div>
       <div class="data-row"><select id="gtN" aria-label="Longueur"><option value="10">10 questions · 30 min</option><option value="20" selected>20 questions · 1 h</option><option value="37">37 questions · 1 h 30</option></select><button type="button" class="btn btn-primary" data-g="newTest">Lancer un contrôle en direct</button></div>
       <h3 style="margin:22px 0 4px;font:600 17px/1.3 var(--serif)">Historique des contrôles${G.tests.length ? ` (${G.tests.length})` : ''}</h3><p class="fine">Du plus récent au plus ancien : « Classement » montre les notes de chacun.${G.group && G.group.created_by === me.id ? ' En tant que propriétaire du groupe, tu peux supprimer n\'importe quel contrôle.' : ''}</p>
       <div style="margin-top:10px">${tests || '<p class="fine">Aucun contrôle de groupe pour le moment.</p>'}</div></section>

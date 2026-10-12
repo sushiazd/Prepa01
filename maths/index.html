@@ -519,6 +519,7 @@ input:focus-visible,select:focus-visible{outline:2px solid var(--pen);outline-of
 .btn-hc{background:var(--red);border-color:var(--red);color:var(--paper)}
 .btn-hc:hover{background:color-mix(in srgb,var(--red) 82%,var(--ink));border-color:color-mix(in srgb,var(--red) 82%,var(--ink))}
 .eyebrow-hc{color:var(--red)}
+.crown{font-size:.9em;margin-left:2px;cursor:help}
 .tag-hc{color:var(--red);background:var(--red-soft);border-color:color-mix(in srgb,var(--red) 30%,transparent)}
 .gen-try .data-row{margin-top:10px}
 .try-item{margin-top:14px;display:grid;gap:10px}
@@ -9452,7 +9453,7 @@ function statsHTML(ps) {
 }
 function openProfile(uid) {
   const m = G && G.members.find(x => x.id === uid); if (!m || m.hidden) return;
-  $('#profileBody').innerHTML = `<p class="eyebrow">Profil</p><h2>${esc(m.pseudo)}${m.isMe ? ' <span class="fine">(toi)</span>' : ''}</h2><div style="margin-top:18px">${statsHTML(personStats(m.attempts, m.controls))}</div>`;
+  $('#profileBody').innerHTML = `<p class="eyebrow">Profil</p><h2>${esc(m.pseudo)}${G && G.group && G.group.created_by === m.id ? ' <span class="crown" title="Propriétaire du groupe" aria-label="Propriétaire du groupe">👑</span>' : ''}${m.isMe ? ' <span class="fine">(toi)</span>' : ''}</h2><div style="margin-top:18px">${statsHTML(personStats(m.attempts, m.controls))}</div>`;
   $('#profileDlg').showModal();
 }
 
@@ -9544,7 +9545,7 @@ function groupHTML() {
 
     <section class="card"><div class="card-head"><div><h2>Membres</h2><p class="sub">Clique sur un membre pour voir son profil détaillé. Le temps compte les épreuves faites sur le site, pauses exclues.</p></div></div>
       <div style="overflow-x:auto"><table class="hist members"><thead><tr><th>Pseudo</th><th>Temps</th><th>Épreuves</th><th>Moyenne</th><th>Dernière</th><th>Point faible</th><th>Actif</th></tr></thead><tbody>
-      ${rows.map(({ m, ps }) => `<tr data-prof="${m.id}" tabindex="0"><td><strong>${esc(m.pseudo)}</strong>${m.isMe ? ' <span class="fine">(toi)</span>' : ''}</td><td>${fmtHours(ps.used)}</td><td>${ps.n}</td><td>${ps.avg == null ? '—' : fmtNum(ps.avg, 1)}</td><td>${ps.lastNote == null ? '—' : fmtNum(ps.lastNote, 1)}</td><td>${ps.weak[0] ? esc(ps.weak[0].short) : '—'}</td><td>${ps.last ? fmtDate(ps.last) : '—'}</td></tr>`).join('')}
+      ${rows.map(({ m, ps }) => `<tr data-prof="${m.id}" tabindex="0"><td><strong>${esc(m.pseudo)}</strong>${G && G.group && G.group.created_by === m.id ? ' <span class="crown" title="Propriétaire du groupe" aria-label="Propriétaire du groupe">👑</span>' : ''}${m.isMe ? ' <span class="fine">(toi)</span>' : ''}</td><td>${fmtHours(ps.used)}</td><td>${ps.n}</td><td>${ps.avg == null ? '—' : fmtNum(ps.avg, 1)}</td><td>${ps.lastNote == null ? '—' : fmtNum(ps.lastNote, 1)}</td><td>${ps.weak[0] ? esc(ps.weak[0].short) : '—'}</td><td>${ps.last ? fmtDate(ps.last) : '—'}</td></tr>`).join('')}
       </tbody></table></div>${hid ? `<p class="fine" style="margin-top:10px">${hid} membre${hid > 1 ? 's ont' : ' a'} choisi de masquer ${hid > 1 ? 'leurs' : 'ses'} stats : elles ne comptent pas dans les vues de groupe.</p>` : ''}</section>
 
     <section class="card"><div class="card-head"><div><h2>Ce qui fait perdre le plus de points au groupe</h2><p class="sub">Thèmes classés par points perdus en moyenne par question, sur les copies importées et les épreuves de tous les membres visibles.</p></div></div>

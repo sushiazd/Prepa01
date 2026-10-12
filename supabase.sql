@@ -306,3 +306,23 @@ create policy feedback_update on public.feedback for update to authenticated
   using (public.is_admin()) with check (public.is_admin());
 drop policy if exists feedback_delete on public.feedback;
 create policy feedback_delete on public.feedback for delete to authenticated using (public.is_admin());
+
+-- Toutes les stats du site, pour le tableau de bord de l'administrateur uniquement (pas d'e-mails)
+create or replace function public.admin_site_data() returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Réservé à l''administrateur du site' using errcode = '42501';
+  end if;
+  return jsonb_build_object(
+    'profiles', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'pseudo', pseudo, 'visible', visible, 'created_at', created_at)), '[]'::jsonb) from public.profiles),
+    'attempts', (select coalesce(jsonb_agg(jsonb_build_object('user_id', user_id, 'def_id', def_id, 'kind', kind, 'title', title, 'note', note, 'used_s', used_s, 'results', results, 'created_at', created_at)), '[]'::jsonb) from public.attempts),
+    'controls', (select coalesce(jsonb_agg(jsonb_build_object('user_id', user_id, 'name', name, 'items', items, 'created_at', created_at)), '[]'::jsonb) from public.controls),
+    'group_tests', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'group_id', group_id, 'title', title, 'created_at', created_at)), '[]'::jsonb) from public.group_tests),
+    'groups', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'name', name)), '[]'::jsonb) from public.groups),
+    'memberships', (select coalesce(jsonb_agg(jsonb_build_object('group_id', group_id, 'user_id', user_id)), '[]'::jsonb) from public.memberships)
+  );
+end
+$$;
+revoke all on function public.admin_site_data() from public, anon;
+grant execute on function public.admin_site_data() to authenticated;

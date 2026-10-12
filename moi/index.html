@@ -124,7 +124,7 @@ tr:last-child td{border-bottom:0}
   const fmt = (x, d = 0) => (Math.round(x * 10 ** d) / 10 ** d).toLocaleString('fr-FR');
   const fmtT = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`; };
   const fmtD = t => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  let sb = null, me = null, groups = [], gid = null, booted = false;
+  let sb = null, me = null, groups = [], gid = null, booted = false, SITE = null;
 
   function gate(html) { app.innerHTML = `<section class="card gate">${html}</section>`; }
 
@@ -144,16 +144,19 @@ tr:last-child td{border-bottom:0}
   async function start() {
     const { data: adm, error } = await sb.rpc('is_admin');
     if (error || !adm) { gate(`<p class="eyebrow">Page privée</p><h2>Accès réservé</h2><p class="sub">Cette page est réservée à l'administrateur du site.</p><p><a class="btn" href="../">Retour à l'accueil</a></p>`); return; }
-    const { data: ms } = await sb.from('memberships').select('group_id, groups(id,name,created_by)').eq('user_id', me.id);
-    groups = (ms || []).map(r => r.groups).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
-    gid = (groups.find(g => g.created_by === me.id) || groups[0] || {}).id || null;
-    app.innerHTML = `<header><p class="eyebrow">Page privée · administrateur</p><h1>Tableau de bord</h1><p class="lede">Les suggestions envoyées depuis l'accueil, et toutes les stats du groupe : Elo, trophées, fiches de chacun.</p></header>
+    app.innerHTML = `<header><p class="eyebrow">Page privée · administrateur</p><h1>Tableau de bord</h1><p class="lede">Les suggestions envoyées depuis l'accueil, et les stats de tous les comptes du site : Elo, trophées, fiches de chacun.</p></header>
       <section class="card" id="fbCard"><p class="sub">Chargement des suggestions…</p></section>
-      ${groups.length ? `<section class="card"><div class="row"><h2>Groupe</h2><span class="sp"></span><select id="gsel" aria-label="Groupe">${groups.map(g => `<option value="${g.id}"${g.id === gid ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</select></div></section>
-      <div id="gstats" style="display:grid;gap:22px"><section class="card"><p class="sub">Chargement des stats…</p></section></div>` : '<section class="card"><p class="sub">Tu n\'es dans aucun groupe.</p></section>'}`;
+      <section class="card"><div class="row"><h2>Stats</h2><span class="sp"></span><select id="gsel" aria-label="Portée"><option value="all">Tout le site</option></select></div><p class="fine" id="scopeInfo"></p></section>
+      <div id="gstats" style="display:grid;gap:22px"><section class="card"><p class="sub">Chargement des stats…</p></section></div>`;
     loadFeedback();
+    const { data, error: e2 } = await sb.rpc('admin_site_data');
+    if (e2 || !data) { document.getElementById('gstats').innerHTML = `<section class="card"><p class="sub">Stats indisponibles : ${esc(e2 ? e2.message : 'aucune donnée')}</p></section>`; return; }
+    SITE = data;
+    groups = (data.groups || []).slice().sort((x, y) => x.name.localeCompare(y.name));
     const sel = document.getElementById('gsel');
-    if (sel) { sel.addEventListener('change', () => { gid = sel.value; loadGroup(); }); loadGroup(); }
+    sel.insertAdjacentHTML('beforeend', groups.map(g => `<option value="${g.id}">Groupe ${esc(g.name)} (${(data.memberships || []).filter(m => m.group_id === g.id).length})</option>`).join(''));
+    sel.addEventListener('change', () => { gid = sel.value; loadScope(); });
+    gid = 'all'; loadScope();
   }
 
   /* ---------- Suggestions ---------- */
@@ -210,23 +213,27 @@ tr:last-child td{border-bottom:0}
   }
 
   /* ---------- Chargement d'un groupe ---------- */
-  async function loadGroup() {
-    const box = document.getElementById('gstats');
-    box.innerHTML = '<section class="card"><p class="sub">Chargement des stats…</p></section>';
-    try {
-      const [mem, tests] = await Promise.all([sb.from('memberships').select('user_id').eq('group_id', gid), sb.from('group_tests').select('id,title,created_at').eq('group_id', gid)]);
-      if (mem.error) throw mem.error;
-      const ids = mem.data.map(m => m.user_id);
-      const [pr, at, ct] = await Promise.all([
-        sb.from('profiles').select('id,pseudo,visible').in('id', ids),
-        sb.from('attempts').select('id,user_id,def_id,kind,title,n,note,used_s,results,created_at').in('user_id', ids).limit(5000),
-        sb.from('controls').select('id,user_id,name,items,created_at').in('user_id', ids).limit(5000)]);
-      if (pr.error || at.error || ct.error) throw pr.error || at.error || ct.error;
-      const members = pr.data.filter(p => p.visible !== false).map(p => ({ id: p.id, pseudo: p.pseudo, me: p.id === me.id,
-        attempts: at.data.filter(a => a.user_id === p.id).map(a => ({ at: Date.parse(a.created_at), kind: a.kind, defId: a.def_id, title: a.title, note: +a.note, used: a.used_s || 0, results: a.results || [] })),
-        controls: ct.data.filter(c => c.user_id === p.id).map(c => ({ at: Date.parse(c.created_at), name: c.name, items: c.items || [] })) }));
-      render(box, members, tests.data || []);
-    } catch (e) { box.innerHTML = `<section class="card"><p class="sub">Impossible de charger le groupe : ${esc(e.message || e)}</p></section>`; }
+  function loadScope() {
+    const box = document.getElementById('gstats'), D = SITE;
+    const ids = gid === 'all' ? null : new Set((D.memberships || []).filter(m => m.group_id === gid).map(m => m.user_id));
+    const inGroups = uid => (D.memberships || []).filter(m => m.user_id === uid).map(m => (groups.find(g => g.id === m.group_id) || {}).name).filter(Boolean);
+    const members = (D.profiles || []).filter(p => !ids || ids.has(p.id)).map(p => ({ id: p.id, pseudo: p.pseudo, me: p.id === me.id, hidden: p.visible === false, created: Date.parse(p.created_at), groups: inGroups(p.id),
+      attempts: (D.attempts || []).filter(a => a.user_id === p.id).map(a => ({ at: Date.parse(a.created_at), kind: a.kind, defId: a.def_id, title: a.title, note: +a.note, used: a.used_s || 0, results: a.results || [] })),
+      controls: (D.controls || []).filter(c => c.user_id === p.id).map(c => ({ at: Date.parse(c.created_at), name: c.name, items: c.items || [] })) }));
+    const tests = (D.group_tests || []).filter(t => gid === 'all' || t.group_id === gid);
+    const active = members.filter(m => m.attempts.length || m.controls.length).length;
+    document.getElementById('scopeInfo').textContent = `${members.length} compte${members.length > 1 ? 's' : ''}${gid === 'all' ? ' sur le site' : ' dans ce groupe'}, dont ${active} avec au moins une copie.`;
+    render(box, members, tests);
+    box.insertAdjacentHTML('beforeend', accountsHTML(members));
+  }
+  // Tous les comptes (y compris ceux sans activité)
+  function accountsHTML(members) {
+    const last = m => Math.max(0, ...m.attempts.map(a => a.at), ...m.controls.map(c => c.at));
+    const L = members.slice().sort((a, b) => last(b) - last(a) || a.pseudo.localeCompare(b.pseudo));
+    return `<section class="card"><h2>Comptes</h2><p class="sub">Tous les comptes${gid === 'all' ? ' du site' : ' du groupe'}, du plus récemment actif au moins actif. 🙈 = profil masqué aux autres membres (visible ici seulement).</p>
+      <div style="overflow-x:auto"><table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Groupes</th><th>Épreuves</th><th>Copies du prof</th><th>Dernière activité</th></tr></thead><tbody>
+      ${L.map(m => { const t = last(m); return `<tr><td><b>${esc(m.pseudo)}</b>${m.hidden ? ' 🙈' : ''}${m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td>${m.created ? fmtD(m.created) : '—'}</td><td>${m.groups.length ? esc(m.groups.join(', ')) : '<span class="fine">aucun</span>'}</td><td>${m.attempts.length}</td><td>${m.controls.length}</td><td>${t ? fmtD(t) : '<span class="fine">jamais</span>'}</td></tr>`; }).join('')}
+      </tbody></table></div></section>`;
   }
 
   /* ---------- Stats par personne ---------- */
@@ -284,7 +291,7 @@ tr:last-child td{border-bottom:0}
 
   function render(box, members, tests) {
     const { rank, Q, QN, QS } = eloRank(members);
-    if (!rank.length) { box.innerHTML = '<section class="card"><p class="sub">Pas encore de données dans ce groupe.</p></section>'; return; }
+    if (!rank.length) { box.innerHTML = '<section class="card"><p class="sub">Pas encore de copies ici.</p></section>'; return; }
     const st = {}; members.forEach(m => { st[m.id] = personStats(m); });
     const E = Object.fromEntries(rank.map((x, i) => [x.m.id, Object.assign({ pos: i + 1 }, x)]));
     const D = duels(members, tests);
@@ -292,7 +299,7 @@ tr:last-child td{border-bottom:0}
     const pick = (score, ok = () => true, dir = -1) => { const L = act.filter(ok).map(m => [m, score(m)]).filter(([, v]) => v != null && isFinite(v)); if (!L.length) return null; L.sort((a, b) => dir * (a[1] - b[1])); return L[0]; };
     const A = [];
     const add = (ic, title, r, why) => { if (r) A.push(`<div class="award"><span class="ic">${ic}</span><b>${title}</b><span class="who">${esc(r[0].pseudo)}</span><span class="why">${why(r[1], r[0])}</span></div>`); };
-    add('🐐', 'Le GOAT', pick(m => E[m.id].elo), v => `Elo ${fmt(v)} : numéro 1 du groupe.`);
+    add('🐐', 'Le GOAT', pick(m => E[m.id].elo), v => `Elo ${fmt(v)} : numéro 1 ${gid === 'all' ? 'du site' : 'du groupe'}.`);
     add('🎯', 'Le sniper', pick(m => st[m.id].ok / st[m.id].n, m => st[m.id].n >= 30), v => `${fmt(100 * v)} % de bonnes réponses.`);
     add('⚡', 'L\'éclair', pick(m => st[m.id].avgT, m => st[m.id].timedN >= 15, 1), v => `${fmt(v)} s en moyenne par question.`);
     add('🐢', 'Le diesel', pick(m => st[m.id].avgT, m => st[m.id].timedN >= 15), v => `${fmt(v)} s par question : il prend son temps.`);
@@ -314,23 +321,23 @@ tr:last-child td{border-bottom:0}
     box.innerHTML = `
       <section class="card"><h2>Classement Elo</h2><p class="sub">${fmt(totQ)} questions répondues au total, ${fmtT(totT)} d'entraînement chronométré. Chaque question est un match contre la question ; tout le monde part à 1000.</p>
         <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Pseudo</th><th>Elo</th><th>7 jours</th><th>Questions</th><th>Justes</th><th>Fausses</th><th>Vides</th></tr></thead><tbody>
-        ${rank.map((x, i) => { const s = st[x.m.id]; return `<tr><td>${i === 0 ? '🐐' : i + 1}</td><td><b>${esc(x.m.pseudo)}</b>${x.m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td><b>${fmt(x.elo)}</b>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'up' : x.d7 < -0.5 ? 'down' : ''}">${x.d7 > 0.5 ? '+' : ''}${fmt(x.d7)}</td><td>${s.n}</td><td>${fmt(100 * s.ok / s.n)} %</td><td>${fmt(100 * s.bad / s.n)} %</td><td>${fmt(100 * s.blank / s.n)} %</td></tr>`; }).join('')}
+        ${rank.map((x, i) => { const s = st[x.m.id]; return `<tr><td>${i === 0 ? '🐐' : i + 1}</td><td><b>${esc(x.m.pseudo)}</b>${x.m.hidden ? ' 🙈' : ''}${x.m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td><b>${fmt(x.elo)}</b>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'up' : x.d7 < -0.5 ? 'down' : ''}">${x.d7 > 0.5 ? '+' : ''}${fmt(x.d7)}</td><td>${s.n}</td><td>${fmt(100 * s.ok / s.n)} %</td><td>${fmt(100 * s.bad / s.n)} %</td><td>${fmt(100 * s.blank / s.n)} %</td></tr>`; }).join('')}
         </tbody></table></div>
         ${eloChart(rank)}</section>
 
       <section class="card"><h2>Trophées</h2><div class="awards">${A.join('')}</div></section>
 
-      <section class="card"><h2>Le groupe en chiffres</h2><div class="awards">
+      <section class="card"><h2>${gid === 'all' ? 'Le site en chiffres' : 'Le groupe en chiffres'}</h2><div class="awards">
         ${cursed ? `<div class="award"><span class="ic">💀</span><b>La question maudite</b><span class="why">${esc(qName(cursed[0], members))}</span><span class="why">${fmt(100 * cursed[1])} % de réussite sur ${cursed[2]} essais.</span></div>` : ''}
         ${hardest ? `<div class="award"><span class="ic">🧗</span><b>La question la plus « cotée »</b><span class="why">${esc(qName(hardest, members))}</span><span class="why">Elo de la question : ${fmt(Q[hardest])}.</span></div>` : ''}
         ${gthL.length ? `<div class="award"><span class="ic">💚</span><b>Thème chouchou</b><span class="who">${esc(TH[gthL[0][0]])}</span><span class="why">${fmt(gthL[0][1], 2)} point en moyenne par question.</span></div>
-        <div class="award"><span class="ic">🧨</span><b>Bête noire du groupe</b><span class="who">${esc(TH[gthL[gthL.length - 1][0]])}</span><span class="why">${fmt(gthL[gthL.length - 1][1], 2)} point en moyenne par question.</span></div>` : ''}
+        <div class="award"><span class="ic">🧨</span><b>Bête noire ${gid === 'all' ? 'du site' : 'du groupe'}</b><span class="who">${esc(TH[gthL[gthL.length - 1][0]])}</span><span class="why">${fmt(gthL[gthL.length - 1][1], 2)} point en moyenne par question.</span></div>` : ''}
       </div></section>
 
-      ${tests.length ? `<section class="card"><h2>Duels en contrôle de groupe</h2><p class="sub">Nombre de fois où la ligne a battu la colonne (meilleure note de chacun sur un même contrôle).</p>
+      ${(() => { const act = members.filter(m => m.attempts.some(a => a.kind === 'group')); return act.length >= 2 && tests.length ? `<section class="card"><h2>Duels en contrôle de groupe</h2><p class="sub">Nombre de fois où la ligne a battu la colonne (meilleure note de chacun sur un même contrôle de groupe).</p>
         <div style="overflow-x:auto"><table><thead><tr><th></th>${act.map(m => `<th>${esc(m.pseudo)}</th>`).join('')}</tr></thead><tbody>
         ${act.map(a => `<tr><td><b>${esc(a.pseudo)}</b></td>${act.map(b => `<td>${a.id === b.id ? '—' : D[a.id][b.id] > D[b.id][a.id] ? `<b class="up">${D[a.id][b.id]}</b>` : D[a.id][b.id]}</td>`).join('')}</tr>`).join('')}
-        </tbody></table></div></section>` : ''}
+        </tbody></table></div></section>` : ''; })()}
 
       <section class="card"><h2>Fiches</h2><div class="people">
         ${rank.map(x => { const s = st[x.m.id], m = x.m;

@@ -9261,12 +9261,48 @@ async function loadGroupData(gid) {
   });
   return { gid, group, members, attempts: atts, controls: ctls, tests: (tests.data || []), pseudo: id => (P.get(id) || {}).pseudo };
 }
+/* Contrôle de groupe : chaque type de question (modèle du générateur) au plus une fois par contrôle,
+   et en priorité les types les moins tombés dans les contrôles précédents du groupe : un type ne revient
+   qu'une fois que tous les autres sont tombés autant de fois. Les points faibles du groupe orientent
+   le choix des thèmes, sans jamais dépasser ~20 % du contrôle sur un même thème. */
+function planGroupTest(n, stats, past, rnd = Math.random) {
+  const used = {};
+  past.forEach(qids => new Set(qids.map(tplOfId).filter(Boolean)).forEach(tp => { used[tp] = (used[tp] || 0) + 1; }));
+  const pool = Object.values(QGEN.TPL).filter(t => !t.hard && t.size <= n);
+  const wt = th => Math.pow(stats && stats[th] ? stats[th].weak : 0.5, 1.2) + 0.15;
+  const cap = Math.max(2, Math.ceil(n * 0.2));
+  const chosen = [], cnt = {}, taken = new Set();
+  let left = n;
+  for (let relax = 0; relax < 2 && left > 0; relax++) {
+    while (left > 0) {
+      const ok = pool.filter(t => !taken.has(t.id) && t.size <= left && (relax || (cnt[t.theme] || 0) + t.size <= cap));
+      if (!ok.length) break;
+      const lo = Math.min(...ok.map(t => used[t.id] || 0));
+      const cand = ok.filter(t => (used[t.id] || 0) === lo);
+      const ws = cand.map(t => wt(t.theme) / (1 + (cnt[t.theme] || 0)) / (t.group ? 2 : 1));
+      let r = rnd() * ws.reduce((x, y) => x + y, 0), k = 0;
+      while (k < cand.length - 1 && (r -= ws[k]) > 0) k++;
+      const t = cand[k];
+      taken.add(t.id); chosen.push(t); cnt[t.theme] = (cnt[t.theme] || 0) + t.size; left -= t.size;
+    }
+  }
+  const order = t => (TH[t.theme] ? TH[t.theme].order : 99) + (t.group ? 1000 : 0);
+  chosen.sort((a, b) => order(a) - order(b));
+  const qids = [], themeCount = {};
+  chosen.forEach(t => {
+    const seed = Math.floor(rnd() * 2147483647).toString(36);
+    const ids = t.group ? Array.from({ length: t.size }, (_, k) => `gen.${t.id}.${seed}.${k}`) : [`gen.${t.id}.${seed}`];
+    ids.forEach(id => qids.push(id));
+    themeCount[t.theme] = (themeCount[t.theme] || 0) + t.size;
+  });
+  return { qids, themeCount };
+}
 async function createGroupTest() {
   if (!G) return;
   const n = +$('#gtN').value || 20, dur = ({ 10: 30, 20: 60, 37: 90 })[n] || 60;
   const stats = themeStatsFrom(G.controls, G.attempts);
   // Questions inédites : la graine est dans l'identifiant, donc tout le groupe a exactement les mêmes questions.
-  const plan = planTargeted({ n, mode: 'auto', themes: [], allowSeen: true, stats, src: prefs.gen.src || 'gen' });
+  const plan = planGroupTest(n, stats, G.tests.map(t => t.qids || []));
   if (plan.qids.length < 3) { toast('Pas assez de questions disponibles.'); return; }
   const { data: row, error } = await sb.from('group_tests').insert({ group_id: G.gid, title: `Contrôle du groupe n° ${G.tests.length + 1}`, qids: plan.qids, duration_s: dur * 60, theme_count: plan.themeCount, created_by: me.id }).select().single();
   if (error) { toast(frErr(error), 5000); return; }

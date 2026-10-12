@@ -7686,14 +7686,169 @@ defH('hc_div', 'recurrence', g => {
 });
 
 /* =====================================================================
+   TYPES DES QCM DE RANNOU (copies corrigées 2026, partie programme L1)
+   Variantes du format du prof qui manquaient : elles sont dans EXAMS,
+   donc étiquetées « Type QCM ». Sans calculatrice.
+   ===================================================================== */
+// (a√(s²r) + b)² ± (c√r + d)²  →  A + B√r
+def('rad_sq2', 'puiss_rad', 2, g => {
+  const r = g.pick([2, 3, 5, 6, 7]), s = g.pick([2, 3, 4]), a = g.pick([1, 1, 2, 3]);
+  const n = s * s * r;
+  need(n <= 150);
+  const u = a * s, b = g.nz(-9, 9), c = g.int(1, 6), d = g.nz(-6, 6), sg = g.chance(0.5) ? -1 : 1;
+  const A1 = u * u * r + b * b, B1 = 2 * u * b, A2 = c * c * r + d * d, B2 = 2 * c * d;
+  const A = A1 + sg * A2, B = B1 + sg * B2;
+  need(B !== 0 && B1 + sg * B2 !== B1 - sg * B2 && Math.abs(A) <= 900);
+  const t1 = R`\left(${a === 1 ? '' : a}\sqrt{${n}}${pm(b)}\right)^2`, t2 = R`\left(${sqrtT(c, r)}${pm(d)}\right)^2`;
+  const good = abT(A, B, r);
+  const bads = g.shuffle([abT(A, B1 - sg * B2, r), abT(A, B / 2, r), abT(A + 1, B - 3, r), abT(A + 2, B - 3, r)])
+    .concat([abT(A, B1, r), abT(A - 1, B + 2, r)]);
+  const e = R`\(${a === 1 ? '' : a}\sqrt{${n}}=${sqrtT(u, r)}\) (car \(${n}=${s * s}\times${r}\)).<br>` +
+    R`Avec \((x+y)^2=x^2+2xy+y^2\) : \(\left(${sqrtT(u, r)}${pm(b)}\right)^2=${u * u * r}${pm(b * b)}${pm(B1)}\sqrt{${r}}=${abT(A1, B1, r)}\)` +
+    R` et \(\left(${sqrtT(c, r)}${pm(d)}\right)^2=${c * c * r}${pm(d * d)}${pm(B2)}\sqrt{${r}}=${abT(A2, B2, r)}\).<br>` +
+    R`D'où \(${abT(A1, B1, r)}${sg < 0 ? R`-\left(${abT(A2, B2, r)}\right)` : R`+${abT(A2, B2, r)}`}=${good}\).`;
+  return Object.assign({
+    q: R`En quelle expression peut se simplifier l'expression suivante :\[${t1}${sg < 0 ? '-' : '+'}${t2}\]`,
+    e, d: R`Sortir les carrés de la racine (\(\sqrt{${n}}=${s}\sqrt{${r}}\)), développer chaque carré, puis regrouper. Avec un « − » devant le second carré, <strong>tout</strong> le carré change de signe.`,
+    _: { chk: () => close((a * Math.sqrt(n) + b) ** 2 + sg * (c * Math.sqrt(r) + d) ** 2, A + B * Math.sqrt(r), 1e-9) || 'faux' }
+  }, mcq(g, M(good), bads.map(M)));
+});
+
+// k₁ e^{α ln p + β ln q} ± k₂ e^{γ ln r}, avec un ln négatif possible (e^{-ln 24 + 3 ln 12} = 12³/24)
+def('exp_ln_coef', 'ln_exp', 2, g => {
+  const neg = g.chance(0.4);
+  let al, p, be, q, v1;
+  if (neg) {
+    al = -1; p = g.pick([2, 3, 4, 6, 8, 12, 24]); q = g.pick([4, 6, 10, 12]); be = g.pick([2, 3]);
+    need(p !== q && (q ** be) % p === 0); v1 = q ** be / p;
+  } else {
+    p = g.pick([2, 3, 5]); al = g.int(1, 3); q = g.pick([3, 4, 5, 6, 7, 10].filter(x => x !== p)); be = g.pick([1, 2]); v1 = p ** al * q ** be;
+  }
+  const r = g.pick([2, 3, 4, 5, 6, 8, 10, 25]), ga = g.pick([2, 3]), v2 = r ** ga;
+  need(v1 <= 900 && v2 <= 1000);
+  const k1 = g.pick([-2, -1, 1, 2]), k2 = g.pick([-1, 1, 2, 4]);
+  const good = k1 * v1 + k2 * v2;
+  const cf = x => (x === 1 ? '' : x === -1 ? '-' : String(x));
+  const lnT = (c, x) => `${cf(c)}\\ln(${x})`;
+  const t1 = R`${cf(k1)}e^{${lnT(al, p)}+${lnT(be, q)}}`, t2 = R`e^{${ga}\ln(${r})}`;
+  const expr = t1 + (k2 < 0 ? '-' : '+') + (Math.abs(k2) === 1 ? '' : Math.abs(k2)) + t2;
+  const bads = g.shuffle([k1 * v1 - k2 * v2, v1 + k2 * v2, neg ? k1 * p * q ** be + k2 * v2 : k1 * (p ** al + q ** be) + k2 * v2, k1 * v1 + v2])
+    .concat([good + 8, good - 10]);
+  const pw = (x, k) => (k === 1 ? String(x) : `${x}^{${k}}`);
+  const e = R`On utilise \(e^{a+b}=e^a\times e^b\) et \(e^{k\ln x}=x^k\) :<br>` +
+    (neg ? R`\(e^{-\ln(${p})+${lnT(be, q)}}=\dfrac{${pw(q, be)}}{${p}}=\dfrac{${q ** be}}{${p}}=${v1}\)` : R`\(e^{${lnT(al, p)}+${lnT(be, q)}}=${pw(p, al)}\times${pw(q, be)}=${v1}\)`) +
+    R` et \(${t2}=${r}^{${ga}}=${v2}\).<br>D'où \(${k1 === 1 ? v1 : k1 === -1 ? '-' + v1 : R`${k1}\times${v1}`}${k2 < 0 ? '-' : '+'}${Math.abs(k2) === 1 ? v2 : R`${Math.abs(k2)}\times${v2}`}=${good}\).`;
+  return Object.assign({
+    q: R`En quelle expression peut se simplifier l'expression suivante :\[${expr}\]`,
+    e, d: R`\(e^{a\ln x+b\ln y}=x^a\,y^b\) et \(e^{-\ln x}=\dfrac1x\). Le coefficient devant \(e^{\dots}\) multiplie le résultat : il ne rentre pas dans l'exposant.`,
+    _: { chk: () => close(k1 * Math.exp(al * Math.log(p) + be * Math.log(q)) + k2 * Math.exp(ga * Math.log(r)), good, 1e-9) || 'faux' }
+  }, mcq(g, M(String(good)), bads.map(b => M(String(b)))));
+});
+
+// Dérivées de composées : e^{√(ax+b)}, cos√(ax+b), e^{cos(kx²)}, e^{k/x²}
+def('deriv_chain', 'derivees', 2, g => {
+  const kind = g.pick(['esqrt', 'cossqrt', 'ecos', 'einv']);
+  const neg = (num, den) => (num < 0 ? R`-\dfrac{${-num}}{${den}}` : R`\dfrac{${num}}{${den}}`);
+  let f, dom, good, bads, e, fn, dfn;
+  if (kind === 'esqrt' || kind === 'cossqrt') {
+    const a = g.int(2, 7), b = g.int(1, 5), L = lin(a, b), S = R`\sqrt{${L}}`;
+    const co = k => (k % 2 === 0 ? neg(k / 2, S) : neg(k, R`2${S}`));   // k / (2√L), simplifié
+    dom = R`\left]${fx(F(-b, a), true)}\,;+\infty\right[`;
+    if (kind === 'esqrt') {
+      f = R`e^{${S}}`; good = R`${co(a)}\,e^{${S}}`;
+      bads = [R`e^{${S}}`, R`${a}e^{${S}}`, R`${co(1)}\,e^{${S}}`, R`${co(-a)}\,e^{${S}}`];
+      e = R`\((e^u)'=u'e^u\) avec \(u=${S}\) et \(u'=\dfrac{${a}}{2${S}}\) (dérivée de \(\sqrt v\) : \(\dfrac{v'}{2\sqrt v}\)).<br>Donc \(f'(x)=${good}\).`;
+      fn = x => Math.exp(Math.sqrt(a * x + b)); dfn = x => a / (2 * Math.sqrt(a * x + b)) * Math.exp(Math.sqrt(a * x + b));
+    } else {
+      f = R`\cos\left(${S}\right)`; good = R`${co(-a)}\sin\left(${S}\right)`;
+      bads = [R`${co(a)}\sin\left(${S}\right)`, R`-\sin\left(${S}\right)`, R`-${a}\sin\left(${S}\right)`, R`\cos\left(${co(a)}\right)`];
+      e = R`\((\cos u)'=-u'\sin u\) avec \(u=${S}\) et \(u'=\dfrac{${a}}{2${S}}\).<br>Donc \(f'(x)=${good}\).`;
+      fn = x => Math.cos(Math.sqrt(a * x + b)); dfn = x => -a / (2 * Math.sqrt(a * x + b)) * Math.sin(Math.sqrt(a * x + b));
+    }
+  } else if (kind === 'ecos') {
+    const k = g.pick([1, 2, 3]), I = `${k === 1 ? '' : k}x^2`;
+    f = R`e^{\cos(${I})}`; dom = R`\mathbb R`; good = R`-${2 * k}x\sin(${I})\,e^{\cos(${I})}`;
+    bads = [R`-\sin(${I})\,e^{\cos(${I})}`, R`${2 * k}x\sin(${I})\,e^{\cos(${I})}`, R`e^{-\sin(${I})}`, R`${2 * k}x\,e^{\cos(${I})}`];
+    e = R`\((e^u)'=u'e^u\) avec \(u=\cos(${I})\) et \(u'=-${2 * k}x\sin(${I})\) (dérivée de \(\cos v\) : \(-v'\sin v\), ici \(v'=${2 * k}x\)).<br>Donc \(f'(x)=${good}\).`;
+    fn = x => Math.exp(Math.cos(k * x * x)); dfn = x => -2 * k * x * Math.sin(k * x * x) * Math.exp(Math.cos(k * x * x));
+  } else {
+    const k = g.pick([1, 2, 3, -1, -2]), E = R`e^{${k < 0 ? '-' : ''}\frac{${Math.abs(k)}}{x^2}}`;
+    f = E; dom = R`\mathbb R^*`; good = R`${neg(-2 * k, 'x^3')}\,${E}`;
+    bads = [R`${neg(2 * k, 'x^3')}\,${E}`, R`${neg(-k, 'x^2')}\,${E}`, R`${neg(-2 * k, 'x')}\,${E}`, R`e^{${-2 * k < 0 ? '-' : ''}\frac{${Math.abs(2 * k)}}{x^3}}`];
+    e = R`\((e^u)'=u'e^u\) avec \(u=${k < 0 ? '-' : ''}\dfrac{${Math.abs(k)}}{x^2}=${k}x^{-2}\), donc \(u'=${-2 * k}x^{-3}=${neg(-2 * k, 'x^3')}\).<br>Donc \(f'(x)=${good}\).`;
+    fn = x => Math.exp(k / (x * x)); dfn = x => -2 * k / x ** 3 * Math.exp(k / (x * x));
+  }
+  return Object.assign({
+    q: R`Une expression de \(f'(x)\), dérivée sur \(${dom}\) de la fonction \(f\) définie par\[f:x\to ${f}\]est :`,
+    e, d: R`Composées : \((e^u)'=u'e^u\), \((\cos u)'=-u'\sin u\), \((\sqrt u)'=\dfrac{u'}{2\sqrt u}\). On n'oublie jamais de multiplier par la dérivée de l'intérieur.`,
+    _: { kind, chk: () => { const x0 = 1.3, h = 1e-5; return close((fn(x0 + h) - fn(x0 - h)) / (2 * h), dfn(x0), 1e-5) || 'faux'; } }
+  }, mcq(g, M(good), g.shuffle(bads).map(M)));
+});
+
+// Limites qui mélangent exp, ln, racines et polynômes (croissances comparées)
+def('lim_mix', 'limites', 2, g => {
+  const kind = g.pick(['exp_poly', 'decay', 'lnsqrt', 'zero_ln', 'zero_exp', 'degrees']);
+  const PINF = '+\\infty', MINF = '-\\infty';
+  let at = '+\\infty', expr, good, why, fn, X, gfrac = null;
+  if (kind === 'exp_poly') {
+    const k = g.pick([1, 2]), n = g.pick([2, 3]), c = g.nz(-3, 3), E = ekx(k);
+    const sx = v => `${c < 0 ? '-' : '+'}${Math.abs(c) === 1 ? '' : Math.abs(c)}${v}`;
+    expr = R`\dfrac{${E}}{x^{${n}}${sx('x')}}`; good = PINF; X = 1e3;
+    why = R`On factorise : \(\dfrac{${E}}{x^{${n}}}\times\dfrac{1}{1${sx(`x^{${1 - n}}`)}}\). Par croissances comparées, \(\dfrac{${E}}{x^{${n}}}\to+\infty\), et le second facteur tend vers \(1\).`;
+    fn = x => Math.exp(k * x) / (x ** n + c * x);
+  } else if (kind === 'decay') {
+    const a = g.nz(-4, 4), b = g.int(0, 4), c = g.int(1, 5), d = g.int(1, 6), n = g.pick([1, 2, 3]);
+    expr = R`\dfrac{${a === 1 ? '' : a === -1 ? '-' : a}e^{-x}${b ? `${pm(b)}x^{${n}}` : `+1`}}{${c === 1 ? '' : c}x^{${n}}${pm(d)}}`;
+    if (b) gfrac = F(b, c);
+    good = b ? fx(gfrac) : '0'; X = 1e6;
+    why = b ? R`\(e^{-x}\to0\) ; on divise en haut et en bas par \(x^{${n}}\) : la limite vaut \(\dfrac{${b}}{${c}}=${good}\).`
+      : R`Le numérateur tend vers \(1\) (car \(e^{-x}\to0\)) et le dénominateur vers \(+\infty\) : la limite vaut \(0\).`;
+    fn = x => (a * Math.exp(-x) + (b ? b * x ** n : 1)) / (c * x ** n + d);
+  } else if (kind === 'lnsqrt') {
+    const a = g.int(1, 5), sub = g.chance(0.6);
+    expr = sub ? R`\dfrac{x-${a === 1 ? '' : a}\ln x}{\sqrt x}` : R`\dfrac{${a === 1 ? '' : a}\ln x}{\sqrt x}`;
+    good = sub ? PINF : '0'; X = 1e14;   // ln x / √x tend vers 0 lentement
+    why = sub ? R`\(\dfrac{x-${a === 1 ? '' : a}\ln x}{\sqrt x}=\sqrt x\left(1-${a === 1 ? '' : a}\dfrac{\ln x}{x}\right)\), avec \(\dfrac{\ln x}{x}\to0\) : la limite vaut \(+\infty\).`
+      : R`Par croissances comparées, \(\dfrac{\ln x}{x^{\alpha}}\to0\) pour tout \(\alpha>0\) (ici \(\alpha=\frac12\)).`;
+    fn = x => (sub ? x - a * Math.log(x) : a * Math.log(x)) / Math.sqrt(x);
+  } else if (kind === 'zero_ln') {
+    const a = g.nz(-3, 3); at = '0^+';
+    expr = R`\dfrac{${a === 1 ? '' : a === -1 ? '-' : a}\ln x}{x}+e^{x^2}`; good = a > 0 ? MINF : PINF; X = 1e-9;
+    why = R`Quand \(x\to0^+\), \(\ln x\to-\infty\) et \(\dfrac1x\to+\infty\) : \(\dfrac{${a === 1 ? '' : a === -1 ? '-' : a}\ln x}{x}\to${good}\) (pas de forme indéterminée), et \(e^{x^2}\to1\).`;
+    fn = x => a * Math.log(x) / x + Math.exp(x * x);
+  } else if (kind === 'zero_exp') {
+    const a = g.int(1, 4), s = g.chance(0.5); at = '0^+';
+    expr = s ? R`\dfrac{${a === 1 ? '' : a}x-e^{x}}{\sqrt x}` : R`\dfrac{e^{x}+${a === 1 ? '' : a}x}{\sqrt x}`; good = s ? MINF : PINF; X = 1e-10;
+    why = R`Le numérateur tend vers \(${s ? -1 : 1}\) et \(\sqrt x\to0^+\) : la limite vaut \(${good}\).`;
+    fn = x => (s ? a * x - Math.exp(x) : Math.exp(x) + a * x) / Math.sqrt(x);
+  } else {
+    const n = g.int(2, 5), m = g.int(1, 4), c = g.int(1, 4);
+    expr = R`\dfrac{x^{${n}}+x^2+1}{x^{${m}}(\sqrt x-${c})}`; good = n > m ? PINF : '0'; X = 1e8;
+    need(n !== 2);
+    why = R`Au numérateur, \(x^{${n}}\) l'emporte ; au dénominateur, \(x^{${m}}\sqrt x=x^{${m}+\frac12}\). On compare les exposants : \(${n}\) ${n > m ? '>' : '&lt;'} \(${m}+\frac12\), donc la limite vaut \(${good}\).`;
+    fn = x => (x ** n + x * x + 1) / (x ** m * (Math.sqrt(x) - c));
+  }
+  const x1 = s => s.replace(/x\^\{1\}/g, 'x');   // x^{1} → x
+  expr = x1(expr); why = x1(why);
+  const val = t => (t === PINF ? Infinity : t === MINF ? -Infinity : t === '0' ? 0 : null);
+  const gv = val(good) != null ? val(good) : gfrac.v;
+  const pool = [[PINF, Infinity], [MINF, -Infinity], ['0', 0], ['1', 1], [R`\dfrac12`, 0.5]];
+  return Object.assign({
+    q: R`La valeur de \(\displaystyle\lim_{x\to${at}}${expr}\) est :`,
+    e: why, d: R`Croissances comparées : l'exponentielle l'emporte sur les puissances, qui l'emportent sur le logarithme. En \(0^+\), vérifier d'abord s'il y a vraiment une forme indéterminée.`,
+    _: { kind, chk: () => { const v = fn(X); if (gv === Infinity) return v > 50 || 'faux'; if (gv === -Infinity) return v < -50 || 'faux'; return Math.abs(v - gv) < 1e-3 || 'faux'; } }
+  }, mcqv(g, [good, gv], g.shuffle(pool)));
+});
+
+/* =====================================================================
    API
    ===================================================================== */
 const EXAMS = {
-  full: { n: 37, dur: 90, slots: [{ poly_comb: 4, poly_viete: 1 }, { puiss: 1 }, { rad_cube: 4, rad_conj: 1, rad_denest: 1 }, { ln_sum: 1 }, { exp_ln: 4, exp_quot: 1 },
+  full: { n: 37, dur: 90, slots: [{ poly_comb: 4, poly_viete: 1 }, { puiss: 1 }, { rad_cube: 4, rad_conj: 1, rad_denest: 1, rad_sq2: 3 }, { ln_sum: 1 }, { exp_ln: 4, exp_quot: 1, exp_ln_coef: 2 },
     { eq_exp: 4, eq_exp_sum: 1, eq_exp_ineq: 1 }, { frac_nest: 1 }, { frac_rat: 1 }, { develop: 1 }, { eq_lin: 4, eq_ln: 1 }, { eq_quad: 4, eq_extr: 1 }, { system: 1 },
-    { domain: 1 }, { deriv: 1 }, { integ: 1 }, { limit: 1 }, { geo_d: 4, geo_d2: 1 }, { ineq: 1 }, { edo: 4, edo_ivp: 1 }, { inter: 1 }, { parab: 1 }, { cont3: 1 },
+    { domain: 1 }, { deriv: 2, deriv_chain: 1 }, { integ: 1 }, { limit: 2, lim_mix: 1 }, { geo_d: 4, geo_d2: 1 }, { ineq: 1 }, { edo: 4, edo_ivp: 1 }, { inter: 1 }, { parab: 1 }, { cont3: 1 },
     { cont_c1: 4, cont_inv: 1 }, { suite: 3, suite_sum: 1 }, { geo: 1 }, { fct: 1 }, { bin: 1 }] },
-  short: { n: 9, dur: 30, slots: [{ suite: 3, suite_sum: 1 }, { puiss: 1 }, { ln_sum: 1 }, { frac_nest: 1 }, { develop: 1 }, { deriv: 1 }, { cont3: 1 }] }
+  short: { n: 9, dur: 30, slots: [{ suite: 3, suite_sum: 1 }, { puiss: 1 }, { ln_sum: 1 }, { frac_nest: 1 }, { develop: 1 }, { deriv: 2, deriv_chain: 1 }, { cont3: 1 }] }
 };
 const cache = new Map();
 const newSeed = () => Math.floor(Math.random() * 2147483647).toString(36);

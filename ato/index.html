@@ -743,10 +743,17 @@ function vHome() {
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du plus simple (composition d'un atome) au plus dur (anomalies d'énergie d'ionisation), avec une progression qui s'adapte à tes résultats.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
-      <section class="card"><h2>Sujet blanc (1 h)</h2><p class="sub">4 exercices au format des TD du poly, notés sur 20, avec correction détaillée. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+      <section class="card"><h2>Sujet blanc (1 h)</h2><p class="sub">Même plan que le CC de 2021 (isotopes, spectre de He<sup>+</sup>, nombres quantiques, configurations et classification), noté sur 20, avec correction détaillée. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
         <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
     </div>
-    <section class="card"><h2>Pas d'annales sur Moodle</h2><p class="sub">La prof n'a pas mis de CC des années précédentes. Les exercices de ce site reprennent donc le style des TD I à III du poly et des « exercices de cours » (isotopes, raies de l'hydrogène et de He<sup>+</sup>, nombres quantiques, configurations, tableau périodique). Fais aussi les TD du poly sur papier : c'est le meilleur indice de ce qui tombera.</p></section>`;
+    <section class="card"><h2>Ce que montre le CC de 2021</h2><p class="sub">CC du 16/11/2021 (dossier <code>ANNALES_CC</code>) : 1 h, aucun document, calculatrice autorisée pour les calculs numériques seulement ; données fournies (masses molaires, \\(e\\), \\(h\\), \\(c\\)).</p>
+      <ul class="sub" style="margin:10px 0 0 18px;display:grid;gap:6px">
+        <li><b>A · Isotopes (4 pts)</b> : protons, neutrons, électrons de <sup>63</sup>Cu et <sup>65</sup>Cu, puis abondances naturelles à partir des masses molaires.</li>
+        <li><b>B · Spectres (8 pts)</b> : pourquoi He<sup>+</sup> est hydrogénoïde, \\(E_n=-13{,}6\\,\\dfrac{Z^2}{n^2}\\) eV, de quel nombre quantique elle dépend, énergie d'une transition (eV puis J), longueur d'onde en nm, domaine (UV, visible, IR), fréquence, énergie de 2<sup>e</sup> ionisation.</li>
+        <li><b>C · Nombres quantiques (3,5 pts)</b> : valeurs permises de \\(n,\\ell,m_\\ell\\), nombres qui définissent une sous-couche et une orbitale, sous-couche d'un électron \\((3,2,1,\\tfrac12)\\) et nombre d'électrons qu'elle peut contenir.</li>
+        <li><b>D · Configurations et classification (9,5 pts)</b> : configurations complètes de Mo (exception 4d<sup>5</sup> 5s<sup>1</sup>) et de I, période, colonne et bloc, cases quantiques de valence, ion le plus probable de l'iode, comparaison des rayons et des énergies d'ionisation, toujours en justifiant.</li>
+      </ul>
+      <p class="sub" style="margin-top:10px">Presque tout est déjà dans le parcours : refais surtout les exceptions (Cr, Cu, Mo, Ag) et l'enchaînement complet sur He<sup>+</sup> (énergie, λ, ν, domaine, ionisation).</p></section>`;
   typeset(app);
 }
 function renderPathTop() {
@@ -824,7 +831,8 @@ function vCours(open) {
 
 /* ---------- Sujet blanc ---------- */
 let EXAM = null, tick = 0;
-const EXAM_PLAN = [['Exercice 1 · Structure de l\'atome', [['noyau', 1], ['iso', 0]], 4], ['Exercice 2 · Spectre de l\'hydrogène', [['trans', 0], ['serie', 2]], 6], ['Exercice 3 · Nombres quantiques et configurations', [['nq', 2], ['exc', 0], ['conf', 1]], 6], ['Exercice 4 · Classification périodique', [['place', 1], ['prop', 2]], 4]];
+// Calqué sur le CC du 16/11/2021 : isotopes (4), spectre d'un hydrogénoïde (8), nombres quantiques (3,5), configurations et classification (9,5), ramené sur 20
+const EXAM_PLAN = [['A · Isotopes', [['noyau', 1], ['iso', 0]], 3], ['B · Spectres atomiques (hydrogénoïde)', [['niv', 1], ['trans', 0]], 7], ['C · Nombres quantiques', [['nq', 2]], 3], ['D · Configuration électronique et classification', [['exc', 0], ['place', 1], ['prop', 2]], 7]];
 function examExos(seed) {
   const g = G(rng(seed));
   return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) }));
@@ -834,7 +842,7 @@ function vBlanc() {
   if (E && !EXAM) { EXAM = E; EXAM.running = true; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">4 exercices dans le style des TD : structure de l'atome (4 pts), spectre de l'hydrogène (6 pts), nombres quantiques et configurations (6 pts), classification périodique (4 pts). Calculatrice autorisée pour l'entraînement : vérifie la règle le jour du CC.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Même plan que le CC de novembre 2021 : isotopes (3 pts), spectre d'un ion hydrogénoïde comme He<sup>+</sup> (7 pts), nombres quantiques (3 pts), configurations électroniques et tableau périodique (7 pts). Au CC 2021, la calculatrice était autorisée pour les calculs numériques seulement.</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (60 min)</button><span class="fine">Prévois une feuille : les justifications se font sur papier, seuls les résultats sont saisis ici.</span></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }

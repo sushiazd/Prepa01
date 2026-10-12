@@ -8138,7 +8138,10 @@ const elapsed = () => ((S.paused ? S.pausedAt : Date.now()) - S.startedAt - (S.p
 const remaining = () => DURATION - elapsed();
 
 /* ---------- Vues ---------- */
+// Dernier onglet ouvert : on y revient quand la page est rechargée
+const HUB_VIEWS = ['controls', 'catalogue', 'sujets', 'groupe', 'hardcore', 'results'];
 function setView(v) {
+  if (HUB_VIEWS.includes(v)) ls.set('qcmhub.view.v1', v);
   $('#hubControls').hidden = v !== 'controls';
   $('#hubCatalogue').hidden = v !== 'catalogue';
   $('#hubSujets').hidden = v !== 'sujets';
@@ -9010,7 +9013,9 @@ function init() {
   if (S && S.phase === 'test' && !S.paused) {
     if (remaining() <= 0) submit(true); else enterTest();
   } else {
-    showTab('controls');
+    let v0 = ls.get('qcmhub.view.v1', 'controls');
+    if (!HUB_VIEWS.includes(v0) || (v0 === 'results' && !(S && S.phase === 'done'))) v0 = 'controls';
+    showTab(v0);
   }
 }
 document.addEventListener('DOMContentLoaded', init);
@@ -9090,7 +9095,9 @@ async function onSession(session) {
   await syncAll(anonymous);
   if (!me || me.id !== u.id) return;
   await loadGroups();
-  refreshViews();
+  // Rechargement sur la page d'un groupe : on rouvre ce groupe
+  const vg = ls.get('qcmhub.group.v1', null);
+  if (document.body.dataset.view === 'groupe' && vg && !curGroup && myGroups.some(g => g.id === vg)) openGroup(vg); else refreshViews();
   pollLive();
 }
 async function syncAll(uploadedNote) {
@@ -9229,7 +9236,7 @@ async function leaveGroup(gid) {
   curGroup = null; G = null; await loadGroups(); renderGroupe();
 }
 async function openGroup(gid) {
-  curGroup = gid; G = null; renderGroupe();
+  curGroup = gid; G = null; ls.set('qcmhub.group.v1', gid); renderGroupe();
   try { G = await loadGroupData(gid); } catch (e) { console.warn(e); toast('Impossible de charger le groupe : ' + frErr(e), 5000); curGroup = null; }
   renderGroupe();
 }
@@ -9612,7 +9619,7 @@ function initGroupeEvents() {
       else if (a === 'deleteAccount') deleteAccount();
       else if (a === 'join') joinGroup();
       else if (a === 'create') createGroup();
-      else if (a === 'back') { curGroup = null; G = null; renderGroupe(); }
+      else if (a === 'back') { curGroup = null; G = null; ls.del('qcmhub.group.v1'); renderGroupe(); }
       else if (a === 'leave') leaveGroup(curGroup);
       else if (a === 'newTest') createGroupTest();
       else if (a === 'copyCode' && G && G.group) {

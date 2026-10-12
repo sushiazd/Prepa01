@@ -9098,6 +9098,21 @@ async function syncAll(uploadedNote) {
     if (!still()) return;
     if (rc.error || ra.error) throw rc.error || ra.error;
     const C = new Map(rc.data.map(r => [r.id, fromCtlRow(r)])), A = new Map(ra.data.map(r => [r.id, fromAttRow(r)]));
+    // Copies de contrôles de groupe supprimés : retirées d'ici et du compte au lieu d'être renvoyées
+    const gIds = [...new Set(attempts.concat([...A.values()]).map(x => String(x.defId)).filter(d => /^g:[0-9a-f-]{36}$/.test(d)).map(d => d.slice(2)))];
+    if (gIds.length) {
+      const ex = await sb.rpc('existing_group_tests', { ids: gIds });
+      if (!still()) return;
+      if (!ex.error) {
+        const keep = new Set((ex.data || []).map(r => r.id)), gone = new Set(gIds.filter(id => !keep.has(id)).map(id => 'g:' + id));
+        if (gone.size) {
+          attempts = attempts.filter(x => !gone.has(x.defId));
+          const del = [...A.values()].filter(x => gone.has(x.defId)).map(x => x.id);
+          del.forEach(id => A.delete(id));
+          if (del.length) { const { error } = await sb.from('attempts').delete().in('id', del); if (error) console.warn(error); }
+        }
+      } else console.warn(ex.error);
+    }
     const upC = controls.filter(c => !C.has(c.id) && !pendingDel.includes(c.id)), upA = attempts.filter(a => !A.has(a.id));
     if (upC.length) { const { error } = await sb.from('controls').upsert(upC.map(ctlRow)); if (error) throw error; upC.forEach(c => C.set(c.id, c)); }
     if (upA.length) { const { error } = await sb.from('attempts').upsert(upA.map(attRow)); if (error) throw error; upA.forEach(a => A.set(a.id, a)); }

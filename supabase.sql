@@ -247,3 +247,12 @@ revoke truncate, references, trigger on public.user_data from authenticated;
 drop policy if exists user_data_own on public.user_data;
 create policy user_data_own on public.user_data for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- ---------- Copies des contrôles de groupe supprimés ----------
+-- Chaque appareil demande lesquels de ses contrôles de groupe existent encore et retire les copies des autres.
+create or replace function public.existing_group_tests(ids uuid[])
+returns table (id uuid) language sql stable security definer set search_path = public as $$
+  select gt.id from public.group_tests gt where gt.id = any(ids)
+$$;
+revoke all on function public.existing_group_tests(uuid[]) from public, anon;
+grant execute on function public.existing_group_tests(uuid[]) to authenticated;

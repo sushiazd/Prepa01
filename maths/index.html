@@ -9554,10 +9554,13 @@ async function syncAll(uploadedNote) {
   try {
     for (const id of pendingDel.slice()) { const { error } = await sb.from('controls').delete().eq('id', id); if (!error) pendingDel = pendingDel.filter(x => x !== id); }
     ls.set(K.pending, pendingDel);
-    const [rc, ra] = await Promise.all([sb.from('controls').select('*').eq('user_id', me.id), sb.from('attempts').select('*').eq('user_id', me.id)]);
+    const [rc, ra, rt] = await Promise.all([sb.from('controls').select('*').eq('user_id', me.id), sb.from('attempts').select('*').eq('user_id', me.id),
+      sb.from('attempt_tombstones').select('id')]);
     if (!still()) return;
     if (rc.error || ra.error) throw rc.error || ra.error;
     const C = new Map(rc.data.map(r => [r.id, fromCtlRow(r)])), A = new Map(ra.data.map(r => [r.id, fromAttRow(r)]));
+    // Copies supprimées du compte : on les retire aussi de cet appareil au lieu de les renvoyer
+    if (!rt.error && rt.data.length) { const dead = new Set(rt.data.map(r => r.id)); attempts = attempts.filter(a => !dead.has(a.id)); }
     // Copies de contrôles de groupe supprimés : retirées d'ici et du compte au lieu d'être renvoyées
     const gIds = [...new Set(attempts.concat([...A.values()]).map(x => String(x.defId)).filter(d => /^g:[0-9a-f-]{36}$/.test(d)).map(d => d.slice(2)))];
     if (gIds.length) {

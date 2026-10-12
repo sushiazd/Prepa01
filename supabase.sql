@@ -59,6 +59,28 @@ create table if not exists public.attempts (
 );
 create index if not exists attempts_user_idx on public.attempts (user_id);
 
+-- Copies supprimées : leur identifiant est gardé pour qu'un appareil ne puisse pas les renvoyer
+create table if not exists public.attempt_tombstones (
+  id uuid primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  deleted_at timestamptz not null default now()
+);
+alter table public.attempt_tombstones enable row level security;
+revoke all on public.attempt_tombstones from anon;
+grant select on public.attempt_tombstones to authenticated;
+drop policy if exists tombstones_select on public.attempt_tombstones;
+create policy tombstones_select on public.attempt_tombstones for select to authenticated using (user_id = auth.uid());
+-- Une copie supprimée qu'un appareil renvoie est ignorée en silence (pas d'erreur de synchro)
+create or replace function public.skip_tombstoned_attempt() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if exists (select 1 from public.attempt_tombstones t where t.id = new.id) then return null; end if;
+  return new;
+end $$;
+drop trigger if exists attempts_skip_tombstoned on public.attempts;
+create trigger attempts_skip_tombstoned before insert on public.attempts
+  for each row execute function public.skip_tombstoned_attempt();
+
 -- Contrôles communs d'un groupe (mêmes questions pour tout le monde)
 create table if not exists public.group_tests (
   id          uuid primary key default gen_random_uuid(),

@@ -9418,14 +9418,6 @@ function groupHTML() {
   const strug = {};
   vis.forEach(m => { const s = themeStatsFrom(m.controls, m.attempts); THEMES.forEach(t => { if (s[t.id].n >= 2 && s[t.id].rate < 0.5) strug[t.id] = (strug[t.id] || 0) + 1; }); });
   const themes = THEMES.filter(t => st[t.id].n).sort((a, b) => (st[b.id].loss / st[b.id].n) - (st[a.id].loss / st[a.id].n)).slice(0, 8);
-  // Questions de la banque les plus ratées
-  const qa = {};
-  G.attempts.forEach(a => (a.results || []).forEach(r => {
-    if (r.skip || !qEntry(r.qid)) return;
-    const o = qa[r.qid] || (qa[r.qid] = { n: 0, loss: 0, ok: 0, failed: new Set() });
-    o.n++; o.loss += 1 - r.pts; if (r.pts >= 1) o.ok++; else o.failed.add(a.user_id);
-  }));
-  const qs = Object.entries(qa).filter(([, o]) => o.loss > 0).sort((a, b) => b[1].loss - a[1].loss || b[1].failed.size - a[1].failed.size).slice(0, 8);
   const rows = vis.map(m => ({ m, ps: personStats(m.attempts, m.controls) })).sort((a, b) => b.ps.used - a.ps.used);
   const tests = G.tests.map(t => {
     const res = G.attempts.filter(a => a.defId === 'g:' + t.id);
@@ -9455,9 +9447,6 @@ function groupHTML() {
 
     <section class="card"><div class="card-head"><div><h2>Ce qui fait perdre le plus de points au groupe</h2><p class="sub">Thèmes classés par points perdus en moyenne par question, sur les copies importées et les épreuves de tous les membres visibles.</p></div></div>
       ${themes.length ? `<div class="th-rows">${themes.map(t => { const s = st[t.id], pct = Math.round(s.rate * 100); return `<div class="th-row"><div class="nm">${esc(t.short)}<small>${s.n} réponses · ${strug[t.id] || 0} membre${(strug[t.id] || 0) > 1 ? 's' : ''} en difficulté</small></div><div class="bar-cell" style="display:flex;align-items:center"><span class="pct">${pct} %</span><div class="bar ${rateClass(s.rate)}" style="flex:1"><i style="width:${Math.max(3, pct)}%"></i></div></div><div class="cnt">${s.wrong} fausses · ${s.blank} vides</div><button type="button" class="btn" data-method="${t.id}">Méthode</button></div>`; }).join('')}</div>` : '<p class="fine">Pas encore de données dans ce groupe.</p>'}</section>
-
-    <section class="card"><div class="card-head"><div><h2>Questions les plus ratées</h2><p class="sub">Les questions du site qui ont coûté le plus de points au groupe. Idéal pour les travailler ensemble.</p></div></div>
-      ${qs.length ? qs.map(([id, o]) => { const e = qEntry(id); return `<div class="gq"><div class="cq-head"><span class="cq-src">${qSrc(e)}</span><span class="pill-th">${esc(TH[e.theme].short)}</span><span class="pill st-bad">ratée par ${o.failed.size} membre${o.failed.size > 1 ? 's' : ''}</span><span class="fine">${o.ok}/${o.n} réussites</span></div>${bankQHTML(id).replace('<article class="cq">', '<article class="cq flat">')}</div>`; }).join('') : '<p class="fine">Aucune question ratée pour l\'instant (ou aucune épreuve faite sur le site).</p>'}</section>
 
     <section class="card"><div class="card-head"><div><h2>Contrôles du groupe</h2><p class="sub">Un contrôle commun, construit sur les points faibles du groupe, à faire <b>ensemble en direct</b> : il démarre 1 minute après sa création, tout le groupe le voit en haut de la page et peut le rejoindre, chacun répond de son côté avec le même chrono, puis vous comparez vos notes. Une fois le temps écoulé, on peut encore le faire seul.</p></div></div>
       <div class="data-row"><select id="gtN" aria-label="Longueur"><option value="10">10 questions · 30 min</option><option value="20" selected>20 questions · 1 h</option><option value="37">37 questions · 1 h 30</option></select><button type="button" class="btn btn-primary" data-g="newTest">Lancer un contrôle en direct</button></div>

@@ -15,30 +15,19 @@ Le site regroupe plusieurs outils de révision :
 | `elec2/index.html` | l'entraînement au CC2 d'électronique analogique (démonstrations, Thévenin à deux sources, circuits RC/RL du premier ordre) d'après les 4 annales : schémas SVG générés, formules corrigées automatiquement, sujet blanc d'1 h |
 | `meca/index.html` | l'entraînement au CC d'ingénierie mécanique (statique : vecteurs, moments, torseurs, liaisons, PFS) : parcours guidé avec schémas SVG générés, exercices du DS 2023-24, cours résumé, sujet blanc d'1 h 30 |
 | `phys/index.html` | l'entraînement au CC de mécanique du point (chapitres II à V : PFD, énergie, oscillateurs, moment cinétique) : parcours guidé, formules littérales vérifiées par tirage de valeurs, cours résumé + démos à savoir refaire, sujet blanc d'1 h 30 |
-| `duel/index.html` | le multijoueur : 1v1 (défis et duels en direct) et FFA (salle jusqu'à 8 joueurs, le dernier survivant gagne) sur le QCM de maths |
-| `streak/index.html` | le mode Streak (plus lié depuis le site depuis le 12/10/2026) : des questions du QCM de maths à la suite jusqu'à la première erreur, avec records (tout le programme, nouveaux types, format du QCM) |
 | `planning.js` | l'onglet Planning de l'accueil : emploi du temps ADE (lien d'export `.shu` enregistré dans le compte), prochaines évaluations repérées automatiquement |
 | `supabase/functions/planning/` | la fonction Supabase qui relaie l'emploi du temps (le serveur de l'université bloque la lecture directe depuis le site) ; déjà déployée sous le nom `planning` |
-| `presence.js` | la présence en ligne (pastille verte) et les invitations 1v1 et FFA, chargé par toutes les pages |
 | `config.js` | l'adresse de ta base Supabase (à remplir, étape 4), utilisée par le QCM de maths |
 | `supabase.sql` | la base de données et ses règles de sécurité (étape 2) |
 | `README.md` | ce guide |
 
-Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/` `…/Prepa01/elec/` et `…/Prepa01/duel/`.
+Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/`, `…/Prepa01/elec/`, etc.
 
 On se connecte une seule fois, sur la page d'accueil : la session vaut pour toutes les pages. Une fois connecté, la progression d'élec (parcours, stats, copies, planning, date du CC) est enregistrée dans la table `user_data` et fusionnée à chaque ouverture de page, donc on la retrouve sur tous ses appareils. Sans compte, elle reste dans le navigateur.
 
 ### Activer la synchronisation
 
 Supabase → **SQL Editor** : relance tout `supabase.sql` (il ajoute la table `user_data`). Tant que ce n'est pas fait, l'accueil affiche « Base pas encore prête pour la synchro ».
-
-### Activer le 1v1
-
-1. Envoie sur GitHub le dossier `duel`, le fichier `presence.js` et les nouvelles versions de `index.html`, `maths/index.html` et `elec/index.html`.
-2. Supabase → **SQL Editor** : relance tout `supabase.sql` (il ajoute la fonction `list_players`, qui donne la liste des inscrits).
-3. C'est tout : les invitations et les parties passent par le temps réel de Supabase (*Realtime*), sans table. Si rien ne bouge, vérifie dans **Project Settings → Realtime** que l'accès aux canaux publics est autorisé.
-
-Le duel réutilise les questions générées du QCM de maths : la page `duel/` lit le générateur dans `maths/index.html`. Il faut donc toujours mettre en ligne les deux ensemble.
 
 Compte environ 30 minutes la première fois. Tout est gratuit.
 
@@ -115,8 +104,6 @@ Le QCM était à la racine du dépôt ; il est maintenant dans `maths/`. Pour mi
 3. Les comptes, groupes et la progression enregistrée dans le navigateur sont conservés, car le site reste sur le même domaine. Le dépôt s'appelle maintenant `Prepa01` : l'ancien lien `…/MathPrac/` ne fonctionne plus (GitHub ne redirige pas les sites Pages après un renommage), il faut partager `…/Prepa01/`.
 
 ## Limites connues
-
-- 1v1 : les bonnes réponses sont calculées dans le navigateur, un joueur qui fouille le code pourrait tricher. Le pseudo de chaque inscrit est visible par tous les comptes connectés, dans la liste du 1v1.
 
 - Pas encore de « mot de passe oublié » : en cas d'oubli, le compte peut être supprimé depuis Supabase (*Authentication → Users*) et recréé.
 - Le « temps d'entraînement » ne compte que les épreuves faites sur le site (pauses exclues).

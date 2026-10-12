@@ -1,10 +1,9 @@
 /* =====================================================================
    Compte du site et synchronisation des données entre appareils.
    - Un seul compte Supabase pour tout le site : la session est partagée par toutes les pages
-     (même domaine), donc se connecter sur l'accueil connecte aussi le QCM maths et le 1v1.
+     (même domaine), donc se connecter sur l'accueil connecte aussi toutes les pages.
    - Les données locales listées dans SYNC (progression élec…) sont copiées dans la table
      user_data, une ligne par clé, et fusionnées à chaque ouverture de page ou retour sur l'onglet.
-   - Démarre aussi la présence en ligne (presence.js chargé avec data-external).
    Usage : <script defer src="account.js"></script>          → toujours chargé (accueil)
            <script defer src="../account.js" data-lazy></script> → seulement si une session existe
    API : SiteAccount.on('change' | 'status' | 'data', f), .user, .profile, .status,
@@ -48,13 +47,6 @@
     'elec.plan.v1': null,                // le plus récent gagne
     'elec.ccdate.v1': null,
     'planning.v1': null,                 // lien d'export de l'emploi du temps (le plus récent gagne)
-    // mode Streak : meilleur record par matière et par source, série en cours la plus récente
-    'streak.v1': (L, R) => {
-      const best = Object.assign({}, R.best || {}, L.best || {});
-      Object.keys(best).forEach(k => { const a = (L.best || {})[k], b = (R.best || {})[k]; best[k] = !a ? b : !b ? a : (a.n >= b.n ? a : b); });
-      const c = (L.curT || 0) >= (R.curT || 0) ? L : R;
-      return { best, runs: Math.max(L.runs || 0, R.runs || 0), total: Math.max(L.total || 0, R.total || 0), cur: c.cur || null, curT: c.curT || 0 };
-    }
   };
   // atomistique : mêmes règles que l'élec (parcours compétence par compétence, copies réunies)
   SYNC['ato.path.v1'] = SYNC['elec.path.v1'];
@@ -210,7 +202,6 @@
       if (!A.configured) throw new Error('Site non relié à sa base de données (config.js).');
       if (!window.supabase || !window.supabase.createClient) await load(SUPABASE_JS);
       sb = window.supabase.createClient(window.QCM_CONFIG.supabaseUrl, window.QCM_CONFIG.supabaseAnonKey);
-      if (window.SitePresence) window.SitePresence.start(sb);
       // jamais de requête attendue dans ce rappel (blocage possible de supabase-js) : on diffère
       sb.auth.onAuthStateChange((ev, session) => setTimeout(() => setSession(session), 0));
     })();

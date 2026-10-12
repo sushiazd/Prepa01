@@ -12,7 +12,6 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script defer src="../presence.js" data-external></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root{
@@ -6166,8 +6165,8 @@ def('rec_steps', 'recurrence', 2, g => {
 
 /* =====================================================================
    MODE HARDCORE : questions difficiles, à la limite du programme
-   Modèles marqués « hard » : jamais tirés par les contrôles, les sujets,
-   le duel ni le Streak, seulement par l'onglet Hardcore. Tout se fait
+   Modèles marqués « hard » : jamais tirés par les contrôles ni les
+   sujets, seulement par l'onglet Hardcore. Tout se fait
    sans calculatrice (valeurs approchées données quand il en faut).
    ===================================================================== */
 function defH(id, theme, make) { TPL[id] = { id, theme, w: 0, make, size: 1, group: false, hard: true }; }
@@ -9031,7 +9030,6 @@ function initCloud() {
   if (!cloudConfigured()) return;
   if (!window.supabase || !window.supabase.createClient) { console.warn('supabase-js non chargé'); return; }
   sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
-  if (window.SitePresence) SitePresence.start(sb);   // présence en ligne + invitations 1v1 (../presence.js)
   // Ne jamais attendre une requête Supabase dans ce rappel (risque de blocage) : on diffère.
   sb.auth.onAuthStateChange((ev, session) => {
     if (ev === 'SIGNED_OUT') setTimeout(() => onSession(null), 0);

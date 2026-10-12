@@ -266,3 +266,43 @@ returns table (id uuid) language sql stable security definer set search_path = p
 $$;
 revoke all on function public.existing_group_tests(uuid[]) from public, anon;
 grant execute on function public.existing_group_tests(uuid[]) to authenticated;
+
+-- ---------- Administrateur du site et boîte à suggestions ----------
+create table if not exists public.admins (
+  user_id uuid primary key references public.profiles(id) on delete cascade
+);
+alter table public.admins enable row level security;
+drop policy if exists admins_self on public.admins;
+create policy admins_self on public.admins for select to authenticated using (user_id = auth.uid());
+grant select on public.admins to authenticated;
+create or replace function public.is_admin() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.admins where user_id = auth.uid())
+$$;
+revoke all on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
+-- (l'administrateur est ajouté à la main : insert into public.admins (user_id) values ('<id du profil>');)
+
+create table if not exists public.feedback (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid default auth.uid() references public.profiles(id) on delete set null,
+  kind       text not null check (kind in ('bug', 'idee', 'autre')),
+  message    text not null check (char_length(message) between 3 and 2000),
+  page       text check (char_length(page) <= 200),
+  status     text not null default 'nouveau' check (status in ('nouveau', 'vu', 'fait')),
+  created_at timestamptz not null default now()
+);
+create index if not exists feedback_created_idx on public.feedback (created_at desc);
+alter table public.feedback enable row level security;
+grant select, insert, update, delete on public.feedback to authenticated;
+drop policy if exists feedback_insert on public.feedback;
+create policy feedback_insert on public.feedback for insert to authenticated
+  with check (user_id = auth.uid() and status = 'nouveau');
+drop policy if exists feedback_select on public.feedback;
+create policy feedback_select on public.feedback for select to authenticated
+  using (user_id = auth.uid() or public.is_admin());
+drop policy if exists feedback_update on public.feedback;
+create policy feedback_update on public.feedback for update to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+drop policy if exists feedback_delete on public.feedback;
+create policy feedback_delete on public.feedback for delete to authenticated using (public.is_admin());

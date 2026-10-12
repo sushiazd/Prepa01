@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Tableau de bord</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<script defer src="../account.js"></script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
+  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
+  --rule:#e4e0d6; --rule-strong:#cdc8bb;
+  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc; --pen-line:#bccaf5;
+  --flag:#d4700a; --flag-soft:#fdf0e1; --red:#bf2f2a; --red-soft:#fbeceb;
+  --good:#11773a; --good-soft:#e5f3e9; --warn:#9a5b00; --warn-soft:#fcf2da;
+  --c1:#2446c8; --c2:#d4700a; --c3:#11773a; --c4:#a3329b; --c5:#bf2f2a; --c6:#0e7c86;
+  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
+  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+    --rule:#2e2d2a; --rule-strong:#45433e;
+    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340; --pen-line:#34437a;
+    --flag:#ff9d42; --flag-soft:#382512; --red:#ff7b72; --red-soft:#3a1f1c;
+    --good:#52c774; --good-soft:#14291b; --warn:#f0b64d; --warn-soft:#32270f;
+    --c1:#7592ff; --c2:#ff9d42; --c3:#52c774; --c4:#e28ad9; --c5:#ff7b72; --c6:#4fd1d9;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
+  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
+  --rule:#2e2d2a; --rule-strong:#45433e;
+  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340; --pen-line:#34437a;
+  --flag:#ff9d42; --flag-soft:#382512; --red:#ff7b72; --red-soft:#3a1f1c;
+  --good:#52c774; --good-soft:#14291b; --warn:#f0b64d; --warn-soft:#32270f;
+  --c1:#7592ff; --c2:#ff9d42; --c3:#52c774; --c4:#e28ad9; --c5:#ff7b72; --c6:#4fd1d9;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p{margin:0}
+a{color:var(--pen)}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px;padding:0 24px;border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:600 18px/1 var(--serif)}
+.brand strong{display:block;font:600 15px/1.2 var(--sans)}
+.brand small{display:block;color:var(--muted);font-size:12.5px}
+main{max-width:1100px;margin:40px auto 80px;padding:0 24px;display:grid;gap:22px}
+main>*{min-width:0}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--pen);margin-bottom:12px}
+h1{font:600 clamp(30px,5vw,44px)/1.05 var(--serif);letter-spacing:-.02em}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:680px}
+.card{padding:22px 24px;border-radius:18px;background:var(--sheet);border:1px solid var(--rule);box-shadow:var(--shadow);display:grid;gap:14px;min-width:0}
+.card h2{font:600 22px/1.25 var(--serif)}
+.sub{color:var(--ink-2);font-size:15px}
+.fine{color:var(--muted);font-size:13px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sp{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:600 13.5px/1 var(--sans);cursor:pointer;text-decoration:none}
+.btn:hover{border-color:var(--ink-2)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn-danger{color:var(--red)}
+select{font:15px/1.3 var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:10px;padding:8px 10px}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:999px;font:600 12px/1 var(--sans);background:var(--sheet-2);color:var(--ink-2);white-space:nowrap}
+.pill.bug{background:var(--red-soft);color:var(--red)}
+.pill.idee{background:var(--warn-soft);color:var(--warn)}
+.pill.nouveau{background:var(--pen-soft);color:var(--pen)}
+.pill.fait{background:var(--good-soft);color:var(--good)}
+.fb-list{display:grid;gap:10px}
+.fb-item{border:1px solid var(--rule);border-radius:14px;padding:14px 16px;display:grid;gap:8px;background:var(--sheet-2)}
+.fb-item.done{opacity:.6}
+.fb-item p.msg{white-space:pre-wrap;font-size:15.5px}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{font:600 11.5px/1 var(--sans);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 10px;border-bottom:1px solid var(--rule)}
+td{padding:10px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.up{color:var(--good)} .down{color:var(--red)}
+.awards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.award{border:1px solid var(--rule);border-radius:14px;padding:14px 16px;background:var(--sheet-2);display:grid;gap:4px;align-content:start}
+.award .ic{font-size:26px;line-height:1}
+.award b{font:600 15px/1.3 var(--sans)}
+.award .who{font:600 19px/1.2 var(--serif)}
+.award .why{font-size:13.5px;color:var(--ink-2)}
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.person{border:1px solid var(--rule);border-radius:16px;padding:16px 18px;background:var(--sheet-2);display:grid;gap:10px}
+.person h3{font:600 20px/1.2 var(--serif);display:flex;align-items:center;gap:8px}
+.person .elo{margin-left:auto;font:700 15px/1 var(--sans);color:var(--pen)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+.bars{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--rule)}
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13.5px}
+.legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.gate{max-width:560px}
+.badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--pen);color:var(--pen-ink);font:700 12px/1 var(--sans);margin-left:8px;vertical-align:middle}
+@media (max-width:640px){ main{padding:0 16px;margin-top:28px} .card{padding:18px 16px} .topbar{padding:0 16px} td,th{padding:8px 6px} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../"><span class="brand-mark" aria-hidden="true">∑</span><div><strong>Tableau de bord</strong><small>Page privée</small></div></a>
+</header>
+<main id="app"><section class="card gate"><p class="sub">Chargement…</p></section></main>
+<script>
+(function () {
+  'use strict';
+  const app = document.getElementById('app');
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const TH = { polynomes: 'Polynômes', puiss_rad: 'Puissances & racines', ln_exp: 'ln & exp', eq_exp: 'Équations exp.', fractions: 'Fractions', developpement: 'Développement', equations: 'Équations & systèmes', domaine: 'Domaine', derivees: 'Dérivées', integrales: 'Intégrales', limites: 'Limites', inegalites: 'Inégalités ♣', equa_diff: 'Équa. diff.', geometrie: 'Géométrie', continuite: 'Continuité', suites: 'Suites', etude_fonction: 'Étude de fonction', binomiale: 'Loi binomiale', espace: 'Espace', trigo: 'Sinus & cosinus', recurrence: 'Récurrence' };
+  const KIND1 = { targeted: 'contrôle ciblé', bank: 'sujet du prof', genexam: 'sujet inédit', newtypes: 'sujet nouveaux types', hardcore: 'Hardcore', group: 'contrôle de groupe', manual: 'saisie' };
+  const KIND = { targeted: 'contrôles ciblés', bank: 'sujets du prof', genexam: 'sujets inédits', newtypes: 'nouveaux types', hardcore: 'Hardcore', group: 'contrôles de groupe', manual: 'saisies' };
+  const fmt = (x, d = 0) => (Math.round(x * 10 ** d) / 10 ** d).toLocaleString('fr-FR');
+  const fmtT = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`; };
+  const fmtD = t => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  let sb = null, me = null, groups = [], gid = null, booted = false;
+
+  function gate(html) { app.innerHTML = `<section class="card gate">${html}</section>`; }
+
+  function boot() {
+    const A = window.SiteAccount;
+    if (!A) { setTimeout(boot, 200); return; }
+    if (!boot.hooked) { boot.hooked = true; A.on('change', boot); }
+    if (!A.user || !A.client) {
+      gate(`<p class="eyebrow">Page privée</p><h2>Connecte-toi d'abord</h2><p class="sub">Cette page est réservée à l'administrateur du site. Connecte-toi sur <a href="../">l'accueil</a> (le compte est partagé par tout le site), puis reviens ici.</p>`);
+      return;
+    }
+    if (booted) return;
+    booted = true; sb = A.client; me = A.user;
+    start();
+  }
+
+  async function start() {
+    const { data: adm, error } = await sb.rpc('is_admin');
+    if (error || !adm) { gate(`<p class="eyebrow">Page privée</p><h2>Accès réservé</h2><p class="sub">Cette page est réservée à l'administrateur du site.</p><p><a class="btn" href="../">Retour à l'accueil</a></p>`); return; }
+    const { data: ms } = await sb.from('memberships').select('group_id, groups(id,name,created_by)').eq('user_id', me.id);
+    groups = (ms || []).map(r => r.groups).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
+    gid = (groups.find(g => g.created_by === me.id) || groups[0] || {}).id || null;
+    app.innerHTML = `<header><p class="eyebrow">Page privée · administrateur</p><h1>Tableau de bord</h1><p class="lede">Les suggestions envoyées depuis l'accueil, et toutes les stats du groupe : Elo, trophées, fiches de chacun.</p></header>
+      <section class="card" id="fbCard"><p class="sub">Chargement des suggestions…</p></section>
+      ${groups.length ? `<section class="card"><div class="row"><h2>Groupe</h2><span class="sp"></span><select id="gsel" aria-label="Groupe">${groups.map(g => `<option value="${g.id}"${g.id === gid ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</select></div></section>
+      <div id="gstats" style="display:grid;gap:22px"><section class="card"><p class="sub">Chargement des stats…</p></section></div>` : '<section class="card"><p class="sub">Tu n\'es dans aucun groupe.</p></section>'}`;
+    loadFeedback();
+    const sel = document.getElementById('gsel');
+    if (sel) { sel.addEventListener('change', () => { gid = sel.value; loadGroup(); }); loadGroup(); }
+  }
+
+  /* ---------- Suggestions ---------- */
+  let FB = [], fbFilter = 'open';
+  async function loadFeedback() {
+    const { data, error } = await sb.from('feedback').select('id,kind,message,page,status,created_at,user_id,profiles(pseudo)').order('created_at', { ascending: false }).limit(300);
+    if (error) { document.getElementById('fbCard').innerHTML = `<p class="sub">Suggestions indisponibles : ${esc(error.message)}</p>`; return; }
+    FB = data || []; renderFeedback();
+  }
+  function renderFeedback() {
+    const el = document.getElementById('fbCard'), nNew = FB.filter(f => f.status === 'nouveau').length;
+    const list = FB.filter(f => fbFilter === 'all' || f.status !== 'fait');
+    el.innerHTML = `<div class="row"><h2>Suggestions${nNew ? `<span class="badge">${nNew}</span>` : ''}</h2><span class="sp"></span><button class="btn" data-fbf="open" aria-pressed="${fbFilter === 'open'}">À traiter</button><button class="btn" data-fbf="all" aria-pressed="${fbFilter === 'all'}">Toutes (${FB.length})</button></div>
+      ${list.length ? `<div class="fb-list">${list.map(f => `<article class="fb-item${f.status === 'fait' ? ' done' : ''}">
+        <div class="row"><span class="pill ${f.kind}">${f.kind === 'bug' ? '🐞 Bug' : f.kind === 'idee' ? '💡 Idée' : 'Autre'}</span><span class="pill ${f.status}">${f.status}</span><b>${esc(f.profiles && f.profiles.pseudo || 'un membre')}</b><span class="fine">${new Date(f.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${f.page ? ' · ' + esc(f.page) : ''}</span></div>
+        <p class="msg">${esc(f.message)}</p>
+        <div class="row">${f.status !== 'vu' && f.status !== 'fait' ? `<button class="btn" data-fbs="vu" data-id="${f.id}">Marquer vu</button>` : ''}${f.status !== 'fait' ? `<button class="btn" data-fbs="fait" data-id="${f.id}">C'est fait ✓</button>` : `<button class="btn" data-fbs="vu" data-id="${f.id}">Rouvrir</button>`}<span class="sp"></span><button class="btn btn-danger" data-fbdel="${f.id}">Supprimer</button></div></article>`).join('')}</div>`
+        : `<p class="sub">${FB.length ? 'Rien à traiter : tout est fait.' : 'Aucune suggestion pour le moment. Elles arrivent depuis le bas de l\'accueil.'}</p>`}`;
+  }
+  document.addEventListener('click', async e => {
+    const f = e.target.closest('[data-fbf]'); if (f) { fbFilter = f.dataset.fbf; renderFeedback(); return; }
+    const s = e.target.closest('[data-fbs]');
+    if (s) { const { error } = await sb.from('feedback').update({ status: s.dataset.fbs }).eq('id', s.dataset.id); if (error) { alert(error.message); return; } const it = FB.find(x => x.id === s.dataset.id); if (it) it.status = s.dataset.fbs; renderFeedback(); return; }
+    const d = e.target.closest('[data-fbdel]');
+    if (d) { if (!confirm('Supprimer définitivement cette suggestion ?')) return; const { error } = await sb.from('feedback').delete().eq('id', d.dataset.fbdel); if (error) { alert(error.message); return; } FB = FB.filter(x => x.id !== d.dataset.fbdel); renderFeedback(); }
+  });
+
+  /* ---------- Elo (même calcul que l'onglet Groupe du QCM maths) ---------- */
+  const eloKey = id => { const m = /^gen\.([a-z0-9_]+)\.[0-9a-z]+(?:\.(\d+))?$/.exec(String(id)); return m ? 'g:' + m[1] + (m[2] ? '#' + m[2] : '') : 'b:' + id; };
+  function eloRank(members) {
+    const obs = [];
+    members.forEach(m => {
+      m.attempts.forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip).map(r => ({ key: eloKey(r.qid), pts: +r.pts, max: 1 })) }));
+      m.controls.forEach(c => obs.push({ who: m.id, at: c.at, items: (c.items || []).filter(i => i.theme).map(i => ({ key: 'c:' + i.theme, pts: +i.pts, max: +i.max || 1 })) }));
+    });
+    const P = {}, Q = {}, N = {}, H = {}, OK = {}, QN = {}, QS = {};
+    const kP = n => Math.max(16, 48 / Math.sqrt(1 + n / 20));
+    obs.sort((a, b) => a.at - b.at).forEach(o => {
+      if (!o.items.length || o.items.filter(i => i.pts === 0).length / o.items.length >= 0.8) return;
+      o.items.forEach(i => {
+        const sc = Math.min(1, Math.max(0, (i.pts / i.max + 0.5) / 1.5));
+        const rp = P[o.who] ?? 1000, rq = Q[i.key] ?? (i.key.startsWith('g:hc_') ? 1250 : 1000);
+        const e = 1 / (1 + 10 ** ((rq - rp) / 400)), n = N[o.who] || 0;
+        P[o.who] = rp + kP(n) * (sc - e); Q[i.key] = rq - 12 * (sc - e); N[o.who] = n + 1;
+        if (i.pts >= i.max) OK[o.who] = (OK[o.who] || 0) + 1;
+        QN[i.key] = (QN[i.key] || 0) + 1; QS[i.key] = (QS[i.key] || 0) + (i.pts >= i.max ? 1 : 0);
+      });
+      (H[o.who] = H[o.who] || [[o.at - 1, 1000]]).push([o.at, P[o.who]]);
+    });
+    const wk = Date.now() - 7 * 864e5;
+    const rank = members.filter(m => N[m.id]).map(m => ({ m, elo: P[m.id], n: N[m.id], ok: OK[m.id] || 0, hist: H[m.id],
+      d7: P[m.id] - ((H[m.id].filter(([t]) => t < wk).pop() || [0, 1000])[1]) })).sort((a, b) => b.elo - a.elo);
+    return { rank, Q, QN, QS };
+  }
+
+  /* ---------- Chargement d'un groupe ---------- */
+  async function loadGroup() {
+    const box = document.getElementById('gstats');
+    box.innerHTML = '<section class="card"><p class="sub">Chargement des stats…</p></section>';
+    try {
+      const [mem, tests] = await Promise.all([sb.from('memberships').select('user_id').eq('group_id', gid), sb.from('group_tests').select('id,title,created_at').eq('group_id', gid)]);
+      if (mem.error) throw mem.error;
+      const ids = mem.data.map(m => m.user_id);
+      const [pr, at, ct] = await Promise.all([
+        sb.from('profiles').select('id,pseudo,visible').in('id', ids),
+        sb.from('attempts').select('id,user_id,def_id,kind,title,n,note,used_s,results,created_at').in('user_id', ids).limit(5000),
+        sb.from('controls').select('id,user_id,name,items,created_at').in('user_id', ids).limit(5000)]);
+      if (pr.error || at.error || ct.error) throw pr.error || at.error || ct.error;
+      const members = pr.data.filter(p => p.visible !== false).map(p => ({ id: p.id, pseudo: p.pseudo, me: p.id === me.id,
+        attempts: at.data.filter(a => a.user_id === p.id).map(a => ({ at: Date.parse(a.created_at), kind: a.kind, defId: a.def_id, title: a.title, note: +a.note, used: a.used_s || 0, results: a.results || [] })),
+        controls: ct.data.filter(c => c.user_id === p.id).map(c => ({ at: Date.parse(c.created_at), name: c.name, items: c.items || [] })) }));
+      render(box, members, tests.data || []);
+    } catch (e) { box.innerHTML = `<section class="card"><p class="sub">Impossible de charger le groupe : ${esc(e.message || e)}</p></section>`; }
+  }
+
+  /* ---------- Stats par personne ---------- */
+  function personStats(m) {
+    const R = [].concat(...m.attempts.map(a => a.results.filter(r => !r.skip).map(r => Object.assign({ at: a.at }, r))));
+    const C = [].concat(...m.controls.map(c => c.items.filter(i => i.theme).map(i => ({ theme: i.theme, pts: +i.pts / (+i.max || 1) }))));
+    const all = R.map(r => ({ theme: r.theme, pts: +r.pts })).concat(C);
+    const n = all.length, ok = all.filter(x => x.pts >= 1).length, bad = all.filter(x => x.pts < 0).length, blank = all.filter(x => x.pts === 0).length;
+    const timed = R.filter(r => r.t > 0), avgT = timed.length ? timed.reduce((s, r) => s + r.t, 0) / timed.length : null;
+    const th = {}; all.forEach(x => { if (!x.theme || !TH[x.theme]) return; const o = th[x.theme] = th[x.theme] || { n: 0, s: 0 }; o.n++; o.s += x.pts; });
+    const thL = Object.entries(th).filter(([, o]) => o.n >= 3).map(([k, o]) => [k, o.s / o.n]).sort((a, b) => b[1] - a[1]);
+    const hours = {}; m.attempts.forEach(a => { const h = new Date(a.at).getHours(); hours[h] = (hours[h] || 0) + 1; });
+    const favH = Object.entries(hours).sort((a, b) => b[1] - a[1])[0];
+    const night = m.attempts.filter(a => { const h = new Date(a.at).getHours(); return h >= 22 || h < 5; }).length;
+    const best = m.attempts.filter(a => a.results.length >= 5).sort((a, b) => b.note - a.note)[0];
+    const kinds = {}; m.attempts.forEach(a => { kinds[a.kind] = (kinds[a.kind] || 0) + 1; });
+    return { n, ok, bad, blank, avgT, timedN: timed.length, used: m.attempts.reduce((s, a) => s + a.used, 0), copies: m.attempts.length + m.controls.length,
+      strong: thL[0], weak: thL.length > 1 ? thL[thL.length - 1] : null, favH: favH ? +favH[0] : null, night, best, kinds,
+      avgNote: m.attempts.length ? m.attempts.reduce((s, a) => s + a.note, 0) / m.attempts.length : null };
+  }
+  // Duels : pour chaque contrôle de groupe, chaque paire de participants (meilleure note de chacun)
+  function duels(members, tests) {
+    const W = {}; members.forEach(a => { W[a.id] = {}; members.forEach(b => { W[a.id][b.id] = 0; }); });
+    tests.forEach(t => {
+      const best = {}; members.forEach(m => m.attempts.filter(a => a.defId === 'g:' + t.id).forEach(a => { best[m.id] = Math.max(best[m.id] ?? -1, a.note); }));
+      const ps = Object.keys(best);
+      ps.forEach(a => ps.forEach(b => { if (a !== b && best[a] > best[b]) W[a][b]++; }));
+    });
+    return W;
+  }
+  const qName = (key, members) => {
+    if (key.startsWith('c:')) return `${TH[key.slice(2)] || key.slice(2)} (copies du prof)`;
+    if (key.startsWith('b:')) { const m = /^s(\d+)-(\d+)$/.exec(key.slice(2)); return m ? `Sujet ${m[1]}, question ${m[2]}` : key.slice(2); }
+    const tpl = key.slice(2).replace(/#\d+$/, '');
+    for (const m of members) for (const a of m.attempts) for (const r of a.results) { const k = eloKey(r.qid); if (k === key && r.theme) return `${TH[r.theme] || r.theme} · question type « ${tpl.replace(/_/g, ' ')} »`; }
+    return tpl;
+  };
+
+  function eloChart(rank) {
+    const W = 760, Hh = 260, pl = 46, pr = 14, pt = 14, pb = 28;
+    const pts = [].concat(...rank.map(x => x.hist));
+    if (pts.length < 2) return '';
+    const t0 = Math.min(...pts.map(p => p[0])), t1 = Math.max(...pts.map(p => p[0])) || t0 + 1;
+    let y0 = Math.min(...pts.map(p => p[1])), y1 = Math.max(...pts.map(p => p[1])); const pad = Math.max(10, (y1 - y0) * 0.1); y0 = Math.floor((y0 - pad) / 10) * 10; y1 = Math.ceil((y1 + pad) / 10) * 10;
+    const X = t => pl + (t - t0) / Math.max(1, t1 - t0) * (W - pl - pr), Y = v => pt + (y1 - v) / Math.max(1, y1 - y0) * (Hh - pt - pb);
+    const ticks = []; const step = Math.max(10, Math.round((y1 - y0) / 5 / 10) * 10); for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step) ticks.push(v);
+    const lines = rank.map((x, i) => `<path d="${x.hist.map(([t, v], k) => (k ? 'L' : 'M') + X(t).toFixed(1) + ' ' + Y(v).toFixed(1)).join(' ')}" fill="none" stroke="var(--c${i % 6 + 1})" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><title>${esc(x.m.pseudo)}</title></path>`).join('');
+    return `<svg class="chart" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Évolution de l'Elo de chaque membre">
+      ${ticks.map(v => `<line x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--rule)"/><text x="${pl - 8}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`).join('')}
+      <line x1="${pl}" x2="${W - pr}" y1="${Y(1000)}" y2="${Y(1000)}" stroke="var(--rule-strong)" stroke-dasharray="4 4"/>
+      <text x="${pl}" y="${Hh - 8}" font-size="11" fill="var(--muted)">${fmtD(t0)}</text><text x="${W - pr}" y="${Hh - 8}" font-size="11" fill="var(--muted)" text-anchor="end">${fmtD(t1)}</text>
+      ${lines}</svg>
+      <div class="legend">${rank.map((x, i) => `<span><i style="background:var(--c${i % 6 + 1})"></i>${esc(x.m.pseudo)}</span>`).join('')}</div>`;
+  }
+
+  function render(box, members, tests) {
+    const { rank, Q, QN, QS } = eloRank(members);
+    if (!rank.length) { box.innerHTML = '<section class="card"><p class="sub">Pas encore de données dans ce groupe.</p></section>'; return; }
+    const st = {}; members.forEach(m => { st[m.id] = personStats(m); });
+    const E = Object.fromEntries(rank.map((x, i) => [x.m.id, Object.assign({ pos: i + 1 }, x)]));
+    const D = duels(members, tests);
+    const act = members.filter(m => E[m.id]);
+    const pick = (score, ok = () => true, dir = -1) => { const L = act.filter(ok).map(m => [m, score(m)]).filter(([, v]) => v != null && isFinite(v)); if (!L.length) return null; L.sort((a, b) => dir * (a[1] - b[1])); return L[0]; };
+    const A = [];
+    const add = (ic, title, r, why) => { if (r) A.push(`<div class="award"><span class="ic">${ic}</span><b>${title}</b><span class="who">${esc(r[0].pseudo)}</span><span class="why">${why(r[1], r[0])}</span></div>`); };
+    add('🐐', 'Le GOAT', pick(m => E[m.id].elo), v => `Elo ${fmt(v)} : numéro 1 du groupe.`);
+    add('🎯', 'Le sniper', pick(m => st[m.id].ok / st[m.id].n, m => st[m.id].n >= 30), v => `${fmt(100 * v)} % de bonnes réponses.`);
+    add('⚡', 'L\'éclair', pick(m => st[m.id].avgT, m => st[m.id].timedN >= 15, 1), v => `${fmt(v)} s en moyenne par question.`);
+    add('🐢', 'Le diesel', pick(m => st[m.id].avgT, m => st[m.id].timedN >= 15), v => `${fmt(v)} s par question : il prend son temps.`);
+    add('🎲', 'Le kamikaze', pick(m => st[m.id].bad / st[m.id].n, m => st[m.id].n >= 15), v => `${fmt(100 * v)} % de réponses fausses (−0,5 à chaque fois).`);
+    add('🛡️', 'Le prudent', pick(m => st[m.id].blank / st[m.id].n, m => st[m.id].n >= 15), v => `Laisse vide ${fmt(100 * v)} % des questions.`);
+    add('🏋️', 'Le stakhanoviste', pick(m => st[m.id].used), v => `${fmtT(v)} d'entraînement chronométré.`);
+    add('🦉', 'Le noctambule', pick(m => st[m.id].night || null), v => `${v} copie${v > 1 ? 's' : ''} rendue${v > 1 ? 's' : ''} entre 22 h et 5 h.`);
+    add('🚀', 'La fusée', pick(m => E[m.id].d7 > 1 ? E[m.id].d7 : null), v => `+${fmt(v)} Elo en 7 jours.`);
+    add('📉', 'La chute libre', pick(m => E[m.id].d7 < -1 ? E[m.id].d7 : null, () => true, 1), v => `${fmt(v)} Elo en 7 jours.`);
+    add('⚔️', 'Le roi des duels', pick(m => { const w = Object.values(D[m.id]).reduce((s, x) => s + x, 0); return w || null; }), v => `${v} victoire${v > 1 ? 's' : ''} en tête-à-tête lors des contrôles de groupe.`);
+    add('💯', 'La plus belle copie', pick(m => st[m.id].best ? st[m.id].best.note : null), (v, m) => `${fmt(v, 2)}/20 sur « ${esc(st[m.id].best.title)} ».`);
+    // Questions et thèmes du groupe
+    const qs = Object.keys(QN).filter(k => QN[k] >= 3).map(k => [k, QS[k] / QN[k], QN[k]]).sort((a, b) => a[1] - b[1] || b[2] - a[2]);
+    const cursed = qs[0], hardest = Object.keys(Q).filter(k => QN[k] >= 2).sort((a, b) => Q[b] - Q[a])[0];
+    const gth = {}; act.forEach(m => [].concat(...m.attempts.map(a => a.results)).concat([].concat(...m.controls.map(c => c.items))).forEach(r => { if (!r || !TH[r.theme] || r.skip) return; const o = gth[r.theme] = gth[r.theme] || { n: 0, s: 0 }; o.n++; o.s += +r.pts / (+r.max || 1); }));
+    const gthL = Object.entries(gth).filter(([, o]) => o.n >= 5).map(([k, o]) => [k, o.s / o.n]).sort((a, b) => b[1] - a[1]);
+    const totQ = act.reduce((s, m) => s + st[m.id].n, 0), totT = act.reduce((s, m) => s + st[m.id].used, 0);
+
+    box.innerHTML = `
+      <section class="card"><h2>Classement Elo</h2><p class="sub">${fmt(totQ)} questions répondues au total, ${fmtT(totT)} d'entraînement chronométré. Chaque question est un match contre la question ; tout le monde part à 1000.</p>
+        <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Pseudo</th><th>Elo</th><th>7 jours</th><th>Questions</th><th>Justes</th><th>Fausses</th><th>Vides</th></tr></thead><tbody>
+        ${rank.map((x, i) => { const s = st[x.m.id]; return `<tr><td>${i === 0 ? '🐐' : i + 1}</td><td><b>${esc(x.m.pseudo)}</b>${x.m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td><b>${fmt(x.elo)}</b>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'up' : x.d7 < -0.5 ? 'down' : ''}">${x.d7 > 0.5 ? '+' : ''}${fmt(x.d7)}</td><td>${s.n}</td><td>${fmt(100 * s.ok / s.n)} %</td><td>${fmt(100 * s.bad / s.n)} %</td><td>${fmt(100 * s.blank / s.n)} %</td></tr>`; }).join('')}
+        </tbody></table></div>
+        ${eloChart(rank)}</section>
+
+      <section class="card"><h2>Trophées</h2><div class="awards">${A.join('')}</div></section>
+
+      <section class="card"><h2>Le groupe en chiffres</h2><div class="awards">
+        ${cursed ? `<div class="award"><span class="ic">💀</span><b>La question maudite</b><span class="why">${esc(qName(cursed[0], members))}</span><span class="why">${fmt(100 * cursed[1])} % de réussite sur ${cursed[2]} essais.</span></div>` : ''}
+        ${hardest ? `<div class="award"><span class="ic">🧗</span><b>La question la plus « cotée »</b><span class="why">${esc(qName(hardest, members))}</span><span class="why">Elo de la question : ${fmt(Q[hardest])}.</span></div>` : ''}
+        ${gthL.length ? `<div class="award"><span class="ic">💚</span><b>Thème chouchou</b><span class="who">${esc(TH[gthL[0][0]])}</span><span class="why">${fmt(gthL[0][1], 2)} point en moyenne par question.</span></div>
+        <div class="award"><span class="ic">🧨</span><b>Bête noire du groupe</b><span class="who">${esc(TH[gthL[gthL.length - 1][0]])}</span><span class="why">${fmt(gthL[gthL.length - 1][1], 2)} point en moyenne par question.</span></div>` : ''}
+      </div></section>
+
+      ${tests.length ? `<section class="card"><h2>Duels en contrôle de groupe</h2><p class="sub">Nombre de fois où la ligne a battu la colonne (meilleure note de chacun sur un même contrôle).</p>
+        <div style="overflow-x:auto"><table><thead><tr><th></th>${act.map(m => `<th>${esc(m.pseudo)}</th>`).join('')}</tr></thead><tbody>
+        ${act.map(a => `<tr><td><b>${esc(a.pseudo)}</b></td>${act.map(b => `<td>${a.id === b.id ? '—' : D[a.id][b.id] > D[b.id][a.id] ? `<b class="up">${D[a.id][b.id]}</b>` : D[a.id][b.id]}</td>`).join('')}</tr>`).join('')}
+        </tbody></table></div></section>` : ''}
+
+      <section class="card"><h2>Fiches</h2><div class="people">
+        ${rank.map(x => { const s = st[x.m.id], m = x.m;
+          const nem = act.filter(o => o.id !== m.id && D[o.id][m.id] > D[m.id][o.id]).sort((a, b) => (D[b.id][m.id] - D[m.id][b.id]) - (D[a.id][m.id] - D[m.id][a.id]))[0];
+          return `<article class="person"><h3>${E[m.id].pos === 1 ? '🐐 ' : ''}${esc(m.pseudo)}<span class="elo">${fmt(x.elo)} · ${E[m.id].pos}<sup>${E[m.id].pos === 1 ? 'er' : 'e'}</sup></span></h3>
+            <div class="bars" title="Justes · vides · fausses"><span style="background:var(--good);width:${(100 * s.ok / s.n).toFixed(1)}%"></span><span style="background:var(--muted);width:${(100 * s.blank / s.n).toFixed(1)}%"></span><span style="background:var(--red);width:${(100 * s.bad / s.n).toFixed(1)}%"></span></div>
+            <dl class="kv">
+              <dt>Questions</dt><dd>${s.n} · ${fmt(100 * s.ok / s.n)} % justes · ${fmt(100 * s.bad / s.n)} % fausses</dd>
+              <dt>Copies</dt><dd>${s.copies} (${Object.entries(s.kinds).map(([k, v]) => `${v} ${(v > 1 ? KIND : KIND1)[k] || k}`).join(', ') || 'copies du prof'}${m.controls.length ? `, ${m.controls.length} copie${m.controls.length > 1 ? 's' : ''} du prof` : ''})</dd>
+              <dt>Moyenne</dt><dd>${s.avgNote != null ? fmt(s.avgNote, 2) + '/20 sur le site' : '—'}</dd>
+              <dt>Meilleure</dt><dd>${s.best ? `${fmt(s.best.note, 2)}/20 · ${esc(s.best.title)}` : '—'}</dd>
+              <dt>Rythme</dt><dd>${s.avgT != null ? fmt(s.avgT) + ' s / question' : '—'} · ${fmtT(s.used)} au total</dd>
+              <dt>Point fort</dt><dd>${s.strong ? esc(TH[s.strong[0]]) : '—'}</dd>
+              <dt>Point faible</dt><dd>${s.weak ? esc(TH[s.weak[0]]) : '—'}</dd>
+              <dt>Heure favorite</dt><dd>${s.favH != null ? s.favH + ' h' : '—'}${s.night ? ` · 🦉 ${s.night} copie${s.night > 1 ? 's' : ''} de nuit` : ''}</dd>
+              <dt>Némésis</dt><dd>${nem ? esc(nem.pseudo) : '—'}</dd>
+            </dl></article>`; }).join('')}
+      </div></section>`;
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

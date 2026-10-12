@@ -168,6 +168,11 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
 .seg button{height:34px;padding:0 14px;border:0;border-radius:9px;background:transparent;color:var(--ink-2);font:500 14px/1 var(--sans);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .acc-msg{font-size:14px;color:var(--ink-2)}
+.fb textarea{font:16px/1.45 var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:10px;padding:10px 12px;width:100%;min-height:110px;resize:vertical}
+.fb textarea:focus-visible{outline:2px solid var(--pen);outline-offset:1px}
+.fb form{display:grid;gap:12px}
+.fb .seg{justify-self:start;flex-wrap:wrap}
+.acc-msg.ok{color:var(--good)}
 .acc-msg:empty{display:none}
 .acc-msg.err{color:var(--flag)}
 .sync{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:600 12.5px/1 var(--sans);background:var(--sheet-2);color:var(--ink-2)}
@@ -277,7 +282,45 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
     </div>
   </div>
   </div>
+
+  <section class="acc fb" id="suggestion" aria-labelledby="fbTitle">
+    <div><div class="acc-row"><p class="eyebrow" style="margin:0">Suggestion</p><span class="sp"></span><a class="btn" id="adminLink" href="moi/" hidden>Mon tableau de bord →</a></div><h2 id="fbTitle" style="margin-top:12px">Un bug, une idée ?</h2>
+      <p class="sub">Dis ce qui ne marche pas, ou ce que tu aimerais voir sur le site. Seul l'administrateur du site lit les messages.</p></div>
+    <form id="fbForm">
+      <div class="seg" role="group" aria-label="Type de message"><button type="button" data-fbk="bug" aria-pressed="true">🐞 Bug</button><button type="button" data-fbk="idee" aria-pressed="false">💡 Idée</button><button type="button" data-fbk="autre" aria-pressed="false">Autre</button></div>
+      <textarea id="fbMsg" maxlength="2000" placeholder="Ce qui ne marche pas (sur quelle page, ce que tu as fait), ou ton idée…" aria-label="Message"></textarea>
+      <div class="acc-row"><span class="acc-msg" id="fbInfo" role="status"></span><span class="sp"></span><button class="btn btn-primary" type="submit" id="fbSend">Envoyer</button></div>
+    </form>
+  </section>
 </main>
+<script>
+/* Boîte à suggestions : table feedback (lue seulement par l'administrateur) ; il faut être connecté */
+(function () {
+  const form = document.getElementById('fbForm'), info = document.getElementById('fbInfo'), msg = document.getElementById('fbMsg');
+  let kind = 'bug';
+  form.querySelectorAll('[data-fbk]').forEach(b => b.addEventListener('click', () => {
+    kind = b.dataset.fbk;
+    form.querySelectorAll('[data-fbk]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    msg.placeholder = kind === 'bug' ? 'Ce qui ne marche pas (sur quelle page, ce que tu as fait)…' : kind === 'idee' ? 'Ton idée pour le site…' : 'Ton message…';
+  }));
+  // Lien vers la page privée : seulement pour l'administrateur (vérifié par la base)
+  const adm = document.getElementById('adminLink');
+  const chkAdmin = async () => { const A = window.SiteAccount; if (!A || !A.user || !A.client) { adm.hidden = true; return; } const { data } = await A.client.rpc('is_admin'); adm.hidden = !data; };
+  (function hook() { const A = window.SiteAccount; if (!A) { setTimeout(hook, 300); return; } A.on('change', chkAdmin); chkAdmin(); })();
+  const say = (t, cls) => { info.textContent = t; info.className = 'acc-msg' + (cls ? ' ' + cls : ''); };
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const text = msg.value.trim(), A = window.SiteAccount;
+    if (text.length < 3) { say('Écris un message un peu plus long.', 'err'); return; }
+    if (!A || !A.user || !A.client) { say('Connecte-toi (en haut de la page) pour envoyer une suggestion.', 'err'); document.getElementById('compte')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    const btn = document.getElementById('fbSend'); btn.disabled = true; say('Envoi…');
+    const { error } = await A.client.from('feedback').insert({ kind, message: text.slice(0, 2000), page: 'accueil' });
+    btn.disabled = false;
+    if (error) { say('Envoi impossible : ' + (error.message || 'erreur inconnue'), 'err'); return; }
+    msg.value = ''; say('Merci ! Ton message est bien envoyé.', 'ok');
+  });
+})();
+</script>
 <script>
 (function () {
   const get = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };

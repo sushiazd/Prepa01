@@ -264,7 +264,8 @@ const VD = {
   m: ['m', .5, 3], m1: ['m_1', .5, 3], m2: ['m_2', .5, 3], g: ['g', 9, 10.5], k: ['k', 2, 40], l: ['\\ell', .3, 2, ['ℓ', 'L', 'ell']],
   h: ['h', .5, 5], x: ['x', .5, 5], r: ['r', .5, 3], R: ['R', .5, 3], A: ['A', .5, 3], B: ['B', .5, 3], G: ['G', .5, 2], M: ['M', 1, 5],
   v0: ['v_0', 1, 10, ['V0']], v1: ['v_1', 1, 10, ['V1']], alpha: ['\\alpha', .2, 1.2, ['α', 'a']], mu: ['\\mu', .1, .6, ['μ', 'µ', 'f']],
-  theta0: ['\\theta_0', .2, 1.2, ['θ0']], lambda: ['\\lambda', .1, 1, ['λ', 'lam']], w0: ['\\omega_0', 1.5, 4, ['ω0', 'omega0', 'W0']], eta: ['\\eta', .5, 2, ['η']], F0: ['F_0', 1, 5]
+  theta0: ['\\theta_0', .2, 1.2, ['θ0']], lambda: ['\\lambda', .1, 1, ['λ', 'lam']], w0: ['\\omega_0', 1.5, 4, ['ω0', 'omega0', 'W0']], eta: ['\\eta', .5, 2, ['η']], F0: ['F_0', 1, 5],
+  H: ['H', .5, 5], vB: ['v_B', 8, 14, ['VB', 'vb']], theta: ['\\theta', .2, 2.8, ['θ']]
 };
 const FUNCS = { sqrt: Math.sqrt, '√': Math.sqrt, sin: Math.sin, cos: Math.cos, tan: Math.tan, exp: Math.exp, ln: Math.log };
 const FTEX = { sin: '\\sin', cos: '\\cos', tan: '\\tan', ln: '\\ln' };
@@ -534,6 +535,40 @@ GEN.tec = (d, g) => {
     corr: `<p>La tension est perpendiculaire à la vitesse : elle ne travaille pas, \\(E_m\\) se conserve. Avec \\(z = -\\ell\\cos\\theta\\) : \\(E_p = -mg\\ell\\cos\\theta\\).</p><p>\\(-mg\\ell\\cos\\theta_0 = \\tfrac12 mv_{max}^2 - mg\\ell\\) donc \\(v_{max} = \\sqrt{2g\\ell(1 - \\cos\\theta_0)} = ${Q(v, 'm/s')}\\).</p><p>Au point bas, PFD projeté sur \\(\\vec u_r\\) (vers O, accélération centripète \\(v^2/\\ell\\)) : \\(T - mg = m\\dfrac{v_{max}^2}{\\ell}\\), donc \\(T = mg(3 - 2\\cos\\theta_0) = ${Q(T, 'N')}\\).</p>` };
 };
 
+/* CC2 2025-26 : problème « plan incliné puis looping » et QCM « forces gravitationnelles et énergies » */
+const LOOP_CTX = `<p>Un mobile M de masse \\(m\\) part sans vitesse du point A, situé à la hauteur \\(H\\) au-dessus de B, et glisse <b>sans frottement</b> sur un plan incliné jusqu'en B. Il aborde ensuite une piste circulaire verticale (looping) de centre O et de rayon \\(r\\). Sa position C sur le cercle est repérée par l'angle \\(\\theta = (\\overrightarrow{OB},\\overrightarrow{OC})\\) : \\(\\theta = 0\\) en B (point bas), \\(\\theta = \\pi\\) en S (point haut).</p>`;
+GEN.loop = (d, g) => {
+  if (d === 0) {
+    const H = g.pick([2, 3, 5, 8]), r = g.pick([0.5, 1, 1.5]), th = g.pick([60, 90, 120]), vB = Math.sqrt(2 * gE * H), h = r * (1 - cosD(th));
+    return { title: 'Looping (1) : vitesse en B, hauteur de C', q: LOOP_CTX + `<p>1) Par le théorème de l'énergie cinétique entre A et B, exprimer \\(v_B\\), puis le calculer pour \\(H = ${H}\\ \\mathrm{m}\\).</p><p>2) Exprimer la hauteur \\(h\\) de C au-dessus de B en fonction de \\(r\\) et \\(\\theta\\), puis la calculer pour \\(r = ${Q(r, 'm')}\\) et \\(\\theta = ${th}^\\circ\\).</p>`,
+      items: [Ex('v_B', ['g', 'H'], v => Math.sqrt(2 * v.g * v.H), 'v_B = \\sqrt{2gH}'), Nn('v_B', vB, 'm/s'), Ex('h', ['r', 'theta'], v => v.r * (1 - Math.cos(v.theta)), 'h = r(1 - \\cos\\theta)'), Nn('h', h, 'm')],
+      corr: `<p>1) Sans frottement, la réaction est perpendiculaire au déplacement et ne travaille pas ; seul le poids travaille : \\(W = mgH\\). TEC : \\(\\tfrac12 mv_B^2 - 0 = mgH\\), donc \\(v_B = \\sqrt{2gH} = ${Q(vB, 'm/s')}\\).</p><p>2) O est à la hauteur \\(r\\) au-dessus de B, et C est à \\(r\\cos\\theta\\) <b>sous</b> O : \\(h = r - r\\cos\\theta = r(1 - \\cos\\theta) = ${Q(h, 'm')}\\). Vérification : \\(h = 0\\) en B, \\(h = 2r\\) en S.</p>` };
+  }
+  if (d === 1) {
+    const m = g.pick([0.1, 0.2, 0.5]), r = g.pick([0.5, 1, 2]), vB = g.pick([6, 7, 8, 10]), th = g.pick([0, 60, 90]);
+    const R = m / r * vB * vB + 3 * m * gE * cosD(th) - 2 * m * gE;
+    return { title: 'Looping (2) : vitesse en C et réaction du support', q: LOOP_CTX + `<p>1) Par le théorème de l'énergie cinétique entre B et C, exprimer \\(v_C\\) en fonction de \\(v_B\\), \\(g\\) et \\(h\\).</p><p>2) En C, faire le bilan des forces, écrire le PFD et le projeter sur la normale \\(\\vec n\\) (dirigée vers O), avec \\(a_n = \\dfrac{v_C^2}{r}\\). En déduire l'expression de la norme \\(R\\) de la réaction en fonction de \\(m, r, v_B, g\\) et \\(\\theta\\).</p><p>3) Calculer \\(R\\) pour \\(m = ${Q(m, 'kg')}\\), \\(r = ${Q(r, 'm')}\\), \\(v_B = ${Q(vB, 'm/s')}\\) et \\(\\theta = ${th}^\\circ\\).</p>`,
+      items: [Ex('v_C', ['vB', 'g', 'h'], v => Math.sqrt(v.vB * v.vB - 2 * v.g * v.h), 'v_C = \\sqrt{v_B^2 - 2gh}'), Ex('R', ['m', 'r', 'vB', 'g', 'theta'], v => v.m / v.r * v.vB * v.vB + 3 * v.m * v.g * Math.cos(v.theta) - 2 * v.m * v.g, 'R = \\dfrac{m}{r}v_B^2 + 3mg\\cos\\theta - 2mg'), Nn('R', R, 'N')],
+      corr: `<p>1) De B à C, seul le poids travaille : \\(W = -mgh\\). TEC : \\(\\tfrac12 mv_C^2 - \\tfrac12 mv_B^2 = -mgh\\), donc \\(v_C = \\sqrt{v_B^2 - 2gh}\\).</p><p>2) Forces en C : le poids \\(m\\vec g\\) et la réaction \\(\\vec R = R\\,\\vec n\\), dirigée vers O (pas de frottement). PFD : \\(m\\vec a = m\\vec g + \\vec R\\). Le poids fait l'angle \\(\\theta\\) avec \\(-\\vec n\\) : sa projection sur \\(\\vec n\\) vaut \\(-mg\\cos\\theta\\). Donc \\(m\\dfrac{v_C^2}{r} = R - mg\\cos\\theta\\).</p><p>Avec \\(v_C^2 = v_B^2 - 2gr(1 - \\cos\\theta)\\) : \\(R = \\dfrac{m}{r}v_B^2 - 2mg + 2mg\\cos\\theta + mg\\cos\\theta = \\dfrac{m}{r}v_B^2 + 3mg\\cos\\theta - 2mg\\).</p><p>3) \\(R = ${Q(R, 'N')}\\).</p>` };
+  }
+  const m = g.pick([0.1, 0.2, 0.5]), r = g.pick([0.5, 1, 2]), v1 = 2 * Math.sqrt(gE * r), th = Math.acos(-2 / 3) / D2R;
+  return { title: 'Looping (3) : vitesse minimale et décollement', q: LOOP_CTX + `<p>On admet que \\(R = \\dfrac{m}{r}v_B^2 + 3mg\\cos\\theta - 2mg\\).</p><p>1) Par le théorème de l'énergie cinétique entre B et S, exprimer la vitesse minimale \\(v_{min}\\) en B pour que le mobile <b>atteigne</b> S (vitesse nulle en S), puis la calculer pour \\(r = ${Q(r, 'm')}\\).</p><p>2) Avec exactement cette vitesse en B, calculer \\(R\\) en B et en S pour \\(m = ${Q(m, 'kg')}\\). Que constatez-vous ?</p><p>3) En déduire l'angle \\(\\theta_I\\) du point I où la réaction s'annule.</p>`,
+    items: [Ex('v_{min}', ['g', 'r'], v => 2 * Math.sqrt(v.g * v.r), 'v_{min} = 2\\sqrt{gr}'), Nn('v_{min}', v1, 'm/s'), Nn('R_B', 5 * m * gE, 'N'), Nn('R_S', -m * gE, 'N'),
+      Ch('Conclusion', [['dec', 'R devient négative avant S : le mobile décolle de la piste avant le sommet'], ['ok', 'R reste positive : le mobile fait le tour sans problème'], ['nul', 'R est nulle partout']], 'dec'), Nn('\\theta_I', th, '°')],
+    corr: `<p>1) De B à S, \\(\\Delta z = 2r\\) : \\(0 - \\tfrac12 mv_{min}^2 = -mg\\,2r\\), donc \\(v_{min} = 2\\sqrt{gr} = ${Q(v1, 'm/s')}\\).</p><p>2) Avec \\(v_B^2 = 4gr\\) : \\(R = 4mg + 3mg\\cos\\theta - 2mg = mg(2 + 3\\cos\\theta)\\). En B (\\(\\theta = 0\\)) : \\(R_B = 5mg = ${Q(5 * m * gE, 'N')}\\). En S (\\(\\theta = \\pi\\)) : \\(R_S = -mg = ${Q(-m * gE, 'N')}\\).</p><p>Une réaction de support ne peut pas être négative (elle pousse, elle ne tire pas) : le mobile <b>décolle avant S</b>. Pour réellement passer en S en restant sur la piste, il faut \\(R_S \\geqslant 0\\), soit \\(v_B \\geqslant \\sqrt{5gr}\\).</p><p>3) \\(R = 0 \\iff \\cos\\theta_I = -\\dfrac23\\), soit \\(\\theta_I \\approx ${Q(th, '°')}\\) (un peu au-dessus du niveau de O).</p>` };
+};
+GEN.qcmE = (d, g) => {
+  const km = g.pick([8, 27, 64]), kr = g.pick([2, 3, 4]), P = g.pick([600, 700, 750, 800]), P2 = P * kr * kr / km;
+  const frein = g.pick([true, false]);
+  return { title: 'QCM : forces gravitationnelles et énergies', q: `<p>Mentionner la réponse et, si besoin, justifier en une phrase (format du CC2 2025-26).</p>`
+    + `<p>1) Pour une force conservative \\(\\vec F\\), l'énergie potentielle \\(E_p\\) vérifie \\(\\vec F = -\\overrightarrow{\\mathrm{grad}}\\,E_p\\). Vrai ou faux ?</p>`
+    + `<p>2) Une personne pèse \\(${P}\\ \\mathrm{N}\\) sur Terre. Quel est son poids sur une planète de masse ${km} fois plus petite et de rayon ${kr} fois plus petit que la Terre ?</p>`
+    + `<p>3) Un camion roule en ligne droite à vitesse constante ; une caisse non attachée est posée sur sa remorque, sans frottement. Le conducteur ${frein ? 'freine' : 'accélère'}. Dans le référentiel du camion, que fait la caisse ?</p>`,
+    items: [Ch('1)', [['v', 'vrai'], ['f', 'faux']], 'v'), Nn('P\'', P2, 'N'),
+      Ch('3)', [['av', 'elle glisse vers l\'avant du camion'], ['ar', 'elle glisse vers l\'arrière du camion'], ['im', 'elle reste immobile']], frein ? 'av' : 'ar')],
+    corr: `<p>1) <b>Vrai</b> : c'est la définition de l'énergie potentielle (en une dimension, \\(F_x = -\\dfrac{dE_p}{dx}\\)).</p><p>2) Le poids à la surface vaut \\(P = \\dfrac{GMm}{R^2}\\). Avec \\(M' = \\dfrac{M}{${km}}\\) et \\(R' = \\dfrac{R}{${kr}}\\) : \\(P' = P\\times\\dfrac{${kr * kr}}{${km}} = ${Q(P2, 'N')}\\).</p><p>3) Le camion ${frein ? 'freine' : 'accélère'} : son accélération est dirigée vers l'${frein ? 'arrière' : 'avant'}. Dans son référentiel (non galiléen), la caisse subit la force d'inertie d'entraînement \\(-m\\vec a_e\\), dirigée vers l'<b>${frein ? 'avant' : 'arrière'}</b>, et rien ne la retient : elle glisse vers l'${frein ? 'avant (vers la cabine)' : 'arrière'}. Dans le référentiel de la route, elle garde simplement sa vitesse (principe d'inertie).</p>` };
+};
+
 GEN.pot = (d, g) => {
   if (d === 0) {
     const k = g.pick([10, 20, 50, 100]), F = g.pick([1, 2, 5, 10]), xe = F / k;
@@ -704,6 +739,8 @@ const SK = [
   { id: 'choc', ch: 1, name: 'Quantité de mouvement et chocs', fiche: 3 },
   { id: 'travail', ch: 2, name: 'Travail d\'une force', fiche: 4 },
   { id: 'tec', ch: 2, name: 'Théorème de l\'énergie cinétique', fiche: 4 },
+  { id: 'loop', ch: 2, name: 'Looping : réaction du support, vitesse minimale', fiche: 4 },
+  { id: 'qcmE', ch: 2, name: 'QCM forces et énergies (CC2 2025-26)', fiche: 4 },
   { id: 'pot', ch: 2, name: 'Énergie potentielle, équilibre, stabilité', fiche: 5 },
   { id: 'oh', ch: 3, name: 'Oscillateur harmonique', fiche: 6 },
   { id: 'amorti', ch: 3, name: 'Oscillateur amorti : régimes', fiche: 6 },
@@ -828,7 +865,7 @@ function vHome() {
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du tir parabolique jusqu'aux orbites, avec une progression qui s'adapte à tes résultats.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
-      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">Calqué sur les CC2 de 2022 et 2023 : un problème sur 12 points (plan incliné, travaux, énergie), un exercice sur les référentiels non galiléens (5 points), chocs et oscillateur (3 points). ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">Tiré au hasard entre deux formats : celui des CC2 2022 et 2023 (problème de 12 points sur le plan incliné, référentiel non galiléen, chocs et oscillateur) et celui du CC2 2025-26 (QCM de 5 points, puis problème plan incliné + looping sur 15 points). ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
         <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
     </div>
     <section class="card"><h2>Ce que montrent les anciens CC2</h2><p class="sub">Sujets de janvier 2022 et de 2023 (dossier <code>ANNALES_CC</code>) : 1 h 30, 3 pages, parties indépendantes, <b>sans calculatrice</b>, donc tout se fait en <b>littéral</b>.</p>
@@ -838,6 +875,12 @@ function vHome() {
         <li><b>Exercice et cours (≈ 5 points)</b> : vitesse en coordonnées polaires, moment cinétique \\(\\vec L_O=\\overrightarrow{OM}\\wedge m\\vec v\\), énoncé du théorème du moment cinétique.</li>
         <li><b>Bonus (1 point)</b> : retrouver l'équation du pendule à partir de \\(E_m\\) constante.</li>
       </ul>
+      <p class="sub" style="margin-top:12px"><b>Le plus récent : CC2 2025-26</b> (1 h 15, 3 pages, sujet récupéré auprès d'un étudiant de L2) :</p>
+      <ul class="sub" style="margin:8px 0 0 18px;display:grid;gap:6px">
+        <li><b>QCM « forces gravitationnelles et énergies » (5 points)</b> : \\(\\vec F = -\\overrightarrow{\\mathrm{grad}}\\,E_p\\) vrai ou faux ; poids sur une planète 27 fois moins massive et de rayon 3 fois plus petit (\\(P' = P/3\\)) ; caisse non attachée dans un camion qui freine (force d'inertie d'entraînement).</li>
+        <li><b>Problème (15 points)</b> : plan incliné sans frottement puis <b>looping</b>. Théorème de l'énergie cinétique pour \\(v_B = \\sqrt{2gH}\\) ; \\(h = r(1 - \\cos\\theta)\\) ; \\(v_C\\) ; PFD projeté sur la normale pour démontrer \\(R = \\dfrac{m}{r}v_B^2 + 3mg\\cos\\theta - 2mg\\) ; vitesse minimale \\(2\\sqrt{gr}\\) pour atteindre S ; constat \\(R_S < 0\\) et angle de décollement \\(\\cos\\theta_I = -\\tfrac23\\).</li>
+      </ul>
+      <p class="sub" style="margin-top:8px">Ces deux exercices sont dans le parcours (« Looping » et « QCM forces et énergies ») et dans le sujet blanc.</p>
       <p class="sub" style="margin-top:10px">Beaucoup de questions commencent par « Énoncer », « Établir » ou « Démontrer » : il faut savoir réciter le PFD, le théorème de l'énergie cinétique et celui du moment cinétique, et refaire les démonstrations de l'onglet Cours. Ici, certains exercices demandent aussi une valeur numérique pour vérifier ton résultat ; au CC, garde la formule littérale.</p></section>`;
   mathIn(app);
 }
@@ -901,7 +944,8 @@ const FICHES = [
     <div class="box warn"><h5>Pièges</h5>Les vitesses sont algébriques (signe = sens) · l'énergie cinétique ne se conserve pas dans un choc mou.</div>`],
   ['5. Travail, puissance, énergie', 'travail, TEC', `<ul><li>Travail élémentaire \\(\\delta W = \\vec F\\cdot d\\vec\\ell\\) ; \\(W_{A\\to B} = \\int_A^B \\vec F\\cdot d\\vec\\ell\\). Puissance \\(\\mathcal P = \\vec F\\cdot\\vec v\\).</li><li>Poids : \\(W = -mg(z_B - z_A)\\). Ressort : \\(W = -\\tfrac12k(x_B^2 - x_A^2)\\). Frottement solide sur une longueur L : \\(-\\mu N L\\). Une force perpendiculaire au déplacement ne travaille pas.</li><li><b>Théorème de l'énergie cinétique</b> (référentiel galiléen) : \\(\\Delta E_c = \\sum W\\), avec \\(E_c = \\tfrac12mv^2\\).</li><li>Force conservative : \\(W\\) ne dépend pas du chemin ; \\(\\vec F = -\\overrightarrow{\\mathrm{grad}}\\,E_p\\) ; en 2D, test de Schwarz \\(\\dfrac{\\partial F_x}{\\partial y} = \\dfrac{\\partial F_y}{\\partial x}\\).</li><li>\\(E_m = E_c + E_p\\) : constante si seules des forces conservatives travaillent ; sinon \\(\\Delta E_m = W_{non\\ cons}\\).</li></ul>
     <table class="t"><tr><th>Énergie potentielle</th><th>Expression</th></tr><tr><td>Pesanteur (z vers le haut)</td><td>\\(mgz\\)</td></tr><tr><td>Élastique</td><td>\\(\\tfrac12k(\\ell - \\ell_0)^2\\)</td></tr><tr><td>Gravitation</td><td>\\(-\\dfrac{GMm}{r}\\)</td></tr></table>
-    <div class="box key"><h5>À savoir faire</h5>Quand on cherche une vitesse à partir de positions (sans le temps), penser énergie plutôt que PFD. Calculer un travail le long de deux chemins et conclure sur le caractère conservatif.</div>
+    <p><b>Looping</b> (CC2 2025-26) : sur un cercle de rayon \\(r\\), \\(a_n = \\dfrac{v^2}{r}\\) vers le centre. On combine le TEC (pour \\(v\\)) et le PFD projeté sur la normale (pour la réaction) : \\(R = \\dfrac{m}{r}v_B^2 + 3mg\\cos\\theta - 2mg\\). Le mobile reste sur la piste tant que \\(R \\geqslant 0\\).</p>
+    <div class="box key"><h5>À savoir faire</h5>Quand on cherche une vitesse à partir de positions (sans le temps), penser énergie plutôt que PFD. Calculer un travail le long de deux chemins et conclure sur le caractère conservatif. Sur un looping : TEC pour la vitesse, PFD sur la normale pour la réaction, \\(R = 0\\) pour le décollement.</div>
     <div class="box warn"><h5>Pièges</h5>Le signe du travail du poids (négatif en montée) · \\(r\\) dans \\(-GMm/r\\) se mesure depuis le centre de l'astre.</div>`],
   ['6. Équilibre et stabilité', 'potentiel', `<p>Sur un axe : \\(F_x = -\\dfrac{dE_p}{dx}\\).</p><ul><li>Équilibre en \\(x_e\\) : \\(\\dfrac{dE_p}{dx}(x_e) = 0\\).</li><li>Stable si \\(\\dfrac{d^2E_p}{dx^2}(x_e) > 0\\) (minimum, « puits »), instable si \\(< 0\\) (maximum, « barrière »).</li><li>Petits mouvements autour d'un équilibre stable : \\(E_p \\approx E_p(x_e) + \\tfrac12 E_p''(x_e)(x - x_e)^2\\), oscillateur harmonique de pulsation \\(\\omega_0 = \\sqrt{E_p''(x_e)/m}\\).</li><li>Lecture du graphe : une particule d'énergie \\(E_m\\) n'accède qu'aux zones où \\(E_p \\le E_m\\) (car \\(E_c \\ge 0\\)).</li></ul>
     <div class="box key"><h5>À savoir faire</h5>Dériver \\(E_p\\), trouver les zéros, étudier le signe de la dérivée seconde, tracer l'allure et commenter les mouvements possibles.</div>`],
@@ -931,7 +975,9 @@ let tick = 0;
 const DUR = 5400;
 // Calqué sur les CC2 de 2022 et 2023 : un problème (plan incliné, travaux, énergie), un exercice en référentiel non galiléen, une partie plus courte
 const EXAM_PLAN = [['Problème · Plan incliné, travaux et énergie', [['plan', 1], ['travail', 1], ['tec', 1], ['pot', 1]], 12], ['Exercice · Référentiel non galiléen', [['inert', 1]], 5], ['Exercice · Chocs et oscillateur', [['choc', 1], ['oh', 1]], 3]];
-function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+// Format du CC2 2025-26 : QCM de 5 points puis problème plan incliné + looping sur 15 points
+const EXAM_PLAN_B = [['Exercice · QCM forces gravitationnelles et énergies', [['qcmE', 1]], 5], ['Problème · Plan incliné et looping', [['loop', 0], ['loop', 1], ['loop', 2]], 15]];
+function examExos(seed, plan) { const g = G(rng(seed)); return (plan === 1 ? EXAM_PLAN_B : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
@@ -942,7 +988,7 @@ function vBlanc() {
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
-  EXAM.exs = examExos(EXAM.seed);
+  EXAM.exs = examExos(EXAM.seed, EXAM.plan);
   app.innerHTML = `<div><p class="eyebrow">Sujet blanc de mécanique</p><h1>CC · 1 h 30</h1></div>`
     + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
@@ -964,7 +1010,7 @@ function submitExam(auto) {
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
   clearInterval(tick);
-  const exs = examExos(EXAM.seed); let note = 0; const fb = {};
+  const exs = examExos(EXAM.seed, EXAM.plan); let note = 0; const fb = {};
   for (const ex of exs) {
     const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
     for (const it of its) { const r = check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += r.st === 'ok' ? 1 : 0; }
@@ -994,7 +1040,7 @@ document.addEventListener('click', e => {
   else if (act === 'next') nextPath();
   else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
   else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
-  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
+  else if (act === 'exam') { EXAM = { seed: newSeed(), plan: Math.random() < 0.5 ? 1 : 0, t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
   else if (act === 'submit') submitExam(false);
   else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
 });

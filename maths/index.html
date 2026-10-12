@@ -9689,6 +9689,7 @@ async function onSession(session) {
   const u = session.user;
   const { data: p } = await sb.from('profiles').select('id,pseudo,visible').eq('id', u.id).maybeSingle();
   me = { id: u.id, email: u.email, pseudo: p ? p.pseudo : '…', visible: p ? p.visible : true };
+  liveResume();
   // Données locales d'un autre compte : on ne les mélange pas
   const owner = ls.get(K.owner, null);
   if (owner && owner !== me.id) { controls = []; attempts = []; }
@@ -10043,6 +10044,13 @@ function liveJoin(def) {
     });
     ch.subscribe(stt => { if (stt === 'SUBSCRIBED') liveTrack(); });
   } catch (e) { console.warn('Temps réel indisponible', e); liveCh = null; }
+}
+// Après un rechargement, l'épreuve reprend avant que la connexion au compte soit rétablie :
+// liveJoin n'a rien pu faire. On rejoint le direct dès que le compte est là, sinon on disparaît de la liste des autres.
+function liveResume() {
+  if (!S || !S.def || !S.def.live || !cloud.on() || !me) return;
+  const live = (S.phase === 'test' && S.live) || (S.phase === 'done' && Date.now() < S.def.live.end);
+  if (live) { liveJoin(S.def); renderLive(); }
 }
 function liveTrack() {
   if (!liveCh || !me) return;

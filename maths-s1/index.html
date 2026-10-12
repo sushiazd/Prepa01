@@ -924,10 +924,30 @@ function vHome() {
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Des tables de vérité au dénombrement, avec une progression qui s'adapte à tes résultats.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
-      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">4 exercices notés sur 20 : logique, ensembles, applications et relations, dénombrement. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">Noté sur 20, au format des TD (4 exercices) ou au format du CC1 2025-26 (8 exercices courts). ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
         <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
     </div>
-    <section class="card"><h2>Pas d'annale pour cette partie</h2><p class="sub">Les deux annales 2025-26 sur Moodle portent sur l'analyse (dérivées ; intégrales, DL et limites) : elles serviront pour le CC du 6/1. Pour celui-ci, les exercices reprennent les TD (logique, ensembles, applications, relations, analyse combinatoire), dont les exercices marqués « extrait d'un CC » ou « extrait d'un DS », et les quiz Moodle de M. Bauer.</p></section>`;
+    <section class="card"><h2>L'annale : CC1 du 13 novembre 2025</h2><p class="sub">Sujet de l'an dernier (récupéré auprès d'un étudiant de L2) : <b>1 h</b>, sans document ni calculatrice, <b>8 exercices courts</b> rédigés sur deux copies séparées. Copie 1 (A. Karfoul) : logique, quantificateurs, raisonnement, dénombrement. Copie 2 (M. Bauer) : ensembles, crible, cardinaux, relations. Le sujet blanc peut prendre ce format.</p>
+      <ol class="sub" style="margin:10px 0 0 20px;display:grid;gap:6px">
+        <li><b>Logique.</b> Sans table de vérité : \\(((A\\wedge B)\\Rightarrow C)\\Rightarrow(A\\Rightarrow C)\\) est-elle satisfiable, falsifiable, valide, contradictoire ?</li>
+        <li><b>Quantificateurs.</b> Pour \\(f:\\mathbb R\\to\\mathbb R\\), écrire puis nier : « \\(f\\) ne s'annule jamais » ; « \\(f\\) admet un maximum au point \\(a\\) ».</li>
+        <li><b>Raisonnement par l'absurde.</b> \\(xy\\neq0\\Rightarrow(x\\neq0\\text{ et }y\\neq0)\\).</li>
+        <li><b>Dénombrement.</b> 4 billets numérotés pour 19 clients : chaque client en reçoit au plus un ; puis plusieurs billets possibles.</li>
+        <li><b>Questions de cours.</b> \\(\\mathrm{card}\\,\\mathcal P(E)\\) avec \\(E=\\{a,b,c,d,e\\}\\) ; \\(\\mathbb Z,\\mathbb Q,\\mathbb R\\) ont-ils le cardinal de \\(\\mathbb N\\) ? Nombre de fonctions et d'injections de \\(\\{1,2,3\\}\\) dans \\(\\{a,b,c,d,e\\}\\) ; min, max, inf, sup de \\([1,5[\\).</li>
+        <li><b>Crible.</b> TD de 29 étudiants, au moins un module ; 18 ont pris A, 12 ont pris A et B : combien ont pris B, uniquement A, uniquement B ? Diagramme de Venn.</li>
+        <li><b>Bijection.</b> Construire une bijection de \\(\\mathbb N\\) sur les entiers pairs ; conclure sur les cardinaux.</li>
+        <li><b>Relation d'équivalence.</b> \\(N\\,\\mathcal R\\,M\\iff\\exists\\theta,\\ M=r_\\theta(N)\\) (rotations de centre O) : montrer que c'est une relation d'équivalence et décrire la classe de \\(N\\).</li>
+      </ol>
+      <details class="corr" style="margin-top:12px"><summary>Corrigé rédigé (le sujet n'en avait pas)</summary><div class="expl">
+        <p><b>1.</b> La formule n'est fausse que si \\((A\\wedge B)\\Rightarrow C\\) est vraie et \\(A\\Rightarrow C\\) fausse, donc \\(A\\) vraie et \\(C\\) fausse ; il faut alors \\(A\\wedge B\\) fausse, donc \\(B\\) fausse. Elle est fausse pour \\((A,B,C)=(V,F,F)\\) : <b>falsifiable</b>, donc non valide. Elle est vraie dès que \\(C\\) est vraie : <b>satisfiable</b>, donc non contradictoire.</p>
+        <p><b>2.</b> « \\(f\\) ne s'annule jamais » : \\(\\forall x\\in\\mathbb R,\\ f(x)\\neq0\\) ; négation : \\(\\exists x\\in\\mathbb R,\\ f(x)=0\\). « \\(f\\) admet un maximum en \\(a\\) » : \\(\\forall x\\in\\mathbb R,\\ f(x)\\leqslant f(a)\\) ; négation : \\(\\exists x\\in\\mathbb R,\\ f(x)>f(a)\\).</p>
+        <p><b>3.</b> Supposons \\(xy\\neq0\\) et la négation de la conclusion : \\(x=0\\) ou \\(y=0\\). Dans les deux cas \\(xy=0\\), ce qui contredit \\(xy\\neq0\\). Donc \\(x\\neq0\\) et \\(y\\neq0\\).</p>
+        <p><b>4.</b> Les billets sont numérotés, donc l'ordre compte. Un billet par client au plus : arrangements, \\(19\\times18\\times17\\times16=93\\,024\\). Plusieurs billets possibles : chaque billet a 19 destinataires, \\(19^4=130\\,321\\).</p>
+        <p><b>5.</b> \\(2^5=32\\). \\(\\mathbb Z\\) et \\(\\mathbb Q\\) : oui (dénombrables) ; \\(\\mathbb R\\) : non. Fonctions : \\(5^3=125\\) ; injections : \\(5\\times4\\times3=60\\). \\([1,5[\\) : \\(\\min=\\inf=1\\), \\(\\sup=5\\), pas de maximum (5 n'appartient pas à l'intervalle).</p>
+        <p><b>6.</b> Tout le monde a au moins un module : \\(|A\\cup B|=29\\). Crible : \\(|A\\cup B|=|A|+|B|-|A\\cap B|\\), donc \\(|B|=29-18+12=23\\). Uniquement A : \\(18-12=6\\) ; uniquement B : \\(23-12=11\\). Venn : \\(6+12+11=29\\).</p>
+        <p><b>7.</b> \\(f(n)=2n\\). Injective : \\(2n=2m\\Rightarrow n=m\\). Surjective : tout pair \\(2k\\) vaut \\(f(k)\\). C'est une bijection, donc \\(\\mathbb N\\) et \\(E\\) ont le même cardinal, alors que \\(E\\subsetneq\\mathbb N\\) : c'est propre aux ensembles infinis.</p>
+        <p><b>8.</b> Réflexive : \\(N=r_0(N)\\). Symétrique : si \\(M=r_\\theta(N)\\), alors \\(N=r_{-\\theta}(M)\\). Transitive : si \\(M=r_\\theta(N)\\) et \\(P=r_\\varphi(M)\\), alors \\(P=r_{\\theta+\\varphi}(N)\\). La classe de \\(N\\) est le <b>cercle de centre O passant par N</b> (rayon \\(ON\\)), réduit à \\(\\{O\\}\\) si \\(N=O\\).</p>
+      </div></details></section>`;
   mathIn(app);
 }
 function renderPathTop() {
@@ -1007,18 +1027,21 @@ function vCours(open) {
 let tick = 0;
 const DUR = 5400;
 const EXAM_PLAN = [['Exercice 1 · Logique', [['conn', 1], ['quant', 1]], 5], ['Exercice 2 · Ensembles', [['ops', 1], ['crible', 1]], 4], ['Exercice 3 · Applications et relations', [['image', 0], ['inj', 1], ['rel', 1]], 6], ['Exercice 4 · Dénombrement', [['arr', 1], ['perm', 1]], 5]];
-function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+// Format du CC1 2025-26 : 8 exercices courts sur deux copies
+const EXAM_PLAN_B = [['Exercice 1 · Formule logique', [['conn', 1]], 2], ['Exercice 2 · Quantificateurs et négation', [['quant', 1]], 2], ['Exercice 3 · Raisonnement', [['raison', 1]], 2], ['Exercice 4 · Dénombrement', [['arr', 1]], 3],
+  ['Exercice 5 · Questions de cours', [['parties', 1], ['ordre', 1]], 3], ['Exercice 6 · Formule du crible', [['crible', 1]], 3], ['Exercice 7 · Bijection et cardinal', [['inj', 1]], 2], ['Exercice 8 · Relation d\'équivalence', [['classes', 1]], 3]];
+function examExos(seed, plan) { const g = G(rng(seed)); return (plan === 1 ? EXAM_PLAN_B : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">4 exercices dans le style des TD : logique (5 pts), ensembles (4 pts), applications et relations (6 pts), dénombrement (5 pts).</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Tiré au hasard entre deux formats : 4 exercices dans le style des TD (logique 5 pts, ensembles 4 pts, applications et relations 6 pts, dénombrement 5 pts), ou 8 exercices courts comme au CC1 du 13/11/2025 (logique, quantificateurs, raisonnement, dénombrement, questions de cours, crible, bijection, relation d'équivalence).</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button><span class="fine">Sans calculatrice, comme au CC : fais les calculs sur une feuille.</span></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
-  EXAM.exs = examExos(EXAM.seed);
+  EXAM.exs = examExos(EXAM.seed, EXAM.plan);
   app.innerHTML = `<div><p class="eyebrow">Sujet blanc de maths</p><h1>CC · 1 h 30</h1></div>`
     + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
@@ -1040,7 +1063,7 @@ function submitExam(auto) {
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
   clearInterval(tick);
-  const exs = examExos(EXAM.seed); let note = 0; const fb = {};
+  const exs = examExos(EXAM.seed, EXAM.plan); let note = 0; const fb = {};
   for (const ex of exs) {
     const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
     for (const it of its) { const r = check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += r.st === 'ok' ? 1 : 0; }
@@ -1070,7 +1093,7 @@ document.addEventListener('click', e => {
   else if (act === 'next') nextPath();
   else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
   else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
-  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
+  else if (act === 'exam') { EXAM = { seed: newSeed(), plan: Math.random() < 0.5 ? 1 : 0, t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
   else if (act === 'submit') submitExam(false);
   else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
 });

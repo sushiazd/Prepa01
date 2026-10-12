@@ -520,6 +520,10 @@ input:focus-visible,select:focus-visible{outline:2px solid var(--pen);outline-of
 .btn-hc:hover{background:color-mix(in srgb,var(--red) 82%,var(--ink));border-color:color-mix(in srgb,var(--red) 82%,var(--ink))}
 .eyebrow-hc{color:var(--red)}
 .crown{font-size:.9em;margin-left:2px;cursor:help}
+.gtq{margin-top:12px}
+.gtq .cc.picked{box-shadow:0 0 0 2px var(--good)}
+.gtq .cc.wrong{box-shadow:0 0 0 2px var(--red)}
+.cc-mine{margin-left:auto;padding-left:10px;font:600 11.5px/1 var(--sans);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);white-space:nowrap}
 .tag-hc{color:var(--red);background:var(--red-soft);border-color:color-mix(in srgb,var(--red) 30%,transparent)}
 .gen-try .data-row{margin-top:10px}
 .try-item{margin-top:14px;display:grid;gap:10px}
@@ -8470,6 +8474,7 @@ const nGradedOf = res => res.filter(r => !r.skip).length;
 const noteOf = (raw, n) => (n ? Math.max(0, raw) / n * 20 : 0);
 function resultRow(r) {
   const o = { qid: r.q.id, theme: r.q.theme, pts: r.pts, status: r.status, t: Math.round(r.t) };
+  if (r.sel && r.sel.length) o.sel = r.sel.slice();
   if (r.skip) o.skip = true;
   if (r.slip) o.slip = true;
   if (r.was) o.was = r.was;
@@ -9263,6 +9268,32 @@ async function createGroupTest() {
   openGroup(G.gid);
   openIntro(groupTestDef(row));
 }
+const ST_TXT = { juste: 'juste', faux: 'faux', partiel: 'partiel', vide: 'sans réponse', passe: 'passée' };
+function toggleGroupReview(tid) {
+  const el = $('#gtq-' + tid), t = G && G.tests.find(x => x.id === tid);
+  if (!el || !t) return;
+  el.hidden = !el.hidden;
+  if (el.hidden || el.dataset.filled === '1') return;
+  el.dataset.filled = '1';
+  // ma copie la plus récente de ce contrôle
+  const mine = G.attempts.filter(a => a.user_id === me.id && a.defId === 'g:' + tid).sort((a, b) => b.at - a.at)[0];
+  const byQ = new Map(((mine && mine.results) || []).map(r => [r.qid, r]));
+  const qids = (Array.isArray(t.qids) ? t.qids : []).filter(id => qEntry(id));
+  el.innerHTML = `<p class="fine" style="margin:4px 0 12px">${mine ? `Ta copie du ${fmtDate(mine.at)} : <strong>${fmtNum(mine.note, 2)}/20</strong>. Tes réponses sont encadrées${(mine.results || []).some(r => r.sel) ? '' : ' (cette copie est antérieure à leur enregistrement : seul ton résultat par question est connu)'}.` : 'Tu n\'as pas de copie pour ce contrôle : voici les questions et leur correction.'}</p>` +
+    qids.map((id, i) => {
+      const r = byQ.get(id);
+      const pill = r ? `<span class="pill ${r.pts >= 1 ? 'st-good' : r.pts < 0 ? 'st-bad' : ''}">${ST_TXT[r.status] || r.status} · ${fmtNum(r.pts, 3)} pt</span>` : '';
+      return `<div class="gtq-item" data-i="${i}"><h4 style="margin:18px 0 6px;font:600 15px/1.3 var(--sans)">Question ${i + 1} ${pill}</h4>${bankQHTML(id).replace('<details>', '<details open>')}</div>`;
+    }).join('');
+  // mes propositions cochées
+  $$('.gtq-item', el).forEach(div => {
+    const r = byQ.get(qids[+div.dataset.i]);
+    if (!r || !r.sel) return;
+    const cc = $$('.corr-choices .cc', div);
+    r.sel.forEach(k => { const c = cc[k]; if (!c) return; c.classList.add(c.classList.contains('right') ? 'picked' : 'wrong'); c.insertAdjacentHTML('beforeend', '<span class="cc-mine">ta réponse</span>'); });
+  });
+  renderMath(el);
+}
 async function deleteGroupTest(tid) {
   const t = G && G.tests.find(x => x.id === tid); if (!t) return;
   if (!await ask(`Supprimer « ${t.title} » pour tout le groupe ? Il disparaît de la liste avec son classement, et tes copies de ce contrôle sont effacées.`, 'Supprimer')) return;
@@ -9523,7 +9554,8 @@ function groupHTML() {
     const board = Object.values(best).sort((a, b) => b.note - a.note);
     const mine = best[me.id];
     return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(t.title)}</h3><p class="meta">${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${esc(G.pseudo(t.created_by) || 'un membre')} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
-      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.start ? '🔴 Rejoindre (départ dans ' + fmtCd((w.start - now) / 1000) + ')' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
+      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.start ? '🔴 Rejoindre (départ dans ' + fmtCd((w.start - now) / 1000) + ')' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}<button type="button" class="btn" data-gtq="${t.id}">Questions et corrigé</button>${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
+      <div class="ctl-detail gtq" id="gtq-${t.id}" hidden></div>
       <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(G.pseudo(a.user_id) || '?')}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>`;
   }).join('');
   return `
@@ -9579,6 +9611,7 @@ function initGroupeEvents() {
     const gt = e.target.closest('[data-gt]');
     if (gt && G) { const t = G.tests.find(x => x.id === gt.dataset.gt); if (t) { const def = groupTestDef(t); if (def.qids.length) openIntro(def); } return; }
     const bd = e.target.closest('[data-board]'); if (bd) { const el = $('#board-' + bd.dataset.board); el.hidden = !el.hidden; return; }
+    const gq = e.target.closest('[data-gtq]'); if (gq) { toggleGroupReview(gq.dataset.gtq); return; }
     const pr = e.target.closest('[data-prof]'); if (pr) openProfile(pr.dataset.prof);
   });
   box.addEventListener('keydown', e => { const pr = e.target.closest('tr[data-prof]'); if (pr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openProfile(pr.dataset.prof); } });

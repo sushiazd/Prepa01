@@ -9482,6 +9482,37 @@ function renderLive() {
   const b = $('#liveBox'); if (b) b.innerHTML = S && S.live ? html : '';
 }
 
+/* ---------- Classement Elo du groupe ----------
+   Chaque question répondue est un « match » entre la personne et la question : juste = victoire,
+   fausse = défaite, vide ou partielle entre les deux. Les questions ont aussi un Elo, qui monte
+   quand le groupe les rate : réussir une question difficile rapporte plus. Toutes les épreuves
+   comptent (contrôles ciblés, sujets, Hardcore, contrôles de groupe) ainsi que les copies du prof
+   importées (une « question » par thème). Les copies presque entièrement vides sont ignorées. */
+const eloKey = id => { const m = /^gen\.([a-z0-9_]+)\.[0-9a-z]+(?:\.(\d+))?$/.exec(String(id)); return m ? 'g:' + m[1] + (m[2] ? '#' + m[2] : '') : 'b:' + id; };
+function eloRank(members) {
+  const obs = [];
+  members.forEach(m => {
+    m.attempts.forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip).map(r => ({ key: eloKey(r.qid), pts: +r.pts, max: 1 })) }));
+    m.controls.forEach(c => obs.push({ who: m.id, at: Date.parse(c.date) || 0, items: (c.items || []).filter(i => i.theme).map(i => ({ key: 'c:' + i.theme, pts: +i.pts, max: +i.max || 1 })) }));
+  });
+  const P = {}, Q = {}, N = {}, H = {}, OK = {};
+  const kP = n => Math.max(16, 48 / Math.sqrt(1 + n / 20));   // rapide au début, plus stable ensuite
+  obs.sort((a, b) => a.at - b.at).forEach(o => {
+    if (!o.items.length || o.items.filter(i => i.pts === 0).length / o.items.length >= 0.8) return;   // copie abandonnée
+    o.items.forEach(i => {
+      const sc = Math.min(1, Math.max(0, (i.pts / i.max + 0.5) / 1.5));
+      const rp = P[o.who] ?? 1000, rq = Q[i.key] ?? (i.key.startsWith('g:hc_') ? 1250 : 1000);
+      const e = 1 / (1 + 10 ** ((rq - rp) / 400)), n = N[o.who] || 0;
+      P[o.who] = rp + kP(n) * (sc - e); Q[i.key] = rq - 12 * (sc - e); N[o.who] = n + 1;
+      if (i.pts >= i.max) OK[o.who] = (OK[o.who] || 0) + 1;
+    });
+    (H[o.who] = H[o.who] || []).push([o.at, P[o.who]]);
+  });
+  const wk = Date.now() - 7 * 864e5;
+  return members.filter(m => N[m.id]).map(m => ({ m, elo: P[m.id], n: N[m.id], ok: OK[m.id] || 0,
+    d7: P[m.id] - ((H[m.id].filter(([t]) => t < wk).pop() || [0, 1000])[1]) })).sort((a, b) => b.elo - a.elo);
+}
+
 /* ---------- Statistiques d'une personne ---------- */
 function personStats(atts, ctls) {
   const used = atts.reduce((s, a) => s + (a.used || 0), 0);
@@ -9603,6 +9634,11 @@ function groupHTML() {
       <div class="data-row"><select id="gtN" aria-label="Longueur"><option value="10">10 questions · 30 min</option><option value="20" selected>20 questions · 1 h</option><option value="37">37 questions · 1 h 30</option></select><button type="button" class="btn btn-primary" data-g="newTest">Lancer un contrôle en direct</button></div>
       <h3 style="margin:22px 0 4px;font:600 17px/1.3 var(--serif)">Historique des contrôles${G.tests.length ? ` (${G.tests.length})` : ''}</h3><p class="fine">Du plus récent au plus ancien : « Classement » montre les notes de chacun.${G.group && G.group.created_by === me.id ? ' En tant que propriétaire du groupe, tu peux supprimer n\'importe quel contrôle.' : ''}</p>
       <div style="margin-top:10px">${tests || '<p class="fine">Aucun contrôle de groupe pour le moment.</p>'}</div></section>
+
+    ${(() => { const E = eloRank(vis); if (!E.length) return ''; return `<section class="card"><div class="card-head"><div><h2>Classement Elo</h2><p class="sub">Calculé sur <b>toutes</b> les stats de chacun : chaque question répondue (contrôles, sujets, Hardcore, contrôles de groupe, copies du prof importées) est un match contre la question, et une question que le groupe rate souvent rapporte plus. Tout le monde part à 1000 ; « provisoire » tant qu'il y a moins de 50 questions.</p></div></div>
+      <div style="overflow-x:auto"><table class="hist"><thead><tr><th>#</th><th>Pseudo</th><th>Elo</th><th>7 derniers jours</th><th>Questions</th><th>Justes</th></tr></thead><tbody>
+      ${E.map((x, i) => `<tr><td>${i === 0 && x.n >= 50 ? '🐐' : i + 1}</td><td><strong>${esc(x.m.pseudo)}</strong>${G.group && G.group.created_by === x.m.id ? ' <span class="crown" title="Propriétaire du groupe">👑</span>' : ''}${x.m.isMe ? ' <span class="fine">(toi)</span>' : ''}</td><td><strong>${Math.round(x.elo)}</strong>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'pts-pos' : x.d7 < -0.5 ? 'pts-neg' : ''}">${x.d7 > 0.5 ? '+' : ''}${Math.round(x.d7)}</td><td>${x.n}</td><td>${Math.round(100 * x.ok / x.n)} %</td></tr>`).join('')}
+      </tbody></table></div></section>`; })()}
 
     <section class="card"><div class="card-head"><div><h2>Membres</h2><p class="sub">Clique sur un membre pour voir son profil détaillé. Le temps compte les épreuves faites sur le site, pauses exclues.</p></div></div>
       <div style="overflow-x:auto"><table class="hist members"><thead><tr><th>Pseudo</th><th>Temps</th><th>Épreuves</th><th>Moyenne</th><th>Dernière</th><th>Point faible</th><th>Actif</th></tr></thead><tbody>

@@ -10136,24 +10136,35 @@ function renderLive() {
    fausse = défaite, vide ou partielle entre les deux. Les questions ont aussi un Elo, qui monte
    quand le groupe les rate : réussir une question difficile rapporte plus. Toutes les épreuves
    comptent (contrôles ciblés, sujets, Hardcore, contrôles de groupe) ainsi que les copies du prof
-   importées (une « question » par thème). Les copies presque entièrement vides sont ignorées. */
+   importées (une « question » par thème). Les copies presque entièrement vides sont ignorées.
+   Équité : une même question refaite (même question de sujet, ou « Refaire cette épreuve ») ne
+   compte qu'à 25 % la 2e fois, puis plus du tout ; une bonne réponse très lente rapporte un peu moins
+   (jusqu'à −20 % au-delà de 6 min, 12 min en Hardcore) mais ne fait jamais perdre de points. */
 const eloKey = id => { const m = /^gen\.([a-z0-9_]+)\.[0-9a-z]+(?:\.(\d+))?$/.exec(String(id)); return m ? 'g:' + m[1] + (m[2] ? '#' + m[2] : '') : 'b:' + id; };
 function eloRank(members) {
   const obs = [];
   members.forEach(m => {
-    m.attempts.forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip).map(r => ({ key: eloKey(r.qid), pts: +r.pts, max: 1 })) }));
+    m.attempts.forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip).map(r => ({ key: eloKey(r.qid), qid: r.qid, t: +r.t || 0, pts: +r.pts, max: 1 })) }));
     m.controls.forEach(c => obs.push({ who: m.id, at: Date.parse(c.date) || 0, items: (c.items || []).filter(i => i.theme).map(i => ({ key: 'c:' + i.theme, pts: +i.pts, max: +i.max || 1 })) }));
   });
-  const P = {}, Q = {}, N = {}, H = {}, OK = {};
+  const P = {}, Q = {}, N = {}, H = {}, OK = {}, DONE = {};
   const kP = n => Math.max(16, 48 / Math.sqrt(1 + n / 20));   // rapide au début, plus stable ensuite
+  const REP = [1, 0.25];                                          // poids d'une question refaite : 1re fois, 2e fois, ensuite 0
+  const slow = (i, hard) => { const a = hard ? 300 : 150, b = hard ? 720 : 360; return 1 - 0.2 * Math.min(1, Math.max(0, (i.t - a) / (b - a))); };
   obs.sort((a, b) => a.at - b.at).forEach(o => {
     if (!o.items.length || o.items.filter(i => i.pts === 0).length / o.items.length >= 0.8) return;   // copie abandonnée
     o.items.forEach(i => {
+      const dk = i.qid ? o.who + '|' + i.qid : null, k = dk ? (DONE[dk] || 0) : 0, w = k < REP.length ? REP[k] : 0;
+      if (dk) DONE[dk] = k + 1;
+      if (!w) return;                                               // question déjà faite deux fois : ne compte plus
+      const hard = i.key.startsWith('g:hc_');
       const sc = Math.min(1, Math.max(0, (i.pts / i.max + 0.5) / 1.5));
-      const rp = P[o.who] ?? 1000, rq = Q[i.key] ?? (i.key.startsWith('g:hc_') ? 1250 : 1000);
+      const rp = P[o.who] ?? 1000, rq = Q[i.key] ?? (hard ? 1250 : 1000);
       const e = 1 / (1 + 10 ** ((rq - rp) / 400)), n = N[o.who] || 0;
-      P[o.who] = rp + kP(n) * (sc - e); Q[i.key] = rq - 12 * (sc - e); N[o.who] = n + 1;
-      if (i.pts >= i.max) OK[o.who] = (OK[o.who] || 0) + 1;
+      let d = kP(n) * (sc - e) * w;
+      if (d > 0 && i.pts > 0 && i.t) d *= slow(i, hard);             // lent : gain réduit, jamais de perte
+      P[o.who] = rp + d; Q[i.key] = rq - 12 * (sc - e) * w; N[o.who] = n + (w === 1 ? 1 : 0);
+      if (i.pts >= i.max && w === 1) OK[o.who] = (OK[o.who] || 0) + 1;
     });
     (H[o.who] = H[o.who] || []).push([o.at, P[o.who]]);
   });

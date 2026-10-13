@@ -184,25 +184,36 @@ tr:last-child td{border-bottom:0}
     if (d) { if (!confirm('Supprimer définitivement cette suggestion ?')) return; const { error } = await sb.from('feedback').delete().eq('id', d.dataset.fbdel); if (error) { alert(error.message); return; } FB = FB.filter(x => x.id !== d.dataset.fbdel); renderFeedback(); }
   });
 
-  /* ---------- Elo (même calcul que l'onglet Groupe du QCM maths) ---------- */
+  /* ---------- Elo (même calcul que l'onglet Groupe du QCM maths) ----------
+     Équité : une même question refaite (même question de sujet, ou « Refaire cette épreuve ») ne
+   compte qu'à 25 % la 2e fois, puis plus du tout ; une bonne réponse très lente rapporte un peu moins
+   (jusqu'à −20 % au-delà de 6 min, 12 min en Hardcore) mais ne fait jamais perdre de points. */
   const eloKey = id => { const m = /^gen\.([a-z0-9_]+)\.[0-9a-z]+(?:\.(\d+))?$/.exec(String(id)); return m ? 'g:' + m[1] + (m[2] ? '#' + m[2] : '') : 'b:' + id; };
   function eloRank(members) {
     const obs = [];
     members.forEach(m => {
-      m.attempts.forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip).map(r => ({ key: eloKey(r.qid), pts: +r.pts, max: 1 })) }));
+      m.attempts.forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip).map(r => ({ key: eloKey(r.qid), qid: r.qid, t: +r.t || 0, pts: +r.pts, max: 1 })) }));
       m.controls.forEach(c => obs.push({ who: m.id, at: c.at, items: (c.items || []).filter(i => i.theme).map(i => ({ key: 'c:' + i.theme, pts: +i.pts, max: +i.max || 1 })) }));
     });
-    const P = {}, Q = {}, N = {}, H = {}, OK = {}, QN = {}, QS = {};
+    const P = {}, Q = {}, N = {}, H = {}, OK = {}, QN = {}, QS = {}, DONE = {};
     const kP = n => Math.max(16, 48 / Math.sqrt(1 + n / 20));
+    const REP = [1, 0.25];
+    const slow = (i, hard) => { const a = hard ? 300 : 150, b = hard ? 720 : 360; return 1 - 0.2 * Math.min(1, Math.max(0, (i.t - a) / (b - a))); };
     obs.sort((a, b) => a.at - b.at).forEach(o => {
       if (!o.items.length || o.items.filter(i => i.pts === 0).length / o.items.length >= 0.8) return;
       o.items.forEach(i => {
+        const dk = i.qid ? o.who + '|' + i.qid : null, k = dk ? (DONE[dk] || 0) : 0, w = k < REP.length ? REP[k] : 0;
+        if (dk) DONE[dk] = k + 1;
+        if (!w) return;
+        const hard = i.key.startsWith('g:hc_');
         const sc = Math.min(1, Math.max(0, (i.pts / i.max + 0.5) / 1.5));
-        const rp = P[o.who] ?? 1000, rq = Q[i.key] ?? (i.key.startsWith('g:hc_') ? 1250 : 1000);
+        const rp = P[o.who] ?? 1000, rq = Q[i.key] ?? (hard ? 1250 : 1000);
         const e = 1 / (1 + 10 ** ((rq - rp) / 400)), n = N[o.who] || 0;
-        P[o.who] = rp + kP(n) * (sc - e); Q[i.key] = rq - 12 * (sc - e); N[o.who] = n + 1;
-        if (i.pts >= i.max) OK[o.who] = (OK[o.who] || 0) + 1;
-        QN[i.key] = (QN[i.key] || 0) + 1; QS[i.key] = (QS[i.key] || 0) + (i.pts >= i.max ? 1 : 0);
+        let d = kP(n) * (sc - e) * w;
+        if (d > 0 && i.pts > 0 && i.t) d *= slow(i, hard);
+        P[o.who] = rp + d; Q[i.key] = rq - 12 * (sc - e) * w; N[o.who] = n + (w === 1 ? 1 : 0);
+        if (i.pts >= i.max && w === 1) OK[o.who] = (OK[o.who] || 0) + 1;
+        if (w === 1) { QN[i.key] = (QN[i.key] || 0) + 1; QS[i.key] = (QS[i.key] || 0) + (i.pts >= i.max ? 1 : 0); }
       });
       (H[o.who] = H[o.who] || [[o.at - 1, 1000]]).push([o.at, P[o.who]]);
     });

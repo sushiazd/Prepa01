@@ -9850,7 +9850,7 @@ async function loadGroupData(gid) {
   const group = myGroups.find(g => g.id === gid);
   const [mem, tests] = await Promise.all([
     sb.from('memberships').select('user_id, joined_at').eq('group_id', gid),
-    sb.from('group_tests').select('*').eq('group_id', gid).order('created_at', { ascending: false })]);
+    sb.from('group_tests').select('*').eq('group_id', gid).eq('subject', 'maths').order('created_at', { ascending: false })]);
   if (mem.error) throw mem.error;
   const ids = mem.data.map(m => m.user_id);
   const [pr, at, ct] = await Promise.all([
@@ -9999,7 +9999,7 @@ async function pollLive() {
   if (!livePollT) livePollT = setInterval(() => { pollLive(); if (LIVE.length && document.body.dataset.view !== 'test') renderBanners(); }, 15000);
   if (!cloud.on() || !me || !myGroups.length || document.hidden) return;
   const since = new Date(Date.now() - 4.5 * 3600e3).toISOString();
-  const { data, error } = await sb.from('group_tests').select('*').in('group_id', myGroups.map(g => g.id)).gte('created_at', since).order('created_at', { ascending: false });
+  const { data, error } = await sb.from('group_tests').select('*').in('group_id', myGroups.map(g => g.id)).eq('subject', 'maths').gte('created_at', since).order('created_at', { ascending: false });
   if (error) { console.warn(error); return; }
   const now = Date.now();
   const mineId = S && S.phase === 'test' && S.live ? S.def.live.tid : pendingDef && pendingDef.live && document.body.dataset.view === 'intro' ? pendingDef.live.tid : null;

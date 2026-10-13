@@ -348,3 +348,109 @@ end
 $$;
 revoke all on function public.admin_site_data() from public, anon;
 grant execute on function public.admin_site_data() to authenticated;
+
+-- =====================================================================
+-- Sujets blancs d'élec en groupe (2026-10-13) : correction croisée
+-- group_tests.subject ('maths' ou 'elec') et group_tests.def (tirage du sujet d'élec)
+-- =====================================================================
+alter table public.group_tests add column if not exists subject text not null default 'maths';
+alter table public.group_tests add column if not exists def jsonb;
+
+create or replace function public.test_member(t uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.group_tests g where g.id = t and public.is_member(g.group_id)); $$;
+create or replace function public.test_member_txt(t text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.group_tests g where g.id::text = t and public.is_member(g.group_id)); $$;
+create or replace function public.test_over(t uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.group_tests g where g.id = t and g.starts_at is not null and g.starts_at + make_interval(secs => g.duration_s) < now()); $$;
+create or replace function public.test_over_txt(t text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.group_tests g where g.id::text = t and g.starts_at is not null and g.starts_at + make_interval(secs => g.duration_s) < now()); $$;
+revoke all on function public.test_member(uuid), public.test_member_txt(text), public.test_over(uuid), public.test_over_txt(text) from public, anon;
+grant execute on function public.test_member(uuid), public.test_member_txt(text), public.test_over(uuid), public.test_over_txt(text) to authenticated;
+
+create table if not exists public.elec_copies (
+  id uuid primary key default gen_random_uuid(),
+  test_id uuid not null references public.group_tests(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  ans jsonb not null default '{}'::jsonb, res jsonb not null default '{}'::jsonb,
+  auto_pts numeric not null default 0, dur integer,
+  photos text[] not null default '{}',
+  reviewer uuid references auth.users(id) on delete set null,
+  self jsonb, review_pts numeric, comment text, reviewed_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique (test_id, user_id)
+);
+alter table public.elec_copies enable row level security;
+revoke all on public.elec_copies from anon;
+grant select, insert, update on public.elec_copies to authenticated;
+drop policy if exists elec_copies_select on public.elec_copies;
+create policy elec_copies_select on public.elec_copies for select to authenticated
+  using (user_id = auth.uid() or reviewer = auth.uid() or (public.test_member(test_id) and public.test_over(test_id)));
+drop policy if exists elec_copies_insert on public.elec_copies;
+create policy elec_copies_insert on public.elec_copies for insert to authenticated
+  with check (user_id = auth.uid() and public.test_member(test_id) and reviewer is null and review_pts is null);
+drop policy if exists elec_copies_update on public.elec_copies;
+create policy elec_copies_update on public.elec_copies for update to authenticated
+  using (user_id = auth.uid() or reviewer = auth.uid()) with check (user_id = auth.uid() or reviewer = auth.uid());
+
+-- L'élève ne peut ajouter que ses photos ; le correcteur ne peut toucher qu'à la correction
+create or replace function public.elec_copies_guard() returns trigger
+language plpgsql set search_path = public as $$
+begin
+  new.id := old.id; new.test_id := old.test_id; new.user_id := old.user_id; new.created_at := old.created_at;
+  if auth.uid() is null or current_setting('app.elec_assign', true) = '1' then return new; end if;
+  if auth.uid() = old.reviewer and auth.uid() <> old.user_id then
+    new.ans := old.ans; new.res := old.res; new.auto_pts := old.auto_pts; new.dur := old.dur; new.photos := old.photos; new.reviewer := old.reviewer;
+  else
+    new.ans := old.ans; new.res := old.res; new.auto_pts := old.auto_pts; new.dur := old.dur; new.reviewer := old.reviewer;
+    new.self := old.self; new.review_pts := old.review_pts; new.comment := old.comment; new.reviewed_at := old.reviewed_at;
+  end if;
+  return new;
+end $$;
+drop trigger if exists elec_copies_guard on public.elec_copies;
+create trigger elec_copies_guard before update on public.elec_copies for each row execute function public.elec_copies_guard();
+
+-- Correction croisée : après le chrono (ou plus tôt par le créateur ou le propriétaire du groupe)
+create or replace function public.assign_elec_reviewers(t uuid) returns void
+language plpgsql security definer set search_path = public as $$
+declare ids uuid[]; n int; i int; g record;
+begin
+  select * into g from public.group_tests where id = t;
+  if not found or not public.is_member(g.group_id) then raise exception 'not a member'; end if;
+  if not public.test_over(t) and not (g.created_by = auth.uid() or public.owns_group(g.group_id)) then raise exception 'too early'; end if;
+  perform set_config('app.elec_assign', '1', true);
+  select array_agg(user_id order by random()) into ids from public.elec_copies where test_id = t and reviewer is null;
+  n := coalesce(array_length(ids, 1), 0);
+  if n > 0 then
+    if n >= 2 and not exists (select 1 from public.elec_copies where test_id = t and reviewer is not null) then
+      for i in 1..n loop
+        update public.elec_copies set reviewer = ids[(i % n) + 1] where test_id = t and user_id = ids[i];
+      end loop;
+    else
+      update public.elec_copies c set reviewer = (select o.user_id from public.elec_copies o where o.test_id = t and o.user_id <> c.user_id order by random() limit 1)
+        where c.test_id = t and c.reviewer is null;
+    end if;
+  end if;
+  perform set_config('app.elec_assign', '', true);
+end $$;
+revoke all on function public.assign_elec_reviewers(uuid) from public, anon;
+grant execute on function public.assign_elec_reviewers(uuid) to authenticated;
+
+-- Photos des copies papier : elec-copies/<test>/<élève>/<fichier>.jpg
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('elec-copies', 'elec-copies', false, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+drop policy if exists elec_copies_obj_insert on storage.objects;
+create policy elec_copies_obj_insert on storage.objects for insert to authenticated
+  with check (bucket_id = 'elec-copies' and (storage.foldername(name))[2] = auth.uid()::text and public.test_member_txt((storage.foldername(name))[1]));
+drop policy if exists elec_copies_obj_select on storage.objects;
+create policy elec_copies_obj_select on storage.objects for select to authenticated
+  using (bucket_id = 'elec-copies' and public.test_member_txt((storage.foldername(name))[1])
+    and ((storage.foldername(name))[2] = auth.uid()::text or public.test_over_txt((storage.foldername(name))[1])
+      or exists (select 1 from public.elec_copies c where c.test_id::text = (storage.foldername(name))[1] and c.user_id::text = (storage.foldername(name))[2] and c.reviewer = auth.uid())));
+drop policy if exists elec_copies_obj_delete on storage.objects;
+create policy elec_copies_obj_delete on storage.objects for delete to authenticated
+  using (bucket_id = 'elec-copies' and (storage.foldername(name))[2] = auth.uid()::text);

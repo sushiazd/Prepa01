@@ -123,6 +123,15 @@ body[data-view="exam"] .topnav{display:none}
 .seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .row .spacer{flex:1}
+.grow{border:1px solid var(--rule);border-radius:12px;padding:14px 16px;margin-top:12px;background:var(--sheet)}
+.gh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.gbtns{gap:8px;margin-top:8px}
+.gphotos{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.gphotos img{height:150px;border-radius:8px;border:1px solid var(--rule);object-fit:cover;display:block}
+.gphotos.big{display:grid;gap:12px}
+.gphotos.big img{height:auto;width:100%;object-fit:contain}
+.gta{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--rule-strong);border-radius:10px;background:var(--sheet);color:var(--ink);resize:vertical}
+.gsel{font:inherit;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink)}
 .lbl-s{font:600 11.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 input[type="text"],input[type="date"]{font:15px/1.3 var(--sans);color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:40px;max-width:100%}
 input:focus-visible{outline:2px solid var(--pen);outline-offset:1px}
@@ -592,6 +601,10 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
     <p class="lede">Un sujet complet au format exact du CC, avec un nouveau tirage à chaque fois. Les calculs sont notés automatiquement. Pour le schéma, les équations et la démonstration, tu t'auto-corriges avec le corrigé une fois la copie rendue.</p>
   </div>
   <div id="blancBanner"></div>
+  <section class="card" id="grpCard">
+    <div class="card-head"><div><h2>Sujet blanc en groupe</h2><p class="sub">Le même sujet pour tout le groupe, au même moment : chrono commun de 60 min, sans pause. Les calculs tapés sont corrigés automatiquement ; ensuite, chacun prend sa copie papier en photo et corrige la rédaction d'un autre membre avec le barème du sujet (correction croisée).</p></div></div>
+    <div id="grpBox"></div>
+  </section>
   <section class="card">
     <div class="card-head"><div><h2>Nouveau sujet blanc</h2><p class="sub">Ex 1 : une démo tirée au sort. Ex 2 : un réseau de résistances. Ex 3 : deux générateurs, Kirchhoff puis Millman. Ex 4 : un circuit avec une charge \(R_L\).</p></div></div>
     <div class="row">
@@ -612,6 +625,9 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
 
 <!-- ================= RÉSULTATS ================= -->
 <section class="hub" id="v-res" hidden></section>
+
+<!-- ================= CORRECTION CROISÉE ================= -->
+<section class="hub" id="v-corr" hidden></section>
 </main>
 
 <script>
@@ -1488,7 +1504,7 @@ function renderBlock(ex, b, bi, mode, st, pre) {
     return `<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" class="ans-in" data-id="${id}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${it.type === 'num' ? 'decimal' : 'text'}" value="${esc(st.ans[id] || '')}" placeholder="${it.type === 'num' ? 'ex : 2,5' : 'ta formule'}">${it.unit ? `<span class="unit">${it.unit}</span>` : ''}</div><div class="prev"></div><div class="fb"></div></div>`;
   }).join('');
   const selfHTML = selfs.length ? (mode === 'review'
-    ? `<p class="self-h">Auto-correction : coche ce que ta copie contenait</p><div class="self-list">${selfs.map(([it, ii]) => { const id = itemId(ex, bi, ii, pre); return `<label class="self-it"><input type="checkbox" data-self="${id}" data-pts="${it.pts}"${st.self[id] ? ' checked' : ''}><span>${esc(it.label)}</span><span class="p">${fmtPts(it.pts)} pt</span></label>`; }).join('')}</div>`
+    ? `<p class="self-h">${esc(st.selfLabel || 'Auto-correction : coche ce que ta copie contenait')}</p><div class="self-list">${selfs.map(([it, ii]) => { const id = itemId(ex, bi, ii, pre); return `<label class="self-it"><input type="checkbox" data-self="${id}" data-pts="${it.pts}"${st.self[id] ? ' checked' : ''}><span>${esc(it.label)}</span><span class="p">${fmtPts(it.pts)} pt</span></label>`; }).join('')}</div>`
     : mode === 'train' ? `<p class="self-h">Vérifie ta copie</p><ul class="fine" style="margin:6px 0 0;padding-left:18px">${selfs.map(([it]) => '<li>' + esc(it.label) + '</li>').join('')}</ul>` : '') : '';
   const paper = b.paper && (mode === 'exam' || mode === 'train') ? `<div class="paper">À faire sur ta feuille${mode === 'exam' ? ' : tu t\'auto-corrigeras avec le corrigé après avoir rendu la copie.' : ', puis compare avec la correction.'}</div>` : '';
   const actions = mode === 'train' && autos.length ? `<div class="qb-actions"><button type="button" class="btn btn-primary btn-sm" data-act="check" data-b="${bi}">Vérifier</button></div>` : '';
@@ -1547,7 +1563,7 @@ function applyTheme(t) {
   const b = $('#themeBtn'); b.innerHTML = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; b.dataset.mode = t;
   const label = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t]; b.title = label; b.setAttribute('aria-label', label);
 }
-const VIEWS = ['home', 'path', 'cours', 'demos', 'exos', 'annales', 'blanc', 'exam', 'res'];
+const VIEWS = ['home', 'path', 'cours', 'demos', 'exos', 'annales', 'blanc', 'exam', 'res', 'corr'];
 function setView(v) {
   VIEWS.forEach(x => { $('#v-' + x).hidden = x !== v; });
   document.body.dataset.view = v === 'exam' ? 'exam' : v;
@@ -1713,16 +1729,17 @@ function resumeExam() { const ex = ls.get(K.exam, null); if (!ex) return; EXAM =
 function openExam() {
   const exs = buildAll(EXAM.def);
   const v = $('#v-exam');
-  v.innerHTML = `<section class="card exam-head"><p class="eyebrow">${esc(EXAM.title)}</p><h2>Contrôle continu · 60 min · sans document</h2>
-    <p class="sub">Réponds aux calculs dans les cases (formules ou valeurs). Schémas, équations et démonstration se font sur ta feuille : tu les auto-corrigeras après avoir rendu la copie.</p></section>`
+  v.innerHTML = `<section class="card exam-head"><p class="eyebrow">${esc(EXAM.title)}</p><h2>Contrôle continu · 60 min · sans document${EXAM.gtest ? ' · en groupe' : ''}</h2>
+    <p class="sub">${EXAM.gtest ? 'Chrono commun à tout le groupe, sans pause. Réponds aux calculs dans les cases. Schémas, équations et démonstration se font sur ta feuille, proprement : après avoir rendu, tu la prendras en photo et un autre membre notera ta rédaction.' : 'Réponds aux calculs dans les cases (formules ou valeurs). Schémas, équations et démonstration se font sur ta feuille : tu les auto-corrigeras après avoir rendu la copie.'}</p></section>`
     + exs.map(ex => renderEx(ex, 'exam', { ans: EXAM.ans, self: {}, res: {} }, 'ex')).join('')
     + `<div class="exam-foot"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div>`;
   mathIn(v);
   wireInputs(v, inp => { EXAM.ans[inp.dataset.id] = inp.value; saveExam(); });
   setView('exam'); startTick();
+  if (EXAM.gtest) $('#pauseBtn').hidden = true;
 }
 function saveExam() { if (!EXAM) return; const c = Object.assign({}, EXAM, { elapsed: elapsedNow(), since: Date.now() }); ls.set(K.exam, c); }
-function elapsedNow() { return EXAM.elapsed + (EXAM.running ? (Date.now() - EXAM.since) / 1000 : 0); }
+function elapsedNow() { if (EXAM.gtest) return (Date.now() - EXAM.start) / 1000; return EXAM.elapsed + (EXAM.running ? (Date.now() - EXAM.since) / 1000 : 0); }
 function startTick() { stopTick(); tickId = setInterval(tick, 250); tick(); }
 function stopTick() { if (tickId) clearInterval(tickId); tickId = null; }
 function tick() {
@@ -1735,6 +1752,7 @@ function tick() {
 }
 function pauseExam() {
   if (!EXAM) return;
+  if (EXAM.gtest) { toast('Pas de pause en sujet de groupe : le chrono est le même pour tout le monde.'); return; }
   if (EXAM.running) { EXAM.elapsed = elapsedNow(); EXAM.running = false; stopTick(); ls.set(K.exam, EXAM); $('#pauseBtn').innerHTML = '<span class="long">Reprendre</span><span class="short">▶</span>'; $$('#v-exam .ans-in').forEach(i => i.disabled = true); toast('Pause. Le chrono est arrêté.'); }
   else { EXAM.since = Date.now(); EXAM.running = true; startTick(); $('#pauseBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><span class="long">Pause</span>'; $$('#v-exam .ans-in').forEach(i => i.disabled = false); }
 }
@@ -1745,12 +1763,14 @@ function submitExam(auto) {
   const exs = buildAll(EXAM.def), res = {};
   exs.forEach(ex => ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { if (it.type === 'self') return; const id = itemId(ex, bi, ii, 'ex'); res[id] = { st: checkItem(it, EXAM.ans[id] || '').st }; })));
   const rec = { id: EXAM.id, ts: Date.now(), title: EXAM.title, kind: EXAM.kind, def: EXAM.def, ans: EXAM.ans, res, self: {}, dur: Math.min(DUR, Math.round(elapsedNow())) };
+  if (EXAM.gtest) rec.gtest = EXAM.gtest;
   exs.forEach(ex => ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { if (it.type !== 'self') { const r = res[itemId(ex, bi, ii, 'ex')]; if (r.st !== 'empty' && ex.key !== 'ex1') addStat(ex.key, r.st === 'ok'); } })));
   const H = ls.get(K.hist, []); H.push(rec); ls.set(K.hist, H);
   ls.del(K.exam); EXAM = null;
   $('#topbar').classList.remove('warn', 'danger');
   if (auto) toast('Temps écoulé : copie rendue automatiquement.');
   showResult(rec.id);
+  if (rec.gtest) grpSubmit(rec);
 }
 function scoreRec(rec) {
   const exs = buildAll(rec.def), per = {};
@@ -1765,13 +1785,14 @@ function showResult(id) {
   const H = ls.get(K.hist, []), rec = H.find(r => r.id === id); if (!rec) return;
   const { exs } = scoreRec(rec);
   const v = $('#v-res');
-  v.innerHTML = `<section class="card hero" id="resHero"></section>`
+  v.innerHTML = (rec.gtest ? `<section class="card" id="grpPhoto" data-tid="${rec.gtest}"></section>` : '') + `<section class="card hero" id="resHero"></section>`
     + exs.map(ex => renderEx(ex, 'review', { ans: rec.ans, self: rec.self, res: rec.res }, 'ex')).join('')
     + `<div class="exam-foot"><button type="button" class="btn" data-go="blanc">Retour aux sujets</button></div>`;
   v.dataset.rec = id;
   drawHero(rec);
   mathIn(v);
   setView('res');
+  if (rec.gtest) renderGrpPhoto(rec.gtest);
 }
 function drawHero(rec) {
   const sc = scoreRec(rec), names = { ex1: 'Ex 1 · démo', ex2: 'Ex 2 · R équivalente', ex3: 'Ex 3 · deux générateurs', ex4: 'Ex 4 · charge R_L' };
@@ -1781,6 +1802,7 @@ function drawHero(rec) {
   $$('#v-res [data-score]').forEach(el => { const p = sc.per[el.dataset.score]; el.textContent = fmtPts(p.got) + '/' + p.max; });
 }
 function renderBlanc() {
+  renderGrp(); grpLoad().then(() => { grpAutoJoin(); renderGrp(); grpPoll(); });
   $('#blancLevel').innerHTML = [['cc', 'Niveau CC'], ['dur', 'Plus dur que le CC']].map(([k, l]) => `<button type="button" data-blv="${k}" aria-pressed="${k === BLV}">${l}</button>`).join('');
   const ex = ls.get(K.exam, null);
   $('#blancBanner').innerHTML = ex ? `<div class="banner"><p><b>Un sujet est en cours</b> (${esc(ex.title)}). Tu peux le reprendre là où tu l'as laissé.</p><span class="spacer"></span><button type="button" class="btn" data-act="abandon">Abandonner</button><button type="button" class="btn btn-primary" data-act="resume">Reprendre</button></div>` : '';
@@ -2441,12 +2463,295 @@ function init() {
   $('#pauseBtn').addEventListener('click', pauseExam);
   $('#annGrid').addEventListener('toggle', e => { if (e.target.open && e.target.dataset.ann) fillAnnale(e.target); }, true);
   $('#v-res').addEventListener('change', e => { const c = e.target.closest('[data-self]'); if (!c) return; const H = ls.get(K.hist, []), rec = H.find(r => r.id === $('#v-res').dataset.rec); if (!rec) return; rec.self[c.dataset.self] = c.checked; ls.set(K.hist, H); drawHero(rec); });
+  wireGrp();
   window.addEventListener('beforeunload', () => { if (EXAM && EXAM.running) saveExam(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && EXAM && EXAM.running) saveExam(); });
   const fromHash = () => { const h = location.hash.replace('#', ''); showTab(['path', 'cours', 'demos', 'exos', 'annales', 'blanc'].includes(h) ? h : 'home'); };
   window.addEventListener('hashchange', fromHash);
   fromHash();
 }
+/* =====================================================================
+   SUJETS BLANCS EN GROUPE (correction croisée)
+   Un membre crée un sujet : même tirage pour tous (group_tests.def, subject 'elec'). Le créateur
+   ou le propriétaire du groupe lance le départ : chrono commun de 60 min, sans pause. Les calculs
+   tapés sont notés automatiquement ; après le chrono, chacun note la rédaction (photos de la copie
+   papier) d'un autre membre avec le barème du sujet. Copies : table elec_copies, photos : stockage
+   « elec-copies ». Les groupes sont ceux du QCM maths.
+   ===================================================================== */
+const GRP = { groups: [], tests: [], mine: {}, rev: {}, res: {}, pseudo: {}, open: null, cur: null, pollT: 0, busy: false, loaded: false };
+const GJ = 'elec.grp.joined.v1', GP = 'elec.grp.pending.v1';
+GRP.joined = new Set(ls.get(GJ, []));
+const gAcc = () => { const A = window.SiteAccount; return A && A.client && A.user ? { sb: A.client, uid: A.user.id } : null; };
+const gWin = t => { const s = t.starts_at ? Date.parse(t.starts_at) : null; return { start: s, end: s ? s + t.duration_s * 1000 : null }; };
+const gState = (t, now = Date.now()) => { const w = gWin(t); if (!w.start) return now - Date.parse(t.created_at) < 3 * 3600e3 ? 'lobby' : 'dead'; return now < w.end ? 'run' : 'over'; };
+const gMgr = t => { const a = gAcc(), g = GRP.groups.find(x => x.id === t.group_id); return !!a && (t.created_by === a.uid || !!(g && g.created_by === a.uid)); };
+const gWho = id => esc(GRP.pseudo[id] || '?');
+const blancMax = def => buildAll(def).reduce((s, ex) => s + ex.pts, 0);
+function gPts(def, res, self) {   // points des calculs (res) et de la rédaction (self) d'une copie
+  let au = 0, re = 0;
+  buildAll(def).forEach(ex => ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { const id = itemId(ex, bi, ii, 'ex');
+    if (it.type === 'self') { if (self && self[id]) re += it.pts; } else if (res && res[id] && res[id].st === 'ok') au += it.pts; })));
+  return { au, re };
+}
+function gSaveJoined() { ls.set(GJ, [...GRP.joined].slice(-30)); }
+
+async function grpLoad() {
+  const a = gAcc(); if (!a || GRP.busy) return;
+  GRP.busy = true;
+  try {
+    await grpFlush(a);
+    const { data: ms } = await a.sb.from('memberships').select('group_id').eq('user_id', a.uid);
+    const gids = (ms || []).map(m => m.group_id);
+    if (!gids.length) { GRP.groups = []; GRP.tests = []; GRP.loaded = true; return; }
+    const since = new Date(Date.now() - 14 * 864e5).toISOString();
+    const [gs, ts, cs, rv, mb] = await Promise.all([
+      a.sb.from('groups').select('id,name,created_by').in('id', gids),
+      a.sb.from('group_tests').select('id,group_id,title,created_by,created_at,starts_at,duration_s,def').in('group_id', gids).eq('subject', 'elec').gte('created_at', since).order('created_at', { ascending: false }).limit(15),
+      a.sb.from('elec_copies').select('id,test_id,user_id,auto_pts,review_pts,reviewer,photos,comment,self,ans,res').eq('user_id', a.uid),
+      a.sb.from('elec_copies').select('id,test_id,user_id,review_pts').eq('reviewer', a.uid),
+      a.sb.from('memberships').select('user_id').in('group_id', gids)]);
+    GRP.groups = gs.data || []; GRP.tests = (ts.data || []).filter(t => t.def);
+    GRP.mine = {}; (cs.data || []).forEach(c => { GRP.mine[c.test_id] = c; });
+    GRP.rev = {}; (rv.data || []).forEach(c => { GRP.rev[c.test_id] = { id: c.id, user_id: c.user_id, done: c.review_pts != null }; });
+    const ids = [...new Set((mb.data || []).map(m => m.user_id))];
+    if (ids.length) { const { data: ps } = await a.sb.from('profiles').select('id,pseudo').in('id', ids); (ps || []).forEach(p => { GRP.pseudo[p.id] = p.pseudo; }); }
+    GRP.loaded = true;
+  } catch (e) { console.warn('Groupe indisponible', e); } finally { GRP.busy = false; }
+}
+// Copies rendues sans réseau ou avant la connexion : renvoyées au prochain chargement
+async function grpFlush(a) {
+  const P = ls.get(GP, []); if (!P.length) return;
+  const left = [];
+  for (const c of P) { const { error } = await a.sb.from('elec_copies').insert(c); if (error && !/duplicate/i.test(error.message)) left.push(c); }
+  ls.set(GP, left);
+}
+function grpPoll() {
+  clearTimeout(GRP.pollT);
+  if (document.body.dataset.view !== 'blanc' || document.hidden) return;
+  const live = GRP.tests.some(t => ['lobby', 'run'].includes(gState(t)));
+  GRP.pollT = setTimeout(async () => { await grpLoad(); grpAutoJoin(); renderGrp(); grpPoll(); }, live ? 5000 : 30000);
+}
+function grpAutoJoin() {
+  if (EXAM) return;
+  const t = GRP.tests.find(t => GRP.joined.has(t.id) && gState(t) === 'run' && !GRP.mine[t.id] && Date.now() - gWin(t).start < 10 * 60e3);
+  if (t) { toast('C\'est parti : le sujet de groupe commence !'); grpJoin(t.id); }
+}
+
+function renderGrp() {
+  const box = $('#grpBox'); if (!box) return;
+  const a = gAcc();
+  if (!a) { box.innerHTML = `<p class="sub">Connecte-toi sur <a href="../#compte">l'accueil du site</a> pour faire des sujets blancs avec ton groupe.</p>`; return; }
+  if (!GRP.loaded) { box.innerHTML = '<p class="fine">Chargement de tes groupes…</p>'; return; }
+  if (!GRP.groups.length) { box.innerHTML = `<p class="sub">Tu n'es dans aucun groupe. Crée ou rejoins-en un dans l'onglet <a href="../maths/#groupe">Groupe du QCM maths</a> : ce sont les mêmes groupes ici.</p>`; return; }
+  const sel = GRP.groups.length > 1 ? `<select id="grpSel" class="gsel" aria-label="Groupe">${GRP.groups.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('')}</select>` : `<span class="sub">Groupe <b>${esc(GRP.groups[0].name)}</b></span>`;
+  const rows = GRP.tests.filter(t => gState(t) !== 'dead').map(grpRow).join('');
+  box.innerHTML = `<div class="row">${sel}<span class="spacer"></span><button type="button" class="btn btn-primary" data-gact="create">Créer un sujet de groupe${BLV === 'dur' ? ' (difficile)' : ''}</button></div>
+    ${rows || '<p class="fine" style="margin-top:12px">Aucun sujet de groupe pour l\'instant.</p>'}`;
+}
+function grpRow(t) {
+  const st = gState(t), w = gWin(t), mine = GRP.mine[t.id], mgr = gMgr(t), rv = GRP.rev[t.id], g = GRP.groups.find(x => x.id === t.group_id);
+  const photoBtn = `<label class="btn">📷 Photos de ma copie<input type="file" accept="image/*" multiple hidden data-gfile="${t.id}"></label>`;
+  let info = '', btns = '';
+  if (st === 'lobby') {
+    const j = GRP.joined.has(t.id);
+    info = `Salle d'attente · créé par ${gWho(t.created_by)}. ${j ? 'Tu participes : l\'épreuve s\'ouvrira toute seule au départ, garde cette page ouverte.' : 'Clique sur « Je participe » pour être prêt au départ.'}`;
+    btns = `<button type="button" class="btn" data-gact="part" data-tid="${t.id}" aria-pressed="${j}">${j ? '✓ Je participe' : 'Je participe'}</button>`
+      + (mgr ? `<button type="button" class="btn btn-primary" data-gact="start" data-tid="${t.id}">Démarrer maintenant</button><button type="button" class="btn btn-ghost" data-gact="del" data-tid="${t.id}">Supprimer</button>` : '');
+  } else if (st === 'run') {
+    const left = fmtClock((w.end - Date.now()) / 1000);
+    if (mine) {
+      info = `Copie rendue · ${mine.photos.length} photo${mine.photos.length > 1 ? 's' : ''} envoyée${mine.photos.length > 1 ? 's' : ''} · la correction croisée commence à la fin du chrono (encore ${left}).`;
+      btns = photoBtn + (mgr ? `<button type="button" class="btn" data-gact="assign" data-tid="${t.id}">Tout le monde a rendu : lancer la correction</button>` : '');
+    } else { info = `En cours · il reste ${left}.`; btns = `<button type="button" class="btn btn-primary" data-gact="join" data-tid="${t.id}">Rejoindre</button>`; }
+  } else {
+    if (mine) {
+      const au = Number(mine.auto_pts) || 0, re = mine.review_pts == null ? null : Number(mine.review_pts);
+      info = re == null ? `Terminé · calculs ${fmtPts(au)} pt ; rédaction en attente${mine.reviewer ? ' de la correction de ' + gWho(mine.reviewer) : ''}.`
+        : `Terminé · <b>${fmtPts(au + re)}/${blancMax(t.def)}</b> (calculs ${fmtPts(au)} + rédaction ${fmtPts(re)}, corrigée par ${gWho(mine.reviewer)}).`;
+      btns = (rv ? `<button type="button" class="btn${rv.done ? '' : ' btn-primary'}" data-gact="review" data-tid="${t.id}">${rv.done ? 'Revoir ma correction' : 'Corriger la copie de ' + gWho(rv.user_id)}</button>`
+        : `<button type="button" class="btn btn-primary" data-gact="review" data-tid="${t.id}">Corriger une copie</button>`)
+        + (re != null ? `<button type="button" class="btn" data-gact="mycopy" data-tid="${t.id}">Ma copie corrigée</button>` : photoBtn);
+    } else info = 'Terminé.';
+    btns += `<button type="button" class="btn btn-ghost" data-gact="results" data-tid="${t.id}" aria-pressed="${GRP.open === t.id}">Résultats du groupe</button>`;
+  }
+  const res = GRP.open === t.id && GRP.res[t.id] ? grpTable(t, GRP.res[t.id]) : '';
+  return `<div class="grow"><div class="gh"><b>${esc(t.title)}</b><span class="fine">${esc(g ? g.name : '')} · ${new Date(t.created_at).toLocaleDateString('fr-FR')}</span></div>
+    <p class="sub">${info}</p><div class="row gbtns">${btns}</div>${res}</div>`;
+}
+function grpTable(t, cs) {
+  const max = blancMax(t.def);
+  const rows = cs.map(c => ({ c, au: Number(c.auto_pts) || 0, re: c.review_pts == null ? null : Number(c.review_pts) }))
+    .sort((x, y) => (y.au + (y.re || 0)) - (x.au + (x.re || 0)));
+  return `<div class="table-wrap" style="margin-top:12px"><table class="hist"><thead><tr><th>Pseudo</th><th>Calculs</th><th>Rédaction</th><th>Note</th><th>Corrigé par</th><th></th></tr></thead><tbody>${rows.map(({ c, au, re }) =>
+    `<tr><td>${gWho(c.user_id)}</td><td>${fmtPts(au)}</td><td>${re == null ? '<span class="fine">à corriger</span>' : fmtPts(re)}</td><td><b>${re == null ? '—' : fmtPts(au + re) + '/' + max}</b></td><td>${c.reviewer ? gWho(c.reviewer) : '—'}</td><td><button type="button" class="btn btn-sm" data-gact="see" data-tid="${t.id}" data-cid="${c.id}">Voir</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+/* ---------- Actions ---------- */
+async function grpCreate() {
+  const a = gAcc(); if (!a || !GRP.groups.length) return;
+  const gid = ($('#grpSel') && $('#grpSel').value) || GRP.groups[0].id;
+  const n = GRP.tests.filter(t => t.group_id === gid).length + 1;
+  const { data, error } = await a.sb.from('group_tests').insert({ group_id: gid, title: `Sujet blanc d'élec en groupe n° ${n}${BLV === 'dur' ? ' (difficile)' : ''}`, qids: [], duration_s: DUR, subject: 'elec', def: genBlanc(BLV), created_by: a.uid }).select().single();
+  if (error) { toast('Création impossible : ' + error.message); return; }
+  GRP.joined.add(data.id); gSaveJoined(); GRP.tests.unshift(data); renderGrp(); grpPoll();
+  toast('Sujet créé. Préviens ton groupe, puis clique sur « Démarrer maintenant » quand tout le monde est prêt.');
+}
+async function grpStart(tid) {
+  const a = gAcc(); if (!a) return;
+  const { error } = await a.sb.from('group_tests').update({ starts_at: new Date().toISOString() }).eq('id', tid);
+  if (error) { toast('Départ impossible : ' + error.message); return; }
+  GRP.joined.add(tid); gSaveJoined(); await grpLoad(); grpJoin(tid);
+}
+async function grpDelete(tid) {
+  const a = gAcc(); if (!a || !confirm('Supprimer ce sujet de groupe pour tout le monde ?')) return;
+  const { error } = await a.sb.from('group_tests').delete().eq('id', tid);
+  if (error) { toast('Suppression impossible : ' + error.message); return; }
+  GRP.tests = GRP.tests.filter(t => t.id !== tid); renderGrp();
+}
+function grpJoin(tid) {
+  const t = GRP.tests.find(x => x.id === tid); if (!t) return;
+  if (GRP.mine[tid]) { toast('Tu as déjà rendu ta copie pour ce sujet.'); return; }
+  if (gState(t) !== 'run') { toast('Ce sujet n\'est pas en cours.'); return; }
+  const cur = ls.get(K.exam, null);
+  if (cur && cur.gtest === tid) { resumeExam(); return; }
+  if (cur && !confirm('Un autre sujet est en cours sur cet appareil : le remplacer ?')) return;
+  EXAM = { id: 'g' + Date.now().toString(36), def: t.def, title: t.title, kind: 'groupe', gtest: tid, start: gWin(t).start, ans: {}, elapsed: 0, since: Date.now(), running: true };
+  ls.set(K.exam, EXAM); openExam();
+}
+async function grpSubmit(rec) {
+  const row = { test_id: rec.gtest, ans: rec.ans, res: rec.res, auto_pts: gPts(rec.def, rec.res).au, dur: rec.dur };
+  const a = gAcc();
+  if (!a) { ls.set(GP, ls.get(GP, []).concat([row])); toast('Copie gardée sur cet appareil : connecte-toi pour l\'envoyer au groupe.'); return; }
+  const { error } = await a.sb.from('elec_copies').insert(row);
+  if (error && !/duplicate/i.test(error.message)) { ls.set(GP, ls.get(GP, []).concat([row])); toast('Envoi impossible pour l\'instant, nouvel essai plus tard : ' + error.message); }
+  else toast('Copie envoyée au groupe. Prends maintenant ta copie papier en photo.');
+  await grpLoad(); renderGrpPhoto(rec.gtest);
+}
+async function gUrls(paths) {
+  const a = gAcc(); if (!a || !paths || !paths.length) return [];
+  const { data, error } = await a.sb.storage.from('elec-copies').createSignedUrls(paths, 3600);
+  if (error) { console.warn(error); return []; }
+  return (data || []).map(d => d.signedUrl).filter(Boolean);
+}
+async function compressImg(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ko(new Error('image illisible')); i.src = url; });
+    const k = Math.min(1, 1800 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.82));
+  } finally { URL.revokeObjectURL(url); }
+}
+async function grpUpload(tid, files) {
+  const a = gAcc(); if (!a || !files.length) return;
+  const cur = GRP.mine[tid]; if (!cur) { toast('Rends d\'abord ta copie.'); return; }
+  toast(`Envoi de ${files.length} photo${files.length > 1 ? 's' : ''}…`);
+  const paths = (cur.photos || []).slice();
+  let i = 0;
+  for (const f of files) {
+    try {
+      const blob = await compressImg(f), path = `${tid}/${a.uid}/${Date.now()}-${i++}.jpg`;
+      const { error } = await a.sb.storage.from('elec-copies').upload(path, blob, { contentType: 'image/jpeg' });
+      if (error) throw error;
+      paths.push(path);
+    } catch (e) { toast('Une photo n\'a pas pu être envoyée : ' + (e.message || e)); }
+  }
+  const { error } = await a.sb.from('elec_copies').update({ photos: paths }).eq('test_id', tid).eq('user_id', a.uid);
+  if (error) toast('Erreur : ' + error.message); else { cur.photos = paths; toast(`${paths.length} photo${paths.length > 1 ? 's' : ''} sur ta copie.`); }
+  renderGrpPhoto(tid); renderGrp();
+}
+async function renderGrpPhoto(tid) {
+  const box = $('#grpPhoto'); if (!box || box.dataset.tid !== tid) return;
+  const c = GRP.mine[tid];
+  if (!c) { box.innerHTML = gAcc() ? '<p class="sub">Envoi de ta copie au groupe…</p>' : '<p class="sub">Ta copie est gardée sur cet appareil. <a href="../#compte">Connecte-toi</a> puis reviens sur l\'onglet Sujet blanc : elle sera envoyée au groupe et tu pourras ajouter les photos.</p>'; return; }
+  const urls = await gUrls(c.photos);
+  box.innerHTML = `<h2>📷 Ta copie papier</h2><p class="sub">Prends chaque page en photo, bien droite et lisible : ton correcteur notera ta rédaction (schémas fléchés, lois citées, démonstration) à partir de ces photos. La note de groupe sera la sienne ; les cases plus bas ne servent qu'à toi.</p>
+    <div class="gphotos">${urls.map(u => `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="Page de ta copie"></a>`).join('')}</div>
+    <div class="row" style="margin-top:12px"><label class="btn btn-primary">Ajouter des photos<input type="file" accept="image/*" multiple hidden data-gfile="${tid}"></label><span class="fine">${c.photos.length} photo${c.photos.length > 1 ? 's' : ''} envoyée${c.photos.length > 1 ? 's' : ''}</span></div>`;
+}
+async function grpAssign(tid) {
+  const a = gAcc(); if (!a) return false;
+  const { error } = await a.sb.rpc('assign_elec_reviewers', { t: tid });
+  if (error) { if (!/too early/.test(error.message)) toast('Erreur : ' + error.message); return false; }
+  return true;
+}
+async function grpReview(tid) {
+  const a = gAcc(), t = GRP.tests.find(x => x.id === tid); if (!a || !t) return;
+  await grpAssign(tid);
+  const { data: c } = await a.sb.from('elec_copies').select('*').eq('test_id', tid).eq('reviewer', a.uid).maybeSingle();
+  if (!c) { toast('Pas encore de copie à corriger : il faut au moins deux copies rendues.'); await grpLoad(); renderGrp(); return; }
+  showCopy(t, c, 'review');
+}
+async function grpSee(tid, cid, own) {
+  const a = gAcc(), t = GRP.tests.find(x => x.id === tid); if (!a || !t) return;
+  const c = own ? GRP.mine[tid] : (GRP.res[tid] || []).find(x => x.id === cid);
+  if (!c) return;
+  showCopy(t, c, 'read');
+}
+async function grpResults(tid) {
+  const a = gAcc(); if (!a) return;
+  if (GRP.open === tid) { GRP.open = null; renderGrp(); return; }
+  const { data, error } = await a.sb.from('elec_copies').select('*').eq('test_id', tid);
+  if (error) { toast(error.message); return; }
+  GRP.res[tid] = data || []; GRP.open = tid; renderGrp();
+}
+async function showCopy(t, c, mode) {
+  const urls = await gUrls(c.photos || []), a = gAcc(), mine = a && c.user_id === a.uid, exs = buildAll(t.def);
+  const who = mine ? 'ta copie' : 'la copie de ' + gWho(c.user_id);
+  const st = { ans: c.ans || {}, self: Object.assign({}, c.self || {}), res: c.res || {},
+    selfLabel: mode === 'review' ? 'Rédaction : coche ce que la copie contient vraiment' : 'Rédaction : barème coché par le correcteur' };
+  GRP.cur = { t, c, self: st.self, mode };
+  const v = $('#v-corr');
+  v.innerHTML = `<section class="card"><p class="eyebrow">${esc(t.title)}</p><h1>${mode === 'review' ? 'Corriger ' + who : (mine ? 'Ta copie corrigée' : 'Copie de ' + gWho(c.user_id))}</h1>
+      <p class="sub">${mode === 'review' ? 'Les calculs tapés sont déjà notés automatiquement. Ouvre les photos de la copie papier et coche, exercice par exercice, ce qui y figure vraiment : schéma fléché, lois citées, démonstration complète… Sois juste, c\'est le barème du sujet.' : c.reviewer ? 'Corrigée par ' + gWho(c.reviewer) + '.' : 'Pas encore corrigée.'}</p>
+      <div class="gphotos big">${urls.length ? urls.map(u => `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="Page de la copie"></a>`).join('') : '<p class="fine">Aucune photo envoyée.' + (mode === 'review' ? ' Coche seulement ce qui se déduit des réponses tapées, ou demande-lui ses photos.' : '') + '</p>'}</div></section>
+    <section class="card" id="corrScore"></section>`
+    + exs.map(ex => renderEx(ex, 'review', st, 'ex')).join('')
+    + `<section class="card"><h2>Commentaire${mine ? ' du correcteur' : ''}</h2><textarea id="corrComment" rows="4" class="gta"${mode === 'review' ? '' : ' readonly'} placeholder="Ce qui manque, ce qui est bien fait…">${esc(c.comment || '')}</textarea>
+      <div class="row" style="margin-top:12px"><button type="button" class="btn" data-go="blanc">Retour</button><span class="spacer"></span>${mode === 'review' ? '<button type="button" class="btn btn-primary btn-lg" data-gact="saveReview">Valider la correction</button>' : ''}</div></section>`;
+  if (mode !== 'review') $$('#v-corr [data-self]').forEach(i => { i.disabled = true; });
+  corrScore(); mathIn(v); setView('corr');
+}
+function corrScore() {
+  const { t, c, self } = GRP.cur, p = gPts(t.def, c.res, self), max = blancMax(t.def);
+  buildAll(t.def).forEach(ex => { let got = 0;
+    ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { const id = itemId(ex, bi, ii, 'ex'); if (it.type === 'self') { if (self[id]) got += it.pts; } else if (c.res && c.res[id] && c.res[id].st === 'ok') got += it.pts; }));
+    const el = $(`#v-corr [data-score="${ex.key}"]`); if (el) el.textContent = fmtPts(got) + '/' + ex.pts; });
+  $('#corrScore').innerHTML = `<div class="grade"><span class="grade-value">${fmtPts(p.au + p.re)}</span><span class="grade-max">/${max}</span></div>
+    <p class="fine">Calculs : ${fmtPts(p.au)} pt (corrigés automatiquement) · Rédaction : ${fmtPts(p.re)} pt (barème coché)</p>`;
+}
+async function grpSaveReview() {
+  const a = gAcc(), cur = GRP.cur; if (!a || !cur || cur.mode !== 'review') return;
+  const p = gPts(cur.t.def, cur.c.res, cur.self);
+  const { error } = await a.sb.from('elec_copies').update({ self: cur.self, review_pts: p.re, comment: ($('#corrComment').value || '').trim() || null, reviewed_at: new Date().toISOString() }).eq('id', cur.c.id);
+  if (error) { toast('Erreur : ' + error.message); return; }
+  toast('Correction enregistrée, merci !');
+  await grpLoad(); showTab('blanc');
+}
+function wireGrp() {
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-gact]'); if (!b) return;
+    const a = b.dataset.gact, tid = b.dataset.tid;
+    if (a === 'create') grpCreate();
+    else if (a === 'start') grpStart(tid);
+    else if (a === 'del') grpDelete(tid);
+    else if (a === 'part') { if (GRP.joined.has(tid)) GRP.joined.delete(tid); else GRP.joined.add(tid); gSaveJoined(); renderGrp(); }
+    else if (a === 'join') grpJoin(tid);
+    else if (a === 'assign') grpAssign(tid).then(ok => { if (ok) { toast('Correction lancée : chacun a une copie à corriger.'); grpLoad().then(renderGrp); } });
+    else if (a === 'review') grpReview(tid);
+    else if (a === 'results') grpResults(tid);
+    else if (a === 'mycopy') grpSee(tid, null, true);
+    else if (a === 'see') grpSee(tid, b.dataset.cid, false);
+    else if (a === 'saveReview') grpSaveReview();
+  });
+  document.addEventListener('change', e => {
+    const f = e.target.closest('input[data-gfile]'); if (f) { grpUpload(f.dataset.gfile, [...f.files]); f.value = ''; return; }
+    const c = e.target.closest('#v-corr [data-self]'); if (c && GRP.cur && GRP.cur.mode === 'review') { GRP.cur.self[c.dataset.self] = c.checked; corrScore(); }
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && document.body.dataset.view === 'blanc') grpLoad().then(() => { grpAutoJoin(); renderGrp(); grpPoll(); }); });
+}
+
 /* =====================================================================
    COMPTE : synchronisation entre appareils (../account.js)
    ===================================================================== */
@@ -2467,6 +2772,7 @@ function onRemoteData() {
 function wireAccount() {
   const A = window.SiteAccount; if (!A) return;
   A.on('data', onRemoteData);
+  A.on('change', () => { GRP.loaded = false; if (document.body.dataset.view === 'blanc') renderBlanc(); });
 }
 document.addEventListener('DOMContentLoaded', init);
 if (window.SiteAccount) wireAccount(); else window.addEventListener('siteaccount', wireAccount, { once: true });

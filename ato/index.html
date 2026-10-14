@@ -728,16 +728,16 @@ function setTab(t) {
 function nextCC() {
   const c = ls.get('planning.cache.v1', null), now = Date.now();
   const ev = c && c.evs ? c.evs.find(e => e.s > now - 3 * 3600e3 && /(^|[^A-Za-z])ATO([^A-Za-z]|$)/.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : null;
-  return ev ? ev.s : Date.parse('2026-10-20T13:00:00Z');
+  return ev ? ev.s : null;
 }
 function vHome() {
   const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
-  const days = Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
-  const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
+  const days = cc == null ? 0 : Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = cc == null ? '' : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Chimie · Atomistique · V. Bouquet</p><h1>Réussir le CC d'atomistique</h1>
-    <p class="lede">Le CC du 20/10 dure 1 h et porte sur la 1<sup>re</sup> partie du cours : <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique). Les liaisons chimiques seront au CC du 16/12.</p></div>
-    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC d'atomistique : ${esc(when)}</span></div></section>
+    <p class="lede">Le CC (date à confirmer, il était prévu le 20/10) dure 1 h et porte sur la 1<sup>re</sup> partie du cours : <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique). Les liaisons chimiques seront au CC du 16/12.</p></div>
+    <section class="card"><div class="count">${cc == null ? `<b>?</b><span>CC d'atomistique : date à confirmer (déplacé). Révise quand même, tout reste disponible.</span>` : `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC d'atomistique : ${esc(when)}</span>`}</div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du plus simple (composition d'un atome) au plus dur (anomalies d'énergie d'ionisation), avec une progression qui s'adapte à tes résultats.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
@@ -821,7 +821,7 @@ const FICHES = [
     <div class="box warn"><h5>Anomalies d'énergie d'ionisation</h5>E.I.(Be) > E.I.(B) et E.I.(Mg) > E.I.(Al) : ns<sup>2</sup> pleine est stable. E.I.(N) > E.I.(O) et E.I.(P) > E.I.(S) : np<sup>3</sup> demi-pleine est stable. E.I.(Zn) > E.I.(Ga) : 3d<sup>10</sup> 4s<sup>2</sup> pleines.</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Partie 1 · L'atome (CC du 20/10)</p><h1>Le cours utile</h1><p class="lede">Les 5 chapitres du cours de V. Bouquet, condensés : définitions, formules, méthodes et pièges.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Partie 1 · L'atome (CC, date à confirmer)</p><h1>Le cours utile</h1><p class="lede">Les 5 chapitres du cours de V. Bouquet, condensés : définitions, formules, méthodes et pièges.</p></div>
     ${FICHES.map(([t, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}</summary><div class="body">${b}</div></details>`).join('')}
     <section class="card"><h2>Constantes (poly de TD)</h2><p class="sub">\\(h = 6{,}626\\times10^{-34}\\) J·s · \\(c = 3{,}00\\times10^{8}\\) m/s · \\(N_A = 6{,}022\\times10^{23}\\) mol⁻¹ · \\(R_H = 1{,}097\\times10^{7}\\) m⁻¹ · \\(e = 1{,}602\\times10^{-19}\\) C · \\(m_e = 9{,}11\\times10^{-31}\\) kg · \\(m_n = 1{,}675\\times10^{-27}\\) kg</p></section>`;
   typeset(app);

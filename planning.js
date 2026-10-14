@@ -145,7 +145,7 @@
   }
   // Compte à rebours de la page élec : la date du prochain CC d'électronique analogique
   function fillElecDate(evs) {
-    const next = evs.find(e => e.s > Date.now() - 864e5 && subjOf(e) === 'ELECA' && isEval(e) && !isTiers(e) && !isRatt(e));
+    const next = evs.find(e => e.s > Date.now() - 864e5 && e.s !== Date.parse('2026-10-16T07:45:00Z') && subjOf(e) === 'ELECA' && isEval(e) && !isTiers(e) && !isRatt(e));
     if (!next) return;
     const key = dayKey(next.s), cur = get('elec.ccdate.v1', '');
     if (!cur || cur < dayKey(Date.now())) { put('elec.ccdate.v1', key); if (A()) A().touch('elec.ccdate.v1'); }

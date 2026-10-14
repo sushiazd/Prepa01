@@ -387,7 +387,7 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
   <div class="hub-head">
     <p class="eyebrow">Électronique analogique · ELECa · S. Avrillon et O. Lafond</p>
     <h1>Réussir le CC d'électronique</h1>
-    <p class="lede">Le CC1 du vendredi 16/10 dure 1 h, sans document ni calculatrice, et garde la même forme depuis 2021 : une <b>démonstration du cours</b> (4 pts), une <b>résistance équivalente</b> (4 pts), un <b>circuit à deux générateurs</b> (8 pts) et un <b>circuit avec une charge \(R_L\)</b> (4 pts). Le CC2 du 2/11 garde la démonstration, puis passe au générateur de Thévenin et aux circuits RC et RL.</p>
+    <p class="lede">Le CC1 (date à confirmer, il était prévu le vendredi 16/10) dure 1 h, sans document ni calculatrice, et garde la même forme depuis 2021 : une <b>démonstration du cours</b> (4 pts), une <b>résistance équivalente</b> (4 pts), un <b>circuit à deux générateurs</b> (8 pts) et un <b>circuit avec une charge \(R_L\)</b> (4 pts). Le CC2 du 2/11 garde la démonstration, puis passe au générateur de Thévenin et aux circuits RC et RL.</p>
   </div>
   <div id="resumeBanner"></div>
   <section class="card"><div class="count" id="countBox"></div></section>
@@ -1589,20 +1589,26 @@ function showTab(tab) {
    ===================================================================== */
 // date du prochain CC d'électronique analogique : emploi du temps (onglet Planning de l'accueil),
 // sinon la date enregistrée sur la page, sinon celle du CC1 2026
+// CC1 déplacé (cours à distance) : l'ancienne date du 16/10 est ignorée tant que l'emploi du temps n'en donne pas une nouvelle
+const OLD_CC1 = Date.parse('2026-10-16T07:45:00Z');
 function nextElecCC() {
   const c = ls.get('planning.cache.v1', null), now = Date.now();
-  const all = c && c.evs ? c.evs.filter(e => /ELECa/i.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : [];
+  const all = c && c.evs ? c.evs.filter(e => /ELECa/i.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t) && e.s !== OLD_CC1) : [];
   const i = all.findIndex(e => e.s > now - 3 * 3600e3);
-  if (i >= 0) return { ts: all[i].s, n: i + 1 };
+  if (i >= 0) return { ts: all[i].s, n: all[i].s > Date.parse('2026-10-20') ? 2 : 1 };
   const d = ls.get(K.date, '');
-  if (d && new Date(d + 'T23:59:59') >= new Date()) return { ts: new Date(d + 'T08:00:00').getTime(), n: 1, dayOnly: true };
-  return { ts: Date.parse('2026-10-16T07:45:00Z'), n: 1 };
+  if (d && d !== '2026-10-16' && new Date(d + 'T23:59:59') >= new Date()) return { ts: new Date(d + 'T08:00:00').getTime(), n: 1, dayOnly: true };
+  return null;
 }
 function renderHome() {
   const cc = nextElecCC();
+  if (!cc) {
+    $('#countBox').innerHTML = `<b>?</b><span>CC1 d'électronique : date à confirmer (déplacé). Révise quand même, tout reste disponible.</span><a class="btn btn-ghost" href="../elec2/" style="margin-left:auto">Page du CC2 →</a>`;
+  } else {
   const days = Math.round((new Date(new Date(cc.ts).toDateString()) - new Date(new Date().toDateString())) / 864e5);
   const when = new Intl.DateTimeFormat('fr-FR', Object.assign({ timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long' }, cc.dayOnly ? {} : { hour: '2-digit', minute: '2-digit' })).format(cc.ts);
   $('#countBox').innerHTML = `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC${cc.n} d'électronique : ${esc(when)}</span>` + (cc.n >= 2 ? '<a class="btn btn-primary" href="../elec2/" style="margin-left:auto">Réviser le CC2 (Thévenin, RC, RL)</a>' : '<a class="btn btn-ghost" href="../elec2/" style="margin-left:auto">Page du CC2 →</a>');
+  }
   const P = pst(), { n, tot } = coreDone(P), pct = Math.round(100 * n / tot);
   $('#homePath').innerHTML = `<h2>Le parcours</h2><p class="sub">${n}/${tot} compétences validées. Des bases (loi d'Ohm, fléchage) jusqu'aux exercices complets du CC, avec une progression qui s'adapte à tes résultats.</p>
     <div class="bar ${pct >= 75 ? '' : pct >= 35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${pct}%"></i></div>

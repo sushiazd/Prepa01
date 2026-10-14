@@ -186,8 +186,8 @@ tr:last-child td{border-bottom:0}
 
   /* ---------- Elo (même calcul que l'onglet Groupe du QCM maths) ----------
      Équité : une même question refaite (même question de sujet, ou « Refaire cette épreuve ») ne
-   compte qu'à 25 % la 2e fois, puis plus du tout ; une bonne réponse très lente rapporte un peu moins
-   (jusqu'à −20 % au-delà de 6 min, 12 min en Hardcore) mais ne fait jamais perdre de points. */
+   compte qu'à 25 % la 2e fois, puis plus du tout ; la rapidité compte : une bonne réponse rapide rapporte jusqu'à +20 % (45 s ou moins, 90 s en Hardcore),
+   neutre à 2 min 30, jusqu'à −20 % si elle prend plus de 6 min (12 min en Hardcore) ; elle ne fait jamais perdre de points. */
   const eloKey = id => { const m = /^gen\.([a-z0-9_]+)\.[0-9a-z]+(?:\.(\d+))?$/.exec(String(id)); return m ? 'g:' + m[1] + (m[2] ? '#' + m[2] : '') : 'b:' + id; };
   function eloRank(members) {
     const obs = [];
@@ -198,7 +198,12 @@ tr:last-child td{border-bottom:0}
     const P = {}, Q = {}, N = {}, H = {}, OK = {}, QN = {}, QS = {}, DONE = {};
     const kP = n => Math.max(16, 48 / Math.sqrt(1 + n / 20));
     const REP = [1, 0.25];
-    const slow = (i, hard) => { const a = hard ? 300 : 150, b = hard ? 720 : 360; return 1 - 0.2 * Math.min(1, Math.max(0, (i.t - a) / (b - a))); };
+    // rythme : une bonne réponse (entière) rapide rapporte jusqu'à +20 % (≤ 45 s, ≤ 90 s en Hardcore), neutre à 2 min 30 (5 min en Hardcore), puis jusqu'à −20 % si très lent ;
+    // pas de bonus sous 8 s (15 s en Hardcore) : trop court pour avoir lu la question
+    const pace = (i, hard) => { const s = hard ? 2 : 1, f = 45 * s, a = 150 * s, b = 360 * s;
+      if (i.t >= a) return 1 - 0.2 * Math.min(1, (i.t - a) / (b - a));
+      if (i.pts < i.max || i.t < 8 * s) return 1;
+      return 1 + 0.2 * Math.min(1, (a - i.t) / (a - f)); };
     obs.sort((a, b) => a.at - b.at).forEach(o => {
       if (!o.items.length || o.items.filter(i => i.pts === 0).length / o.items.length >= 0.8) return;
       o.items.forEach(i => {
@@ -210,7 +215,7 @@ tr:last-child td{border-bottom:0}
         const rp = P[o.who] ?? 1000, rq = Q[i.key] ?? (hard ? 1250 : 1000);
         const e = 1 / (1 + 10 ** ((rq - rp) / 400)), n = N[o.who] || 0;
         let d = kP(n) * (sc - e) * w;
-        if (d > 0 && i.pts > 0 && i.t) d *= slow(i, hard);
+        if (d > 0 && i.pts > 0 && i.t) d *= pace(i, hard);
         P[o.who] = rp + d; Q[i.key] = rq - 12 * (sc - e) * w; N[o.who] = n + (w === 1 ? 1 : 0);
         if (i.pts >= i.max && w === 1) OK[o.who] = (OK[o.who] || 0) + 1;
         if (w === 1) { QN[i.key] = (QN[i.key] || 0) + 1; QS[i.key] = (QS[i.key] || 0) + (i.pts >= i.max ? 1 : 0); }

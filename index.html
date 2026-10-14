@@ -229,7 +229,7 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
     </a>
     <a class="tool" href="ato/">
       <span class="ic" aria-hidden="true">Ato</span>
-      <span class="kind">Chimie · Atomistique · CC du 20/10</span>
+      <span class="kind">Chimie · Atomistique · date du CC à confirmer</span>
       <h2>Atomistique</h2>
       <p>Structure de l'atome, spectres de l'hydrogène, nombres quantiques, configurations électroniques et tableau périodique : parcours guidé, exercices corrigés et sujet blanc d'une heure.</p>
       <span class="meta" id="atoMeta"></span>
@@ -389,31 +389,37 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
     ['maths/', /QCM/i, null, null, ['2026-10-15T08:15:00Z', '2026-11-05T15:45:00Z', '2026-11-16T07:45:00Z', '2026-12-02T14:00:00Z', '2026-12-17T09:15:00Z', '2027-01-14T11:00:00Z']],
     ['maths-s1/', MATH_RE, null, '2026-12-01', ['2026-11-06T08:45:00Z']],
     ['maths-s1-analyse/', MATH_RE, '2026-12-01', null, ['2027-01-06T07:00:00Z']],
-    ['ato/', /(^|[^A-Za-z])ATO([^A-Za-z]|$)/, null, '2026-11-01', ['2026-10-20T13:00:00Z']],
-    ['elec/', /ELECa/i, null, '2026-10-20', ['2026-10-16T07:45:00Z']],
+    ['ato/', /(^|[^A-Za-z])ATO([^A-Za-z]|$)/, null, '2026-11-01', [], '2026-10-20T13:00:00Z'],
+    ['elec/', /ELECa/i, null, '2026-10-20', [], '2026-10-16T07:45:00Z'],
     ['elec2/', /ELECa/i, '2026-10-20', null, ['2026-11-02T14:00:00Z']],
     ['algo/', /(^|[^A-Za-z])ALGO([^A-Za-z]|$)/, null, '2026-11-01', ['2026-10-23T07:45:00Z']],
     ['phys/', /(^|[^A-Za-z])PHYS([^A-Za-z]|$)/, '2026-10-01', null, ['2026-12-02T08:45:00Z']],
     ['meca/', /(^|[^A-Za-z])MECA([^A-Za-z]|$)/, null, null, ['2026-12-09T12:15:00Z']]
   ];
-  function evDates(re, from, to, fallback) {
+  // 6e valeur : ancienne date du CC (déplacé, nouvelle date pas encore dans l'emploi du temps) : on l'ignore et la carte indique « date à confirmer »
+  function evDates(re, from, to, fallback, stale) {
     const c = get('planning.cache.v1', null), lo = from ? Date.parse(from) : -Infinity, hi = to ? Date.parse(to) : Infinity;
     const qcm = re.source.includes('QCM');
-    const evs = c && Array.isArray(c.evs) ? c.evs.filter(e => re.test(e.t) && (qcm || /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t)) && !/tiers|oraux/i.test(e.t) && e.s >= lo && e.s < hi).map(e => e.s) : [];
+    const evs = c && Array.isArray(c.evs) ? c.evs.filter(e => re.test(e.t) && (qcm || /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t)) && !/tiers|oraux/i.test(e.t) && e.s >= lo && e.s < hi && e.s !== (stale ? Date.parse(stale) : NaN)).map(e => e.s) : [];
     return (evs.length ? evs : fallback.map(Date.parse)).sort((a, b) => a - b);
   }
   function orderTools() {
     const grid = document.querySelector('#vRev .grid'); if (!grid) return;
     const now = Date.now(), t0 = new Date(); t0.setHours(0, 0, 0, 0);
-    const cards = CARD_EV.map(([href, re, from, to, fb]) => {
+    const cards = CARD_EV.map(([href, re, from, to, fb, stale]) => {
       const el = grid.querySelector(`a.tool[href="${href}"]`); if (!el) return null;
-      const ds = evDates(re, from, to, fb), next = ds.find(s => s > now - 3 * 3600e3), ts = next != null ? next : ds[ds.length - 1];
+      const ds = evDates(re, from, to, fb, stale), next = ds.find(s => s > now - 3 * 3600e3), ts = next != null ? next : ds[ds.length - 1];
+      if (!ds.length) return { el, ts: 8e15, past: false, tbc: true };
       return { el, ts, past: next == null };
     }).filter(Boolean);
     cards.sort((a, b) => (a.past - b.past) || (a.past ? b.ts - a.ts : a.ts - b.ts));
     const anchor = grid.querySelector('.tool.soon');
-    cards.forEach(({ el, ts, past }) => {
+    cards.forEach(({ el, ts, past, tbc }) => {
       grid.insertBefore(el, anchor);
+      if (tbc) {
+        let w = el.querySelector('.when'); if (!w) { w = document.createElement('span'); w.className = 'when'; el.prepend(w); }
+        w.textContent = 'date à confirmer'; el.classList.remove('past', 'near'); return;
+      }
       const d = new Date(ts), day = new Date(d); day.setHours(0, 0, 0, 0);
       const n = Math.round((day - t0) / 864e5), dm = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'numeric' });
       let w = el.querySelector('.when'); if (!w) { w = document.createElement('span'); w.className = 'when'; el.prepend(w); }

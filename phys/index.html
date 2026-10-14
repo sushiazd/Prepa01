@@ -729,7 +729,7 @@ const HELP = '<p class="fine" style="margin-top:12px">Formules : tape par exempl
    COMPÉTENCES ET PROGRESSION (mêmes règles que les autres matières)
    ===================================================================== */
 const PK = 'phys.path.v1', HK = 'phys.hist.v1', EK = 'phys.exam.v1', VAL = 100, MMAX = 130;
-const CH = ['Rappels de cinématique', 'Dynamique : le PFD', 'Énergie', 'Oscillateurs (peu au CC2)', 'Moment cinétique et gravitation (peu au CC2)'];
+const CH = ['Cinématique : vitesse et accélération (à savoir par cœur)', 'Dynamique : le PFD', 'Énergie', 'Oscillateurs (un peu au CC2)', 'Moment cinétique et gravitation (peu au CC2)'];
 const SK = [
   { id: 'polar', ch: 0, name: 'Vitesse et accélération en polaires', fiche: 0 },
   { id: 'chute', ch: 0, name: 'Tir dans le champ de pesanteur', fiche: 0 },
@@ -859,7 +859,7 @@ function vHome() {
   const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Physique · Mécanique du point · B. Bêche</p><h1>Réussir le CC de mécanique</h1>
-    <p class="lede">Le CC du mercredi 2/12 dure 1 h 30, sans document ni calculatrice. D'après le prof, il porte <b>en majorité sur les chapitres II et III</b> : dynamique (PFD, frottements, référentiels non galiléens, chocs) et énergie (travail, théorème de l'énergie cinétique, énergie potentielle, stabilité). Comme dans les sujets des années passées, l'oscillateur et le moment cinétique peuvent revenir dans une partie plus courte.</p></div>
+    <p class="lede">Le CC du mercredi 2/12 dure 1 h 30, sans document ni calculatrice. D'après le prof, il porte <b>en majorité sur les chapitres II et III</b> : dynamique (PFD, frottements, référentiels non galiléens, chocs) et énergie (travail, théorème de l'énergie cinétique, énergie potentielle, stabilité). Il faut aussi connaître par cœur les expressions de la <b>vitesse et de l'accélération</b> (chapitre I : cartésiennes, polaires, cylindriques), et le prof a dit qu'il y aurait <b>peut-être un peu de chapitre IV</b> (oscillateur harmonique, amorti). Comme dans les sujets des années passées, le moment cinétique peut revenir dans une partie plus courte.</p></div>
     <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC de physique : ${esc(when)}</span></div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du tir parabolique jusqu'aux orbites, avec une progression qui s'adapte à tes résultats.</p>
@@ -964,7 +964,7 @@ const FICHES = [
     <div class="box key"><h5>Conseil</h5>Recopie chaque démonstration une fois, puis refais-la de mémoire sur une feuille blanche : c'est ce qui sera demandé au CC.</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Surtout chapitres II et III · CC du 2/12</p><h1>Le cours utile</h1><p class="lede">Le cours de B. Bêche condensé en 9 fiches : lois, formules, méthodes et pièges. Chaque fiche dit à quel type d'exercice elle sert.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Surtout chapitres II et III, plus vitesse et accélération (chap. I) · CC du 2/12</p><h1>Le cours utile</h1><p class="lede">Le cours de B. Bêche condensé en 9 fiches : lois, formules, méthodes et pièges. Chaque fiche dit à quel type d'exercice elle sert.</p></div>
     ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
   mathIn(app);
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }

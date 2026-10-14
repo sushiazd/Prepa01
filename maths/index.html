@@ -428,6 +428,46 @@ body[data-view="test"] .topnav{display:none}
 .live-box li.me b{color:var(--pen)}
 .live-box li.done span{color:var(--good)}
 .live-box li .live-old{color:var(--red);font-weight:600}
+.live-box .live-spec{margin-top:8px;font:500 13px/1.3 var(--sans);color:var(--ink-2)}
+/* Spectateur */
+.spec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.spec-clock{font:650 24px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--red)}
+.spec-players{display:flex;flex-wrap:wrap;gap:8px}
+.spec-p{display:grid;gap:3px;text-align:left;padding:10px 14px;border:1px solid var(--rule);border-radius:12px;background:var(--sheet-2);font:500 14px/1.25 var(--sans);color:var(--ink);cursor:pointer;min-width:150px}
+.spec-p small{color:var(--muted);font-size:12.5px}
+.spec-p small b{color:var(--ink)}
+.spec-p[aria-pressed="true"]{border-color:var(--pen);box-shadow:0 0 0 2px var(--pen-line)}
+.spec-opts{display:flex;gap:10px 20px;flex-wrap:wrap;align-items:center;margin-top:16px;font-size:14px;color:var(--ink-2)}
+.spec-opts label{display:inline-flex;gap:8px;align-items:center;cursor:pointer}
+.spec-grid{display:flex;flex-wrap:wrap;gap:6px;position:sticky;top:72px;z-index:5;padding:10px;background:var(--paper);border:1px solid var(--rule);border-radius:12px}
+.spec-cell{width:36px;height:36px;border-radius:9px;border:1px solid var(--rule-strong);background:var(--sheet);font:600 13px/1 var(--sans);color:var(--ink-2);cursor:pointer}
+.spec-cell.ans{background:var(--pen-soft);border-color:var(--pen-line);color:var(--pen)}
+.spec-cell.st-juste{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.spec-cell.st-faux{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+.spec-cell.st-partiel{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.spec-cell.cur{outline:2px solid var(--flag);outline-offset:2px}
+.spec-q{scroll-margin-top:150px}
+.spec-q.cur{border-color:var(--flag);box-shadow:0 0 0 2px var(--flag-soft)}
+.spec-qh{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-bottom:12px}
+.spec-qh h3{font:600 20px/1.2 var(--serif);margin-right:4px}
+.spec-st span{font:600 12.5px/1 var(--sans);padding:6px 10px;border-radius:999px;background:var(--sheet-2);color:var(--ink-2)}
+.spec-st .spec-now{background:var(--flag-soft);color:var(--flag)}
+.spec-st .spec-juste{background:var(--good-soft);color:var(--good)}
+.spec-st .spec-faux{background:var(--red-soft);color:var(--red)}
+.spec-st .spec-partiel{background:var(--warn-soft);color:var(--warn)}
+.spec-st .spec-ans{background:var(--pen-soft);color:var(--pen)}
+.spec-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.spec-c{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--rule);border-radius:12px;background:var(--sheet);min-width:0}
+.spec-c .box{flex:none;width:28px;height:28px;border-radius:5px;border:2px solid var(--rule-strong);display:grid;place-items:center;font:700 12px/1 var(--sans);color:var(--muted)}
+.spec-c.sel{border-color:var(--pen);background:var(--pen-soft)}
+.spec-c.sel .box{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.spec-c.ok{box-shadow:inset 0 0 0 2px var(--good)}
+.spec-c.sel.ok{background:var(--good-soft);border-color:var(--good)}
+.spec-c.sel.ok .box{background:var(--good);border-color:var(--good)}
+.spec-c.no{background:var(--red-soft);border-color:var(--red)}
+.spec-c.no .box{background:var(--red);border-color:var(--red)}
+@media (max-width:1180px){ .spec-grid{top:112px} .spec-q{scroll-margin-top:190px} }
+@media (max-width:720px){ .spec-choices{grid-template-columns:1fr} .spec-p{min-width:0;flex:1 1 140px} }
 .intro #introLive .live-box{margin-top:16px}
 .live-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .live-actions .btn{min-height:34px;padding:0 12px;font-size:13px}
@@ -942,6 +982,9 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
 
   <!-- ============ RÉSULTATS ============ -->
   <section class="results" id="results" hidden></section>
+
+  <!-- ============ SPECTATEUR D'UN CONTRÔLE DE GROUPE EN DIRECT ============ -->
+  <section class="hub spec" id="specView" hidden><div id="specBox" style="display:grid;gap:20px"></div></section>
 </main>
 
 <!-- Écran de pause : les questions sont masquées -->
@@ -8952,6 +8995,7 @@ const remaining = () => DURATION - elapsed();
 // Dernier onglet ouvert : on y revient quand la page est rechargée
 const HUB_VIEWS = ['controls', 'catalogue', 'sujets', 'groupe', 'hardcore', 'historique', 'results'];
 function setView(v) {
+  if (v !== 'spec' && SPEC) specStop();
   if (HUB_VIEWS.includes(v)) ls.set('qcmhub.view.v1', v);
   $('#hubControls').hidden = v !== 'controls';
   $('#hubCatalogue').hidden = v !== 'catalogue';
@@ -8959,6 +9003,7 @@ function setView(v) {
   $('#hubGroupe').hidden = v !== 'groupe';
   $('#hubHardcore').hidden = v !== 'hardcore';
   $('#hubHistorique').hidden = v !== 'historique';
+  $('#specView').hidden = v !== 'spec';
   $('#intro').hidden = v !== 'intro';
   $('#test').hidden = v !== 'test';
   $('#results').hidden = v !== 'results';
@@ -9420,7 +9465,7 @@ function renderResults(res) {
         <span><span class="dot st-bad"></span>${fmtPts(minus)} perdus</span>
       </div>
       <div class="hero-actions">
-        ${S.def.kind === 'hardcore' ? '<button type="button" class="btn btn-hc" data-act="hardcore">Nouveau Hardcore</button>' : S.def.kind === 'group' ? '<button type="button" class="btn btn-primary" data-act="groupboard">Classement du groupe</button>' : '<button type="button" class="btn btn-primary" data-act="targeted">Créer un contrôle ciblé</button>'}
+        ${S.def.kind === 'hardcore' ? '<button type="button" class="btn btn-hc" data-act="hardcore">Nouveau Hardcore</button>' : S.def.kind === 'group' ? '<button type="button" class="btn btn-primary" data-act="groupboard">Classement du groupe</button>' + (S.def.live && liveState(S.def) ? '<button type="button" class="btn" data-act="spec">👁 Regarder les autres en direct</button>' : '') : '<button type="button" class="btn btn-primary" data-act="targeted">Créer un contrôle ciblé</button>'}
         <button type="button" class="btn" data-act="retry">Refaire cette épreuve</button>
         <button type="button" class="btn btn-ghost" data-act="print">Imprimer</button>
       </div>
@@ -9624,6 +9669,7 @@ function applyTheme(t) {
    ===================================================================== */
 function init() {
   applyTheme(getTheme());
+  wireSpec();
   let eggClicks = [];
   $('#themeBtn').addEventListener('click', () => {
     const now = Date.now();
@@ -9648,6 +9694,8 @@ function init() {
     if (e.target.closest('[data-newtypes]')) { openIntro(newTypesDef()); return; }
     const la = e.target.closest('[data-lact]');
     if (la) { liveAction(la.dataset.lact); return; }
+    const spb = e.target.closest('[data-spec]');
+    if (spb) { const t = LIVE.find(x => x.id === spb.dataset.spec) || (G && G.tests.find(x => x.id === spb.dataset.spec)); if (t) startSpec(groupTestDef(t)); return; }
     const lv = e.target.closest('[data-live]');
     if (lv) { const t = LIVE.find(x => x.id === lv.dataset.live); if (t) openGroupTest(groupTestDef(t)); return; }
     const hcb = e.target.closest('[data-hc]');
@@ -9780,6 +9828,7 @@ function init() {
     if (a) {
       if (a.dataset.act === 'print') window.print();
       else if (a.dataset.act === 'hardcore') showTab('hardcore');
+      else if (a.dataset.act === 'spec') startSpec(S.def);
       else if (a.dataset.act === 'groupboard') { const gid = S.def.gid; showTab('groupe'); if (gid) setTimeout(() => openGroup(gid), 1200); }
       else if (a.dataset.act === 'targeted') { showTab('controls'); $('#genCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       else if (a.dataset.act === 'retry') ask('Refaire exactement les mêmes questions dans une nouvelle épreuve ?', 'Refaire').then(ok => { if (ok) openIntro(S.def); });
@@ -10198,6 +10247,7 @@ function groupTestDef(t) {
 }
 // Ouvre un contrôle de groupe, sauf si la page est trop ancienne pour en afficher toutes les questions
 async function openGroupTest(def) {
+  if (specSeen(def.id.slice(2)) && !hasMyCopy(def.id.slice(2))) { toast('Tu as regardé ce contrôle en spectateur : tu ne peux plus le passer toi-même.', 5000); return; }
   if (def.missing) {
     const n = def.missing;
     if (await ask(`Ta page n'est pas à jour : ${n} question${n > 1 ? 's' : ''} de ce contrôle ${n > 1 ? 'sont inconnues' : 'est inconnue'} de cette version du site. Recharge la page pour avoir le contrôle complet, comme le reste du groupe.`, 'Recharger la page'))
@@ -10235,7 +10285,7 @@ function liveBannersHTML() {
   const now = Date.now();
   return LIVE.filter(t => liveWin(t).end > now && !liveHidden.has(t.id) && !(S && S.phase === 'test' && S.def.id === 'g:' + t.id)).map(t => {
     const w = liveWin(t), g = myGroups.find(x => x.id === t.group_id), lobby = now < w.start;
-    return `<div class="banner live"><div><b>🔴 Contrôle de groupe en direct : ${esc(t.title)}</b><p>${esc(g ? g.name : '')} · ${(t.qids || []).length} questions · ${lobby ? 'salle d\'attente ouverte, le départ est lancé par le créateur' : `en cours, il reste ${fmtCd((w.end - now) / 1000)}`}</p></div><span class="spacer"></span><button type="button" class="btn btn-primary" data-live="${t.id}">Rejoindre</button></div>`;
+    return `<div class="banner live"><div><b>🔴 Contrôle de groupe en direct : ${esc(t.title)}</b><p>${esc(g ? g.name : '')} · ${(t.qids || []).length} questions · ${lobby ? 'salle d\'attente ouverte, le départ est lancé par le créateur' : `en cours, il reste ${fmtCd((w.end - now) / 1000)}`}</p></div><span class="spacer"></span><button type="button" class="btn" data-spec="${t.id}">👁 Regarder</button>${specSeen(t.id) ? '' : `<button type="button" class="btn btn-primary" data-live="${t.id}">Rejoindre</button>`}</div>`;
   }).join('');
 }
 function liveIntro(def) {
@@ -10278,8 +10328,10 @@ function liveResume() {
 function liveTrack() {
   if (!liveCh || !me) return;
   const mine = S && S.def && S.def.live && S.def.live.tid === liveId && (S.phase === 'test' || S.phase === 'done');
-  const meta = { pseudo: me.pseudo, st: mine ? (S.phase === 'done' ? 'done' : 'test') : 'lobby', n: mine ? S.answers.filter(a => a.length).length : 0, N: mine ? N : 0 };
+  const sp = !!(SPEC && SPEC.tid === liveId);
+  const meta = { pseudo: me.pseudo, st: mine ? (S.phase === 'done' ? 'done' : 'test') : sp ? 'spec' : 'lobby', sp, n: mine ? S.answers.filter(a => a.length).length : 0, N: mine ? N : 0 };
   Promise.resolve(liveCh.track(meta)).catch(() => {});
+  if (mine) specPush();
 }
 function applyStart(tid, at) {
   LIVE.forEach(t => { if (t.id === tid) t.starts_at = new Date(at).toISOString(); });
@@ -10342,16 +10394,169 @@ function liveAction(a) {
 function liveLeave() {
   if (liveCh) { try { sb.removeChannel(liveCh); } catch (e) { /* ignore */ } }
   liveCh = null; liveId = null; liveMembers = new Map();
+  specOutClose();
 }
 function renderLive() {
-  const L = [...liveMembers.entries()].sort((a, b) => String(a[1].pseudo).localeCompare(String(b[1].pseudo)));
+  specSync();
+  if (SPEC && document.body.dataset.view === 'spec') specUpdate();
+  const all = [...liveMembers.entries()].sort((a, b) => String(a[1].pseudo).localeCompare(String(b[1].pseudo)));
+  const L = all.filter(([, x]) => x.st !== 'spec'), W = all.filter(([, x]) => x.st === 'spec' || x.sp);
   const inTest = S && S.phase === 'test' && S.live, def = inTest ? S.def : pendingDef;
   const owner = !!(def && def.live && def.live.mgr), lobby = liveState(def) === 'lobby';
   const acts = !def || !def.live ? '' : `<div class="live-actions">${owner && lobby && !inTest ? '<button type="button" class="btn btn-primary" data-lact="start">Démarrer maintenant</button>' : ''}${inTest ? '<button type="button" class="btn" data-lact="quit">Quitter sans rendre</button>' : ''}${owner ? `<button type="button" class="btn btn-danger" data-lact="cancel">${inTest ? 'Annuler pour tout le groupe' : 'Annuler le contrôle'}</button>` : ''}</div>`;
   const html = `<div class="live-box"><p class="live-h">🔴 En direct${L.length ? ` · ${L.length} participant${L.length > 1 ? 's' : ''}` : ''}</p>${L.length ? `<ul>${L.map(([id, x]) =>
-    `<li class="${id === (me && me.id) ? 'me' : ''}${x.st === 'done' ? ' done' : ''}"><b>${esc(x.pseudo || '?')}${id === (me && me.id) ? ' (toi)' : ''}</b><span>${x.st === 'done' ? 'a rendu' : x.st === 'test' ? `${x.n}/${x.N} répondues${def && x.N && x.N !== def.qids.length ? ' · <b class="live-old" title="Page pas à jour : des questions manquent sur son appareil. Il faut recharger la page.">⚠ page pas à jour</b>' : ''}` : 'en salle d\'attente'}</span></li>`).join('')}</ul>` : ''}${acts}</div>`;
+    `<li class="${id === (me && me.id) ? 'me' : ''}${x.st === 'done' ? ' done' : ''}"><b>${esc(x.pseudo || '?')}${id === (me && me.id) ? ' (toi)' : ''}</b><span>${x.st === 'done' ? 'a rendu' : x.st === 'test' ? `${x.n}/${x.N} répondues${def && x.N && x.N !== def.qids.length ? ' · <b class="live-old" title="Page pas à jour : des questions manquent sur son appareil. Il faut recharger la page.">⚠ page pas à jour</b>' : ''}` : 'en salle d\'attente'}</span></li>`).join('')}</ul>` : ''}${W.length ? `<p class="live-spec">👁 ${W.map(([id, x]) => esc(id === (me && me.id) ? 'toi' : x.pseudo || '?')).join(', ')} ${W.length > 1 ? 'regardent' : 'regarde'}</p>` : ''}${acts}</div>`;
   const a = $('#introLive'); if (a) a.innerHTML = html;
   const b = $('#liveBox'); if (b) b.innerHTML = S && S.live ? html : '';
+}
+
+/* ---------- Mode spectateur d'un contrôle de groupe en direct ----------
+   Un membre du groupe qui ne passe pas le contrôle (ou qui a déjà rendu sa copie) regarde la copie
+   d'un participant en temps réel : questions, cases cochées, question en cours et, s'il veut, la correction.
+   Les copies passent par un canal à part (gt-spec-<id>) que les participants n'écoutent pas : chacun n'y
+   envoie sa copie que lorsqu'un spectateur est présent. Regarder un contrôle empêche ensuite de le passer. */
+const SPEC_K = 'qcmhub.spec.v1';
+let SPEC = null, specOut = null, specOutReady = false, specTickT = 0;
+const specSeen = tid => (ls.get(SPEC_K, []) || []).includes(tid);
+const hasMyCopy = tid => attempts.some(a => a.defId === 'g:' + tid);
+async function startSpec(def) {
+  if (!cloud.on() || !me) { toast('Connecte-toi pour regarder un contrôle en direct.'); return; }
+  if (!def || !def.live || !liveState(def)) { toast('Ce contrôle n\'est plus en direct.'); return; }
+  if (S && S.phase === 'test' && S.live) { toast('Rends ou quitte ton contrôle avant de regarder celui des autres.'); return; }
+  if (def.missing) { toast('Recharge la page : il manque des questions de ce contrôle sur cette version du site.', 5000); return; }
+  const tid = def.live.tid, free = hasMyCopy(tid) || specSeen(tid);
+  if (!free && !await ask('En regardant ce contrôle, tu vois ses questions et les réponses des autres : tu ne pourras plus le passer toi-même pour une note. Regarder quand même ?', 'Regarder')) return;
+  if (!free) ls.set(SPEC_K, [...(ls.get(SPEC_K, []) || []), tid].slice(-50));
+  let Qs; try { Qs = buildTest(def); } catch (e) { toast('Recharge la page : ce contrôle contient des questions inconnues de cette version.', 5000); return; }
+  if (SPEC) specStop();
+  SPEC = { def, tid, Q: Qs, who: null, reveal: true, follow: true, lastCur: null, copies: new Map(), ch: null };
+  setView('spec');
+  $('#brandSub').textContent = `Spectateur · ${def.title}`;
+  renderSpec();
+  liveJoin(def); liveTrack();
+  try {
+    const ch = SPEC.ch = sb.channel('gt-spec-' + tid, { config: { broadcast: { self: false } } });
+    ch.on('broadcast', { event: 'copy' }, ({ payload: p }) => {
+      if (!SPEC || SPEC.tid !== tid || !p || !p.uid || p.uid === me.id) return;
+      SPEC.copies.set(p.uid, p);
+      if (!SPEC.who) SPEC.who = p.uid;
+      specUpdate();
+    });
+    ch.subscribe(st => { if (st === 'SUBSCRIBED') Promise.resolve(ch.send({ type: 'broadcast', event: 'hello', payload: { by: me.id } })).catch(() => {}); });
+  } catch (e) { console.warn('Temps réel indisponible', e); }
+  clearInterval(specTickT); specTickT = setInterval(specClock, 1000);
+}
+function specStop() {
+  if (!SPEC) return;
+  const tid = SPEC.tid;
+  if (SPEC.ch) { try { sb.removeChannel(SPEC.ch); } catch (e) { /* ignore */ } }
+  SPEC = null; clearInterval(specTickT);
+  $('#brandSub').textContent = 'Mes contrôles · méthodes · entraînement';
+  const mine = S && S.def && S.def.live && S.def.live.tid === tid && (S.phase === 'test' || (S.phase === 'done' && Date.now() < S.def.live.end));
+  if (liveId === tid) { if (mine) liveTrack(); else liveLeave(); }
+}
+// Côté participant : ma copie part vers les spectateurs, seulement quand il y en a
+function specSync() {
+  const mine = !!(S && S.def && S.def.live && liveId && S.def.live.tid === liveId && (S.phase === 'test' || S.phase === 'done'));
+  const want = mine && !!liveCh && !!me && [...liveMembers.entries()].some(([id, x]) => id !== me.id && (x.st === 'spec' || x.sp));
+  if (want && !specOut) {
+    specOutReady = false;
+    try {
+      const ch = specOut = sb.channel('gt-spec-' + liveId, { config: { broadcast: { self: false } } });
+      ch.on('broadcast', { event: 'hello' }, () => specPush());
+      ch.subscribe(st => { if (st === 'SUBSCRIBED') { specOutReady = true; specPush(); } });
+    } catch (e) { specOut = null; }
+  } else if (!want && specOut) specOutClose();
+}
+function specOutClose() {
+  if (specOut) { try { sb.removeChannel(specOut); } catch (e) { /* ignore */ } }
+  specOut = null; specOutReady = false;
+}
+function specPush() {
+  if (!specOut || !specOutReady || !me || !S || !S.def || !S.def.live || S.def.live.tid !== liveId) return;
+  const p = { uid: me.id, pseudo: me.pseudo, cur: S.cur, a: S.answers.map(x => x.join('.')), done: S.phase === 'done', at: Date.now() };
+  Promise.resolve(specOut.send({ type: 'broadcast', event: 'copy', payload: p })).catch(() => {});
+}
+const specSel = (copy, i) => copy && copy.a && copy.a[i] ? String(copy.a[i]).split('.').filter(x => x !== '').map(Number) : [];
+function specClock() {
+  if (!SPEC) return;
+  const el = $('#specClock'); if (!el) return;
+  const st = liveState(SPEC.def), now = Date.now();
+  el.textContent = st === 'lobby' ? 'Salle d\'attente' : st === 'run' ? `il reste ${fmtCd((SPEC.def.live.end - now) / 1000)}` : 'Terminé';
+}
+// Structure de la page (questions affichées une seule fois), puis specUpdate met à jour les cases
+function renderSpec() {
+  const d = SPEC.def, Qs = SPEC.Q;
+  $('#specBox').innerHTML = `
+    <header class="hub-head spec-head"><div><p class="eyebrow">👁 Mode spectateur · ${esc(d.eyebrow || 'Contrôle du groupe')}</p><h1>${esc(d.title)}</h1></div><div class="spec-clock" id="specClock"></div></header>
+    <section class="card"><div class="card-head"><div><h2>Qui regarder ?</h2><p class="sub">Clique sur un participant pour suivre sa copie en direct. Les autres voient que tu regardes.</p></div></div>
+      <div class="spec-players" id="specPlayers"></div><p class="fine" id="specWatchers" style="margin-top:10px"></p>
+      <div class="spec-opts"><label><input type="checkbox" id="specReveal" ${SPEC.reveal ? 'checked' : ''}> Afficher la correction</label><label><input type="checkbox" id="specFollow" ${SPEC.follow ? 'checked' : ''}> Suivre la question en cours</label><button type="button" class="btn btn-ghost" data-spquit="1">Arrêter de regarder</button></div></section>
+    <p class="fine" id="specInfo"></p>
+    <div class="spec-grid" id="specGrid">${Qs.map((q, i) => `<button type="button" class="spec-cell" data-spi="${i}" aria-label="Question ${i + 1}">${i + 1}</button>`).join('')}</div>
+    ${Qs.map((q, i) => `<article class="card spec-q" id="specQ${i}">
+      <div class="spec-qh"><h3>Question ${i + 1}</h3>${q.multi ? '<span class="tag tag-multi"><span class="club">♣</span> Plusieurs réponses possibles</span>' : '<span class="tag">Une seule réponse</span>'}<span class="spec-st" id="specSt${i}"></span></div>
+      ${q.ctx ? `<div class="context"><span class="context-label">Exercice · ${q.ctxRange}</span>${q.ctxText}</div>` : ''}
+      <div class="q-body">${q.q}</div>
+      <div class="spec-choices">${q.c.map((c, k) => `<div class="spec-c" data-k="${k}"><span class="box" aria-hidden="true">${LETTERS[k]}</span><span class="choice-text">${c}</span></div>`).join('')}</div></article>`).join('')}`;
+  renderMath($('#specBox'));
+  specClock(); specUpdate();
+}
+function specUpdate() {
+  if (!SPEC || !$('#specPlayers')) return;
+  const Qs = SPEC.Q, myId = me && me.id;
+  // Participants : présence (en cours / a rendu) + copies reçues
+  const P = new Map();
+  liveMembers.forEach((x, id) => { if (id !== myId && (x.st === 'test' || x.st === 'done')) P.set(id, { pseudo: x.pseudo, st: x.st, n: x.n, N: x.N }); });
+  SPEC.copies.forEach((c, id) => { if (!P.has(id)) P.set(id, { pseudo: c.pseudo, st: c.done ? 'done' : 'left', n: (c.a || []).filter(Boolean).length, N: Qs.length }); });
+  if (SPEC.who && !P.has(SPEC.who) && !SPEC.copies.has(SPEC.who)) SPEC.who = null;
+  if (!SPEC.who && P.size === 1) SPEC.who = [...P.keys()][0];
+  const noteOfCopy = c => { let raw = 0; Qs.forEach((q, i) => { raw += scoreQ(q, specSel(c, i)).pts; }); return noteOf(raw, Qs.length); };
+  $('#specPlayers').innerHTML = P.size ? [...P.entries()].sort((a, b) => String(a[1].pseudo).localeCompare(String(b[1].pseudo))).map(([id, x]) => {
+    const c = SPEC.copies.get(id), n = c ? (c.a || []).filter(Boolean).length : x.n || 0;
+    const st = x.st === 'done' || (c && c.done) ? 'a rendu' : x.st === 'left' ? 'n\'est plus connecté' : `${n}/${x.N || Qs.length} répondues${c && !c.done ? ` · question ${c.cur + 1}` : ''}`;
+    return `<button type="button" class="spec-p" data-spwho="${esc(id)}" aria-pressed="${SPEC.who === id}"><b>${esc(x.pseudo || '?')}</b><small>${st}</small>${c && SPEC.reveal ? `<small>note provisoire : <b>${fmtNum(noteOfCopy(c), 2)}/20</b></small>` : ''}</button>`;
+  }).join('') : '<p class="fine">Personne n\'est encore en train de composer. Les participants apparaissent ici dès qu\'ils ont commencé.</p>';
+  const W = [...liveMembers.entries()].filter(([id, x]) => x.st === 'spec' || x.sp).map(([id, x]) => id === myId ? 'toi' : x.pseudo);
+  $('#specWatchers').textContent = W.length ? `👁 Regardent : ${W.join(', ')}` : '';
+  const who = SPEC.who, c = who ? SPEC.copies.get(who) : null, name = who && P.get(who) ? P.get(who).pseudo : '';
+  $('#specInfo').innerHTML = !who ? 'Choisis un participant pour voir sa copie.' : !c ? `En attente de la copie de <b>${esc(name)}</b>… (elle arrive dès sa prochaine réponse ; sa page doit être à jour)` : c.done ? `Copie rendue de <b>${esc(name)}</b>.` : `Copie de <b>${esc(name)}</b> en direct.`;
+  Qs.forEach((q, i) => {
+    const sel = specSel(c, i), cur = !!(c && !c.done && c.cur === i), sc = sel.length ? scoreQ(q, sel) : null;
+    const cls = !sel.length ? '' : SPEC.reveal ? 'st-' + sc.status : 'ans';
+    const cell = $(`#specGrid [data-spi="${i}"]`);
+    cell.className = 'spec-cell' + (cls ? ' ' + cls : '') + (cur ? ' cur' : '');
+    const card = $('#specQ' + i);
+    card.classList.toggle('cur', cur);
+    card.querySelectorAll('.spec-c').forEach(el => {
+      const k = +el.dataset.k, s = sel.includes(k), ok = q.a.includes(k);
+      el.classList.toggle('sel', s);
+      el.classList.toggle('ok', SPEC.reveal && ok);
+      el.classList.toggle('no', SPEC.reveal && s && !ok);
+    });
+    $('#specSt' + i).innerHTML = cur ? '<span class="spec-now">✍ en train de répondre</span>' : !c ? '' : !sel.length ? '<span class="spec-blank">vide</span>'
+      : SPEC.reveal ? `<span class="spec-${sc.status}">${sc.status === 'juste' ? 'juste · +1' : sc.status === 'partiel' ? 'partiel · +' + fmtNum(sc.pts, 3) : 'faux · ' + fmtNum(sc.pts, 3)}</span>` : '<span class="spec-ans">répondue</span>';
+  });
+  if (c && !c.done && SPEC.follow && SPEC.lastCur !== who + ':' + c.cur) {
+    SPEC.lastCur = who + ':' + c.cur;
+    const el = $('#specQ' + c.cur); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+function wireSpec() {
+  const box = $('#specView');
+  box.addEventListener('click', e => {
+    if (!SPEC) return;
+    const w = e.target.closest('[data-spwho]');
+    if (w) { SPEC.who = w.dataset.spwho; SPEC.lastCur = null; specUpdate(); return; }
+    const c = e.target.closest('[data-spi]');
+    if (c) { SPEC.follow = false; const f = $('#specFollow'); if (f) f.checked = false; const el = $('#specQ' + c.dataset.spi); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    if (e.target.closest('[data-spquit]')) showTab(curGroup ? 'groupe' : 'controls');
+  });
+  box.addEventListener('change', e => {
+    if (!SPEC) return;
+    if (e.target.id === 'specReveal') { SPEC.reveal = e.target.checked; specUpdate(); }
+    if (e.target.id === 'specFollow') { SPEC.follow = e.target.checked; SPEC.lastCur = null; specUpdate(); }
+  });
 }
 
 /* ---------- Classement Elo du groupe ----------
@@ -10502,7 +10707,7 @@ function groupHTML() {
     const board = Object.values(best).sort((a, b) => b.note - a.note);
     const mine = best[me.id];
     return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(gtTitle(t))}</h3><p class="meta">${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${esc(G.pseudo(t.created_by) || 'un membre')} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
-      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.end && now < w.start ? '🔴 Rejoindre la salle d\'attente' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${mine ? `<button type="button" class="btn" data-gtcopy="${t.id}">Voir ma copie</button>` : `<button type="button" class="btn" data-gtq="${t.id}">Questions et corrigé</button>`}${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
+      <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.end && now < w.start ? '🔴 Rejoindre la salle d\'attente' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${(() => { const w = liveWin(t), now = Date.now(); return now < w.end ? `<button type="button" class="btn" data-spec="${t.id}">👁 Regarder</button>` : ''; })()}${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${mine ? `<button type="button" class="btn" data-gtcopy="${t.id}">Voir ma copie</button>` : `<button type="button" class="btn" data-gtq="${t.id}">Questions et corrigé</button>`}${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
       <div class="ctl-detail gtq" id="gtq-${t.id}" hidden></div>
       <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(G.pseudo(a.user_id) || '?')}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>`;
   }).join('');

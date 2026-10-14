@@ -554,6 +554,47 @@ input:focus-visible,select:focus-visible{outline:2px solid var(--pen);outline-of
 .meth ol{margin:0;padding-left:22px;font:16px/1.65 var(--serif)}
 .meth li+li{margin-top:5px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+/* Historique */
+#histoBox>*{min-width:0}
+.hx-bars{display:grid;grid-template-columns:repeat(28,minmax(0,1fr));gap:3px;align-items:end;height:150px;padding-bottom:18px;position:relative}
+.hx-bar{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;cursor:default}
+.hx-bar i{display:block;width:100%;background:var(--pen);border-radius:3px 3px 0 0;min-height:0}
+.hx-bar::before{content:"";position:absolute;inset:0 0 0 0;border-bottom:1px solid var(--baseline)}
+.hx-bar.today i{background:var(--good-fill)}
+.hx-bar span{position:absolute;bottom:-17px;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hx-bar.today span{color:var(--ink);font-weight:700}
+.hx-svg{width:100%;height:auto;display:block}
+.hx-key{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.hx-up{color:var(--good);font-weight:600}
+.hx-down{color:var(--red);font-weight:600}
+.hx-cmp td:first-child{color:var(--ink-2)}
+.hx-h3{font:700 11.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:22px 0 12px}
+.hx-themes{display:grid;gap:8px}
+.hx-th{display:grid;grid-template-columns:minmax(120px,170px) 1fr auto auto;gap:12px;align-items:center;font-size:14px}
+.hx-thn{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hx-thb{position:relative;height:14px;background:var(--sheet-2);border:1px solid var(--rule);border-radius:7px;overflow:hidden}
+.hx-thb i{position:absolute;left:0;border-radius:7px}
+.hx-thb .r0{top:0;bottom:0;background:var(--pen-line)}
+.hx-thb .r1{top:4px;bottom:4px;background:var(--pen)}
+.hx-thv{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.hx-thv b{color:var(--ink)}
+.hx-day{padding:12px 0;border-top:1px solid var(--rule)}
+.hx-day:first-of-type{border-top:0;padding-top:0}
+.hx-dh{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.hx-dh b{font-weight:600;display:inline-block}
+.hx-dh b::first-letter{text-transform:uppercase}
+.hx-dh span{color:var(--muted);font-size:13.5px}
+.hx-day ul{list-style:none;display:grid;gap:4px}
+.hx-day li{display:grid;grid-template-columns:48px 1fr auto 70px;gap:10px;font-size:14px;align-items:baseline}
+.hx-day li b{text-align:right;font-variant-numeric:tabular-nums}
+.hx-t,.hx-m{color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
+.hx-hc{font-size:11px;font-weight:700;color:var(--flag);text-transform:uppercase;letter-spacing:.06em}
+@media (max-width:640px){
+  .hx-th{grid-template-columns:1fr auto auto;row-gap:4px}
+  .hx-thb{grid-column:1/-1;grid-row:2}
+  .hx-day li{grid-template-columns:40px 1fr auto}
+  .hx-day li .hx-m{display:none}
+}
 .blk ul{margin:0;padding-left:20px;font:16px/1.65 var(--serif)}
 .blk li+li{margin-top:5px}
 .pit li::marker{color:var(--red)}
@@ -682,6 +723,7 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
     <button type="button" class="tab" data-tab="groupe">Groupe</button>
     <button type="button" class="tab" data-tab="results" id="tabResults" hidden>Dernière copie</button>
     <button type="button" class="tab tab-hc" data-tab="hardcore">Hardcore</button>
+    <button type="button" class="tab" data-tab="historique">Historique</button>
   </nav>
   <div class="clock" id="clock" hidden aria-live="off">
     <span class="clock-label">Temps restant</span>
@@ -802,6 +844,17 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
     </header>
     <div class="sj-grid" id="hcGrid"></div>
     <section class="card"><div class="card-head"><div><h2>Mes copies Hardcore</h2><p class="sub">Même barème que le QCM : −0,5 par réponse fausse, donc laisse vide si tu n'es pas sûr. Ces copies ne comptent pas dans « Mes points faibles » : rater une question hardcore, c'est normal.</p></div></div><div id="hcHist"></div></section>
+  </section>
+
+  <!-- ============ HISTORIQUE ============ -->
+  <section class="hub" id="hubHistorique" hidden>
+    <div id="resumeBanner6"></div>
+    <header class="hub-head">
+      <p class="eyebrow">Historique</p>
+      <h1>Mon travail et ma progression</h1>
+      <p class="lede">Combien tu as travaillé chaque jour, tes notes copie après copie, et ce qui a changé depuis tes débuts. Connecté, tout ce que tu fais sur tes autres appareils est compté.</p>
+    </header>
+    <div id="histoBox" style="display:grid;gap:24px"></div>
   </section>
 
   <!-- ============ ÉCRAN D'ACCUEIL D'UNE ÉPREUVE ============ -->
@@ -8450,7 +8503,7 @@ function renderBanners() {
     return `<div class="banner"><div><b>${S.paused ? '⏸ Épreuve en pause' : '⏱ Épreuve en cours'} : ${esc(S.def.title)}</b><p>${answered}/${total} questions répondues · ${fmtClock(rem)} restant${S.paused ? ' (chrono arrêté)' : ' (le chrono tourne !)'}</p></div><span class="spacer"></span><button type="button" class="btn btn-primary" data-resume>${S.paused ? 'Reprendre' : 'Revenir à l\'épreuve'}</button></div>`;
   })();
   const all = html + liveBannersHTML();
-  ['#resumeBanner1', '#resumeBanner2', '#resumeBanner3', '#resumeBanner4', '#resumeBanner5'].forEach(id => { const el = $(id); if (el) el.innerHTML = all; });
+  ['#resumeBanner1', '#resumeBanner2', '#resumeBanner3', '#resumeBanner4', '#resumeBanner5', '#resumeBanner6'].forEach(id => { const el = $(id); if (el) el.innerHTML = all; });
 }
 function renderBilan() {
   const st = themeStats();
@@ -8677,6 +8730,147 @@ function renderSujets() {
 }
 
 /* =====================================================================
+   VUE « HISTORIQUE » : combien on a travaillé chaque jour, et si on progresse
+   (copies de ce compte, synchronisées sur tous ses appareils)
+   ===================================================================== */
+const hxDay = ts => { const d = new Date(ts); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const hxWeek = ts => { const d = new Date(ts); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d.getTime(); };
+const hxPct = x => x == null ? '—' : Math.round(x * 100) + ' %';
+// Bilan des questions d'une liste de copies (les questions passées ne comptent pas)
+function hxQ(list) {
+  let n = 0, ok = 0, part = 0, bad = 0, blank = 0, t = 0;
+  list.forEach(a => (a.results || []).forEach(r => {
+    if (r.skip) return;
+    const p = +r.pts; n++; t += +r.t || 0;
+    if (p >= 1) ok++; else if (p > 0) part++; else if (p < 0) bad++; else blank++;
+  }));
+  return { n, ok, part, bad, blank, t, rate: n ? ok / n : null, bad_: n ? bad / n : null, blank_: n ? blank / n : null, spq: n ? t / n : null };
+}
+const hxNote = l => l.length ? l.reduce((s, a) => s + (+a.note || 0), 0) / l.length : null;
+// Courbe SVG : points [{y, c, tip}] régulièrement espacés, axe y de lo à hi, ligne de tendance optionnelle
+function hxLine(pts, lo, hi, ticks, trend, label) {
+  const W = 640, H = 220, L = 42, R = 12, T = 12, B = 14, n = pts.length;
+  const X = i => L + (n < 2 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1)), Y = v => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+  const grid = ticks.map(v => `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--gridline)"/><text x="${L - 8}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`).join('');
+  const path = a => { let s = '', on = false; a.forEach((p, i) => { if (p == null) return; s += `${on ? 'L' : 'M'}${X(i).toFixed(1)},${Y(p).toFixed(1)}`; on = true; }); return s; };
+  const tr = trend ? `<path d="${path(trend)}" fill="none" stroke="var(--pen)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" opacity=".45"/>` : '';
+  const line = trend ? '' : `<path d="${path(pts.map(p => p.y))}" fill="none" stroke="var(--pen)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const dots = pts.map((p, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${n > 40 ? 3 : 4.5}" fill="${p.c || 'var(--pen)'}" stroke="var(--sheet)" stroke-width="1.5"><title>${esc(p.tip)}</title></circle>`).join('');
+  return `<svg class="hx-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${grid}${tr}${line}${dots}</svg>`;
+}
+// Case « évolution » : verte si ça s'améliore, rouge sinon
+function hxDelta(a, b, lowerBetter, fmt, tag = 'td') {
+  if (a == null || b == null) return `<${tag}>—</${tag}>`;
+  const d = b - a, flat = fmt(Math.abs(d)) === fmt(0), good = lowerBetter ? d < 0 : d > 0;
+  return `<${tag} class="${flat ? '' : good ? 'hx-up' : 'hx-down'}">${flat ? '=' : (d > 0 ? '▲ +' : '▼ −') + fmt(Math.abs(d))}</${tag}>`;
+}
+let hxEloLoading = false;
+function renderHistorique() {
+  const box = $('#histoBox');
+  const A = attempts.filter(a => a.at).slice().sort((x, y) => x.at - y.at);
+  if (!A.length) { box.innerHTML = `<section class="card"><p class="sub">Aucune épreuve rendue pour l'instant. Fais un contrôle ciblé ou un sujet : ton temps de travail jour par jour et ta progression apparaîtront ici.</p></section>`; return; }
+  const std = A.filter(a => a.kind !== 'hardcore');
+  const days = new Map(), dayOf = k => days.get(k) || (days.set(k, { k, used: 0, list: [], ctl: [] }), days.get(k));
+  A.forEach(a => { const d = dayOf(hxDay(a.at)); d.used += a.used || 0; d.list.push(a); });
+  controls.forEach(c => { const ts = Date.parse(c.date); if (ts) dayOf(hxDay(ts)).ctl.push(c); });
+  const work = new Set([...days.values()].filter(d => d.list.length).map(d => d.k)), today = hxDay(Date.now());
+  // Série : jours consécutifs avec au moins une copie (en comptant aujourd'hui ou hier)
+  let streak = 0;
+  { const d = new Date(); if (!work.has(hxDay(d))) d.setDate(d.getDate() - 1); while (work.has(hxDay(d))) { streak++; d.setDate(d.getDate() - 1); } }
+  let best = 0, run = 0, prev = null;
+  [...work].sort().forEach(k => { const t = Date.parse(k + 'T12:00:00'); run = prev != null && Math.round((t - prev) / 864e5) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = t; });
+  const total = A.reduce((s, a) => s + (a.used || 0), 0), wk = Date.now() - 7 * 864e5;
+  const last7 = A.filter(a => a.at >= wk).reduce((s, a) => s + (a.used || 0), 0), Qs = hxQ(std), Qall = hxQ(A);
+  const tile = (l, v, sub) => `<div class="tile"><div class="tile-label">${l}</div><div class="tile-value">${v}</div>${sub ? `<div class="tile-sub">${sub}</div>` : ''}</div>`;
+  const tiles = `<div class="tiles">
+      ${tile('Temps de travail', fmtHours(total), `dont <b>${fmtHours(last7)}</b> ces 7 derniers jours`)}
+      ${tile('Jours actifs', work.size, `série en cours : <b>${streak} j</b> · record : ${best} j`)}
+      ${tile('Copies rendues', A.length, `${Qall.n} questions traitées`)}
+      ${tile('Moyenne', std.length ? fmtNum(hxNote(std), 1) + '<small> /20</small>' : '—', std.length ? `meilleure : ${fmtNum(Math.max(...std.map(a => +a.note || 0)), 1)}/20 (hors Hardcore)` : 'hors Hardcore')}
+      ${tile('Réussite', hxPct(Qs.rate), `${hxPct(Qs.bad_)} fausses · ${hxPct(Qs.blank_)} vides`)}
+      ${tile('Rythme', Qall.spq == null ? '—' : Math.round(Qall.spq) + '<small> s</small>', 'en moyenne par question')}
+    </div>`;
+  // 4 dernières semaines, jour par jour
+  const bars = []; let mx = 1;
+  for (let i = 27; i >= 0; i--) { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - i); const x = days.get(hxDay(d)), m = x ? x.used / 60 : 0; mx = Math.max(mx, m); bars.push({ d, k: hxDay(d), m, x }); }
+  const barsHTML = `<div class="hx-bars" role="img" aria-label="Minutes d'entraînement par jour sur les 4 dernières semaines">${bars.map(b => {
+    const n = b.x ? b.x.list.length : 0, tip = `${b.d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} : ${n ? Math.round(b.m) + ' min · ' + n + ' copie' + (n > 1 ? 's' : '') : 'rien'}`;
+    return `<div class="hx-bar${b.k === today ? ' today' : ''}" title="${esc(tip)}"><i style="height:${b.m ? Math.max(3, b.m / mx * 100) : 0}%"></i><span>${b.d.getDay() === 1 || b.k === today ? b.d.getDate() : ''}</span></div>`;
+  }).join('')}</div><p class="fine" style="margin-top:8px">Plus haute colonne : ${Math.round(mx)} min. Les numéros sous les colonnes sont les lundis et aujourd'hui ; survole ou touche une colonne pour le détail.</p>`;
+  // Notes, copie après copie
+  const notePts = A.map(a => ({ y: Math.max(0, Math.min(20, +a.note || 0)), c: a.kind === 'hardcore' ? 'var(--flag)' : 'var(--pen)', tip: `${a.title} · ${fmtNum(a.note, 2)}/20 · ${fmtDate(a.at)}` }));
+  const acc = [], trend = A.map(a => { if (a.kind === 'hardcore') return null; acc.push(+a.note || 0); const w = acc.slice(-3); return w.reduce((s, x) => s + x, 0) / w.length; });
+  const notesHTML = hxLine(notePts, 0, 20, [0, 5, 10, 15, 20], trend, 'Notes sur 20 de chaque copie, de la plus ancienne à la plus récente') +
+    `<p class="fine" style="margin-top:6px"><span class="hx-key" style="background:var(--pen)"></span>copie · <span class="hx-key" style="background:var(--flag)"></span>Hardcore (plus dur, hors moyenne) · trait clair : moyenne des 3 dernières copies</p>`;
+  // Débuts / maintenant
+  let cmp = '<p class="fine">Il faut au moins 4 copies (hors Hardcore) pour comparer tes débuts à maintenant.</p>', themes = '';
+  if (std.length >= 4) {
+    const h = Math.min(5, Math.floor(std.length / 2)), early = std.slice(0, h), recent = std.slice(-h), qe = hxQ(early), qr = hxQ(recent);
+    const f1 = x => fmtNum(x, 1), fp = x => String(Math.round(x * 100)) + ' pts', fs = x => Math.round(x) + ' s';
+    cmp = `<div style="overflow-x:auto"><table class="hist hx-cmp"><thead><tr><th></th><th>${h} premières copies</th><th>${h} dernières</th><th>Évolution</th></tr></thead><tbody>
+      <tr><td>Note moyenne</td><td>${fmtNum(hxNote(early), 1)}/20</td><td>${fmtNum(hxNote(recent), 1)}/20</td>${hxDelta(hxNote(early), hxNote(recent), false, f1)}</tr>
+      <tr><td>Réponses justes</td><td>${hxPct(qe.rate)}</td><td>${hxPct(qr.rate)}</td>${hxDelta(qe.rate, qr.rate, false, fp)}</tr>
+      <tr><td>Réponses fausses (−0,5)</td><td>${hxPct(qe.bad_)}</td><td>${hxPct(qr.bad_)}</td>${hxDelta(qe.bad_, qr.bad_, true, fp)}</tr>
+      <tr><td>Questions laissées vides</td><td>${hxPct(qe.blank_)}</td><td>${hxPct(qr.blank_)}</td>${hxDelta(qe.blank_, qr.blank_, true, fp)}</tr>
+      <tr><td>Temps par question</td><td>${qe.spq == null ? '—' : Math.round(qe.spq) + ' s'}</td><td>${qr.spq == null ? '—' : Math.round(qr.spq) + ' s'}</td>${hxDelta(qe.spq, qr.spq, true, fs)}</tr>
+      </tbody></table></div>`;
+    // Par thème : première moitié des copies contre seconde moitié
+    const mid = Math.floor(std.length / 2), by = list => { const o = {}; list.forEach(a => (a.results || []).forEach(r => { if (r.skip || !r.theme) return; const s = o[r.theme] || (o[r.theme] = { n: 0, g: 0 }); s.n++; s.g += Math.max(0, +r.pts || 0); })); return o; };
+    const b0 = by(std.slice(0, mid)), b1 = by(std.slice(mid));
+    const rows = THEMES.filter(t => b0[t.id] && b1[t.id] && b0[t.id].n >= 2 && b1[t.id].n >= 2).map(t => ({ t, r0: b0[t.id].g / b0[t.id].n, r1: b1[t.id].g / b1[t.id].n })).sort((x, y) => (y.r1 - y.r0) - (x.r1 - x.r0));
+    themes = rows.length ? `<div class="hx-themes">${rows.map(x => `<div class="hx-th"><span class="hx-thn">${esc(TH[x.t.id].short)}</span><span class="hx-thb"><i class="r0" style="width:${Math.round(x.r0 * 100)}%"></i><i class="r1" style="width:${Math.round(x.r1 * 100)}%"></i></span><span class="hx-thv">${Math.round(x.r0 * 100)} → <b>${Math.round(x.r1 * 100)} %</b></span>${hxDelta(x.r0, x.r1, false, v => String(Math.round(v * 100)), 'span')}</div>`).join('')}</div>
+      <p class="fine" style="margin-top:8px"><span class="hx-key" style="background:var(--pen-line)"></span>première moitié de tes copies · <span class="hx-key" style="background:var(--pen)"></span>seconde moitié. Taux = points gagnés par question (une ♣ partielle compte en partie). Thèmes vus au moins 2 fois dans chaque moitié.</p>`
+      : '<p class="fine">Pas encore assez de questions par thème dans chaque moitié de tes copies.</p>';
+  }
+  // Semaine par semaine
+  const weeks = new Map();
+  A.forEach(a => { const k = hxWeek(a.at); (weeks.get(k) || (weeks.set(k, []), weeks.get(k))).push(a); });
+  const weekRows = [...weeks.entries()].sort((x, y) => y[0] - x[0]).map(([k, list]) => {
+    const s = list.filter(a => a.kind !== 'hardcore'), q = hxQ(s), qa = hxQ(list), used = list.reduce((t, a) => t + (a.used || 0), 0);
+    return `<tr><td>${new Date(k).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</td><td>${list.length}</td><td>${fmtHours(used)}</td><td>${qa.n}</td><td>${s.length ? fmtNum(hxNote(s), 1) + '/20' : '—'}</td><td>${hxPct(q.rate)}</td><td>${qa.spq == null ? '—' : Math.round(qa.spq) + ' s'}</td></tr>`;
+  }).join('');
+  // Journal jour par jour
+  const journal = [...days.values()].sort((x, y) => (y.k > x.k ? 1 : -1)).slice(0, 30).map(d => {
+    const dt = new Date(d.k + 'T12:00:00');
+    const items = d.list.slice().sort((x, y) => x.at - y.at).map(a => `<li><span class="hx-t">${new Date(a.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span><span class="hx-n">${esc(a.title)}${a.kind === 'hardcore' ? ' <span class="hx-hc">Hardcore</span>' : ''}</span><span class="hx-m">${graded(a)} q · ${fmtMS(a.used || 0)}</span><b>${fmtNum(a.note, 2)}/20</b></li>`).join('')
+      + d.ctl.map(c => `<li><span class="hx-t">—</span><span class="hx-n">Copie du prof importée : ${esc(c.name)}</span><span class="hx-m">${c.N} q</span><b>${c.noteProf != null ? fmtNum(c.noteProf, 2) + '/20' : ''}</b></li>`).join('');
+    return `<div class="hx-day"><div class="hx-dh"><b>${esc(dt.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }))}</b><span>${d.list.length ? fmtHours(d.used) + ' · ' + d.list.length + ' copie' + (d.list.length > 1 ? 's' : '') : ''}</span></div><ul>${items}</ul></div>`;
+  }).join('');
+  box.innerHTML = `<section class="card">${tiles}</section>
+    <section class="card"><div class="card-head"><div><h2>Travail par jour</h2><p class="sub">Minutes d'épreuve chronométrées (pauses exclues) sur les 4 dernières semaines.</p></div></div>${barsHTML}</section>
+    <section class="card"><div class="card-head"><div><h2>Mes notes</h2><p class="sub">Chaque copie, de la plus ancienne à la plus récente.</p></div></div>${notesHTML}</section>
+    <section class="card"><div class="card-head"><div><h2>Est-ce que je progresse ?</h2><p class="sub">Tes premières copies comparées aux dernières (hors Hardcore).</p></div></div>${cmp}${themes ? `<h3 class="hx-h3">Par thème</h3>${themes}` : ''}</section>
+    <section class="card" id="hxElo"></section>
+    <section class="card"><div class="card-head"><div><h2>Semaine par semaine</h2></div></div><div style="overflow-x:auto"><table class="hist"><thead><tr><th>Semaine du</th><th>Copies</th><th>Temps</th><th>Questions</th><th>Moyenne</th><th>Justes</th><th>Rythme</th></tr></thead><tbody>${weekRows}</tbody></table></div><p class="fine" style="margin-top:8px">Moyenne et taux de justes hors Hardcore.</p></section>
+    <section class="card"><div class="card-head"><div><h2>Journal</h2><p class="sub">Ce que tu as fait chaque jour, du plus récent au plus ancien (30 derniers jours).</p></div></div>${journal}</section>`;
+  hxFillElo();
+}
+// Courbe d'Elo : même calcul que le classement de l'onglet Groupe (il faut un compte et un groupe)
+function hxFillElo() {
+  const el = $('#hxElo'); if (!el) return;
+  const head = '<div class="card-head"><div><h2>Mon Elo</h2><p class="sub">Même calcul que le classement de ton groupe, après chacune de tes copies.</p></div></div>';
+  if (!me) { el.innerHTML = head + '<p class="fine">Connecte-toi (onglet Groupe) pour suivre ton Elo.</p>'; return; }
+  if (!curGroup) { el.innerHTML = head + '<p class="fine">Rejoins un groupe (onglet Groupe) : l\'Elo se calcule avec les autres membres.</p>'; return; }
+  if (!G || G.gid !== curGroup) {
+    el.innerHTML = head + '<p class="fine">Chargement…</p>';
+    if (!hxEloLoading) {
+      hxEloLoading = true;
+      const gid = curGroup;
+      loadGroupData(gid).then(g => { if (curGroup === gid && (!G || G.gid !== gid)) G = g; }).catch(e => console.warn(e))
+        .finally(() => { hxEloLoading = false; if (document.body.dataset.view === 'historique' && G && G.gid === curGroup) hxFillElo(); });
+    }
+    return;
+  }
+  const E = eloRank(G.members.filter(m => !m.hidden)), mine = E.find(x => x.m.isMe);
+  if (!mine || !mine.hist || !mine.hist.length) { el.innerHTML = head + '<p class="fine">Pas encore d\'Elo : rends une copie.</p>'; return; }
+  const ys = mine.hist.map(h => h[1]), lo = Math.floor((Math.min(1000, ...ys) - 20) / 50) * 50, hi = Math.ceil((Math.max(1000, ...ys) + 20) / 50) * 50;
+  const ticks = []; for (let v = lo; v <= hi; v += (hi - lo > 300 ? 100 : 50)) ticks.push(v);
+  const rank = E.indexOf(mine) + 1;
+  el.innerHTML = head + hxLine(mine.hist.map(([t, v]) => ({ y: v, tip: `Elo ${Math.round(v)} · ${fmtDate(t)}` })), lo, hi, ticks, null, 'Évolution de ton Elo après chaque copie') +
+    `<p class="fine" style="margin-top:6px">Aujourd'hui : <b>${Math.round(mine.elo)}</b> (${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> du groupe) · ${mine.d7 >= 0 ? '+' : '−'}${Math.abs(Math.round(mine.d7))} sur 7 jours.</p>`;
+}
+
+/* =====================================================================
    VUE « HARDCORE »
    ===================================================================== */
 function renderHardcore() {
@@ -8741,7 +8935,7 @@ const remaining = () => DURATION - elapsed();
 
 /* ---------- Vues ---------- */
 // Dernier onglet ouvert : on y revient quand la page est rechargée
-const HUB_VIEWS = ['controls', 'catalogue', 'sujets', 'groupe', 'hardcore', 'results'];
+const HUB_VIEWS = ['controls', 'catalogue', 'sujets', 'groupe', 'hardcore', 'historique', 'results'];
 function setView(v) {
   if (HUB_VIEWS.includes(v)) ls.set('qcmhub.view.v1', v);
   $('#hubControls').hidden = v !== 'controls';
@@ -8749,6 +8943,7 @@ function setView(v) {
   $('#hubSujets').hidden = v !== 'sujets';
   $('#hubGroupe').hidden = v !== 'groupe';
   $('#hubHardcore').hidden = v !== 'hardcore';
+  $('#hubHistorique').hidden = v !== 'historique';
   $('#intro').hidden = v !== 'intro';
   $('#test').hidden = v !== 'test';
   $('#results').hidden = v !== 'results';
@@ -8769,6 +8964,7 @@ function showTab(tab) {
   else if (tab === 'sujets') { setView('sujets'); renderSujets(); }
   else if (tab === 'groupe') { setView('groupe'); renderGroupe(); }
   else if (tab === 'hardcore') { setView('hardcore'); renderHardcore(); }
+  else if (tab === 'historique') { setView('historique'); renderHistorique(); }
   else if (tab === 'results' && S && S.phase === 'done') { activate(S.def); showResults(); }
 }
 async function openIntro(def) {
@@ -10174,7 +10370,7 @@ function eloRank(members) {
     (H[o.who] = H[o.who] || []).push([o.at, P[o.who]]);
   });
   const wk = Date.now() - 7 * 864e5;
-  return members.filter(m => N[m.id]).map(m => ({ m, elo: P[m.id], n: N[m.id], ok: OK[m.id] || 0,
+  return members.filter(m => N[m.id]).map(m => ({ m, elo: P[m.id], n: N[m.id], ok: OK[m.id] || 0, hist: H[m.id],
     d7: P[m.id] - ((H[m.id].filter(([t]) => t < wk).pop() || [0, 1000])[1]) })).sort((a, b) => b.elo - a.elo);
 }
 

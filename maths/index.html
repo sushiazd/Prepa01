@@ -413,6 +413,7 @@ body[data-view="test"] .topnav{display:none}
 .live-box li span{color:var(--ink-2);font-variant-numeric:tabular-nums}
 .live-box li.me b{color:var(--pen)}
 .live-box li.done span{color:var(--good)}
+.live-box li .live-old{color:var(--red);font-weight:600}
 .intro #introLive .live-box{margin-top:16px}
 .live-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .live-actions .btn{min-height:34px;padding:0 12px;font-size:13px}
@@ -959,7 +960,7 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
   <div class="dlg">
     <p id="askMsg" style="font:17px/1.5 var(--serif)"></p>
     <div class="dlg-actions">
-      <button type="button" class="btn" id="askNo">Annuler</button>
+      <button type="button" class="btn" id="askNo">Retour</button>
       <button type="button" class="btn btn-primary" id="askOk">Confirmer</button>
     </div>
   </div>
@@ -9634,7 +9635,7 @@ function init() {
     const la = e.target.closest('[data-lact]');
     if (la) { liveAction(la.dataset.lact); return; }
     const lv = e.target.closest('[data-live]');
-    if (lv) { const t = LIVE.find(x => x.id === lv.dataset.live); if (t) { const def = groupTestDef(t); if (def.qids.length) openIntro(def); } return; }
+    if (lv) { const t = LIVE.find(x => x.id === lv.dataset.live); if (t) openGroupTest(groupTestDef(t)); return; }
     const hcb = e.target.closest('[data-hc]');
     if (hcb && HC_MODES[hcb.dataset.hc]) { openIntro(hardcoreDef(hcb.dataset.hc)); return; }
     const nq = e.target.closest('[data-newq]');
@@ -10111,7 +10112,7 @@ async function createGroupTest() {
   toast('Salle d\'attente ouverte : le groupe la voit en haut de la page. Clique sur « Démarrer maintenant » quand tout le monde est là.', 6000);
   LIVE = [row].concat(LIVE.filter(t => t.id !== row.id));
   openGroup(G.gid);
-  openIntro(groupTestDef(row));
+  openGroupTest(groupTestDef(row));
 }
 function openPastCopy(att, t) {
   const results = att.results || [];
@@ -10172,12 +10173,24 @@ async function deleteGroupTest(tid) {
   openGroup(G.gid);
 }
 function groupTestDef(t) {
-  const qids = (Array.isArray(t.qids) ? t.qids : []).filter(id => qEntry(id));
+  const all = Array.isArray(t.qids) ? t.qids : [], qids = all.filter(id => qEntry(id));
   const g = myGroups.find(x => x.id === t.group_id) || (G && G.group);
   const def = { id: 'g:' + t.id, kind: 'group', gid: t.group_id, title: gtTitle(t), eyebrow: `Contrôle du groupe · ${g ? g.name : ''}`, qids, duration: t.duration_s, themeCount: t.theme_count || null };
+  // Questions créées par une version plus récente du site : cette page ne sait pas les afficher
+  if (qids.length < all.length) def.missing = all.length - qids.length;
   const w = t.created_at ? liveWin(t) : null;
   if (w && Date.now() < w.end) { def.live = { start: w.start, end: w.end, tid: t.id, owner: t.created_by, mgr: !!me && (t.created_by === me.id || !!(g && g.created_by === me.id)) }; def.eyebrow = 'Contrôle du groupe en direct · ' + (g ? g.name : ''); }
   return def;
+}
+// Ouvre un contrôle de groupe, sauf si la page est trop ancienne pour en afficher toutes les questions
+async function openGroupTest(def) {
+  if (def.missing) {
+    const n = def.missing;
+    if (await ask(`Ta page n'est pas à jour : ${n} question${n > 1 ? 's' : ''} de ce contrôle ${n > 1 ? 'sont inconnues' : 'est inconnue'} de cette version du site. Recharge la page pour avoir le contrôle complet, comme le reste du groupe.`, 'Recharger la page'))
+      location.replace(location.pathname + '?r=' + Date.now() + location.hash);
+    return;
+  }
+  if (def.qids.length) openIntro(def);
 }
 
 /* ---------- Contrôle de groupe en direct ----------
@@ -10322,7 +10335,7 @@ function renderLive() {
   const owner = !!(def && def.live && def.live.mgr), lobby = liveState(def) === 'lobby';
   const acts = !def || !def.live ? '' : `<div class="live-actions">${owner && lobby && !inTest ? '<button type="button" class="btn btn-primary" data-lact="start">Démarrer maintenant</button>' : ''}${inTest ? '<button type="button" class="btn" data-lact="quit">Quitter sans rendre</button>' : ''}${owner ? `<button type="button" class="btn btn-danger" data-lact="cancel">${inTest ? 'Annuler pour tout le groupe' : 'Annuler le contrôle'}</button>` : ''}</div>`;
   const html = `<div class="live-box"><p class="live-h">🔴 En direct${L.length ? ` · ${L.length} participant${L.length > 1 ? 's' : ''}` : ''}</p>${L.length ? `<ul>${L.map(([id, x]) =>
-    `<li class="${id === (me && me.id) ? 'me' : ''}${x.st === 'done' ? ' done' : ''}"><b>${esc(x.pseudo || '?')}${id === (me && me.id) ? ' (toi)' : ''}</b><span>${x.st === 'done' ? 'a rendu' : x.st === 'test' ? `${x.n}/${x.N} répondues` : 'en salle d\'attente'}</span></li>`).join('')}</ul>` : ''}${acts}</div>`;
+    `<li class="${id === (me && me.id) ? 'me' : ''}${x.st === 'done' ? ' done' : ''}"><b>${esc(x.pseudo || '?')}${id === (me && me.id) ? ' (toi)' : ''}</b><span>${x.st === 'done' ? 'a rendu' : x.st === 'test' ? `${x.n}/${x.N} répondues${def && x.N && x.N !== def.qids.length ? ' · <b class="live-old" title="Page pas à jour : des questions manquent sur son appareil. Il faut recharger la page.">⚠ page pas à jour</b>' : ''}` : 'en salle d\'attente'}</span></li>`).join('')}</ul>` : ''}${acts}</div>`;
   const a = $('#introLive'); if (a) a.innerHTML = html;
   const b = $('#liveBox'); if (b) b.innerHTML = S && S.live ? html : '';
 }
@@ -10535,7 +10548,7 @@ function initGroupeEvents() {
     const gd = e.target.closest('[data-gtdel]');
     if (gd && G) { deleteGroupTest(gd.dataset.gtdel); return; }
     const gt = e.target.closest('[data-gt]');
-    if (gt && G) { const t = G.tests.find(x => x.id === gt.dataset.gt); if (t) { const def = groupTestDef(t); if (def.qids.length) openIntro(def); } return; }
+    if (gt && G) { const t = G.tests.find(x => x.id === gt.dataset.gt); if (t) openGroupTest(groupTestDef(t)); return; }
     const bd = e.target.closest('[data-board]'); if (bd) { const el = $('#board-' + bd.dataset.board); el.hidden = !el.hidden; return; }
     const gq = e.target.closest('[data-gtq]'); if (gq) { toggleGroupReview(gq.dataset.gtq); return; }
     const gc = e.target.closest('[data-gtcopy]');

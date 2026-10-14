@@ -10263,6 +10263,9 @@ async function openGroupTest(def) {
    de son côté, et la liste des participants (avancement, copie rendue) passe par le temps réel
    de Supabase (présence sur un canal par contrôle). Après la fin, il se fait seul, comme avant. */
 let LIVE = [], liveCh = null, liveId = null, liveMembers = new Map(), liveIntroTick = 0, liveTrackT = 0, livePollT = 0;
+// Présence : Supabase coupe un appareil qui la met à jour trop souvent (ClientPresenceRateLimitReached) ;
+// on n'envoie donc qu'un changement réel, au plus toutes les 4 s, et on se reconnecte si le canal tombe.
+let liveDef = null, liveLastTrack = 0, liveLastMeta = '', liveTrackPend = 0;
 const fmtCd = sec => { sec = Math.max(0, Math.round(sec)); return sec >= 3600 ? fmtClock(sec) : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
 const LOBBY_MAX = 30 * 60e3;   // une salle d'attente jamais lancée se ferme au bout de 30 min
 const liveWin = t => { if (!t.starts_at) return { start: Infinity, end: Date.parse(t.created_at) + LOBBY_MAX }; const start = Date.parse(t.starts_at); return { start, end: start + t.duration_s * 1000 }; };
@@ -10306,7 +10309,7 @@ function liveJoin(def) {
   if (!cloud.on() || !me || !def.live) return;
   if (liveCh && liveId === def.live.tid) { liveTrack(); renderLive(); return; }
   liveLeave();
-  liveId = def.live.tid;
+  liveId = def.live.tid; liveDef = def;
   try {
     const ch = liveCh = sb.channel('gt-live-' + liveId, { config: { presence: { key: me.id }, broadcast: { self: false } } });
     ch.on('broadcast', { event: 'ctl' }, ({ payload: q }) => { if (!q) return; if (q.type === 'start') applyStart(q.tid, q.at); else if (q.type === 'cancel') liveCanceled(q.tid, q.by); });
@@ -10315,7 +10318,13 @@ function liveJoin(def) {
       Object.entries(st).forEach(([id, metas]) => { if (metas && metas.length) m.set(id, metas[metas.length - 1]); });
       liveMembers = m; renderLive();
     });
-    ch.subscribe(stt => { if (stt === 'SUBSCRIBED') liveTrack(); });
+    ch.subscribe(stt => {
+      if (stt === 'SUBSCRIBED') { liveLastMeta = ''; liveLastTrack = 0; liveTrack(); return; }
+      if ((stt === 'CHANNEL_ERROR' || stt === 'TIMED_OUT' || stt === 'CLOSED') && liveCh === ch) {
+        const d = liveDef;
+        setTimeout(() => { if (liveCh === ch && d && liveState(d)) { liveLeave(); liveJoin(d); } }, 3000);
+      }
+    });
   } catch (e) { console.warn('Temps réel indisponible', e); liveCh = null; }
 }
 // Après un rechargement, l'épreuve reprend avant que la connexion au compte soit rétablie :
@@ -10330,8 +10339,13 @@ function liveTrack() {
   const mine = S && S.def && S.def.live && S.def.live.tid === liveId && (S.phase === 'test' || S.phase === 'done');
   const sp = !!(SPEC && SPEC.tid === liveId);
   const meta = { pseudo: me.pseudo, st: mine ? (S.phase === 'done' ? 'done' : 'test') : sp ? 'spec' : 'lobby', sp, n: mine ? S.answers.filter(a => a.length).length : 0, N: mine ? N : 0 };
+  if (mine) specPush();   // les spectateurs reçoivent les réponses par leur propre canal, sans attendre
+  const key = JSON.stringify(meta), wait = liveLastTrack + 4000 - Date.now();
+  if (key === liveLastMeta) return;
+  clearTimeout(liveTrackPend);
+  if (wait > 0) { liveTrackPend = setTimeout(liveTrack, wait); return; }
+  liveLastMeta = key; liveLastTrack = Date.now();
   Promise.resolve(liveCh.track(meta)).catch(() => {});
-  if (mine) specPush();
 }
 function applyStart(tid, at) {
   LIVE.forEach(t => { if (t.id === tid) t.starts_at = new Date(at).toISOString(); });
@@ -10393,7 +10407,8 @@ function liveAction(a) {
 }
 function liveLeave() {
   if (liveCh) { try { sb.removeChannel(liveCh); } catch (e) { /* ignore */ } }
-  liveCh = null; liveId = null; liveMembers = new Map();
+  liveCh = null; liveId = null; liveMembers = new Map(); liveDef = null;
+  clearTimeout(liveTrackPend); liveLastMeta = ''; liveLastTrack = 0;
   specOutClose();
 }
 function renderLive() {
@@ -10429,7 +10444,7 @@ async function startSpec(def) {
   if (!free) ls.set(SPEC_K, [...(ls.get(SPEC_K, []) || []), tid].slice(-50));
   let Qs; try { Qs = buildTest(def); } catch (e) { toast('Recharge la page : ce contrôle contient des questions inconnues de cette version.', 5000); return; }
   if (SPEC) specStop();
-  SPEC = { def, tid, Q: Qs, who: null, reveal: true, follow: true, lastCur: null, copies: new Map(), ch: null };
+  SPEC = { def, tid, Q: Qs, who: null, reveal: true, follow: true, lastCur: null, copies: new Map(), names: new Map(), ticks: 0, ch: null };
   setView('spec');
   $('#brandSub').textContent = `Spectateur · ${def.title}`;
   renderSpec();
@@ -10438,13 +10453,35 @@ async function startSpec(def) {
     const ch = SPEC.ch = sb.channel('gt-spec-' + tid, { config: { broadcast: { self: false } } });
     ch.on('broadcast', { event: 'copy' }, ({ payload: p }) => {
       if (!SPEC || SPEC.tid !== tid || !p || !p.uid || p.uid === me.id) return;
+      const old = SPEC.copies.get(p.uid);
+      if (old && old.db && !p.done) return;
       SPEC.copies.set(p.uid, p);
       if (!SPEC.who) SPEC.who = p.uid;
       specUpdate();
     });
     ch.subscribe(st => { if (st === 'SUBSCRIBED') Promise.resolve(ch.send({ type: 'broadcast', event: 'hello', payload: { by: me.id } })).catch(() => {}); });
   } catch (e) { console.warn('Temps réel indisponible', e); }
-  clearInterval(specTickT); specTickT = setInterval(specClock, 1000);
+  clearInterval(specTickT); specTickT = setInterval(() => { specClock(); if (SPEC && ++SPEC.ticks % 20 === 0) specLoadDone(); }, 1000);
+  specLoadDone();
+}
+// Copies rendues de ce contrôle (y compris la mienne) : les cases cochées sont dans results[i].sel
+async function specLoadDone() {
+  if (!SPEC || !cloud.on()) return;
+  const tid = SPEC.tid;
+  const { data, error } = await sb.from('attempts').select('user_id,results,created_at').eq('def_id', 'g:' + tid);
+  if (error || !SPEC || SPEC.tid !== tid || !data) { if (error) console.warn(error); return; }
+  const need = data.map(r => r.user_id).filter(id => !SPEC.names.has(id));
+  if (need.length) {
+    const pr = await sb.from('profiles').select('id,pseudo').in('id', need);
+    (pr.data || []).forEach(x => SPEC.names.set(x.id, x.pseudo));
+  }
+  if (!SPEC || SPEC.tid !== tid) return;
+  data.forEach(r => {
+    const old = SPEC.copies.get(r.user_id);
+    if (old && old.done && old.db) return;
+    SPEC.copies.set(r.user_id, { uid: r.user_id, pseudo: SPEC.names.get(r.user_id) || (old && old.pseudo) || '?', cur: 0, a: (r.results || []).map(x => (x && x.sel ? x.sel : []).join('.')), done: true, db: true, at: Date.parse(r.created_at) });
+  });
+  specUpdate();
 }
 function specStop() {
   if (!SPEC) return;
@@ -10511,15 +10548,16 @@ function specUpdate() {
   SPEC.copies.forEach((c, id) => { if (!P.has(id)) P.set(id, { pseudo: c.pseudo, st: c.done ? 'done' : 'left', n: (c.a || []).filter(Boolean).length, N: Qs.length }); });
   if (SPEC.who && !P.has(SPEC.who) && !SPEC.copies.has(SPEC.who)) SPEC.who = null;
   if (!SPEC.who && P.size === 1) SPEC.who = [...P.keys()][0];
+  if (!SPEC.who && P.size > 1) { const live = [...P.entries()].find(([, x]) => x.st === 'test'); if (live) SPEC.who = live[0]; }
   const noteOfCopy = c => { let raw = 0; Qs.forEach((q, i) => { raw += scoreQ(q, specSel(c, i)).pts; }); return noteOf(raw, Qs.length); };
   $('#specPlayers').innerHTML = P.size ? [...P.entries()].sort((a, b) => String(a[1].pseudo).localeCompare(String(b[1].pseudo))).map(([id, x]) => {
     const c = SPEC.copies.get(id), n = c ? (c.a || []).filter(Boolean).length : x.n || 0;
     const st = x.st === 'done' || (c && c.done) ? 'a rendu' : x.st === 'left' ? 'n\'est plus connecté' : `${n}/${x.N || Qs.length} répondues${c && !c.done ? ` · question ${c.cur + 1}` : ''}`;
-    return `<button type="button" class="spec-p" data-spwho="${esc(id)}" aria-pressed="${SPEC.who === id}"><b>${esc(x.pseudo || '?')}</b><small>${st}</small>${c && SPEC.reveal ? `<small>note provisoire : <b>${fmtNum(noteOfCopy(c), 2)}/20</b></small>` : ''}</button>`;
-  }).join('') : '<p class="fine">Personne n\'est encore en train de composer. Les participants apparaissent ici dès qu\'ils ont commencé.</p>';
+    return `<button type="button" class="spec-p" data-spwho="${esc(id)}" aria-pressed="${SPEC.who === id}"><b>${esc(x.pseudo || '?')}${id === myId ? ' (toi)' : ''}</b><small>${st}</small>${c && SPEC.reveal ? `<small>note provisoire : <b>${fmtNum(noteOfCopy(c), 2)}/20</b></small>` : ''}</button>`;
+  }).join('') : '<p class="fine">Personne n\'a encore commencé ni rendu ce contrôle. Les participants apparaissent ici dès qu\'ils commencent, et les copies rendues restent visibles.</p>';
   const W = [...liveMembers.entries()].filter(([id, x]) => x.st === 'spec' || x.sp).map(([id, x]) => id === myId ? 'toi' : x.pseudo);
   $('#specWatchers').textContent = W.length ? `👁 Regardent : ${W.join(', ')}` : '';
-  const who = SPEC.who, c = who ? SPEC.copies.get(who) : null, name = who && P.get(who) ? P.get(who).pseudo : '';
+  const who = SPEC.who, c = who ? SPEC.copies.get(who) : null, name = who && P.get(who) ? P.get(who).pseudo + (who === myId ? ' (toi)' : '') : '';
   $('#specInfo').innerHTML = !who ? 'Choisis un participant pour voir sa copie.' : !c ? `En attente de la copie de <b>${esc(name)}</b>… (elle arrive dès sa prochaine réponse ; sa page doit être à jour)` : c.done ? `Copie rendue de <b>${esc(name)}</b>.` : `Copie de <b>${esc(name)}</b> en direct.`;
   Qs.forEach((q, i) => {
     const sel = specSel(c, i), cur = !!(c && !c.done && c.cur === i), sc = sel.length ? scoreQ(q, sel) : null;

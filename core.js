@@ -163,6 +163,43 @@
       }
       if (cfg.VIEW === 'blanc') cfg.views.blanc();
     }
+    /* ---------- Sujet ciblé (points faibles) ----------
+       Même durée et même barème sur 20 que le sujet blanc, mais une partie par compétence faible : pas
+       encore validée dans le parcours, peu maîtrisée, ou souvent ratée dans les dernières copies.
+       La page appelle examPlan(EXAM_PLAN) dans examExos, tally(it, score) pour chaque réponse corrigée,
+       et ajoute examRecord() à la copie enregistrée (réussite par compétence, pour les prochains ciblages). */
+    let TALLY = {};
+    const skOf = it => it.id.slice(0, it.id.lastIndexOf('-', it.id.lastIndexOf('-') - 1));   // id : compétence-graine-n°
+    function tally(it, sc) { const t = TALLY[skOf(it)] || (TALLY[skOf(it)] = [0, 0]); t[0] += sc; t[1]++; return sc; }
+    function examRecord() {
+      const sk = {}; Object.keys(TALLY).forEach(k => { sk[k] = [Math.round(TALLY[k][0] * 100) / 100, TALLY[k][1]]; });
+      TALLY = {};
+      return cfg.EXAM && cfg.EXAM.target ? { sk, cible: true } : { sk };
+    }
+    const examPlan = def => (cfg.EXAM && cfg.EXAM.target) || def;
+    // les compétences à retravailler, de la plus faible à la moins faible
+    function weakSkills(n = 5) {
+      const P = pst(), rate = {};
+      ls.get(HK, []).slice(-8).forEach(r => Object.keys(r.sk || {}).forEach(k => { const t = rate[k] || (rate[k] = [0, 0]); t[0] += r.sk[k][0]; t[1] += r.sk[k][1]; }));
+      return cfg.SK.map((k, i) => {
+        const s = skS(P, k.id), r = rate[k.id];
+        const score = (isVal(s) ? 0 : 2) + (1 - Math.min(s.m, VAL) / VAL) + (r && r[1] ? 2 * (1 - r[0] / r[1]) : 0);
+        return { k, s, score, i };
+      }).sort((a, b) => b.score - a.score || a.i - b.i).slice(0, n);
+    }
+    function weakPlan() {
+      const W = weakSkills();
+      return W.map(({ k, s }) => [`Point faible · ${k.name}`, [[k.id, Math.max(1, levelOf(s))]], 20 / W.length]);
+    }
+    // bouton à côté de « Commencer » dans l'onglet Sujet blanc
+    const weakButton = () => `<button type="button" class="btn btn-lg" data-act="examWeak">Sujet ciblé (points faibles)</button>
+      <p class="fine" style="flex-basis:100%;order:9">Le sujet ciblé porte sur : ${weakSkills().map(w => esc(w.k.name)).join(' · ')}.</p>`;
+    document.addEventListener('click', e => {
+      if (!e.target.closest('[data-act="examWeak"]')) return;
+      cfg.EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false, target: weakPlan() };
+      ls.set(EK, cfg.EXAM); cfg.renderExam();
+    });
+
     // Progression venue d'un autre appareil
     function wireAccount() {
       const A = window.SiteAccount; if (!A) return;
@@ -196,6 +233,7 @@
     }
 
     return { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-      startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, examSynced, start };
+      startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, examSynced, start,
+      tally, examRecord, examPlan, weakSkills, weakPlan, weakButton };
   };
 })();

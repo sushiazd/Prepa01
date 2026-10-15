@@ -5,7 +5,8 @@
      « planning » (le serveur de l'université n'autorise pas la lecture directe depuis le site).
    - Les évaluations (CC, QCM, oraux, TOEIC…) sont repérées dans les intitulés.
    - La date du CC d'électronique analogique remplit le compte à rebours de la page élec.
-   Utilisé par l'accueil : <div id="vPlan"> (onglet) et <div id="planBanner"> (prochaine évaluation).
+   Utilisé par l'accueil : <div id="vPlan"> (onglet), <div id="nowBanner"> (cours en cours ou prochain cours)
+   et <div id="planBanner"> (prochaine évaluation).
    ===================================================================== */
 (function () {
   'use strict';
@@ -225,8 +226,23 @@
     const m = Math.round((Date.now() - ts) / 60e3);
     return m < 1 ? "à l'instant" : m < 60 ? `il y a ${m} min` : m < 1440 ? `il y a ${Math.round(m / 60)} h` : `le ${fmt(ts, { day: 'numeric', month: 'short' })}`;
   }
+  // Bandeau de l'onglet Révisions : le cours en cours, sinon le prochain d'aujourd'hui ou de demain
+  function nowBanner() {
+    const el = document.getElementById('nowBanner'); if (!el) return;
+    const c = cache(), p = prefs(), now = Date.now(), today = dayKey(now), tomorrow = addDays(today, 1);
+    const evs = c && c.url === p.url && Array.isArray(c.evs) ? c.evs.filter(e => e.e && (p.tiers || !isTiers(e)) && !/réservé/i.test(e.t)) : [];
+    const cur = evs.find(e => e.s <= now && now < e.e), nxt = evs.find(e => e.s > now && dayKey(e.s) <= tomorrow), e = cur || nxt;
+    if (!e) { el.hidden = true; el.innerHTML = ''; return; }
+    const mins = Math.max(1, Math.round((e.s - now) / 60e3)), link = linkOf(e);
+    const when = cur ? `en cours jusqu'à ${hm(e.e)}` : dayKey(e.s) === today ? (mins < 60 ? `dans ${mins} min` : `aujourd'hui à ${hm(e.s)}`) : `demain à ${hm(e.s)}`;
+    const then = cur && nxt && dayKey(nxt.s) === today ? ` · ensuite : ${esc(nxt.t)} à ${esc(hm(nxt.s))} (${esc(roomOf(nxt))})` : '';
+    el.hidden = false;
+    el.innerHTML = `<div><p class="eyebrow" style="margin-bottom:6px">${cur ? 'Cours en ce moment' : 'Prochain cours'}</p><b>${esc(e.t)}</b> <span>${esc(when)} · ${esc(hm(e.s))}–${esc(hm(e.e))} · ${esc(roomOf(e))}${then}</span></div>
+      <span class="sp"></span>${link ? `<a class="btn btn-primary" href="${link}">Ouvrir la matière</a>` : ''}`;
+  }
   // Bandeau de l'onglet Révisions : la prochaine évaluation
   function banner() {
+    nowBanner();
     const el = document.getElementById('planBanner'); if (!el) return;
     const c = cache(), p = prefs();
     const ev = c && c.evs && c.url === p.url ? evalsOf(c.evs, p) : [];
@@ -269,6 +285,7 @@
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(false); });
     window.addEventListener('online', () => refresh(false));
     setInterval(() => { if (!document.hidden) { refresh(false); if (!busy) render(); } }, 5 * 60e3);
+    setInterval(() => { if (!document.hidden) nowBanner(); }, 60e3);   // « dans 12 min », « en cours » à jour
   }
   if (A()) wire(); else window.addEventListener('siteaccount', wire, { once: true });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render); else render();

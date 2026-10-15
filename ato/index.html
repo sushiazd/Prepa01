@@ -11,9 +11,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../subjects.js?v=20261015"></script>
-<script src="../core.js?v=20261015"></script>
+<script src="../core.js?v=2026101502"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=20261015">
+<link rel="stylesheet" href="../core.css?v=2026101502">
 <style>
 :root{
   --accent:var(--chem); --accent-soft:var(--chem-soft);
@@ -104,7 +104,7 @@ const E = SiteCore({ id: 'ato', get DUR() { return 3600; }, clock: 'ms', rush: 3
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
   renderEx: () => renderEx(), renderExam: () => renderExam(), submitExam: auto => submitExam(auto) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick } = E;
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton } = E;
 function typeset(el) { if (el && window.renderMathInElement) try { renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); } catch (e) { /* ignore */ } }
 // générateur pseudo-aléatoire à graine (un exercice se retrouve à l'identique)
 
@@ -649,7 +649,7 @@ let EXAM = null;
 const EXAM_PLAN = [['A · Isotopes', [['noyau', 1], ['iso', 0]], 3], ['B · Spectres atomiques (hydrogénoïde)', [['niv', 1], ['trans', 0]], 7], ['C · Nombres quantiques', [['nq', 2]], 3], ['D · Configuration électronique et classification', [['exc', 0], ['place', 1], ['prop', 2]], 7]];
 function examExos(seed) {
   const g = G(rng(seed));
-  return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) }));
+  return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) }));
 }
 function vBlanc() {
   const E = ls.get(EK, null);
@@ -657,12 +657,12 @@ function vBlanc() {
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Même plan que le CC de novembre 2021 : isotopes (3 pts), spectre d'un ion hydrogénoïde comme He<sup>+</sup> (7 pts), nombres quantiques (3 pts), configurations électroniques et tableau périodique (7 pts). Au CC 2021, la calculatrice était autorisée pour les calculs numériques seulement.</p></div>
-    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (60 min)</button><span class="fine">Prévois une feuille : les justifications se font sur papier, seuls les résultats sont saisis ici.</span></div></section>
-    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (60 min)</button>${weakButton()}<span class="fine">Prévois une feuille : les justifications se font sur papier, seuls les résultats sont saisis ici.</span></div></section>
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${r.cible ? ' · ciblé' : ''}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
   const exs = examExos(EXAM.seed);
-  app.innerHTML = `<div><p class="eyebrow">Sujet blanc d'atomistique</p><h1>CC · 1 h</h1></div>`
+  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'atomistique</p><h1>CC · 1 h</h1></div>`
     + exs.map((ex, i) => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
       : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div>`);
@@ -674,9 +674,9 @@ function submitExam(auto) {
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
   const exs = examExos(EXAM.seed); let note = 0;
-  exs.forEach(ex => { const its = [].concat(...ex.parts.map(p => p.items)); const ok = its.filter(it => check(it, EXAM.ans[it.id] || '').st === 'ok').length; note += ex.pts * ok / its.length; });
+  exs.forEach(ex => { const its = [].concat(...ex.parts.map(p => p.items)); const ok = its.filter(it => tally(it, check(it, EXAM.ans[it.id] || '').st === 'ok' ? 1 : 0)).length; note += ex.pts * ok / its.length; });
   EXAM.done = true; EXAM.note = note; EXAM.running = false;
-  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(3600, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(3600, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord() }); ls.set(HK, H);
   ls.set(EK, Object.assign({}, EXAM, { closed: true }));   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
   renderExam(); window.scrollTo(0, 0);

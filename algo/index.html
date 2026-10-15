@@ -8,9 +8,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
 <script src="../subjects.js?v=20261015"></script>
-<script src="../core.js?v=20261015"></script>
+<script src="../core.js?v=2026101502"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=20261015">
+<link rel="stylesheet" href="../core.css?v=2026101502">
 <style>
 :root{
   --accent:var(--algo); --accent-soft:var(--algo-soft);
@@ -114,7 +114,7 @@ const E = SiteCore({ id: 'algo', get DUR() { return DUR; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
   renderEx: () => renderEx(), renderExam: () => renderExam(), submitExam: auto => submitExam(auto) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick } = E;
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton } = E;
 const pre = code => `<pre class="code"><code>${esc(code)}</code></pre>`;
 const ic = s => `<code>${esc(s)}</code>`;
 
@@ -644,19 +644,19 @@ function vCours(open) {
 let EXAM = null;
 const DUR = 5400;
 const EXAM_PLAN = [['Exercice 1 · Types et valeurs', [['types', 1]], 4], ['Exercice 2 · Que calcule ce programme ?', [['boucles', 2], ['trace', 2]], 4], ['Exercice 3 · Fonctions, listes et copies', [['fonc', 1], ['alias', 2], ['list', 1]], 4], ['Exercice 4 · Complexité', [['cplx', 1]], 2], ['Exercice 5 · Écrire des fonctions', [['code2', 1], ['code3', 1]], 6]];
-function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">5 exercices dans le style des TD : types et valeurs (4 pts), programme à suivre (4 pts), fonctions, listes et copies (4 pts), complexité (2 pts), deux fonctions à écrire (6 pts, notées sur les tests réussis).</p></div>
-    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button><span class="fine">Pour être au plus près du DS, écris d'abord tes fonctions sur papier, puis recopie-les.</span></div></section>
-    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button>${weakButton()}<span class="fine">Pour être au plus près du DS, écris d'abord tes fonctions sur papier, puis recopie-les.</span></div></section>
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${r.cible ? ' · ciblé' : ''}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
   const exs = examExos(EXAM.seed);
-  app.innerHTML = `<div><p class="eyebrow">Sujet blanc d'algorithmique</p><h1>DS · 1 h 30</h1></div>`
+  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'algorithmique</p><h1>DS · 1 h 30</h1></div>`
     + exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
       : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button><span class="fine pyload" id="pyNote"></span></div>`);
@@ -671,12 +671,12 @@ async function submitExam(auto) {
   const exs = examExos(EXAM.seed); let note = 0; const fb = {};
   for (const ex of exs) {
     const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
-    for (const it of its) { const r = await check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += r.st === 'ok' ? 1 : (r.frac || 0); }
+    for (const it of its) { const r = await check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += tally(it, r.st === 'ok' ? 1 : (r.frac || 0)); }
     note += ex.pts * got / its.length;
   }
   busy = false;
   EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
-  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord() }); ls.set(HK, H);
   ls.set(EK, Object.assign({}, EXAM, { closed: true }));   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
   renderExam(); window.scrollTo(0, 0);

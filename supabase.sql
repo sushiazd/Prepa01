@@ -250,18 +250,11 @@ create policy group_tests_update on public.group_tests for update to authenticat
   with check (created_by = auth.uid() or public.owns_group(group_id));
 grant update (starts_at) on public.group_tests to authenticated;
 
--- ---------- 1v1 : liste des joueurs inscrits ----------
--- Le 1v1 propose d'affronter n'importe quel inscrit : seuls l'identifiant et le pseudo sont exposés
--- (aux comptes connectés uniquement). Le temps réel (présence, invitations, parties) passe par
--- les canaux Realtime de Supabase, sans table.
-create or replace function public.list_players() returns table (id uuid, pseudo text)
-language sql stable security definer set search_path = public as $$
-  select p.id, p.pseudo from profiles p where auth.uid() is not null order by lower(p.pseudo);
-$$;
-revoke all on function public.list_players() from public, anon;
-grant execute on function public.list_players() to authenticated;
+-- ---------- 1v1 supprimé (12/10/2026) ----------
+-- La liste de tous les inscrits ne sert plus : elle est retirée des bases où elle avait été créée.
+drop function if exists public.list_players();
 
--- ---------- Données synchronisées entre appareils (progression élec…) ----------
+-- ---------- Données synchronisées entre appareils (parcours, copies, sujets blancs en cours…) ----------
 -- Une ligne par compte et par clé (ex. « elec.path.v1 » = le parcours d'élec). Le site
 -- (account.js) fusionne ces données avec celles de l'appareil à chaque ouverture de page.
 create table if not exists public.user_data (

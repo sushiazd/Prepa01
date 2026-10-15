@@ -980,7 +980,7 @@ const EXAM_PLAN_B = [['Exercice · QCM forces gravitationnelles et énergies', [
 function examExos(seed, plan) { const g = G(rng(seed)); return (plan === 1 ? EXAM_PLAN_B : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
-  if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
+  if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Calqué sur les CC2 de 2022 et 2023 : un problème de 12 points (plan incliné avec frottement, travaux, théorème de l'énergie cinétique, énergie potentielle), un exercice de 5 points en référentiel non galiléen, et 3 points sur les chocs et l'oscillateur. Les formules littérales sont corrigées automatiquement.</p></div>
@@ -1005,7 +1005,7 @@ function startTick() {
   const upd = () => { const left = DUR - (Date.now() - EXAM.t0) / 1000; clk.textContent = `${Math.floor(Math.max(0, left) / 3600)}:${String(Math.floor(Math.max(0, left) % 3600 / 60)).padStart(2, '0')}:${String(Math.floor(Math.max(0, left) % 60)).padStart(2, '0')}`; clk.classList.toggle('rush', left < 600); if (left <= 0) submitExam(true); };
   upd(); tick = setInterval(upd, 1000);
 }
-const saveExam = () => { const { exs, ...rest } = EXAM; try { localStorage.setItem(EK, JSON.stringify(rest)); } catch (e) { /* ignore */ } };
+const saveExam = () => { const { exs, ...rest } = EXAM; ls.set(EK, rest); };
 function submitExam(auto) {
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
@@ -1018,7 +1018,7 @@ function submitExam(auto) {
   }
   EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
   const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
-  try { localStorage.removeItem(EK); } catch (e) { /* ignore */ }
+  EXAM.closed = true; saveExam();   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
   renderExam(); window.scrollTo(0, 0);
 }
@@ -1062,9 +1062,26 @@ document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matc
   apply(t);
   btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
 })();
+// Sujet blanc modifié sur un autre appareil (account.js) : mêmes réponses ici, ou sujet rendu ou remplacé là-bas
+function examSynced() {
+  const E = ls.get(EK, null), open = E && !E.closed && !E.done ? E : null;
+  if (EXAM && EXAM.done) return;
+  if (EXAM && open && open.seed === EXAM.seed) {
+    EXAM.ans = Object.assign({}, open.ans);
+    const typing = document.activeElement && document.activeElement.matches('#app input, #app textarea');
+    if (VIEW === 'blanc' && !typing) renderExam();
+    return;
+  }
+  if (EXAM) {
+    EXAM = null; clearInterval(tick); $('#clock').hidden = true;
+    toast(open ? 'Un autre sujet blanc a été commencé sur ton autre appareil.' : 'Sujet blanc rendu sur ton autre appareil : la note est dans « Mes copies ».');
+  }
+  if (VIEW === 'blanc') vBlanc();
+}
 function wireAccount() {
   const A = window.SiteAccount; if (!A) return;
   A.on('data', keys => {
+    if (keys.includes(EK)) examSynced();
     if (!keys.some(k => k.startsWith('phys.'))) return;
     if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
     if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();

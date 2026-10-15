@@ -17,13 +17,13 @@ Le site regroupe plusieurs outils de révision :
 | `phys/index.html` | l'entraînement au CC de mécanique du point (chapitres II à V : PFD, énergie, oscillateurs, moment cinétique) : parcours guidé, formules littérales vérifiées par tirage de valeurs, cours résumé + démos à savoir refaire, sujet blanc d'1 h 30 |
 | `planning.js` | l'onglet Planning de l'accueil : emploi du temps ADE (lien d'export `.shu` enregistré dans le compte), prochaines évaluations repérées automatiquement |
 | `supabase/functions/planning/` | la fonction Supabase qui relaie l'emploi du temps (le serveur de l'université bloque la lecture directe depuis le site) ; déjà déployée sous le nom `planning` |
-| `config.js` | l'adresse de ta base Supabase (à remplir, étape 4), utilisée par le QCM de maths |
+| `config.js` | l'adresse de ta base Supabase (à remplir, étape 4), utilisée par tout le site |
 | `supabase.sql` | la base de données et ses règles de sécurité (étape 2) |
 | `README.md` | ce guide |
 
 Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/`, `…/Prepa01/elec/`, etc.
 
-On se connecte une seule fois, sur la page d'accueil : la session vaut pour toutes les pages. Une fois connecté, la progression d'élec (parcours, stats, copies, planning, date du CC) est enregistrée dans la table `user_data` et fusionnée à chaque ouverture de page, donc on la retrouve sur tous ses appareils. Sans compte, elle reste dans le navigateur.
+On se connecte une seule fois, sur la page d'accueil : la session vaut pour toutes les pages. Une fois connecté, la progression de chaque matière (parcours, copies des sujets blancs, sujet blanc en cours ; pour l'élec aussi les stats et la date du CC) et le lien de l'emploi du temps sont enregistrés dans la table `user_data` et fusionnés à chaque ouverture de page, donc on les retrouve sur tous ses appareils. Le QCM de maths garde ses contrôles et épreuves dans ses propres tables (`controls`, `attempts`) et son épreuve en cours dans `user_data`. Sans compte, tout reste dans le navigateur.
 
 ### Activer la synchronisation
 
@@ -107,5 +107,5 @@ Le QCM était à la racine du dépôt ; il est maintenant dans `maths/`. Pour mi
 
 - Pas encore de « mot de passe oublié » : en cas d'oubli, le compte peut être supprimé depuis Supabase (*Authentication → Users*) et recréé.
 - Le « temps d'entraînement » ne compte que les épreuves faites sur le site (pauses exclues).
-- Une épreuve en cours ou en pause reste sur le téléphone où elle a été commencée ; elle est envoyée sur le compte une fois rendue.
+- Une épreuve de maths ou un sujet blanc en cours se reprend sur un autre appareil connecté au même compte. L'autre appareil le récupère à l'ouverture de la page ou en revenant sur l'onglet, pas en direct pendant qu'on écrit.
 - Les projets Supabase gratuits peuvent être mis en pause après une période d'inactivité : il suffit de les relancer depuis le tableau de bord Supabase.

@@ -597,7 +597,7 @@ const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); 
 /* =====================================================================
    COMPÉTENCES ET PROGRESSION (mêmes règles que l'élec et l'atomistique)
    ===================================================================== */
-const PK = 'algo.path.v1', HK = 'algo.hist.v1', VAL = 100, MMAX = 130;
+const PK = 'algo.path.v1', HK = 'algo.hist.v1', EK = 'algo.exam.v1', VAL = 100, MMAX = 130;
 const CH = ['Bases de Python', 'Fonctions', 'Complexité', 'Tableaux et chaînes', 'Dictionnaires'];
 const SK = [
   { id: 'types', ch: 0, name: 'Types et valeurs d\'expressions', fiche: 0 },
@@ -830,8 +830,8 @@ const DUR = 5400;
 const EXAM_PLAN = [['Exercice 1 · Types et valeurs', [['types', 1]], 4], ['Exercice 2 · Que calcule ce programme ?', [['boucles', 2], ['trace', 2]], 4], ['Exercice 3 · Fonctions, listes et copies', [['fonc', 1], ['alias', 2], ['list', 1]], 4], ['Exercice 4 · Complexité', [['cplx', 1]], 2], ['Exercice 5 · Écrire des fonctions', [['code2', 1], ['code3', 1]], 6]];
 function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
-  const E = ls.get('algo.exam.v1', null);
-  if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
+  const E = ls.get(EK, null);
+  if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">5 exercices dans le style des TD : types et valeurs (4 pts), programme à suivre (4 pts), fonctions, listes et copies (4 pts), complexité (2 pts), deux fonctions à écrire (6 pts, notées sur les tests réussis).</p></div>
@@ -868,7 +868,7 @@ async function submitExam(auto) {
   busy = false;
   EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
   const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
-  try { localStorage.removeItem('algo.exam.v1'); } catch (e) { /* ignore */ }
+  ls.set(EK, Object.assign({}, EXAM, { closed: true }));   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
   renderExam(); window.scrollTo(0, 0);
 }
@@ -890,14 +890,14 @@ document.addEventListener('click', e => {
   else if (act === 'next') nextPath();
   else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
   else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
-  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; ls.set('algo.exam.v1', EXAM); renderExam(); }
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; ls.set(EK, EXAM); renderExam(); }
   else if (act === 'submit') submitExam(false);
   else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
 });
 document.addEventListener('input', e => {
   const t = e.target; if (!t.matches('input, textarea')) return;
   const id = t.dataset.id || t.name; if (!id) return;
-  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; try { localStorage.setItem('algo.exam.v1', JSON.stringify(EXAM)); } catch (err) { /* ignore */ } }
+  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; ls.set(EK, EXAM); }
   else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
 });
 document.addEventListener('change', e => { if (e.target.type === 'radio') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
@@ -919,9 +919,26 @@ document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matc
   apply(t);
   btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
 })();
+// Sujet blanc modifié sur un autre appareil (account.js) : mêmes réponses ici, ou sujet rendu ou remplacé là-bas
+function examSynced() {
+  const E = ls.get(EK, null), open = E && !E.closed && !E.done ? E : null;
+  if (EXAM && EXAM.done) return;
+  if (EXAM && open && open.seed === EXAM.seed) {
+    EXAM.ans = Object.assign({}, open.ans);
+    const typing = document.activeElement && document.activeElement.matches('#app input, #app textarea');
+    if (VIEW === 'blanc' && !typing) renderExam();
+    return;
+  }
+  if (EXAM) {
+    EXAM = null; clearInterval(tick); $('#clock').hidden = true;
+    toast(open ? 'Un autre sujet blanc a été commencé sur ton autre appareil.' : 'Sujet blanc rendu sur ton autre appareil : la note est dans « Mes copies ».');
+  }
+  if (VIEW === 'blanc') vBlanc();
+}
 function wireAccount() {
   const A = window.SiteAccount; if (!A) return;
   A.on('data', keys => {
+    if (keys.includes(EK)) examSynced();
     if (!keys.some(k => k.startsWith('algo.'))) return;
     if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
     if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();

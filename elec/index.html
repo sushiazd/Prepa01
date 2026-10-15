@@ -1616,7 +1616,7 @@ function renderHome() {
   const H = ls.get(K.hist, []), last = H[H.length - 1];
   $('#homeBlanc').innerHTML = `<h2>Sujet blanc (1 h)</h2><p class="sub">Un sujet complet au format exact du CC1, avec un nouveau tirage à chaque fois, noté sur 20 avec la correction. ${last ? `Dernière note : <b>${fmtPts(scoreRec(last).total)}/20</b>.` : 'Pas encore tenté.'}</p>
     <div class="row" style="margin-top:14px"><button type="button" class="btn" data-go="blanc">Faire un sujet blanc</button></div>`;
-  const ex = ls.get(K.exam, null);
+  const ex = curExam();
   $('#resumeBanner').innerHTML = ex ? `<div class="banner"><p><b>Un sujet est en cours</b> (${esc(ex.title)}).</p><span class="spacer"></span><button type="button" class="btn btn-primary" data-act="resume">Reprendre</button></div>` : '';
 }
 
@@ -1723,6 +1723,10 @@ function fillAnnale(det) {
    ÉPREUVE (sujet blanc / annale en conditions)
    ===================================================================== */
 let EXAM = null, tickId = null, BLV = 'cc';
+// Sujet en cours sur ce compte. Rendu ou abandonné, il reste enregistré avec closed: true : un autre appareil
+// resté dessus le retire au lieu de le renvoyer (account.js).
+const curExam = () => { const e = ls.get(K.exam, null); return e && !e.closed ? e : null; };
+const closeExam = id => ls.set(K.exam, { id, closed: true });
 const DUR = 3600;
 function genBlanc(level) {
   return { e1: pick(['dt-N', 'dc-N', 'dc-4', 'mi-N', 'mi-N', 'mi-4']), e2: genEx2(level === 'dur' ? 'costaud' : 'cc'), e3: genEx3(level === 'dur' ? 'pieges' : 'cc'), e4: genEx4(null) };
@@ -1731,7 +1735,7 @@ function startExam(def, title, kind) {
   EXAM = { id: Date.now().toString(36), def, title, kind, ans: {}, elapsed: 0, since: Date.now(), running: true };
   ls.set(K.exam, EXAM); openExam();
 }
-function resumeExam() { const ex = ls.get(K.exam, null); if (!ex) return; EXAM = ex; EXAM.since = Date.now(); EXAM.running = true; ls.set(K.exam, EXAM); openExam(); }
+function resumeExam() { const ex = curExam(); if (!ex) return; EXAM = ex; EXAM.since = Date.now(); EXAM.running = true; ls.set(K.exam, EXAM); openExam(); }
 function openExam() {
   const exs = buildAll(EXAM.def);
   const v = $('#v-exam');
@@ -1772,7 +1776,7 @@ function submitExam(auto) {
   if (EXAM.gtest) rec.gtest = EXAM.gtest;
   exs.forEach(ex => ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { if (it.type !== 'self') { const r = res[itemId(ex, bi, ii, 'ex')]; if (r.st !== 'empty' && ex.key !== 'ex1') addStat(ex.key, r.st === 'ok'); } })));
   const H = ls.get(K.hist, []); H.push(rec); ls.set(K.hist, H);
-  ls.del(K.exam); EXAM = null;
+  closeExam(EXAM.id); EXAM = null;
   $('#topbar').classList.remove('warn', 'danger');
   if (auto) toast('Temps écoulé : copie rendue automatiquement.');
   showResult(rec.id);
@@ -1810,7 +1814,7 @@ function drawHero(rec) {
 function renderBlanc() {
   renderGrp(); grpLoad().then(() => { grpAutoJoin(); renderGrp(); grpPoll(); });
   $('#blancLevel').innerHTML = [['cc', 'Niveau CC'], ['dur', 'Plus dur que le CC']].map(([k, l]) => `<button type="button" data-blv="${k}" aria-pressed="${k === BLV}">${l}</button>`).join('');
-  const ex = ls.get(K.exam, null);
+  const ex = curExam();
   $('#blancBanner').innerHTML = ex ? `<div class="banner"><p><b>Un sujet est en cours</b> (${esc(ex.title)}). Tu peux le reprendre là où tu l'as laissé.</p><span class="spacer"></span><button type="button" class="btn" data-act="abandon">Abandonner</button><button type="button" class="btn btn-primary" data-act="resume">Reprendre</button></div>` : '';
   const H = ls.get(K.hist, []);
   $('#histBox').innerHTML = H.length ? `<div class="table-wrap"><table class="hist"><thead><tr><th>Date</th><th>Sujet</th><th>Note</th><th>Ex 1</th><th>Ex 2</th><th>Ex 3</th><th>Ex 4</th><th>Durée</th></tr></thead><tbody>${H.slice().reverse().map(r => { const s = scoreRec(r);
@@ -2432,7 +2436,7 @@ function init() {
       if (a === 'check') { if (act.closest('#pathHost')) pathCheck(+act.dataset.b); else checkBlock(+act.dataset.b); }
       if (a === 'resume') resumeExam();
       if (a === 'submit') submitExam(false);
-      if (a === 'abandon') { if (confirm('Abandonner ce sujet ? Tes réponses seront perdues.')) { ls.del(K.exam); renderBlanc(); } }
+      if (a === 'abandon') { if (confirm('Abandonner ce sujet ? Tes réponses seront perdues.')) { const ex = curExam(); if (ex) closeExam(ex.id); renderBlanc(); } }
       return;
     }
     const pa = e.target.closest('[data-pact]');
@@ -2454,7 +2458,7 @@ function init() {
     const ext = e.target.closest('[data-ext]'); if (ext) { TR.type = ext.dataset.ext; newExercise(); return; }
     const exl = e.target.closest('[data-exl]'); if (exl) { TR.level[TR.type] = exl.dataset.exl; newExercise(); return; }
     const blv = e.target.closest('[data-blv]'); if (blv) { BLV = blv.dataset.blv; renderBlanc(); return; }
-    const ae = e.target.closest('[data-annexam]'); if (ae) { const a = ANN[+ae.dataset.annexam]; if (ls.get(K.exam, null) && !confirm('Un sujet est déjà en cours : le remplacer ?')) return; startExam(annDef(a), 'Annale CC1 ' + a.y, 'annale'); return; }
+    const ae = e.target.closest('[data-annexam]'); if (ae) { const a = ANN[+ae.dataset.annexam]; if (curExam() && !confirm('Un sujet est déjà en cours : le remplacer ?')) return; startExam(annDef(a), 'Annale CC1 ' + a.y, 'annale'); return; }
     const tr = e.target.closest('tr[data-rec]'); if (tr) { showResult(tr.dataset.rec); return; }
   });
   $('#exNew').addEventListener('click', newExercise);
@@ -2464,7 +2468,7 @@ function init() {
   ph.addEventListener('keydown', e => { const inp = e.target.closest('.ans-in'); if (!inp || e.key !== 'Enter') return; e.preventDefault(); const b = inp.closest('.qb').querySelector('[data-act="check"]'); if (b) b.click(); });
   ph.addEventListener('toggle', e => { const d = e.target; if (!CUR || !CUR.ex || !d.open || !d.matches('details.corr-d')) return; const qb = d.closest('.qb'); if (!qb) return;
     const bi = +qb.dataset.b; if ($$('.it[data-id]', qb).some(r => !CUR.first.has(r.dataset.id))) { CUR.peek.add(bi); saveCur(); } }, true);
-  $('#blancStart').addEventListener('click', () => { if (ls.get(K.exam, null) && !confirm('Un sujet est déjà en cours : le remplacer ?')) return; const n = ls.get(K.hist, []).filter(r => r.kind === 'blanc').length + 1; startExam(genBlanc(BLV), 'Sujet blanc n°' + n + (BLV === 'dur' ? ' (difficile)' : ''), 'blanc'); });
+  $('#blancStart').addEventListener('click', () => { if (curExam() && !confirm('Un sujet est déjà en cours : le remplacer ?')) return; const n = ls.get(K.hist, []).filter(r => r.kind === 'blanc').length + 1; startExam(genBlanc(BLV), 'Sujet blanc n°' + n + (BLV === 'dur' ? ' (difficile)' : ''), 'blanc'); });
   $('#submitBtn').addEventListener('click', () => submitExam(false));
   $('#pauseBtn').addEventListener('click', pauseExam);
   $('#annGrid').addEventListener('toggle', e => { if (e.target.open && e.target.dataset.ann) fillAnnale(e.target); }, true);
@@ -2618,7 +2622,7 @@ function grpJoin(tid) {
   const t = GRP.tests.find(x => x.id === tid); if (!t) return;
   if (GRP.mine[tid]) { toast('Tu as déjà rendu ta copie pour ce sujet.'); return; }
   if (gState(t) !== 'run') { toast('Ce sujet n\'est pas en cours.'); return; }
-  const cur = ls.get(K.exam, null);
+  const cur = curExam();
   if (cur && cur.gtest === tid) { resumeExam(); return; }
   if (cur && !confirm('Un autre sujet est en cours sur cet appareil : le remplacer ?')) return;
   EXAM = { id: 'g' + Date.now().toString(36), def: t.def, title: t.title, kind: 'groupe', gtest: tid, start: gWin(t).start, ans: {}, elapsed: 0, since: Date.now(), running: true };
@@ -2761,7 +2765,23 @@ function wireGrp() {
 /* =====================================================================
    COMPTE : synchronisation entre appareils (../account.js)
    ===================================================================== */
-function onRemoteData() {
+// Sujet modifié sur un autre appareil : mêmes réponses ici, ou sujet rendu, abandonné ou remplacé là-bas
+// (vrai si un message a été affiché)
+function examSynced() {
+  if (!EXAM) return false;
+  const ex = curExam();
+  if (ex && ex.id === EXAM.id) {
+    EXAM.ans = Object.assign({}, ex.ans);
+    $$('#v-exam .ans-in').forEach(inp => { const v = EXAM.ans[inp.dataset.id] || ''; if (inp !== document.activeElement && inp.value !== v) { inp.value = v; livePreview(inp); } });
+    return false;
+  }
+  EXAM = null; stopTick(); $('#topbar').classList.remove('warn', 'danger');
+  toast(ex ? 'Un autre sujet a été commencé sur ton autre appareil.' : 'Sujet rendu ou abandonné sur ton autre appareil.');
+  if (document.body.dataset.view === 'exam') showTab('blanc');
+  return true;
+}
+function onRemoteData(keys) {
+  const said = !!keys && keys.includes(K.exam) && examSynced();
   // exercice affiché pas encore commencé ici : on reprend celui de la progression à jour (peut-être celui d'un autre appareil)
   if (CUR && !CUR.done && !CUR.first.size && !Object.keys(CUR.ans).length) {
     const c = pst().cur;
@@ -2773,7 +2793,7 @@ function onRemoteData() {
   else if (v === 'blanc') renderBlanc();
   else if (v === 'demos') renderDemos();
   else if (v === 'exos') renderExControls();
-  toast('Progression synchronisée depuis ton compte.');
+  if (!said) toast('Progression synchronisée depuis ton compte.');
 }
 function wireAccount() {
   const A = window.SiteAccount; if (!A) return;

@@ -369,7 +369,7 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   const gp = get('algo.path.v1', null), gSk = gp && gp.sk ? Object.values(gp.sk).filter(s => s.m >= 100).length : 0, gH = get('algo.hist.v1', []);
   document.getElementById('algoMeta').innerHTML = [gSk ? `<b>${gSk}/12</b> compétences validées` : '', gH.length ? `dernier sujet blanc : <b>${String(gH[gH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   const pp = get('phys.path.v1', null), pSk = pp && pp.sk ? Object.values(pp.sk).filter(s => s.m >= 100).length : 0, pH = get('phys.hist.v1', []);
-  document.getElementById('physMeta').innerHTML = [pSk ? `<b>${pSk}/14</b> compétences validées` : '', pH.length ? `dernier sujet blanc : <b>${String(pH[pH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
+  document.getElementById('physMeta').innerHTML = [pSk ? `<b>${pSk}/16</b> compétences validées` : '', pH.length ? `dernier sujet blanc : <b>${String(pH[pH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   const mp = get('meca.path.v1', null), mSk = mp && mp.sk ? Object.values(mp.sk).filter(s => s.m >= 100).length : 0, mH = get('meca.hist.v1', []);
   document.getElementById('mecaMeta').innerHTML = [mSk ? `<b>${mSk}/11</b> compétences validées` : '', mH.length ? `dernier sujet blanc : <b>${String(mH[mH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   const sp = get('ms1.path.v1', null), sSk = sp && sp.sk ? Object.values(sp.sk).filter(s => s.m >= 100).length : 0, sH = get('ms1.hist.v1', []);

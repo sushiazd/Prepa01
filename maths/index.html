@@ -10079,7 +10079,13 @@ function initCloud() {
 }
 async function onSession(session) {
   if (!session) {
-    if (me) { controls = []; attempts = []; saveControls(); ls.set(K.attempts, attempts); recomputeSeen(); ls.set(K.owner, null); }
+    if (me) {
+      controls = []; attempts = []; saveControls(); ls.set(K.attempts, attempts); recomputeSeen(); ls.set(K.owner, null);
+      // l'épreuve en cours est sur le compte (qcm.session) : elle quitte aussi l'appareil, comme le groupe ouvert
+      // et les contrôles regardés, pour ne pas passer au prochain compte connecté ici
+      if (S && !S.rv) { stopTick(); S = null; }
+      ls.del(K.session); sessSnap = null; ls.del(SPEC_K); ls.del('qcmhub.group.v1');
+    }
     me = null; myGroups = []; curGroup = null; G = null; authMode = 'login'; setSync('idle');
     refreshViews(); return;
   }

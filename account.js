@@ -2,7 +2,7 @@
    Compte du site et synchronisation des données entre appareils.
    - Un seul compte Supabase pour tout le site : la session est partagée par toutes les pages
      (même domaine), donc se connecter sur l'accueil connecte aussi toutes les pages.
-   - Les données locales listées dans SYNC (progression élec…) sont copiées dans la table
+   - Les données locales listées dans SYNC (parcours, copies et sujet blanc en cours de chaque matière…) sont copiées dans la table
      user_data, une ligne par clé, et fusionnées à chaque ouverture de page ou retour sur l'onglet.
    Usage : <script defer src="account.js"></script>          → toujours chargé (accueil)
            <script defer src="../account.js" data-lazy></script> → seulement si une session existe
@@ -47,7 +47,17 @@
     'elec.plan.v1': null,                // le plus récent gagne
     'elec.ccdate.v1': null,
     'planning.v1': null,                 // lien d'export de l'emploi du temps (le plus récent gagne)
+    // sujet blanc en cours : commencé sur un appareil, fini sur un autre. Une copie rendue ou abandonnée
+    // reste enregistrée avec closed: true, pour qu'un appareil resté sur le sujet ne le fasse pas revenir.
+    'elec.exam.v1': (L, R, localWins) => {
+      const id = E => String(E.id != null ? E.id : E.seed != null ? E.seed : E.t0);
+      const nw = localWins ? L : R, old = localWins ? R : L;
+      if (id(L) !== id(R)) return nw;                   // deux sujets différents : le dernier touché gagne
+      if (L.closed || R.closed) return L.closed ? L : R; // même sujet rendu d'un côté : il est rendu
+      return Object.assign({}, nw, { ans: Object.assign({}, old.ans, nw.ans) });   // réponses des deux appareils
+    },
   };
+  ['ato', 'algo', 'phys', 'meca', 'ms1', 'ma2', 'el2'].forEach(p => { SYNC[p + '.exam.v1'] = SYNC['elec.exam.v1']; });
   // atomistique : mêmes règles que l'élec (parcours compétence par compétence, copies réunies)
   SYNC['ato.path.v1'] = SYNC['elec.path.v1'];
   SYNC['ato.hist.v1'] = SYNC['elec.hist.v1'];
@@ -109,6 +119,8 @@
       // comme le QCM maths : les données restent sur le compte mais quittent cet appareil
       KEYS.forEach(k => put(k, null));
       put('qcmhub.controls.v1', []); put('qcmhub.attempts.v1', []); put('qcmhub.owner.v1', null);
+      // épreuve de maths en cours (copiée sur le compte), questions déjà vues, groupe ouvert, contrôles regardés
+      ['qcmhub.session.v2', 'qcmhub.seen.v1', 'qcmhub.group.v1', 'qcmhub.spec.v1'].forEach(k => put(k, null));
       put(META, {});
       emit('data', KEYS);
     }

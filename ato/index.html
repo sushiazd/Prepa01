@@ -608,7 +608,7 @@ const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); 
 /* =====================================================================
    COMPÉTENCES ET PROGRESSION (mêmes règles que le parcours d'élec)
    ===================================================================== */
-const PK = 'ato.path.v1', HK = 'ato.hist.v1', VAL = 100, MMAX = 130;
+const PK = 'ato.path.v1', HK = 'ato.hist.v1', EK = 'ato.exam.v1', VAL = 100, MMAX = 130;
 const CH = ['Structure de l\'atome', 'Spectres atomiques', 'Modèle quantique', 'Atomes polyélectroniques', 'Tableau périodique'];
 const SK = [
   { id: 'noyau', ch: 0, name: 'Composition des atomes et des ions', fiche: 0 },
@@ -725,9 +725,10 @@ function setTab(t) {
   if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
   window.scrollTo(0, 0);
 }
+// CC déplacé : l'ancien créneau du 20/10 est ignoré tant que l'emploi du temps n'a pas la nouvelle date (comme l'accueil)
 function nextCC() {
-  const c = ls.get('planning.cache.v1', null), now = Date.now();
-  const ev = c && c.evs ? c.evs.find(e => e.s > now - 3 * 3600e3 && /(^|[^A-Za-z])ATO([^A-Za-z]|$)/.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : null;
+  const c = ls.get('planning.cache.v1', null), now = Date.now(), old = Date.parse('2026-10-20T13:00:00Z');
+  const ev = c && c.evs ? c.evs.find(e => e.s > now - 3 * 3600e3 && e.s !== old && /(^|[^A-Za-z])ATO([^A-Za-z]|$)/.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : null;
   return ev ? ev.s : null;
 }
 function vHome() {
@@ -837,8 +838,8 @@ function examExos(seed) {
   return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) }));
 }
 function vBlanc() {
-  const E = ls.get('ato.exam.v1', null);
-  if (E && !EXAM) { EXAM = E; EXAM.running = true; }
+  const E = ls.get(EK, null);
+  if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = true; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Même plan que le CC de novembre 2021 : isotopes (3 pts), spectre d'un ion hydrogénoïde comme He<sup>+</sup> (7 pts), nombres quantiques (3 pts), configurations électroniques et tableau périodique (7 pts). Au CC 2021, la calculatrice était autorisée pour les calculs numériques seulement.</p></div>
@@ -869,7 +870,7 @@ function submitExam(auto) {
   exs.forEach(ex => { const its = [].concat(...ex.parts.map(p => p.items)); const ok = its.filter(it => check(it, EXAM.ans[it.id] || '').st === 'ok').length; note += ex.pts * ok / its.length; });
   EXAM.done = true; EXAM.note = note; EXAM.running = false;
   const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(3600, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
-  try { localStorage.removeItem('ato.exam.v1'); } catch (e) { /* ignore */ }
+  ls.set(EK, Object.assign({}, EXAM, { closed: true }));   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
   renderExam(); window.scrollTo(0, 0);
 }
@@ -890,14 +891,14 @@ document.addEventListener('click', e => {
   else if (act === 'next') nextPath();
   else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
   else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
-  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; ls.set('ato.exam.v1', EXAM); renderExam(); }
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; ls.set(EK, EXAM); renderExam(); }
   else if (act === 'submit') submitExam(false);
   else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
 });
 document.addEventListener('input', e => {
   const t = e.target; if (!t.matches('input')) return;
   const id = t.dataset.id || t.name; if (!id) return;
-  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; try { localStorage.setItem('ato.exam.v1', JSON.stringify(EXAM)); } catch (err) { /* ignore */ } }
+  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; ls.set(EK, EXAM); }
   else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
   if (t.type === 'text') {
     const it = (CUR && CUR.ex.items.find(x => x.id === id)) || (EXAM && [].concat(...examExos(EXAM.seed).map(x => [].concat(...x.parts.map(p => p.items)))).find(x => x.id === id));
@@ -919,9 +920,26 @@ document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matc
 })();
 
 /* ---------- Synchronisation (progression venue d'un autre appareil) ---------- */
+// Sujet blanc modifié sur un autre appareil (account.js) : mêmes réponses ici, ou sujet rendu ou remplacé là-bas
+function examSynced() {
+  const E = ls.get(EK, null), open = E && !E.closed && !E.done ? E : null;
+  if (EXAM && EXAM.done) return;
+  if (EXAM && open && open.seed === EXAM.seed) {
+    EXAM.ans = Object.assign({}, open.ans);
+    const typing = document.activeElement && document.activeElement.matches('#app input, #app textarea');
+    if (VIEW === 'blanc' && !typing) renderExam();
+    return;
+  }
+  if (EXAM) {
+    EXAM = null; clearInterval(tick); $('#clock').hidden = true;
+    toast(open ? 'Un autre sujet blanc a été commencé sur ton autre appareil.' : 'Sujet blanc rendu sur ton autre appareil : la note est dans « Mes copies ».');
+  }
+  if (VIEW === 'blanc') vBlanc();
+}
 function wireAccount() {
   const A = window.SiteAccount; if (!A) return;
   A.on('data', keys => {
+    if (keys.includes(EK)) examSynced();
     if (!keys.some(k => k.startsWith('ato.'))) return;
     if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
     if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();

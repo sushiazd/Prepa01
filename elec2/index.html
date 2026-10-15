@@ -777,7 +777,7 @@ const EXAM_PLAN = [['Exercice 1 · Démonstration', [['demos', 0]], 4], ['Exerci
 function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
-  if (E && !EXAM) { EXAM = E; EXAM.running = !E.done; }
+  if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Le format des quatre dernières annales : une démonstration (4 pts), Thévenin avec deux sources (8 pts), un circuit RC ou RL (8 pts).</p></div>
@@ -802,7 +802,7 @@ function startTick() {
   const upd = () => { const left = DUR - (Date.now() - EXAM.t0) / 1000; clk.textContent = `${Math.floor(Math.max(0, left) / 3600)}:${String(Math.floor(Math.max(0, left) % 3600 / 60)).padStart(2, '0')}:${String(Math.floor(Math.max(0, left) % 60)).padStart(2, '0')}`; clk.classList.toggle('rush', left < 600); if (left <= 0) submitExam(true); };
   upd(); tick = setInterval(upd, 1000);
 }
-const saveExam = () => { const { exs, ...rest } = EXAM; try { localStorage.setItem(EK, JSON.stringify(rest)); } catch (e) { /* ignore */ } };
+const saveExam = () => { const { exs, ...rest } = EXAM; ls.set(EK, rest); };
 function submitExam(auto) {
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
@@ -815,7 +815,7 @@ function submitExam(auto) {
   }
   EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
   const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)) }); ls.set(HK, H);
-  try { localStorage.removeItem(EK); } catch (e) { /* ignore */ }
+  EXAM.closed = true; saveExam();   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
   renderExam(); window.scrollTo(0, 0);
 }
@@ -859,9 +859,26 @@ document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matc
   apply(t);
   btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
 })();
+// Sujet blanc modifié sur un autre appareil (account.js) : mêmes réponses ici, ou sujet rendu ou remplacé là-bas
+function examSynced() {
+  const E = ls.get(EK, null), open = E && !E.closed && !E.done ? E : null;
+  if (EXAM && EXAM.done) return;
+  if (EXAM && open && open.seed === EXAM.seed) {
+    EXAM.ans = Object.assign({}, open.ans);
+    const typing = document.activeElement && document.activeElement.matches('#app input, #app textarea');
+    if (VIEW === 'blanc' && !typing) renderExam();
+    return;
+  }
+  if (EXAM) {
+    EXAM = null; clearInterval(tick); $('#clock').hidden = true;
+    toast(open ? 'Un autre sujet blanc a été commencé sur ton autre appareil.' : 'Sujet blanc rendu sur ton autre appareil : la note est dans « Mes copies ».');
+  }
+  if (VIEW === 'blanc') vBlanc();
+}
 function wireAccount() {
   const A = window.SiteAccount; if (!A) return;
   A.on('data', keys => {
+    if (keys.includes(EK)) examSynced();
     if (!keys.some(k => k.startsWith('el2.'))) return;
     if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
     if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();

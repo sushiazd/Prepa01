@@ -10432,7 +10432,10 @@ async function soloToGroup() {
   const g = myGroups.find(x => x.id === curGroup) || myGroups[0];
   if (!await ask(`Lancer ce contrôle en direct dans le groupe « ${g.name} » ? Il repart de zéro avec les mêmes ${S.def.qids.length} questions et ${fmtMin(Math.round(S.def.duration / 60))} de chrono pour tout le monde ; ta copie en cours est abandonnée.`, 'Lancer en direct')) return;
   const def = S.def;
-  const { data: row, error } = await sb.from('group_tests').insert({ group_id: g.id, title: 'Contrôle du groupe · ' + def.title, qids: def.qids, duration_s: def.duration, theme_count: def.themeCount || null, created_by: me.id }).select().single();
+  // Même numérotation que les autres contrôles du groupe (rang parmi les contrôles encore présents)
+  const cnt = await sb.from('group_tests').select('id', { count: 'exact', head: true }).eq('group_id', g.id).eq('subject', 'maths');
+  if (cnt.error) { toast(frErr(cnt.error), 5000); return; }
+  const { data: row, error } = await sb.from('group_tests').insert({ group_id: g.id, title: `Contrôle du groupe n° ${(cnt.count || 0) + 1}`, qids: def.qids, duration_s: def.duration, theme_count: def.themeCount || null, created_by: me.id }).select().single();
   if (error) { toast(frErr(error), 5000); return; }
   discardLive();
   toast('Salle d\'attente ouverte : le groupe la voit en haut de la page. Clique sur « Démarrer maintenant » quand tout le monde est là.', 6000);

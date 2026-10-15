@@ -998,7 +998,9 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
     <div class="pause-actions">
       <button type="button" class="btn btn-primary btn-lg" id="resumeBtn">Reprendre l'épreuve</button>
       <button type="button" class="btn" id="leaveBtn">Quitter et reprendre plus tard</button>
+      <button type="button" class="btn" id="toGroupBtn" hidden>Faire ce contrôle en direct avec mon groupe</button>
       <button type="button" class="btn btn-ghost" id="pauseSubmitBtn">Rendre la copie maintenant</button>
+      <button type="button" class="btn btn-ghost" id="abandonBtn">Abandonner sans rendre</button>
     </div>
   </div>
 </div>
@@ -9271,6 +9273,7 @@ function showPause() {
   $('#clockTime').textContent = fmtClock(rem);
   $('#pauseAnswered').textContent = `${answered}/${N} répondues`;
   $('#pauseCount').textContent = `${S.pauseCount} pause${S.pauseCount > 1 ? 's' : ''} jusqu'ici`;
+  $('#toGroupBtn').hidden = !(me && myGroups.length && S.def.kind !== 'group');
   $('#timeBarFill').style.width = (Math.max(0, rem) / DURATION * 100).toFixed(2) + '%';
   $('#pauseLayer').hidden = false;
   document.title = '⏸ Pause · QCM mathématiques';
@@ -9794,6 +9797,8 @@ function init() {
   $('#resumeBtn').addEventListener('click', resumeTest);
   $('#leaveBtn').addEventListener('click', () => showTab('controls'));
   $('#pauseSubmitBtn').addEventListener('click', openConfirm);
+  $('#abandonBtn').addEventListener('click', abandonTest);
+  $('#toGroupBtn').addEventListener('click', soloToGroup);
   $('#navGrid').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) go(+b.dataset.go); });
   $('#qSheet').addEventListener('click', e => {
     const ch = e.target.closest('.choice');
@@ -10412,6 +10417,29 @@ function liveCanceled(tid, by, mine) {
     showTab('groupe');
     if (curGroup) openGroup(curGroup);
   } else renderBanners();
+}
+// Épreuve seul : l'abandonner sans rendre (aucune copie, aucune note)
+async function abandonTest() {
+  if (!S || S.phase !== 'test') return;
+  if (!await ask('Abandonner cette épreuve sans rendre ta copie ? Tes réponses sont effacées et aucune note n\'est enregistrée.', 'Abandonner')) return;
+  discardLive();
+  toast('Épreuve abandonnée : aucune note enregistrée.');
+  showTab('controls');
+}
+// Épreuve seul → contrôle de groupe en direct avec exactement les mêmes questions et la même durée
+async function soloToGroup() {
+  if (!S || S.phase !== 'test' || !me || !myGroups.length) return;
+  const g = myGroups.find(x => x.id === curGroup) || myGroups[0];
+  if (!await ask(`Lancer ce contrôle en direct dans le groupe « ${g.name} » ? Il repart de zéro avec les mêmes ${S.def.qids.length} questions et ${fmtMin(Math.round(S.def.duration / 60))} de chrono pour tout le monde ; ta copie en cours est abandonnée.`, 'Lancer en direct')) return;
+  const def = S.def;
+  const { data: row, error } = await sb.from('group_tests').insert({ group_id: g.id, title: 'Contrôle du groupe · ' + def.title, qids: def.qids, duration_s: def.duration, theme_count: def.themeCount || null, created_by: me.id }).select().single();
+  if (error) { toast(frErr(error), 5000); return; }
+  discardLive();
+  toast('Salle d\'attente ouverte : le groupe la voit en haut de la page. Clique sur « Démarrer maintenant » quand tout le monde est là.', 6000);
+  LIVE = [row].concat(LIVE.filter(t => t.id !== row.id));
+  showTab('groupe');
+  openGroup(g.id);
+  openGroupTest(groupTestDef(row));
 }
 async function liveQuit() {
   if (!S || !S.live) return;

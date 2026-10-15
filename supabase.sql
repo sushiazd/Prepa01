@@ -337,10 +337,13 @@ begin
     'groups', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'name', name)), '[]'::jsonb) from public.groups),
     'memberships', (select coalesce(jsonb_agg(jsonb_build_object('group_id', group_id, 'user_id', user_id)), '[]'::jsonb) from public.memberships),
     -- autres matières (user_data) : par compte et par clé, compétences validées (maîtrise ≥ 100) du parcours
-    -- « x.path.v1 », nombre de copies et notes (dans l'ordre) des sujets blancs « x.hist.v1 »
+    -- « x.path.v1 » (nombre et identifiants : la page moi/ écarte les compétences bonus), nombre de copies
+    -- et notes (dans l'ordre) des sujets blancs « x.hist.v1 »
     'subjects', (select coalesce(jsonb_agg(jsonb_build_object('user_id', u.user_id, 'key', u.key, 'updated_at', u.updated_at,
         'valid', case when u.key like '%.path.v1' and jsonb_typeof(u.value->'sk') = 'object'
           then (select count(*) from jsonb_each(u.value->'sk') s where jsonb_typeof(s.value->'m') = 'number' and (s.value->>'m')::numeric >= 100) end,
+        'ids', case when u.key like '%.path.v1' and jsonb_typeof(u.value->'sk') = 'object'
+          then (select coalesce(jsonb_agg(s.key), '[]'::jsonb) from jsonb_each(u.value->'sk') s where jsonb_typeof(s.value->'m') = 'number' and (s.value->>'m')::numeric >= 100) end,
         'n', case when u.key like '%.hist.v1' and jsonb_typeof(u.value) = 'array' then jsonb_array_length(u.value) end,
         'notes', case when u.key like '%.hist.v1' and jsonb_typeof(u.value) = 'array'
           then (select coalesce(jsonb_agg(h.e->'note' order by h.i), '[]'::jsonb) from jsonb_array_elements(u.value) with ordinality h(e, i)) end)), '[]'::jsonb)

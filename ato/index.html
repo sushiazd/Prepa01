@@ -10,8 +10,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026101503"></script>
-<script src="../core.js?v=2026101503"></script>
+<script src="../subjects.js?v=2026101504"></script>
+<script src="../core.js?v=2026101504"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026101503">
 <style>
@@ -102,7 +102,8 @@ const E = SiteCore({ id: 'ato', get DUR() { return 3600; }, clock: 'ms', rush: 3
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
-  renderEx: () => renderEx(), renderExam: () => renderExam(), submitExam: auto => submitExam(auto) });
+  renderEx: () => renderEx(), renderExam: () => renderExam(), submitExam: auto => submitExam(auto),
+  examItems: () => [].concat(...examExos(EXAM.seed, EXAM.plan).map(x => [].concat(...x.parts.map(q => q.items)))), check: (it, raw) => check(it, raw), valOf: (r, id) => valOf(r, id) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
   startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton, hideCorr } = E;
 function typeset(el) { if (el && window.renderMathInElement) try { renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); } catch (e) { /* ignore */ } }
@@ -464,6 +465,149 @@ GEN.prop = (d, g) => {
 };
 
 /* =====================================================================
+   PARTIE 2 · LIAISONS CHIMIQUES (CC du 16/12) : Lewis, charges formelles, VSEPR, hybridation, polarité
+   D'après les chapitres I à III de la partie 2 du cours et les TD IV à VI du poly.
+   ===================================================================== */
+const ZOF = { H: 1, Be: 4, B: 5, C: 6, N: 7, O: 8, F: 9, Al: 13, P: 15, S: 16, Cl: 17, Br: 35, Xe: 54 };
+const zData = f => { const els = [...new Set(f.replace(/<[^>]+>/g, '').match(/[A-Z][a-z]?/g) || [])].filter(e => ZOF[e]); return `<p class="fine" style="margin-top:8px">Données : ${els.map(e => `Z(${e}) = ${ZOF[e]}`).join(' · ')}.</p>`; };
+// Molécules des TD : A atome central, ve électrons de valence de l'édifice (charge comprise), dl doublets liants autour
+// de A (une liaison double compte 2), dnl doublets non liants de A, oct règle de l'octet pour A (lac : lacune,
+// hyp : hypervalence), n, p : formulation AXnEp, mu : polaire (null pour un ion), lv : niveau
+const MOL = [
+  { f: 'CH<sub>4</sub>', A: 'C', ve: 8, dl: 4, dnl: 0, n: 4, p: 0, mu: false, lv: 0 },
+  { f: 'NH<sub>3</sub>', A: 'N', ve: 8, dl: 3, dnl: 1, n: 3, p: 1, mu: true, lv: 0 },
+  { f: 'H<sub>2</sub>O', A: 'O', ve: 8, dl: 2, dnl: 2, n: 2, p: 2, mu: true, lv: 0 },
+  { f: 'CCl<sub>4</sub>', A: 'C', ve: 32, dl: 4, dnl: 0, n: 4, p: 0, mu: false, lv: 0 },
+  { f: 'CHCl<sub>3</sub>', A: 'C', ve: 26, dl: 4, dnl: 0, n: 4, p: 0, mu: true, lv: 1 },
+  { f: 'NF<sub>3</sub>', A: 'N', ve: 26, dl: 3, dnl: 1, n: 3, p: 1, mu: true, lv: 1 },
+  { f: 'PCl<sub>3</sub>', A: 'P', ve: 26, dl: 3, dnl: 1, n: 3, p: 1, mu: true, lv: 1 },
+  { f: 'NH<sub>4</sub><sup>+</sup>', A: 'N', ve: 8, dl: 4, dnl: 0, n: 4, p: 0, mu: null, lv: 1 },
+  { f: 'H<sub>3</sub>O<sup>+</sup>', A: 'O', ve: 8, dl: 3, dnl: 1, n: 3, p: 1, mu: null, lv: 1 },
+  { f: 'CO<sub>2</sub>', A: 'C', ve: 16, dl: 4, dnl: 0, n: 2, p: 0, mu: false, lv: 1 },
+  { f: 'HCN', A: 'C', ve: 10, dl: 4, dnl: 0, n: 2, p: 0, mu: true, lv: 1 },
+  { f: 'HCHO (méthanal)', A: 'C', ve: 12, dl: 4, dnl: 0, n: 3, p: 0, mu: true, lv: 1 },
+  { f: 'O<sub>3</sub>', A: 'O', ve: 18, dl: 3, dnl: 1, n: 2, p: 1, mu: true, lv: 1 },
+  { f: 'SO<sub>2</sub>', A: 'S', ve: 18, n: 2, p: 1, mu: true, lv: 1, noLewis: true },
+  { f: 'CO<sub>3</sub><sup>2−</sup>', A: 'C', ve: 24, dl: 4, dnl: 0, n: 3, p: 0, mu: null, lv: 2 },
+  { f: 'NO<sub>3</sub><sup>−</sup>', A: 'N', ve: 24, dl: 4, dnl: 0, n: 3, p: 0, mu: null, lv: 2 },
+  { f: 'BF<sub>3</sub>', A: 'B', ve: 24, dl: 3, dnl: 0, oct: 'lac', n: 3, p: 0, mu: false, lv: 2 },
+  { f: 'BeCl<sub>2</sub>', A: 'Be', ve: 16, dl: 2, dnl: 0, oct: 'lac', n: 2, p: 0, mu: false, lv: 2 },
+  { f: 'AlCl<sub>3</sub>', A: 'Al', ve: 24, dl: 3, dnl: 0, oct: 'lac', n: 3, p: 0, mu: false, lv: 2 },
+  { f: 'PCl<sub>5</sub>', A: 'P', ve: 40, dl: 5, dnl: 0, oct: 'hyp', n: 5, p: 0, mu: false, lv: 2 },
+  { f: 'SF<sub>6</sub>', A: 'S', ve: 48, dl: 6, dnl: 0, oct: 'hyp', n: 6, p: 0, mu: false, lv: 2 },
+  { f: 'SF<sub>4</sub>', A: 'S', ve: 34, dl: 4, dnl: 1, oct: 'hyp', n: 4, p: 1, mu: true, lv: 2 },
+  { f: 'ClF<sub>3</sub>', A: 'Cl', ve: 28, dl: 3, dnl: 2, oct: 'hyp', n: 3, p: 2, mu: true, lv: 2 },
+  { f: 'XeF<sub>2</sub>', A: 'Xe', ve: 22, dl: 2, dnl: 3, oct: 'hyp', n: 2, p: 3, mu: false, lv: 2 },
+  { f: 'XeF<sub>4</sub>', A: 'Xe', ve: 36, dl: 4, dnl: 2, oct: 'hyp', n: 4, p: 2, mu: false, lv: 2 },
+  { f: 'BrF<sub>5</sub>', A: 'Br', ve: 42, dl: 5, dnl: 1, oct: 'hyp', n: 5, p: 1, mu: true, lv: 2 }
+];
+const OCT = { oct: 'règle de l\'octet respectée', lac: 'lacune électronique (moins de 8 électrons)', hyp: 'hypervalence (plus de 8 électrons)' };
+const optsOf = (all, ans, k, g) => g.shuffle([ans, ...g.shuffle(all.filter(x => x !== ans)).slice(0, k - 1)]).map(x => ({ v: x, t: x }));
+
+GEN.lewis = (d, g) => {
+  const pool = MOL.filter(m => !m.noLewis && (d === 0 ? m.lv === 0 : d === 1 ? m.lv <= 1 : m.lv === 2 || m.ve > 20));
+  const m = g.pick(pool), oct = m.oct || 'oct', octOpts = Object.keys(OCT).map(k => ({ v: k, t: OCT[k] }));
+  const items = d === 0 ? [{ type: 'int', label: 'électrons de valence (total)', val: m.ve }, { type: 'int', label: 'doublets (total)', val: m.ve / 2 }, { type: 'int', label: `doublets non liants de ${m.A}`, val: m.dnl }]
+    : d === 1 ? [{ type: 'int', label: 'électrons de valence (total)', val: m.ve }, { type: 'int', label: `doublets liants autour de ${m.A}`, val: m.dl }, { type: 'int', label: `doublets non liants de ${m.A}`, val: m.dnl }]
+    : [{ type: 'int', label: `doublets liants autour de ${m.A}`, val: m.dl }, { type: 'int', label: `doublets non liants de ${m.A}`, val: m.dnl }, { type: 'choice', label: `pour ${m.A}`, opts: octOpts, ans: oct }];
+  const around = 2 * (m.dl + m.dnl);
+  return { title: 'Schéma de Lewis', q: `Établir le schéma de Lewis de ${m.f} (atome central : ${m.A}${/[+−]/.test(m.f) ? ', la charge de l\'ion compte dans le total d\'électrons' : ''}), puis compléter. Une liaison double compte pour 2 doublets liants, une triple pour 3.` + zData(m.f),
+    items, corr: `<p>Électrons de valence : ${m.ve} au total, soit <b>${m.ve / 2} doublets</b> à placer.</p><p>Autour de ${m.A} : <b>${m.dl} doublet${m.dl > 1 ? 's' : ''} liant${m.dl > 1 ? 's' : ''}</b> et <b>${m.dnl} non liant${m.dnl > 1 ? 's' : ''}</b>, soit ${around} électrons : ${oct === 'lac' ? `moins de 8, <b>lacune électronique</b> (${m.A} a des cases vides : acide de Lewis, comme BF<sub>3</sub> qui accepte le doublet de NH<sub>3</sub>).` : oct === 'hyp' ? `plus de 8, <b>hypervalence</b> : possible pour ${m.A} (3<sup>e</sup> période ou au-delà, cases d disponibles), jamais pour C, N, O, F.` : 'l\'octet est respecté.'}</p><p class="fine">Méthode : compter les électrons de valence (± la charge), relier les atomes par des liaisons simples, compléter les octets des atomes externes, placer le reste sur l'atome central, puis former des liaisons multiples si l'atome central n'a pas son octet.</p>` };
+};
+
+// Charges formelles : [atome, électrons de valence, électrons non liants, liaisons (une double compte 2)]
+const CFX = [
+  { f: 'NH<sub>4</sub><sup>+</sup>', s: 'N est lié à 4 H par des liaisons simples et n\'a pas de doublet non liant.', at: [['N', 5, 0, 4]], lv: 0 },
+  { f: 'H<sub>3</sub>O<sup>+</sup>', s: 'O est lié à 3 H par des liaisons simples et porte 1 doublet non liant.', at: [['O', 6, 2, 3]], lv: 0 },
+  { f: 'OH<sup>−</sup>', s: 'O est lié à H et porte 3 doublets non liants.', at: [['O', 6, 6, 1]], lv: 0 },
+  { f: 'NH<sub>2</sub><sup>−</sup>', s: 'N est lié à 2 H et porte 2 doublets non liants.', at: [['N', 5, 4, 2]], lv: 0 },
+  { f: 'CO', s: 'C≡O : liaison triple, 1 doublet non liant sur C et 1 sur O.', at: [['C', 4, 2, 3], ['O', 6, 2, 3]], lv: 1 },
+  { f: 'CN<sup>−</sup>', s: 'C≡N : liaison triple, 1 doublet non liant sur C et 1 sur N.', at: [['C', 4, 2, 3], ['N', 5, 2, 3]], lv: 1 },
+  { f: 'CH<sub>3</sub>O<sup>−</sup> (ion méthanolate)', s: 'C est lié à 3 H et à O ; O porte 3 doublets non liants.', at: [['C', 4, 0, 4], ['O', 6, 6, 1]], lv: 1 },
+  { f: 'HClO (acide hypochloreux)', s: 'H–O–Cl : O porte 2 doublets non liants, Cl en porte 3.', at: [['O', 6, 4, 2], ['Cl', 7, 6, 1]], lv: 1 },
+  { f: 'NO<sub>2</sub><sup>+</sup>', s: 'O=N=O : N n\'a pas de doublet non liant, chaque O en porte 2.', at: [['N', 5, 0, 4], ['O', 6, 4, 2]], lv: 1 },
+  { f: 'NO<sub>3</sub><sup>−</sup>', s: 'N est lié à un O par une liaison double et à deux O par des liaisons simples ; l\'O de la double porte 2 doublets non liants, ceux des simples en portent 3.', at: [['N', 5, 0, 4], ['O (liaison double)', 6, 4, 2], ['O (liaison simple)', 6, 6, 1]], meso: 3, lv: 2 },
+  { f: 'CO<sub>3</sub><sup>2−</sup>', s: 'C est lié à un O par une liaison double et à deux O par des liaisons simples ; l\'O de la double porte 2 doublets non liants, ceux des simples en portent 3.', at: [['C', 4, 0, 4], ['O (liaison double)', 6, 4, 2], ['O (liaison simple)', 6, 6, 1]], meso: 3, lv: 2 },
+  { f: 'O<sub>3</sub>', s: 'O=O–O : l\'O central porte 1 doublet non liant, l\'O de la double en porte 2, celui de la simple en porte 3.', at: [['O central', 6, 2, 3], ['O (liaison double)', 6, 4, 2], ['O (liaison simple)', 6, 6, 1]], meso: 2, lv: 2 },
+  { f: 'SO<sub>2</sub>', s: 'forme qui respecte l\'octet, O=S–O : S porte 1 doublet non liant, l\'O de la double en porte 2, celui de la simple en porte 3.', at: [['S', 6, 2, 3], ['O (liaison double)', 6, 4, 2], ['O (liaison simple)', 6, 6, 1]], meso: 2, lv: 2 },
+  { f: 'NO<sub>2</sub><sup>−</sup>', s: 'O=N–O : N porte 1 doublet non liant, l\'O de la double en porte 2, celui de la simple en porte 3.', at: [['N', 5, 2, 3], ['O (liaison double)', 6, 4, 2], ['O (liaison simple)', 6, 6, 1]], meso: 2, lv: 2 }
+];
+const cfOf = ([, v, nl, b]) => v - nl - b;
+GEN.cf = (d, g) => {
+  const e = g.pick(CFX.filter(x => d === 0 ? x.lv === 0 : d === 1 ? x.lv === 1 : x.lv === 2));
+  const items = e.at.map(a => ({ type: 'int', label: `charge formelle de ${a[0]}`, val: cfOf(a) }));
+  if (d === 2) items.push({ type: 'int', label: 'formes mésomères équivalentes', val: e.meso });
+  const sign = n => n > 0 ? '+' + n : n < 0 ? '−' + -n : '0';
+  return { title: d === 2 ? 'Charges formelles et mésomérie' : 'Charges formelles', q: `Dans le schéma de Lewis de ${e.f} : ${e.s} Donner la charge formelle de chaque atome demandé${d === 2 ? ', puis le nombre de formes mésomères équivalentes (on déplace la liaison double)' : ''}.`, items,
+    corr: `<p>Charge formelle = électrons de valence de l'atome isolé − électrons non liants − nombre de liaisons (chaque liaison compte pour 1 électron de l'atome) :</p><ul>${e.at.map(a => `<li>${a[0]} : ${a[1]} − ${a[2]} − ${a[3]} = <b>${sign(cfOf(a))}</b></li>`).join('')}</ul><p>La somme des charges formelles de tous les atomes est égale à la charge de l'édifice.${e.meso ? ` La double liaison peut se placer sur ${e.meso} liaisons équivalentes : <b>${e.meso} formes mésomères</b> ; la molécule réelle est l'hybride de résonance (liaisons toutes identiques, charge répartie).` : ''}</p>` };
+};
+
+// VSEPR : figure de répulsion selon n + p, géométrie selon (n, p), angles du cours
+const FIG = { 2: 'linéaire', 3: 'triangle (plane triangulaire)', 4: 'tétraèdre', 5: 'bipyramide à base triangulaire', 6: 'octaèdre' };
+const GEO = { '2,0': 'linéaire', '3,0': 'triangulaire plane', '2,1': 'coudée', '4,0': 'tétraédrique', '3,1': 'pyramide à base triangulaire', '2,2': 'coudée', '5,0': 'bipyramide à base triangulaire',
+  '4,1': 'balançoire', '3,2': 'en forme de T', '2,3': 'linéaire', '6,0': 'octaédrique', '5,1': 'pyramide à base carrée', '4,2': 'plan carré' };
+const ANG = { '2,0': '180°', '3,0': '120°', '2,1': 'un peu moins de 120°', '4,0': '109°28′', '3,1': 'un peu moins de 109°28′', '2,2': 'nettement moins de 109°28′', '5,0': '90° et 120°', '2,3': '180°', '6,0': '90°', '4,2': '90°' };
+const AXE = (n, p) => `AX${n}${p ? 'E' + (p > 1 ? p : '') : ''}`;
+GEN.vsepr = (d, g) => {
+  const m = g.pick(MOL.filter(x => d === 0 ? x.p === 0 && x.n + x.p <= 4 : d === 1 ? x.p > 0 && x.n + x.p <= 4 : x.n + x.p >= 5)), key = m.n + ',' + m.p;
+  const axes = [...new Set([AXE(m.n, m.p), AXE(m.n + m.p, 0), AXE(m.n, m.p + 1), AXE(Math.max(2, m.n - 1), m.p + 1), AXE(m.n + 1, m.p)])];
+  const items = [{ type: 'choice', label: 'formulation', opts: optsOf(axes, AXE(m.n, m.p), 4, g).map(o => ({ v: o.v, t: o.v.replace(/(\d)/g, '<sub>$1</sub>') })), ans: AXE(m.n, m.p) },
+    { type: 'choice', label: 'figure de répulsion', opts: optsOf(Object.values(FIG), FIG[m.n + m.p], 4, g), ans: FIG[m.n + m.p] },
+    { type: 'choice', label: 'géométrie', opts: optsOf([...new Set(Object.values(GEO))], GEO[key], 4, g), ans: GEO[key] }];
+  if (ANG[key] && d < 2) items.push({ type: 'choice', label: 'angle entre liaisons', opts: optsOf([...new Set(Object.values(ANG))], ANG[key], 4, g), ans: ANG[key] });
+  return { title: 'Géométrie VSEPR', q: `Prévoir la géométrie de ${m.f} par la méthode VSEPR (atome central : ${m.A}).` + zData(m.f), items,
+    corr: `<p>Autour de ${m.A} : n = ${m.n} atome${m.n > 1 ? 's' : ''} lié${m.n > 1 ? 's' : ''} et p = ${m.p} doublet${m.p > 1 ? 's' : ''} non liant${m.p > 1 ? 's' : ''} : <b>${AXE(m.n, m.p)}</b>. Les ${m.n + m.p} doublets (une liaison multiple compte pour une seule direction) se placent selon un <b>${FIG[m.n + m.p]}</b>.</p><p>Géométrie (on ne regarde que les atomes) : <b>${GEO[key]}</b>${ANG[key] ? `, angle ${ANG[key]}` : ''}.${m.p && m.n + m.p <= 4 ? ' Un doublet non liant prend plus de place qu\'un doublet liant : il resserre les angles (CH<sub>4</sub> 109°28′, NH<sub>3</sub> 107°, H<sub>2</sub>O 104,5°).' : ''}${m.n + m.p === 5 && m.p ? ' Sur la bipyramide, les doublets non liants vont en position équatoriale (plus de place).' : ''}</p>` };
+};
+
+// Hybridation de l'atome demandé, liaisons σ et π de la molécule (TD VI)
+const HYB = [
+  ['CH<sub>4</sub>', 'C', 'sp3', 4, 0, 0], ['NH<sub>3</sub>', 'N', 'sp3', 3, 0, 0], ['H<sub>2</sub>O', 'O', 'sp3', 2, 0, 0], ['BF<sub>3</sub>', 'B', 'sp2', 3, 0, 0], ['BeCl<sub>2</sub>', 'Be', 'sp', 2, 0, 0],
+  ['C<sub>2</sub>H<sub>4</sub> (éthylène)', 'chaque C', 'sp2', 5, 1, 1], ['C<sub>2</sub>H<sub>2</sub> (acétylène)', 'chaque C', 'sp', 3, 2, 1], ['CO<sub>2</sub>', 'C', 'sp', 2, 2, 1], ['HCN', 'C', 'sp', 2, 2, 1], ['HCHO (méthanal)', 'C', 'sp2', 3, 1, 1],
+  ['CH<sub>3</sub>CN', 'le C du groupe CN', 'sp', 5, 2, 2], ['CH<sub>3</sub>CN', 'le C du groupe CH<sub>3</sub>', 'sp3', 5, 2, 2], ['CH<sub>3</sub>OH', 'O', 'sp3', 5, 0, 2], ['N<sub>2</sub>H<sub>4</sub> (hydrazine)', 'chaque N', 'sp3', 5, 0, 2],
+  ['HNO<sub>3</sub>', 'N', 'sp2', 4, 1, 2], ['H<sub>2</sub>O<sub>2</sub>', 'chaque O', 'sp3', 3, 0, 2]
+];
+const HYB_T = { sp: 'sp', sp2: 'sp²', sp3: 'sp³' }, HYB_A = { sp: '180°', sp2: '120°', sp3: '109°28′' }, HYB_N = { sp: 2, sp2: 3, sp3: 4 };
+GEN.hyb = (d, g) => {
+  const [f, at, h, sig, pi] = g.pick(HYB.filter(x => x[5] === d));
+  const items = [{ type: 'choice', label: `hybridation de ${at.replace(/<[^>]+>/g, '')}`, opts: ['sp', 'sp2', 'sp3'].map(x => ({ v: x, t: HYB_T[x] })), ans: h }];
+  if (d >= 1) items.push({ type: 'int', label: 'liaisons σ (molécule)', val: sig }, { type: 'int', label: 'liaisons π (molécule)', val: pi });
+  if (d !== 1) items.push({ type: 'choice', label: 'angle autour de cet atome', opts: ['180°', '120°', '109°28′'].map(x => ({ v: x, t: x })), ans: HYB_A[h] });
+  return { title: 'Hybridation', q: `Dans ${f}, quelle est l'hybridation de ${at}${d >= 1 ? ' ? Combien la molécule compte-t-elle de liaisons σ et de liaisons π' : ''}${d !== 1 ? ' ? Quel angle théorique autour de cet atome' : ''} ?` + zData(f), items,
+    corr: `<p>Autour de ${at} : ${HYB_N[h]} directions (atomes liés + doublets non liants, une liaison multiple compte une fois), soit AX<sub>n</sub>E<sub>p</sub> avec n + p = ${HYB_N[h]} : hybridation <b>${HYB_T[h]}</b>, angles de ${HYB_A[h]}.</p>${d >= 1 ? `<p>Toute liaison simple est σ ; une double = 1 σ + 1 π ; une triple = 1 σ + 2 π. Ici : <b>${sig} σ</b> et <b>${pi} π</b>.</p>` : ''}<p class="fine">Correspondance : n + p = 2 → sp (linéaire, 2 orbitales p pures pour les π) ; 3 → sp² (plan, 1 p pure) ; 4 → sp³ (tétraèdre). L'hybridation explique en plus la planéité de C<sub>2</sub>H<sub>4</sub> : la liaison π bloque la rotation autour de C=C.</p>` };
+};
+
+// Polarité : différence d'électronégativité (Pauling, tableau du cours), polarité des molécules, caractère ionique partiel (TD IV ex. 9)
+const BONDS = [[7, 1], [6, 8], [8, 1], [6, 17], [1, 17], [1, 35], [6, 1], [11, 17], [19, 9], [12, 8], [3, 9], [7, 8], [16, 8]];
+const HX = [['HF', 1.83, 0.92], ['HCl', 1.08, 1.28], ['HBr', 0.82, 1.45], ['HI', 0.44, 1.66]];
+const TEB = [['H<sub>2</sub>O', 'H<sub>2</sub>S', 'hb', 'H<sub>2</sub>O : liaisons hydrogène entre molécules (H lié à O très électronégatif)'], ['HF', 'HCl', 'hb', 'HF : liaisons hydrogène (H lié à F)'], ['NH<sub>3</sub>', 'PH<sub>3</sub>', 'hb', 'NH<sub>3</sub> : liaisons hydrogène (H lié à N)'],
+  ['C<sub>2</sub>H<sub>5</sub>OH (éthanol)', 'CH<sub>3</sub>OCH<sub>3</sub> (méthoxyméthane)', 'hb', 'l\'éthanol : son groupe O–H fait des liaisons hydrogène, pas l\'éther'], ['C<sub>2</sub>H<sub>6</sub>', 'CH<sub>4</sub>', 'lo', 'C<sub>2</sub>H<sub>6</sub> : plus d\'électrons, plus polarisable, interactions de London plus fortes'], ['Br<sub>2</sub>', 'Cl<sub>2</sub>', 'lo', 'Br<sub>2</sub> : plus gros, plus polarisable (London)']];
+const INTER = { hb: 'liaison hydrogène', ke: 'Keesom (entre dipôles permanents)', lo: 'London (dispersion, molécules polarisables)', io: 'liaison ionique' };
+GEN.polar = (d, g) => {
+  if (d === 0) {
+    const [a, b] = g.pick(BONDS), dx = Math.round(Math.abs(EN[a] - EN[b]) * 10) / 10, neg = EN[a] > EN[b] ? a : b, ty = dx > 1.7 ? 'io' : 'co';
+    return { title: 'Polarité d\'une liaison', q: `Liaison ${sym(a)}–${sym(b)}. Électronégativités (Pauling) : χ(${sym(a)}) = ${String(EN[a]).replace('.', ',')}, χ(${sym(b)}) = ${String(EN[b]).replace('.', ',')}.`,
+      items: [{ type: 'num', label: 'Δχ', val: dx, unit: '', tol: 0.01 }, { type: 'choice', label: 'type de liaison', opts: [{ v: 'co', t: 'covalente polarisée' }, { v: 'io', t: 'ionique' }], ans: ty }, { type: 'choice', label: 'porte la charge δ−', opts: [a, b].map(z => ({ v: String(z), t: sym(z) })), ans: String(neg) }],
+      corr: `<p>Δχ = |${String(EN[a]).replace('.', ',')} − ${String(EN[b]).replace('.', ',')}| = <b>${String(dx).replace('.', ',')}</b> ${dx > 1.7 ? '> 1,7 : liaison <b>ionique</b>' : '≤ 1,7 : liaison <b>covalente polarisée</b>'}. L'atome le plus électronégatif, <b>${sym(neg)}</b>, attire les électrons de la liaison et porte δ−.</p>` };
+  }
+  if (d === 1) {
+    const ms = g.shuffle(MOL.filter(m => m.mu !== null)).slice(0, 2);
+    return { title: 'Molécule polaire ou apolaire ?', q: 'Ces molécules ont-elles un moment dipolaire permanent ? (pense à leur géométrie VSEPR)',
+      items: ms.map(m => ({ type: 'choice', label: m.f.replace(/<[^>]+>/g, '').replace(/ \(.*\)/, ''), opts: [{ v: 'p', t: 'polaire' }, { v: 'a', t: 'apolaire' }], ans: m.mu ? 'p' : 'a' })),
+      corr: `<ul>${ms.map(m => `<li>${m.f} : ${AXE(m.n, m.p)}, ${GEO[m.n + ',' + m.p]} : ${m.mu ? 'les moments des liaisons ne se compensent pas, molécule <b>polaire</b>' : 'les moments des liaisons se compensent par symétrie, molécule <b>apolaire</b>'}.</li>`).join('')}</ul><p class="fine">Le moment dipolaire de la molécule est la somme vectorielle des moments des liaisons : une molécule symétrique (linéaire AX<sub>2</sub>, plane AX<sub>3</sub>, tétraèdre AX<sub>4</sub> avec 4 atomes identiques…) est apolaire même si ses liaisons sont polarisées.</p>` };
+  }
+  if (g.r() < 0.55) {
+    const [hx, mu, L] = g.pick(HX), pct = mu * 3.33e-30 / (1.602e-19 * L * 1e-10) * 100;
+    return { title: 'Caractère ionique partiel', q: `Pour ${hx} : moment dipolaire μ = ${String(mu).replace('.', ',')} D, longueur de liaison L = ${String(L).replace('.', ',')} Å. 1 D = 3,33·10⁻³⁰ C·m, e = 1,602·10⁻¹⁹ C. Calculer le caractère ionique de la liaison et la charge partielle δ (en fraction de e).`,
+      items: [{ type: 'num', label: 'caractère ionique', val: pct, unit: '%', tol: 0.03 }, { type: 'num', label: 'δ (fraction de e)', val: pct / 100, unit: '', tol: 0.03 }],
+      corr: `<p>Si la liaison était totalement ionique : μ<sub>ionique</sub> = e·L = 1,602·10⁻¹⁹ × ${String(L).replace('.', ',')}·10⁻¹⁰ = ${txt(1.602e-19 * L * 1e-10)} C·m. Réel : μ = ${String(mu).replace('.', ',')} × 3,33·10⁻³⁰ = ${txt(mu * 3.33e-30)} C·m.</p><p>Caractère ionique = μ / μ<sub>ionique</sub> = <b>${txt(pct, 3)} %</b>, soit δ = ${txt(pct / 100, 3)} e.</p><p class="fine">De HF à HI, χ(X) baisse : la liaison est de moins en moins polarisée.</p>` };
+  }
+  const [x, y, kind, why] = g.pick(TEB), sw = g.r() < 0.5;
+  return { title: 'Interactions entre molécules (complément)', q: `Complément, hors des slides du cours : laquelle a la température d'ébullition la plus haute, et à cause de quelle interaction entre les molécules ?`,
+    items: [{ type: 'choice', label: 'ébullition la plus haute', opts: (sw ? [y, x] : [x, y]).map(z => ({ v: z, t: z })), ans: x }, { type: 'choice', label: 'surtout grâce à', opts: Object.keys(INTER).map(k => ({ v: k, t: INTER[k] })), ans: kind }],
+    corr: `<p>${why}.</p><p class="fine">Forces de Van der Waals : Keesom (dipôles permanents), Debye (dipôle induit), London (dispersion, d'autant plus forte que la molécule a d'électrons). La liaison hydrogène (H lié à F, O ou N face à un doublet de F, O ou N) est plus forte : elle explique les températures d'ébullition élevées de H<sub>2</sub>O, HF, NH<sub>3</sub>.</p>` };
+};
+
+/* =====================================================================
    VÉRIFICATION DES RÉPONSES
    ===================================================================== */
 function check(it, raw) {
@@ -514,7 +658,7 @@ const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); 
 /* =====================================================================
    COMPÉTENCES ET PROGRESSION (mêmes règles que le parcours d'élec)
    ===================================================================== */
-const CH = ['Structure de l\'atome', 'Spectres atomiques', 'Modèle quantique', 'Atomes polyélectroniques', 'Tableau périodique'];
+const CH = ['Structure de l\'atome', 'Spectres atomiques', 'Modèle quantique', 'Atomes polyélectroniques', 'Tableau périodique', 'Liaison covalente : modèle de Lewis', 'Géométrie : VSEPR et hybridation', 'Polarité des molécules'];
 const SK = [
   { id: 'noyau', ch: 0, name: 'Composition des atomes et des ions', fiche: 0 },
   { id: 'iso', ch: 0, name: 'Isotopes et masse molaire', fiche: 0 },
@@ -527,7 +671,13 @@ const SK = [
   { id: 'exc', ch: 3, name: 'Exceptions (Cr, Cu) et ions', fiche: 3 },
   { id: 'case', ch: 3, name: 'Cases quantiques, électrons célibataires', fiche: 3 },
   { id: 'place', ch: 4, name: 'Place dans le tableau périodique', fiche: 4 },
-  { id: 'prop', ch: 4, name: 'Évolution des propriétés', fiche: 4 }
+  { id: 'prop', ch: 4, name: 'Évolution des propriétés', fiche: 4 },
+  // partie 2 : liaisons chimiques (CC du 16/12)
+  { id: 'lewis', ch: 5, name: 'Schémas de Lewis et règle de l\'octet', fiche: 5 },
+  { id: 'cf', ch: 5, name: 'Charges formelles et mésomérie', fiche: 5 },
+  { id: 'vsepr', ch: 6, name: 'Géométrie VSEPR (AXnEp)', fiche: 6 },
+  { id: 'hyb', ch: 6, name: 'Hybridation sp, sp², sp³ et liaisons σ, π', fiche: 6 },
+  { id: 'polar', ch: 7, name: 'Polarité, moment dipolaire, interactions', fiche: 7 }
 ];
 
 /* ---------- Exercice affiché (parcours ou entraînement libre) ---------- */
@@ -579,7 +729,7 @@ function vHome() {
   const when = cc == null ? '' : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Chimie · Atomistique · V. Bouquet</p><h1>Réussir le CC d'atomistique</h1>
-    <p class="lede">Le CC (date à confirmer, il était prévu le 20/10) dure 1 h et porte sur la 1<sup>re</sup> partie du cours : <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique). Les liaisons chimiques seront au CC du 16/12.</p></div>
+    <p class="lede">Le CC (date à confirmer, il était prévu le 20/10) dure 1 h et porte sur la 1<sup>re</sup> partie du cours : <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique). La 2<sup>e</sup> partie, <b>les liaisons chimiques</b> (Lewis, VSEPR, hybridation, polarité), est au CC du 16/12 : elle est déjà dans la suite du parcours et dans l'onglet Cours.</p></div>
     <section class="card"><div class="count">${cc == null ? `<b>?</b><span>CC d'atomistique : date à confirmer (déplacé). Révise quand même, tout reste disponible.</span>` : `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC d'atomistique : ${esc(when)}</span>`}</div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du plus simple (composition d'un atome) au plus dur (anomalies d'énergie d'ionisation), avec une progression qui s'adapte à tes résultats.</p>
@@ -633,10 +783,24 @@ const FICHES = [
     <p>Familles : alcalins (col. 1, ns<sup>1</sup>, sauf H), alcalino-terreux (2), chalcogènes (16), halogènes (17), gaz rares (18), métaux de transition (3 à 12).</p>
     <h4>Évolutions</h4><table class="t"><tr><th></th><th>dans une période (→)</th><th>dans une colonne (↓)</th></tr><tr><td>Rayon atomique</td><td>diminue (\\(Z^*\\) ↑)</td><td>augmente (\\(n\\) ↑)</td></tr><tr><td>Énergie d'ionisation</td><td>augmente</td><td>diminue</td></tr><tr><td>Électronégativité</td><td>augmente</td><td>diminue</td></tr><tr><td>Caractère métallique</td><td>diminue</td><td>augmente</td></tr></table>
     <ul><li>Cation plus petit que l'atome, anion plus gros.</li><li>Électronégativité max : F (4,0) ; nulle pour les gaz rares.</li><li>Ions : colonnes 1, 2, 13 → +I, +II, +III ; colonnes 16, 17 → −II, −I (structure du gaz rare le plus proche).</li><li>\\(\\Delta\\chi > 1{,}7\\) : liaison ionique ; sinon covalente (à droite) ou métallique (à gauche).</li></ul>
-    <div class="box warn"><h5>Anomalies d'énergie d'ionisation</h5>E.I.(Be) > E.I.(B) et E.I.(Mg) > E.I.(Al) : ns<sup>2</sup> pleine est stable. E.I.(N) > E.I.(O) et E.I.(P) > E.I.(S) : np<sup>3</sup> demi-pleine est stable. E.I.(Zn) > E.I.(Ga) : 3d<sup>10</sup> 4s<sup>2</sup> pleines.</div>`]
+    <div class="box warn"><h5>Anomalies d'énergie d'ionisation</h5>E.I.(Be) > E.I.(B) et E.I.(Mg) > E.I.(Al) : ns<sup>2</sup> pleine est stable. E.I.(N) > E.I.(O) et E.I.(P) > E.I.(S) : np<sup>3</sup> demi-pleine est stable. E.I.(Zn) > E.I.(Ga) : 3d<sup>10</sup> 4s<sup>2</sup> pleines.</div>`],
+  ['VI. Liaison covalente : modèle de Lewis (partie 2)', `<p>Une liaison de covalence = un <b>doublet d'électrons mis en commun</b> par deux atomes (recouvrement de deux O.A.), représenté par un tiret. Δχ ≤ 1,7 : covalente (à droite du tableau) ou métallique (à gauche) ; Δχ &gt; 1,7 : ionique (NaCl, CaO).</p>
+    <h4>Construire un schéma de Lewis</h4><ol style="padding-left:22px;margin-top:10px"><li>Compter les électrons de valence de tous les atomes, <b>moins la charge</b> pour un cation, <b>plus la charge</b> pour un anion ; diviser par 2 : nombre de doublets.</li><li>Relier l'atome central aux autres par des liaisons simples.</li><li>Compléter les octets des atomes externes (H : un seul doublet, le duet), puis placer les doublets restants sur l'atome central.</li><li>Si l'atome central n'a pas son octet : transformer des doublets non liants voisins en liaisons multiples (CO<sub>2</sub> : O=C=O ; HCN : H–C≡N).</li></ol>
+    <div class="box warn"><h5>Exceptions à l'octet</h5><b>Lacune électronique</b> : BF<sub>3</sub>, AlCl<sub>3</sub>, BeCl<sub>2</sub> (moins de 8 électrons autour de B, Al, Be) : acides de Lewis, BF<sub>3</sub> accepte le doublet de NH<sub>3</sub> (BF<sub>3</sub>NH<sub>3</sub>). <b>Hypervalence</b> : plus de 8 électrons pour les éléments de la 3<sup>e</sup> période et au-delà (PCl<sub>5</sub>, SF<sub>6</sub>, SF<sub>4</sub>, XeF<sub>2</sub>) ; <b>jamais</b> pour C, N, O, F (2<sup>e</sup> période).</div>
+    <div class="box key"><h5>Charge formelle</h5>CF = (électrons de valence de l'atome isolé) − (électrons non liants) − (nombre de liaisons). Ex. NH<sub>4</sub><sup>+</sup> : N = 5 − 0 − 4 = +1 ; CO : C = 4 − 2 − 3 = −1, O = 6 − 2 − 3 = +1. La somme des CF est la charge de l'édifice ; la meilleure structure a des CF petites, la charge négative sur l'atome le plus électronégatif.</div>
+    <h4>Mésomérie</h4><p>Quand plusieurs schémas ne diffèrent que par la place des doublets (pas des atomes), ce sont des <b>formes mésomères</b> ; la molécule réelle est l'<b>hybride de résonance</b>. CO<sub>3</sub><sup>2−</sup>, NO<sub>3</sub><sup>−</sup>, SO<sub>3</sub> : 3 formes (liaisons C–O toutes identiques, charge répartie) ; SO<sub>2</sub>, NO<sub>2</sub><sup>−</sup>, O<sub>3</sub> : 2 formes. Les formes qui respectent l'octet pèsent le plus.</p>`],
+  ['VII. Géométrie : VSEPR et hybridation (partie 2)', `<p><b>VSEPR</b> (Gillespie) : autour de l'atome central A, les doublets liants et non liants se repoussent et s'écartent au maximum. On écrit <b>AX<sub>n</sub>E<sub>p</sub></b> : n atomes liés à A (une liaison multiple compte une fois), p doublets non liants (ou électron célibataire).</p>
+    <table class="t"><tr><th>n + p</th><th>Figure de répulsion</th><th>Géométries</th></tr><tr><td>2</td><td>linéaire (180°)</td><td>AX<sub>2</sub> linéaire (CO<sub>2</sub>, HCN)</td></tr><tr><td>3</td><td>triangle (120°)</td><td>AX<sub>3</sub> triangulaire plane (BF<sub>3</sub>, CO<sub>3</sub><sup>2−</sup>) · AX<sub>2</sub>E coudée (SO<sub>2</sub>, O<sub>3</sub>)</td></tr><tr><td>4</td><td>tétraèdre (109°28′)</td><td>AX<sub>4</sub> tétraédrique (CH<sub>4</sub>) · AX<sub>3</sub>E pyramide à base triangulaire (NH<sub>3</sub>, 107°) · AX<sub>2</sub>E<sub>2</sub> coudée (H<sub>2</sub>O, 104,5°)</td></tr><tr><td>5</td><td>bipyramide à base triangulaire (90° et 120°)</td><td>AX<sub>5</sub> (PCl<sub>5</sub>) · AX<sub>4</sub>E balançoire (SF<sub>4</sub>) · AX<sub>3</sub>E<sub>2</sub> en T (ClF<sub>3</sub>) · AX<sub>2</sub>E<sub>3</sub> linéaire (XeF<sub>2</sub>)</td></tr><tr><td>6</td><td>octaèdre (90°)</td><td>AX<sub>6</sub> octaédrique (SF<sub>6</sub>) · AX<sub>5</sub>E pyramide à base carrée (BrF<sub>5</sub>) · AX<sub>4</sub>E<sub>2</sub> plan carré (XeF<sub>4</sub>)</td></tr></table>
+    <div class="box warn"><h5>Pièges</h5>La <b>figure de répulsion</b> compte tous les doublets ; la <b>géométrie</b> ne décrit que les atomes (H<sub>2</sub>O : tétraèdre, mais molécule coudée) · un doublet non liant prend plus de place : il resserre les angles · sur la bipyramide, les doublets non liants vont en position équatoriale · une liaison double repousse plus qu'une simple (HCHO : H–C–H &lt; 120°).</div>
+    <h4>Hybridation</h4><p>Les O.A. de valence de A se combinent en orbitales hybrides équivalentes, une par direction (n + p) : <b>sp</b> (2, 180°, il reste 2 orbitales p pures), <b>sp²</b> (3, 120°, 1 p pure), <b>sp³</b> (4, 109°28′). Les O.A. hybrides forment des liaisons <b>σ</b> (recouvrement axial) ; les p pures forment des liaisons <b>π</b> (recouvrement latéral).</p>
+    <div class="box key"><h5>À savoir faire</h5>Liaison simple = 1 σ ; double = 1 σ + 1 π ; triple = 1 σ + 2 π. CH<sub>4</sub> : C sp³, 4 σ ; C<sub>2</sub>H<sub>4</sub> : C sp², 5 σ + 1 π, molécule plane (la π bloque la rotation) ; C<sub>2</sub>H<sub>2</sub> : C sp, 3 σ + 2 π, linéaire ; CH<sub>3</sub>CN : C du CH<sub>3</sub> sp³, C du CN sp.</div>`],
+  ['VIII. Polarité des molécules (partie 2)', `<p>Dans une liaison entre atomes d'électronégativités différentes, le plus électronégatif attire les électrons : charges partielles δ− et δ+, <b>moment dipolaire</b> μ = q·d, orienté de δ− vers δ+ (convention des physiciens, celle du cours), avec q = δ·e (0 ≤ δ ≤ 1). Unité : C·m ou debye, 1 D = 3,33·10⁻³⁰ C·m.</p>
+    <div class="box key"><h5>Caractère ionique partiel</h5>Si la liaison était totalement ionique : μ<sub>ionique</sub> = e·d. Caractère ionique = μ<sub>réel</sub> / μ<sub>ionique</sub> (en %), charge partielle δ = (caractère ionique) × e. HF : 1,83 D, 0,92 Å → environ 41 %.</div>
+    <p>Le moment dipolaire de la molécule est la <b>somme vectorielle</b> des moments des liaisons : CO<sub>2</sub> (linéaire), BF<sub>3</sub> (plane), CCl<sub>4</sub> (tétraèdre) sont <b>apolaires</b> malgré des liaisons polarisées ; H<sub>2</sub>O (coudée), NH<sub>3</sub> (pyramidale), CHCl<sub>3</sub> sont <b>polaires</b>. HCl, polaire, se dissout bien dans l'eau ; Cl<sub>2</sub>, apolaire, très peu.</p>
+    <div class="box warn"><h5>Complément (pas dans les slides du cours)</h5>Entre molécules : forces de <b>Van der Waals</b> (Keesom entre dipôles permanents, Debye dipôle–dipôle induit, London entre molécules polarisables, d'autant plus fortes qu'il y a d'électrons) et <b>liaison hydrogène</b> (H lié à F, O ou N face à un doublet de F, O ou N), plus forte : températures d'ébullition élevées de H<sub>2</sub>O, HF, NH<sub>3</sub>.</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Partie 1 · L'atome (CC, date à confirmer)</p><h1>Le cours utile</h1><p class="lede">Les 5 chapitres du cours de V. Bouquet, condensés : définitions, formules, méthodes et pièges.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Partie 1 · L'atome (CC, date à confirmer) · Partie 2 · Liaisons (CC du 16/12)</p><h1>Le cours utile</h1><p class="lede">Le cours de V. Bouquet condensé : les 5 chapitres de « L'atome » (fiches I à V), puis la liaison covalente, la VSEPR, l'hybridation et la polarité (fiches VI à VIII). Définitions, formules, méthodes et pièges.</p></div>
     ${FICHES.map(([t, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}</summary><div class="body">${b}</div></details>`).join('')}
     <section class="card"><h2>Constantes (poly de TD)</h2><p class="sub">\\(h = 6{,}626\\times10^{-34}\\) J·s · \\(c = 3{,}00\\times10^{8}\\) m/s · \\(N_A = 6{,}022\\times10^{23}\\) mol⁻¹ · \\(R_H = 1{,}097\\times10^{7}\\) m⁻¹ · \\(e = 1{,}602\\times10^{-19}\\) C · \\(m_e = 9{,}11\\times10^{-31}\\) kg · \\(m_n = 1{,}675\\times10^{-27}\\) kg</p></section>`;
   typeset(app);
@@ -707,7 +871,7 @@ document.addEventListener('input', e => {
   const t = e.target; if (!t.matches('input')) return;
   const id = t.dataset.id || t.name; if (!id) return;
   if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; ls.set(EK, EXAM); }
-  else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
+  else if (CUR && !CUR.done && VIEW !== 'blanc') { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
   if (t.type === 'text') {
     const it = (CUR && CUR.ex.items.find(x => x.id === id)) || (EXAM && [].concat(...examExos(EXAM.seed).map(x => [].concat(...x.parts.map(p => p.items)))).find(x => x.id === id));
     const pv = t.closest('.it') && $('.prev', t.closest('.it')); if (it && pv) pv.innerHTML = preview(it, t.value);

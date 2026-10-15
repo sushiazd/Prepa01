@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
 <script defer src="../account.js"></script>
 <script src="../maths/elo.js"></script>
-<script src="../subjects.js?v=2026101503"></script>
+<script src="../subjects.js?v=2026101504"></script>
 <style>
 :root{
   color-scheme:light;
@@ -213,7 +213,8 @@ tr:last-child td{border-bottom:0}
     R.forEach(r => { by[r.user_id + '|' + r.key] = r; });
     const get = (m, s, k) => by[m.id + '|' + s.id + '.' + k + '.v1'];
     const nf = x => (Math.round(x * 10) / 10).toLocaleString('fr-FR');
-    const valid = (m, s) => (get(m, s, 'path') || {}).valid || 0;
+    // compétences validées, sans les bonus (élec : Thévenin) quand la base donne leurs identifiants
+    const valid = (m, s) => { const p = get(m, s, 'path') || {}; return Array.isArray(p.ids) ? p.ids.filter(k => !(s.bonus || []).includes(k)).length : p.valid || 0; };
     const rows = members.filter(m => subs.some(s => get(m, s, 'path') || get(m, s, 'hist')))
       .sort((a, b) => subs.reduce((t, s) => t + valid(b, s), 0) - subs.reduce((t, s) => t + valid(a, s), 0) || a.pseudo.localeCompare(b.pseudo));
     const cell = (m, s) => {
@@ -224,7 +225,7 @@ tr:last-child td{border-bottom:0}
       return `<td style="background:color-mix(in srgb,var(--good) ${Math.round(pct * 30)}%,transparent)"><b>${v}${s.skills ? '/' + s.skills : ''}</b> <span class="fine">comp.</span><br><span class="fine">${n ? `${n} blanc${n > 1 ? 's' : ''}${notes.length ? ` · dern. ${nf(notes[notes.length - 1])} · max ${nf(Math.max(...notes))}` : ''}` : 'aucun blanc'}</span></td>`;
     };
     const tot = subs.filter(s => s.skills).reduce((t, s) => t + s.skills, 0);
-    return `<section class="card"><h2>Autres matières</h2><p class="sub">Compétences validées dans le parcours de chaque matière, nombre de sujets blancs rendus, dernière et meilleure note (sur 20). Données synchronisées par les comptes connectés ; l'élec CC1 compte ses notes à part (non affichées ici).</p>
+    return `<section class="card"><h2>Autres matières</h2><p class="sub">Compétences validées dans le parcours de chaque matière, nombre de sujets blancs rendus, dernière et meilleure note (sur 20). Données synchronisées par les comptes connectés ; une copie d'élec CC1 a sa note dès que son auteur rouvre la page d'élec.</p>
       ${rows.length ? `<div style="overflow-x:auto"><table><thead><tr><th>Joueur</th>${subs.map(s => `<th><a href="../${s.page}">${esc(s.name)}</a></th>`).join('')}<th>Total</th></tr></thead><tbody>
       ${rows.map(m => `<tr><td><b>${esc(m.pseudo)}</b>${m.me ? ' <span class="fine">(toi)</span>' : ''}</td>${subs.map(s => cell(m, s)).join('')}<td><b>${subs.filter(s => s.skills).reduce((t, s) => t + valid(m, s), 0)}/${tot}</b></td></tr>`).join('')}
       </tbody></table></div>` : '<p class="sub">Personne n\'a encore de progression enregistrée dans les autres matières.</p>'}</section>`;

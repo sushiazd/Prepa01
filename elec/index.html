@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026101503"></script>
+<script src="../subjects.js?v=2026101504"></script>
 <script defer src="../account.js" data-lazy></script>
 <style>
 :root{
@@ -1775,6 +1775,7 @@ function submitExam(auto) {
   const rec = { id: EXAM.id, ts: Date.now(), title: EXAM.title, kind: EXAM.kind, def: EXAM.def, ans: EXAM.ans, res, self: {}, dur: Math.min(DUR, Math.round(elapsedNow())) };
   if (EXAM.gtest) rec.gtest = EXAM.gtest;
   exs.forEach(ex => ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { if (it.type !== 'self') { const r = res[itemId(ex, bi, ii, 'ex')]; if (r.st !== 'empty' && ex.key !== 'ex1') addStat(ex.key, r.st === 'ok'); } })));
+  rec.note = scoreRec(rec).total;   // note sur 20 gardée dans la copie (tableau de bord moi/)
   const H = ls.get(K.hist, []); H.push(rec); ls.set(K.hist, H);
   closeExam(EXAM.id); EXAM = null;
   $('#topbar').classList.remove('warn', 'danger');
@@ -2422,6 +2423,7 @@ function pathBannerHTML() {
    INITIALISATION
    ===================================================================== */
 function init() {
+  fillNotes();
   applyTheme(getTheme());
   $('#themeBtn').addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[$('#themeBtn').dataset.mode || 'auto']; try { localStorage.setItem(K.theme, nx); } catch (e) { /* ignore */ } applyTheme(nx); });
   $('#convFig').innerHTML = drawConventions();
@@ -2472,7 +2474,7 @@ function init() {
   $('#submitBtn').addEventListener('click', () => submitExam(false));
   $('#pauseBtn').addEventListener('click', pauseExam);
   $('#annGrid').addEventListener('toggle', e => { if (e.target.open && e.target.dataset.ann) fillAnnale(e.target); }, true);
-  $('#v-res').addEventListener('change', e => { const c = e.target.closest('[data-self]'); if (!c) return; const H = ls.get(K.hist, []), rec = H.find(r => r.id === $('#v-res').dataset.rec); if (!rec) return; rec.self[c.dataset.self] = c.checked; ls.set(K.hist, H); drawHero(rec); });
+  $('#v-res').addEventListener('change', e => { const c = e.target.closest('[data-self]'); if (!c) return; const H = ls.get(K.hist, []), rec = H.find(r => r.id === $('#v-res').dataset.rec); if (!rec) return; rec.self[c.dataset.self] = c.checked; rec.note = scoreRec(rec).total; ls.set(K.hist, H); drawHero(rec); });
   wireGrp();
   window.addEventListener('beforeunload', () => { if (EXAM && EXAM.running) saveExam(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && EXAM && EXAM.running) saveExam(); });
@@ -2780,7 +2782,14 @@ function examSynced() {
   if (document.body.dataset.view === 'exam') showTab('blanc');
   return true;
 }
+// Copies sans note enregistrée (avant le 15/10, ou venues d'un appareil pas à jour) : note calculée et gardée
+function fillNotes() {
+  const H = ls.get(K.hist, []); let ch = false;
+  H.forEach(r => { if (typeof r.note !== 'number') { try { r.note = scoreRec(r).total; ch = true; } catch (e) { /* copie illisible */ } } });
+  if (ch) ls.set(K.hist, H);
+}
 function onRemoteData(keys) {
+  if (keys && keys.includes(K.hist)) fillNotes();
   const said = !!keys && keys.includes(K.exam) && examSynced();
   // exercice affiché pas encore commencé ici : on reprend celui de la progression à jour (peut-être celui d'un autre appareil)
   if (CUR && !CUR.done && !CUR.first.size && !Object.keys(CUR.ans).length) {

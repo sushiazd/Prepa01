@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
-<script src="subjects.js?v=2026101503"></script>
+<script src="subjects.js?v=2026101504"></script>
 <script defer src="account.js"></script>
 <script defer src="planning.js?v=2026101502"></script>
 <style>
@@ -370,7 +370,7 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   else if (st) { const n = ['ex2', 'ex3', 'ex4'].reduce((s, k) => s + ((st[k] && st[k].n) || 0), 0); if (n) parts.push(`${n} réponse${n > 1 ? 's' : ''} en entraînement`); }
   document.getElementById('elecMeta').innerHTML = parts.join(' · ');
   // pages à parcours : compétences validées (nombre total dans subjects.js) et dernier sujet blanc
-  SiteSubjects.list.filter(s => s.skills).forEach(s => {
+  SiteSubjects.list.filter(s => s.skills && s.id !== 'elec').forEach(s => {   // l'élec a son propre résumé (ci-dessus)
     const el = document.getElementById(s.id + 'Meta'); if (!el) return;
     const p = get(s.id + '.path.v1', null), n = p && p.sk ? Object.values(p.sk).filter(k => k.m >= 100).length : 0, H = get(s.id + '.hist.v1', []);
     el.innerHTML = [n ? `<b>${n}/${s.skills}</b> compétences validées` : '', H.length ? `dernier sujet blanc : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');

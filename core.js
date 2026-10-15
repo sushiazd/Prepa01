@@ -177,11 +177,15 @@
       return cfg.EXAM && cfg.EXAM.target ? { sk, cible: true } : { sk };
     }
     const examPlan = def => (cfg.EXAM && cfg.EXAM.target) || def;
-    // les compétences à retravailler, de la plus faible à la moins faible
+    // les compétences à retravailler, de la plus faible à la moins faible, parmi celles déjà travaillées ou
+    // atteintes dans le parcours (pas les chapitres à venir, comme la partie 2 d'ato avant le CC de la partie 1)
     function weakSkills(n = 5) {
-      const P = pst(), rate = {};
+      const P = pst(), rate = {}, f = frontier(P), fi = f ? cfg.SK.indexOf(f) : cfg.SK.length - 1;
       ls.get(HK, []).slice(-8).forEach(r => Object.keys(r.sk || {}).forEach(k => { const t = rate[k] || (rate[k] = [0, 0]); t[0] += r.sk[k][0]; t[1] += r.sk[k][1]; }));
-      return cfg.SK.map((k, i) => {
+      let pool = cfg.SK.filter((k, i) => i <= fi || skS(P, k.id).n > 0 || rate[k.id]);
+      if (pool.length < n) pool = pool.concat(cfg.SK.filter(k => !pool.includes(k)).slice(0, n - pool.length));
+      return pool.map(k => {
+        const i = cfg.SK.indexOf(k);
         const s = skS(P, k.id), r = rate[k.id];
         const score = (isVal(s) ? 0 : 2) + (1 - Math.min(s.m, VAL) / VAL) + (r && r[1] ? 2 * (1 - r[0] / r[1]) : 0);
         return { k, s, score, i };
@@ -204,16 +208,53 @@
        Une partie dont une réponse est fausse ou vide garde son corrigé fermé (« Voir le corrigé ») : on peut
        la chercher encore hors chrono avant de lire la solution. La page appelle hideCorr() à la fin de
        renderExam quand la copie est rendue (EXAM.done), une fois les pastilles Juste / Faux / Vide posées. */
+    // Retenter à chaud : dans une partie masquée, on corrige ses réponses (ou son code) puis « Vérifier mon essai ».
+    // Purement local : ni la note, ni la copie enregistrée ne changent. Tout juste → « ✓ Trouvé après coup ! »
+    // et le corrigé s'ouvre. La page fournit cfg.examItems (questions du sujet), cfg.check, cfg.valOf (et cfg.fbHTML).
+    const barText = n => `${n} corrigé${n > 1 ? 's' : ''} masqué${n > 1 ? 's' : ''} : les parties avec une réponse fausse ou vide. Corrige tes réponses et clique sur « Vérifier mon essai », ou ouvre « Voir le corrigé ».`;
     function hideCorr() {
       const hidden = $$('details.corr', app).filter(det => $$('.fb .pill', det.closest('.ex') || det.parentElement).some(p => !p.classList.contains('ok')));
-      hidden.forEach(det => { det.open = false; det.querySelector('summary').textContent = 'Voir le corrigé'; });
+      hidden.forEach(det => {
+        det.open = false; det.querySelector('summary').textContent = 'Voir le corrigé';
+        if (cfg.examItems) det.insertAdjacentHTML('beforebegin', `<div class="row retry" style="margin-top:14px"><button type="button" class="btn btn-primary" data-act="tryPart">Vérifier mon essai</button><span class="fine" data-trymsg>Tant que le corrigé est fermé, tu peux encore chercher : modifie tes réponses ci-dessus. Ça ne change ni la note ni la copie.</span></div>`);
+      });
       if (!hidden.length || !app.firstElementChild) return;
-      const s = hidden.length > 1 ? 's' : '';
-      app.firstElementChild.insertAdjacentHTML('afterend', `<section class="card" id="corrBar"><div class="row"><p class="sub" style="margin:0;flex:1;min-width:220px">${hidden.length} corrigé${s} masqué${s} : les parties avec une réponse fausse ou vide. Cherche-les encore hors chrono, puis ouvre « Voir le corrigé ».</p><button type="button" class="btn" data-act="revealAll">Tout révéler</button></div></section>`);
+      app.firstElementChild.insertAdjacentHTML('afterend', `<section class="card" id="corrBar"><div class="row"><p class="sub" style="margin:0;flex:1;min-width:220px">${barText(hidden.length)}</p><button type="button" class="btn" data-act="revealAll">Tout révéler</button></div></section>`);
     }
+    async function tryPart(b) {
+      const part = b.closest('.ex') || b.parentElement.parentElement, det = $('details.corr', part), msg = $('[data-trymsg]', part);
+      const items = cfg.examItems().filter(it => $(`.it[data-id="${it.id}"]`, part));
+      b.disabled = true; msg.textContent = 'Vérification…';
+      let ok = 0;
+      for (const it of items) {
+        const r = await cfg.check(it, cfg.valOf(part, it.id)), fb = $(`.it[data-id="${it.id}"] .fb`, part);
+        if (fb) fb.innerHTML = '<span class="fine">essai :</span> ' + (cfg.fbHTML ? cfg.fbHTML(r) : PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : ''));
+        if (r.st === 'ok') ok++;
+      }
+      b.disabled = false;
+      const n = (+part.dataset.tries || 0) + 1; part.dataset.tries = n;
+      if (cfg.typeset) cfg.typeset(part);
+      if (ok === items.length) {
+        b.closest('.retry').outerHTML = `<div class="row" style="margin-top:14px"><span class="pill ok">✓ Trouvé après coup !${n > 1 ? ` (${n} essais)` : ''}</span><span class="fine">Pas compté dans la note de la copie.</span></div>`;
+        if (det) { det.open = true; det.querySelector('summary').textContent = 'Correction'; }
+        const left = $$('[data-act="tryPart"]', app).length, bar = $('#corrBar');
+        if (bar) { if (left) $('p', bar).textContent = barText(left); else bar.remove(); }
+      } else msg.innerHTML = `<b style="color:var(--bad)">✗ Pas encore</b> : ${items.length - ok} réponse${items.length - ok > 1 ? 's' : ''} fausse${items.length - ok > 1 ? 's' : ''} ou vide${items.length - ok > 1 ? 's' : ''} (essai n° ${n}). Cherche encore, ou ouvre le corrigé.`;
+    }
+    // corrigé ouvert à la main : plus d'essai possible pour cette partie
+    document.addEventListener('toggle', e => {
+      const d = e.target, r = d.open && d.matches && d.matches('details.corr') && d.previousElementSibling;
+      if (!r || !r.classList.contains('retry')) return;
+      r.remove();
+      const left = $$('[data-act="tryPart"]', app).length, bar = $('#corrBar');
+      if (bar) { if (left) $('p', bar).textContent = barText(left); else bar.remove(); }
+    }, true);
     document.addEventListener('click', e => {
+      const t = e.target.closest('[data-act="tryPart"]');
+      if (t) { if (cfg.EXAM && cfg.EXAM.done) tryPart(t); return; }
       if (!e.target.closest('[data-act="revealAll"]')) return;
       $$('details.corr', app).forEach(d => { d.open = true; });
+      $$('.retry', app).forEach(r => r.remove());
       const bar = $('#corrBar'); if (bar) bar.remove();
     });
 

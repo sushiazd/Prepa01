@@ -3,10 +3,11 @@
    ---------------------------------------------------------------------
    Un niveau par thème = partie « base » (0 à 2000) + bonus Hardcore (0 à +500). L'Elo est la moyenne des
    21 thèmes : un thème jamais travaillé compte 1000, donc 2500 (GM) = tout le programme maîtrisé, Hardcore compris.
-   - Base : réussite p sur les 30 dernières questions normales du thème, avec deux réponses fictives à moitié
-     justes (un thème peu travaillé reste près de 1000, une série courte ne l'envole pas). Niveau =
-     1000 + k·log10(p / (1 − p)), avec k tel que 30 sur 30 donne exactement 2000. Repères (30 réponses) :
-     50 % → 1000, 75 % → 1300, 90 % → 1570, 29 sur 30 → 1790, 30 sur 30 → 2000.
+   - Base, linéaire : 2000 × taux de réussite sur les 30 dernières questions normales du thème. Tant qu'il y a
+     moins de 30 réponses, des réponses fictives à moitié justes complètent (6 fictives à 0 réponse, aucune à
+     30) : un thème peu travaillé reste près de 1000, une série courte ne l'envole pas. Repères (30 réponses) :
+     50 % → 1000, 75 % → 1500, 90 % → 1800, 29 sur 30 → 1933, 30 sur 30 → 2000. Sans faute : 5 → 1500,
+     10 → 1714, 20 → 1909, 30 → 2000.
    - Bonus Hardcore : sur les 15 dernières questions Hardcore du thème, +33 par juste, +11 par vide, 0 par
      fausse (une partielle entre les deux). 15 justes sur 15 → +500. Il compte quel que soit le niveau de base.
    - Score d'une réponse : juste = 1, vide = 1/3, faux = 0, partielle entre les deux. Erreur marquée « erreur de
@@ -18,8 +19,7 @@
    ===================================================================== */
 (function (root) {
   'use strict';
-  const MAX = 2500, BASE_MAX = 2000, BONUS = 500, WIN = 30, WIN_HC = 15, HC = 2000, PRIOR = 2;
-  const K = (BASE_MAX - 1000) / Math.log10(WIN + PRIOR / 2);   // 30 sur 30 (+ 2 fictives à moitié) → 2000
+  const MAX = 2500, BASE_MAX = 2000, BONUS = 500, WIN = 30, WIN_HC = 15, HC = 2000, PRIOR = 6;
   const THEMES = ['polynomes', 'puiss_rad', 'ln_exp', 'eq_exp', 'fractions', 'developpement', 'equations', 'domaine', 'derivees', 'integrales',
     'limites', 'inegalites', 'equa_diff', 'geometrie', 'continuite', 'suites', 'etude_fonction', 'binomiale', 'espace', 'trigo', 'recurrence'];
   const DIFF = {
@@ -39,10 +39,11 @@
     if (t && t.startsWith('hc_')) return HC;
     return (t && DIFF.tpl[t]) || DIFF.theme[theme] || 1000;
   };
-  // Partie base d'un thème (0 à 2000) à partir des scores de ses dernières questions normales
+  // Partie base d'un thème (0 à 2000), linéaire : 2000 × taux de réussite de ses dernières questions normales
   function base(list) {
-    const p = (list.reduce((t, a) => t + a.s, 0) + PRIOR / 2) / (list.length + PRIOR);
-    return Math.max(0, Math.min(BASE_MAX, 1000 + K * Math.log10(p / (1 - p))));
+    const k = PRIOR * Math.max(0, 1 - list.length / WIN);           // réponses fictives à moitié justes, jusqu'à 30 réponses
+    const p = (list.reduce((t, a) => t + a.s, 0) + k / 2) / (list.length + k);
+    return BASE_MAX * p;
   }
   // Bonus Hardcore d'un thème (0 à +500) : +500/15 par question juste parmi les 15 dernières
   const bonus = list => Math.min(BONUS, BONUS / WIN_HC * list.reduce((t, a) => t + a.s, 0));

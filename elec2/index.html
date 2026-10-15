@@ -10,101 +10,42 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="../subjects.js?v=20261015"></script>
+<script src="../core.js?v=20261015"></script>
 <script defer src="../account.js" data-lazy></script>
+<link rel="stylesheet" href="../core.css?v=20261015">
 <style>
 :root{
-  color-scheme:light;
-  --paper:#f4f2ec; --sheet:#fffefb; --sheet-2:#f8f6f1;
-  --ink:#1c1b19; --ink-2:#55524b; --muted:#878379;
-  --rule:#e4e0d6; --rule-strong:#cdc8bb;
-  --pen:#2446c8; --pen-hover:#1c389f; --pen-ink:#ffffff; --pen-soft:#eaeefc;
-  --ok:#1f8a4c; --ok-soft:#e6f4ec; --bad:#c2352b; --bad-soft:#fbeceb; --warn:#9a5b00; --warn-soft:#fcf2da;
+  --accent:var(--phys); --accent-soft:var(--phys-soft);
   --phys:#b45309; --phys-soft:#fcf0e1;
-  --shadow:0 1px 2px rgba(28,27,25,.05),0 10px 30px -18px rgba(28,27,25,.25);
-  --serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
-  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    color-scheme:dark;
-    --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
-    --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
-    --rule:#2e2d2a; --rule-strong:#45433e;
-    --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
-    --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
     --phys:#fbbf24; --phys-soft:#33260f;
-    --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
   }
 }
 :root[data-theme="dark"]{
-  color-scheme:dark;
-  --paper:#121211; --sheet:#1b1b19; --sheet-2:#222220;
-  --ink:#f1eee7; --ink-2:#c3bfb5; --muted:#8f8b82;
-  --rule:#2e2d2a; --rule-strong:#45433e;
-  --pen:#7592ff; --pen-hover:#91a8ff; --pen-ink:#0d1433; --pen-soft:#1c2340;
-  --ok:#4cc27e; --ok-soft:#14301f; --bad:#ff6b5e; --bad-soft:#3a1714; --warn:#f0b64d; --warn-soft:#32270f;
   --phys:#fbbf24; --phys-soft:#33260f;
-  --shadow:0 1px 2px rgba(0,0,0,.35),0 14px 34px -18px rgba(0,0,0,.7);
 }
-*,*::before,*::after{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
-h1,h2,h3,h4,p{margin:0}
-button{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
-[hidden]{display:none !important}
 code{font-family:var(--mono);font-size:.9em;background:var(--sheet-2);padding:1px 5px;border-radius:5px;border:1px solid var(--rule)}
 .katex{font-size:1.05em}
 .katex-display{margin:.6em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
-.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;min-height:64px;padding:8px 24px;background:color-mix(in srgb,var(--paper) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;min-width:0}
 .brand-mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--phys);color:#fff;display:grid;place-items:center;font:italic 700 17px/1 var(--serif)}
-.brand strong{display:block;font:600 15px/1.2 var(--sans)}
-.brand small{display:block;color:var(--muted);font-size:12.5px}
-.tabs{display:flex;gap:4px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
-.tab{height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:500 14px/1 var(--sans);color:var(--ink-2);cursor:pointer;white-space:nowrap}
-.tab:hover{background:var(--sheet-2)}
-.tab[aria-current="page"]{background:var(--ink);color:var(--paper)}
-.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);cursor:pointer}
-.clock{font:800 22px/1 var(--sans);font-variant-numeric:tabular-nums}
-.clock.rush{color:var(--bad)}
-main{max-width:980px;margin:32px auto 90px;padding:0 24px;display:grid;gap:20px}
-.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--phys);margin-bottom:10px}
-h1{font:600 clamp(28px,4.6vw,42px)/1.08 var(--serif);letter-spacing:-.02em}
 .lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:720px}
 .card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:24px;min-width:0}
-.card h2{font:600 21px/1.25 var(--serif)}
-.sub{color:var(--ink-2);font-size:14.5px;margin-top:4px}
-.fine{font-size:13px;color:var(--muted)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);font:600 14px/1 var(--sans);cursor:pointer;text-decoration:none;white-space:nowrap}
-.btn:hover:not(:disabled){border-color:var(--pen)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-primary{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
-.btn-primary:hover:not(:disabled){background:var(--pen-hover)}
-.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
-.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.row .sp{flex:1}
-.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font:600 12.5px/1 var(--sans);white-space:nowrap}
 .pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.part{background:var(--warn-soft);color:var(--warn)}
-.bar{height:10px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);overflow:hidden}
-.bar>i{display:block;height:100%;background:var(--ok);border-radius:999px}
 .bar.mid>i{background:var(--warn)} .bar.low>i{background:var(--bad)}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600}
-.count{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.count b{font:800 clamp(40px,7vw,58px)/1 var(--sans);letter-spacing:-.04em;color:var(--phys);font-variant-numeric:tabular-nums}
 .count span{color:var(--ink-2)}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 /* exercices */
 .ex .q{font:17px/1.6 var(--serif);margin-top:8px}
 .ex .q p+p{margin-top:8px}
-.items{display:grid;gap:12px;margin-top:16px}
 .it{display:grid;grid-template-columns:fit-content(40%) minmax(0,1fr);gap:4px 12px;align-items:center}
 .it-lab{text-align:right;font:16px/1.3 var(--serif);overflow-wrap:anywhere}
 .it-lab.w{font:15px/1.4 var(--sans);text-align:left}
 .it.full{grid-template-columns:minmax(0,1fr)}
 .it.full .fb,.it.full .pv,.it.full .vh{grid-column:1}
-.it-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
 .it-in input[type=text]{flex:1;min-width:0;width:100%;max-width:340px;font:15px/1.3 var(--mono);font-variant-ligatures:none;color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:42px}
 .it.ex-expr .it-in input[type=text]{max-width:none}
 .unit{font:15px/1 var(--sans);color:var(--ink-2);white-space:nowrap}
@@ -117,48 +58,21 @@ h1{font:600 clamp(28px,4.6vw,42px)/1.08 var(--serif);letter-spacing:-.02em}
 .fb:empty{display:none}
 .ch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);cursor:pointer;font-size:14.5px}
 .ch:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
-.ch input{accent-color:var(--pen);margin:0}
-.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
-details.corr{margin-top:14px}
-details.corr>summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen);padding:6px 0}
 .expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.6 var(--serif);overflow-x:auto}
 .expl p+p,.expl ul{margin-top:8px}
 .expl ul{padding-left:20px}
-.strip{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--phys-soft);border:1px solid color-mix(in srgb,var(--phys) 35%,transparent)}
-.strip b{font:600 17px/1.3 var(--serif)}
-.lvl{display:inline-flex;gap:4px;align-items:center;font-size:12.5px;color:var(--ink-2)}
 .lvl i{width:8px;height:8px;border-radius:50%;background:var(--rule-strong)} .lvl i.on{background:var(--phys)}
-.tag-rev{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font:600 11.5px/1 var(--sans)}
 .res{border-color:color-mix(in srgb,var(--pen) 40%,transparent)}
-.psk{display:grid;grid-template-columns:24px minmax(0,1fr) 110px auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--rule)}
-.psk .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 11px/1 var(--sans);background:var(--sheet-2);color:var(--muted);border:1px solid var(--rule)}
-.psk.val .ic{background:var(--ok-soft);color:var(--ok);border-color:transparent}
-.psk.cur .ic{background:var(--phys);color:#fff;border-color:transparent}
-.psk.rev .ic{background:var(--warn-soft);color:var(--warn);border-color:transparent}
-.psk.lock{opacity:.5}
-.psk .nm small{display:block;color:var(--muted);font-size:12.5px}
-.pch h3{font:600 17px/1.3 var(--serif);margin:16px 0 4px}
 /* cours */
 .fiche{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
 .fiche>summary{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:16px 22px;cursor:pointer;list-style:none;font:600 18px/1.3 var(--serif)}
 .fiche>summary::-webkit-details-marker{display:none}
-.fiche>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
-.fiche[open]>summary::before{transform:rotate(90deg)}
 .fiche>summary .tag{margin-left:auto;font:600 11.5px/1 var(--sans);padding:5px 9px;border-radius:999px;background:var(--phys-soft);color:var(--phys)}
 .fiche .body{padding:4px 24px 22px;border-top:1px solid var(--rule);font:16.5px/1.65 var(--serif);overflow-x:auto}
 .fiche .body p,.fiche .body ul,.fiche .body ol{margin-top:10px}
 .fiche .body ul,.fiche .body ol{padding-left:22px}
-.box{margin-top:12px;padding:12px 16px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
-.box.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
-.box.key{background:var(--phys-soft);border-color:color-mix(in srgb,var(--phys) 30%,transparent)}
-.box h5{font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;margin:0 0 6px;color:var(--ink-2)}
 table.t{border-collapse:collapse;margin-top:10px;font:14.5px/1.4 var(--sans)}
 table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:left}
-.seg{display:flex;flex-wrap:wrap;gap:6px}
-.seg button{height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);font:500 13.5px/1 var(--sans);color:var(--ink-2);cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-.score{font:800 clamp(48px,9vw,72px)/1 var(--sans);letter-spacing:-.03em}
-.hist{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
 .hist td,.hist th{padding:8px;border-bottom:1px solid var(--rule);text-align:left}
 .fig{display:block;width:100%;max-width:470px;height:auto;margin:14px auto 0}
 .fig .wr,.fig .wrp{stroke:var(--ink);stroke-width:2;fill:none}
@@ -171,12 +85,7 @@ table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:l
 .fig text.ul{fill:var(--bad)}
 .fig text.nA{fill:var(--pen)}
 @media (max-width:760px){
-  .topbar{padding:8px 16px}
-  .brand small{display:none}
-  .tabs{order:3;flex-basis:100%;justify-content:flex-start}
-  main{padding:0 16px;margin-top:22px}
   .card{padding:18px}
-  .grid2{grid-template-columns:1fr}
   .it{grid-template-columns:1fr}
   .it-lab{text-align:left}
   .fb,.pv,.vh{grid-column:1}
@@ -207,19 +116,14 @@ table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:l
 /* =====================================================================
    OUTILS
    ===================================================================== */
-const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-const app = $('#app');
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const ls = {
-  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
-};
-let toastT = 0;
-function toast(t) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500); }
-function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-const G = R => ({ int: (a, b) => a + Math.floor(R() * (b - a + 1)), pick: a => a[Math.floor(R() * a.length)], shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }, r: R });
-const newSeed = () => Math.floor(Math.random() * 4294967296);
+// Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
+const E = SiteCore({ id: 'el2', get DUR() { return DUR; },
+  get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
+  get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
+  views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
+  renderEx: () => renderEx(), renderExam: () => renderExam(), submitExam: auto => submitExam(auto) });
+const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick } = E;
 function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
 function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
 
@@ -549,7 +453,6 @@ function check(it, raw) {
   if (it.val && [1e3, 1e-3, 1e2, 1e-2, 1e6, 1e-6].some(f => Math.abs(ratio / f - 1) < 0.02)) return { st: 'bad', msg: 'bon nombre, mauvaise puissance de 10 : vérifie les unités.' };
   return { st: 'bad' };
 }
-const PILL = { ok: '<span class="pill ok">Juste</span>', bad: '<span class="pill bad">Faux</span>', err: '<span class="pill bad">Illisible</span>', empty: '<span class="pill part">Vide</span>' };
 const fbHTML = r => PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '');
 function itemHTML(it, id, val) {
   if (it.type === 'choice') return `<div class="it full" data-id="${id}"><span class="it-lab w">${it.lab}</span><div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${o.t}</span></label>`).join('')}</div><div class="fb"></div></div>`;
@@ -570,7 +473,6 @@ const HELP = '<p class="fine" style="margin-top:12px">Formules : <code>2R</code>
 /* =====================================================================
    COMPÉTENCES ET PROGRESSION (mêmes règles que les autres matières)
    ===================================================================== */
-const PK = 'el2.path.v1', HK = 'el2.hist.v1', EK = 'el2.exam.v1', VAL = 100, MMAX = 130;
 const CH = ['Démonstrations', 'Théorème de Thévenin', 'Condensateur et bobine', 'Circuits du premier ordre'];
 const SK = [
   { id: 'demos', ch: 0, name: 'Démos : ponts diviseurs, Millman', fiche: 0 },
@@ -583,21 +485,6 @@ const SK = [
   { id: 'reponse', ch: 3, name: 'Réponse à un échelon', fiche: 3 },
   { id: 'sinus', ch: 3, name: 'Régime sinusoïdal', fiche: 4 }
 ];
-const skById = id => SK.find(k => k.id === id);
-function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
-function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false }); }
-const isVal = s => s.m >= VAL, levelOf = s => s.m < 40 ? 0 : s.m < 80 ? 1 : 2;
-const frontier = P => SK.find(k => !isVal(skS(P, k.id))) || null;
-function pickNext(P) {
-  const f = frontier(P), pool = SK.filter(k => k !== f && skS(P, k.id).ever);
-  const rev = pool.length >= 2 && (P.since >= 6 || (P.since >= 3 && Math.random() < 0.35));
-  if (f && !rev) return { k: f, review: false };
-  if (!pool.length) return f ? { k: f, review: false } : null;
-  const now = Date.now(), W = pool.map(k => { const s = skS(P, k.id); return [k, (MMAX + 20 - s.m) * (1 + Math.min(3, (now - s.last) / 864e5))]; });
-  let r = Math.random() * W.reduce((a, w) => a + w[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) return { k, review: true }; }
-  return { k: W[0][0], review: true };
-}
-function build(id, d, seed) { const ex = GEN[id](d, G(rng(seed))); ex.items.forEach((it, i) => { it.id = `${id}-${seed}-${i}`; }); return ex; }
 
 let CUR = null, EXAM = null;
 function findItem(id) {
@@ -611,21 +498,6 @@ function exHTML(ex) {
     ${ex.items.some(it => it.type === 'expr') ? HELP : ''}
     <div class="actions"><button type="button" class="btn btn-primary" data-act="check">Vérifier</button></div>
     <details class="corr"><summary>Correction</summary><div class="expl">${ex.corr}${ex.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details></article>`;
-}
-function startEx(k, o = {}) {
-  const P = pst(), s = skS(P, k.id), R = o.resume || null;
-  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s), seed = R ? R.seed : newSeed();
-  CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), done: false };
-  CUR.ex = build(k.id, d, seed);
-  if (CUR.mode === 'path' && !R) saveCur(!!o.user);
-  renderEx();
-}
-function saveCur(bump = true) {
-  if (!CUR || CUR.mode !== 'path') return;
-  const P = pst();
-  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek };
-  if (bump) P.curT = Date.now();
-  ls.set(PK, P);
 }
 function renderEx() {
   const host = $('#exHost'); if (!host || !CUR) return;
@@ -649,45 +521,13 @@ function checkCur() {
   saveCur();
   if (CUR.ex.items.every(it => it.id in CUR.first)) finish(CUR.ex.items.reduce((a, it) => a + CUR.first[it.id], 0) / CUR.ex.items.length);
 }
-function finish(r) {
-  CUR.done = true;
-  const host = $('#exHost');
-  $('details.corr', host).open = true;
-  if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); return; }
-  const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
-  s.n++; if (r === 1) s.ok++;
-  const gain = CUR.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
-  if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
-  s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now(); if (isVal(s)) s.ever = true;
-  P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
-  ls.set(PK, P);
-  const f = frontier(P), now = isVal(s);
-  const title = CUR.review ? (r === 1 ? 'Toujours acquis' : was && !now ? 'Un peu oublié' : 'À surveiller') : !was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
-  const msg = !was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
-  host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span></div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
-    <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
-    <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`);
-  if (!was && now && !CUR.review) toast('Compétence validée : ' + k.name);
-  renderPathTop(); renderMap();
-}
 
 /* =====================================================================
    VUES
    ===================================================================== */
 let VIEW = 'home';
-function setTab(t) {
-  if (EXAM && EXAM.running && t !== 'blanc') { toast('Un sujet blanc est en cours.'); t = 'blanc'; }
-  VIEW = t;
-  $$('#tabs .tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
-  ({ home: vHome, path: vPath, cours: vCours, exos: vExos, blanc: vBlanc })[t]();
-  if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
-  window.scrollTo(0, 0);
-}
-function nextCC() {
-  const c = ls.get('planning.cache.v1', null), now = Date.now();
-  const ev = c && c.evs ? c.evs.slice().sort((x, y) => x.s - y.s).find(e => e.s > Date.parse('2026-10-20') && e.s > now - 3 * 3600e3 && /ELECa/i.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t)) : null;
-  return ev ? ev.s : Date.parse('2026-11-02T14:00:00Z');
-}
+// date du CC : subjects.js (emploi du temps, sinon date de secours ; null si à confirmer)
+function nextCC() { return SiteSubjects.cc('el2'); }
 function vHome() {
   const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
   const days = Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
@@ -705,34 +545,6 @@ function vHome() {
     </div>
     <section class="card"><h2>4 annales corrigées</h2><p class="sub">CC2 2021-22, 2023-24, 2024-25 et 2025-26 sont sur Moodle (dossier Électronique analogique). Le circuit de Thévenin est presque identique d'une année à l'autre (\(R_{TH} = 2R\), \(E_{TH} = \frac{E_1 + E_2}{3}\)) et l'exercice 3 alterne RC (2023-24, 2024-25) et RL (2025-26). La page du CC1 reste disponible : <a href="../elec/">Électricité (CC1)</a>.</p></section>`;
   mathIn(app);
-}
-function renderPathTop() {
-  const el = $('#pathTop'); if (!el) return;
-  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, f = frontier(P);
-  el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${done}/${SK.length}</b><span>compétences validées</span></div><span class="sp"></span>
-    ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
-    <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
-    <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'} · Deux sans-faute d'affilée valident une compétence ; en cas d'erreurs, les exercices se simplifient et les compétences validées reviennent en révision.</p></section>`;
-}
-function renderMap() {
-  const el = $('#pathMap'); if (!el) return;
-  const P = pst(), f = frontier(P);
-  el.innerHTML = CH.map((c, ci) => `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${SK.filter(k => k.ch === ci).map(k => {
-    const s = skS(P, k.id), val = isVal(s), open = val || k === f || s.n > 0, pct = Math.min(100, Math.round(s.m));
-    return `<div class="psk ${val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}${s.ever && !val ? '<small>à revoir</small>' : ''}</span>
-      <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
-  }).join('')}</div>`).join('');
-}
-function nextPath(o = {}) {
-  const P = pst();
-  if (!o.fresh && P.cur && skById(P.cur.id)) { startEx(skById(P.cur.id), { resume: P.cur }); renderPathTop(); renderMap(); return; }
-  const n = pickNext(P); if (!n) return;
-  startEx(n.k, { review: n.review, user: o.user }); renderPathTop(); renderMap();
-}
-function vPath() {
-  app.innerHTML = `<div><p class="eyebrow">Parcours guidé</p><h1>Le parcours</h1></div><div id="pathTop"></div><div id="exHost" style="display:grid;gap:16px"></div><section class="card"><h2>La carte</h2><div id="pathMap"></div></section>`;
-  renderPathTop(); renderMap();
-  if (CUR && CUR.mode === 'path') renderEx(); else if (pst().n || pst().cur) nextPath();
 }
 let FREE = { id: 'demos', d: 0 };
 function vExos() {
@@ -771,7 +583,6 @@ function vCours(open) {
 }
 
 /* ---------- Sujet blanc ---------- */
-let tick = 0;
 const DUR = 3600;
 const EXAM_PLAN = [['Exercice 1 · Démonstration', [['demos', 0]], 4], ['Exercice 2 · Théorème de Thévenin', [['rth', 1], ['eth', 1], ['thev', 1]], 8], ['Exercice 3 · Circuit du premier ordre', [['bfhf', 1], ['edo', 1], ['reponse', 0]], 8]];
 function examExos(seed) { const g = G(rng(seed)); return EXAM_PLAN.map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
@@ -795,18 +606,11 @@ function renderExam() {
   if (EXAM.done && EXAM.fb) Object.entries(EXAM.fb).forEach(([id, h]) => { const fb = $(`.it[data-id="${id}"] .fb`, app); if (fb) fb.innerHTML = h; });
   startTick();
 }
-function startTick() {
-  clearInterval(tick); const clk = $('#clock');
-  if (!EXAM || EXAM.done) { clk.hidden = true; return; }
-  clk.hidden = false;
-  const upd = () => { const left = DUR - (Date.now() - EXAM.t0) / 1000; clk.textContent = `${Math.floor(Math.max(0, left) / 3600)}:${String(Math.floor(Math.max(0, left) % 3600 / 60)).padStart(2, '0')}:${String(Math.floor(Math.max(0, left) % 60)).padStart(2, '0')}`; clk.classList.toggle('rush', left < 600); if (left <= 0) submitExam(true); };
-  upd(); tick = setInterval(upd, 1000);
-}
 const saveExam = () => { const { exs, ...rest } = EXAM; ls.set(EK, rest); };
 function submitExam(auto) {
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
-  clearInterval(tick);
+  stopTick();
   const exs = examExos(EXAM.seed); let note = 0; const fb = {};
   for (const ex of exs) {
     const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
@@ -848,47 +652,10 @@ document.addEventListener('input', e => {
   if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; saveExam(); }
   else if (CUR && !CUR.done) { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
 });
-document.addEventListener('change', e => { if (e.target.type === 'radio') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); } });
-document.addEventListener('toggle', e => { if (CUR && !CUR.done && e.target.matches && e.target.matches('#exHost details.corr') && e.target.open) { CUR.peek = true; saveCur(); } }, true);
-
-(function () {
-  const ICON = { sun: '☀', moon: '☾', auto: '◐' }, KEY = 'qcm-maths-theme', btn = $('#themeBtn');
-  function apply(t) { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t; btn.textContent = ICON[t === 'auto' ? 'auto' : t === 'light' ? 'sun' : 'moon']; btn.dataset.mode = t; btn.title = 'Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[t]; }
-  let t = 'auto'; try { t = localStorage.getItem(KEY) || 'auto'; } catch (e) { /* ignore */ }
-  apply(t);
-  btn.addEventListener('click', () => { const nx = ({ auto: 'light', light: 'dark', dark: 'auto' })[btn.dataset.mode]; try { localStorage.setItem(KEY, nx); } catch (e) { /* ignore */ } apply(nx); });
-})();
-// Sujet blanc modifié sur un autre appareil (account.js) : mêmes réponses ici, ou sujet rendu ou remplacé là-bas
-function examSynced() {
-  const E = ls.get(EK, null), open = E && !E.closed && !E.done ? E : null;
-  if (EXAM && EXAM.done) return;
-  if (EXAM && open && open.seed === EXAM.seed) {
-    EXAM.ans = Object.assign({}, open.ans);
-    const typing = document.activeElement && document.activeElement.matches('#app input, #app textarea');
-    if (VIEW === 'blanc' && !typing) renderExam();
-    return;
-  }
-  if (EXAM) {
-    EXAM = null; clearInterval(tick); $('#clock').hidden = true;
-    toast(open ? 'Un autre sujet blanc a été commencé sur ton autre appareil.' : 'Sujet blanc rendu sur ton autre appareil : la note est dans « Mes copies ».');
-  }
-  if (VIEW === 'blanc') vBlanc();
-}
-function wireAccount() {
-  const A = window.SiteAccount; if (!A) return;
-  A.on('data', keys => {
-    if (keys.includes(EK)) examSynced();
-    if (!keys.some(k => k.startsWith('el2.'))) return;
-    if (CUR && CUR.mode === 'path' && !CUR.done && !Object.keys(CUR.first).length && !Object.keys(CUR.ans).length) CUR = null;
-    if (VIEW === 'path') vPath(); else if (VIEW === 'home') vHome();
-  });
-}
-if (window.SiteAccount) wireAccount(); else window.addEventListener('siteaccount', wireAccount, { once: true });
 
 window.__EL2 = { GEN, build, ladder, G, rng, fV, check, parseF, evF, texF, parseNum, SK, VD, FICHES };   // tests
-function boot() { const h = location.hash.slice(1); setTab(['home', 'path', 'cours', 'exos', 'blanc'].includes(h) ? h : 'home'); }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+E.start();
 })();
 </script>
 </body>

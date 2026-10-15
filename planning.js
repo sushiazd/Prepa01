@@ -49,9 +49,8 @@
   /* ---------- Classement des événements ---------- */
   const SUBJ = { ELECA: 'Électronique analogique', ELECN: 'Électronique numérique', MATH: 'Maths', MATHS: 'Maths', PHYS: 'Physique',
     ALGO: 'Algorithmique', MECA: 'Mécanique', ANG: 'Anglais', ATO: 'Atomistique' };
-  const LINKS = { ELECA: 'elec/', MATH: 'maths-s1/', MATHS: 'maths-s1/', ATO: 'ato/', ALGO: 'algo/', PHYS: 'phys/', MECA: 'meca/' };
-  // second CC de maths (janvier) : partie analyse
-  const linkOf = e => { const sj = subjOf(e); if (/QCM/i.test(e.t)) return 'maths/'; if ((sj === 'MATH' || sj === 'MATHS') && e.s > Date.parse('2026-12-01')) return 'maths-s1-analyse/'; if (sj === 'ELECA' && e.s > Date.parse('2026-10-20')) return 'elec2/'; return LINKS[sj]; };
+  // page de révision d'un créneau : subjects.js (CC1 / CC2 d'une même matière départagés par la date)
+  const linkOf = e => window.SiteSubjects ? SiteSubjects.pageOf(e) : null;
   const isTiers = e => /tiers[\s-]*temps/i.test(e.t);
   const isRatt = e => /rattrapage/i.test(e.t);
   const isEval = e => /(?:^|[^A-Za-zÀ-ÿ])(CC|QCM|DS|EXAMEN|EXAM|PARTIEL|CONTR[ÔO]LE|INTERRO|TOEIC|TOIEC|ORAUX|ORAL|SOUTENANCE|[ÉE]VALUATION)(?![A-Za-zÀ-ÿ])/i.test(e.t);
@@ -145,7 +144,7 @@
   }
   // Compte à rebours de la page élec : la date du prochain CC d'électronique analogique
   function fillElecDate(evs) {
-    const next = evs.find(e => e.s > Date.now() - 864e5 && e.s !== Date.parse('2026-10-16T07:45:00Z') && subjOf(e) === 'ELECA' && isEval(e) && !isTiers(e) && !isRatt(e));
+    const next = evs.find(e => e.s > Date.now() - 864e5 && !(window.SiteSubjects && SiteSubjects.ignored('elec', e.s)) && subjOf(e) === 'ELECA' && isEval(e) && !isTiers(e) && !isRatt(e));
     if (!next) return;
     const key = dayKey(next.s), cur = get('elec.ccdate.v1', '');
     if (!cur || cur < dayKey(Date.now())) { put('elec.ccdate.v1', key); if (A()) A().touch('elec.ccdate.v1'); }

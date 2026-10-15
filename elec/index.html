@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="../subjects.js?v=20261015"></script>
 <script defer src="../account.js" data-lazy></script>
 <style>
 :root{
@@ -1590,10 +1591,9 @@ function showTab(tab) {
 // date du prochain CC d'électronique analogique : emploi du temps (onglet Planning de l'accueil),
 // sinon la date enregistrée sur la page, sinon celle du CC1 2026
 // CC1 déplacé (cours à distance) : l'ancienne date du 16/10 est ignorée tant que l'emploi du temps n'en donne pas une nouvelle
-const OLD_CC1 = Date.parse('2026-10-16T07:45:00Z');
 function nextElecCC() {
   const c = ls.get('planning.cache.v1', null), now = Date.now();
-  const all = c && c.evs ? c.evs.filter(e => /ELECa/i.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t) && e.s !== OLD_CC1) : [];
+  const all = c && c.evs ? c.evs.filter(e => /ELECa/i.test(e.t) && /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t) && !/tiers/i.test(e.t) && !SiteSubjects.ignored('elec', e.s)) : [];
   const i = all.findIndex(e => e.s > now - 3 * 3600e3);
   if (i >= 0) return { ts: all[i].s, n: all[i].s > Date.parse('2026-10-20') ? 2 : 1 };
   const d = ls.get(K.date, '');

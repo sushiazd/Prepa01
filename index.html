@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<script src="subjects.js?v=20261015"></script>
 <script defer src="account.js"></script>
 <script defer src="planning.js"></script>
 <style>
@@ -365,52 +366,25 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   if (hist.length) parts.push(`${hist.length} sujet${hist.length > 1 ? 's' : ''} blanc${hist.length > 1 ? 's' : ''} fait${hist.length > 1 ? 's' : ''}`);
   else if (st) { const n = ['ex2', 'ex3', 'ex4'].reduce((s, k) => s + ((st[k] && st[k].n) || 0), 0); if (n) parts.push(`${n} réponse${n > 1 ? 's' : ''} en entraînement`); }
   document.getElementById('elecMeta').innerHTML = parts.join(' · ');
-  const ap = get('ato.path.v1', null), aSk = ap && ap.sk ? Object.values(ap.sk).filter(s => s.m >= 100).length : 0, aH = get('ato.hist.v1', []);
-  const gp = get('algo.path.v1', null), gSk = gp && gp.sk ? Object.values(gp.sk).filter(s => s.m >= 100).length : 0, gH = get('algo.hist.v1', []);
-  document.getElementById('algoMeta').innerHTML = [gSk ? `<b>${gSk}/12</b> compétences validées` : '', gH.length ? `dernier sujet blanc : <b>${String(gH[gH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
-  const pp = get('phys.path.v1', null), pSk = pp && pp.sk ? Object.values(pp.sk).filter(s => s.m >= 100).length : 0, pH = get('phys.hist.v1', []);
-  document.getElementById('physMeta').innerHTML = [pSk ? `<b>${pSk}/16</b> compétences validées` : '', pH.length ? `dernier sujet blanc : <b>${String(pH[pH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
-  const mp = get('meca.path.v1', null), mSk = mp && mp.sk ? Object.values(mp.sk).filter(s => s.m >= 100).length : 0, mH = get('meca.hist.v1', []);
-  document.getElementById('mecaMeta').innerHTML = [mSk ? `<b>${mSk}/11</b> compétences validées` : '', mH.length ? `dernier sujet blanc : <b>${String(mH[mH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
-  const sp = get('ms1.path.v1', null), sSk = sp && sp.sk ? Object.values(sp.sk).filter(s => s.m >= 100).length : 0, sH = get('ms1.hist.v1', []);
-  document.getElementById('ms1Meta').innerHTML = [sSk ? `<b>${sSk}/16</b> compétences validées` : '', sH.length ? `dernier sujet blanc : <b>${String(sH[sH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
-  const ap2 = get('ma2.path.v1', null), aSk2 = ap2 && ap2.sk ? Object.values(ap2.sk).filter(s => s.m >= 100).length : 0, aH2 = get('ma2.hist.v1', []);
-  document.getElementById('ma2Meta').innerHTML = [aSk2 ? `<b>${aSk2}/14</b> compétences validées` : '', aH2.length ? `dernier sujet blanc : <b>${String(aH2[aH2.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
-  const ep2 = get('el2.path.v1', null), eSk2 = ep2 && ep2.sk ? Object.values(ep2.sk).filter(s => s.m >= 100).length : 0, eH2 = get('el2.hist.v1', []);
-  document.getElementById('el2Meta').innerHTML = [eSk2 ? `<b>${eSk2}/9</b> compétences validées` : '', eH2.length ? `dernier sujet blanc : <b>${String(eH2[eH2.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
-  document.getElementById('atoMeta').innerHTML = [aSk ? `<b>${aSk}/12</b> compétences validées` : '', aH.length ? `dernier sujet blanc : <b>${String(aH[aH.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
+  // pages à parcours : compétences validées (nombre total dans subjects.js) et dernier sujet blanc
+  SiteSubjects.list.filter(s => s.skills).forEach(s => {
+    const el = document.getElementById(s.id + 'Meta'); if (!el) return;
+    const p = get(s.id + '.path.v1', null), n = p && p.sk ? Object.values(p.sk).filter(k => k.m >= 100).length : 0, H = get(s.id + '.hist.v1', []);
+    el.innerHTML = [n ? `<b>${n}/${s.skills}</b> compétences validées` : '', H.length ? `dernier sujet blanc : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
+  });
   orderTools();
   }
 
   /* ---------- Cartes des matières : de l'évaluation la plus proche à la plus lointaine ---------- */
-  // [page, matière dans le titre ADE, fenêtre de dates (début, fin), dates de secours si le planning n'est pas chargé]
-  const MATH_RE = /(^|[^A-Za-z])MATHS?([^A-Za-z]|$)/;
-  const CARD_EV = [
-    ['maths/', /QCM/i, null, null, ['2026-10-15T08:15:00Z', '2026-11-05T15:45:00Z', '2026-11-16T07:45:00Z', '2026-12-02T14:00:00Z', '2026-12-17T09:15:00Z', '2027-01-14T11:00:00Z']],
-    ['maths-s1/', MATH_RE, null, '2026-12-01', ['2026-11-06T08:45:00Z']],
-    ['maths-s1-analyse/', MATH_RE, '2026-12-01', null, ['2027-01-06T07:00:00Z']],
-    ['ato/', /(^|[^A-Za-z])ATO([^A-Za-z]|$)/, null, '2026-11-01', [], '2026-10-20T13:00:00Z'],
-    ['elec/', /ELECa/i, null, '2026-10-20', [], '2026-10-16T07:45:00Z'],
-    ['elec2/', /ELECa/i, '2026-10-20', null, ['2026-11-02T14:00:00Z']],
-    ['algo/', /(^|[^A-Za-z])ALGO([^A-Za-z]|$)/, null, '2026-11-01', ['2026-10-23T07:45:00Z']],
-    ['phys/', /(^|[^A-Za-z])PHYS([^A-Za-z]|$)/, '2026-10-01', null, ['2026-12-02T08:45:00Z']],
-    ['meca/', /(^|[^A-Za-z])MECA([^A-Za-z]|$)/, null, null, ['2026-12-09T12:15:00Z']]
-  ];
-  // 6e valeur : ancienne date du CC (déplacé, nouvelle date pas encore dans l'emploi du temps) : on l'ignore et la carte indique « date à confirmer »
-  function evDates(re, from, to, fallback, stale) {
-    const c = get('planning.cache.v1', null), lo = from ? Date.parse(from) : -Infinity, hi = to ? Date.parse(to) : Infinity;
-    const qcm = re.source.includes('QCM');
-    const evs = c && Array.isArray(c.evs) ? c.evs.filter(e => re.test(e.t) && (qcm || /(^|[^A-Za-z])CC([^A-Za-z]|$)/.test(e.t)) && !/tiers|oraux/i.test(e.t) && e.s >= lo && e.s < hi && e.s !== (stale ? Date.parse(stale) : NaN)).map(e => e.s) : [];
-    return (evs.length ? evs : fallback.map(Date.parse)).sort((a, b) => a - b);
-  }
+  // dates des contrôles : subjects.js (emploi du temps, sinon dates de secours ; CC déplacé → « date à confirmer »)
   function orderTools() {
     const grid = document.querySelector('#vRev .grid'); if (!grid) return;
-    const now = Date.now(), t0 = new Date(); t0.setHours(0, 0, 0, 0);
-    const cards = CARD_EV.map(([href, re, from, to, fb, stale]) => {
-      const el = grid.querySelector(`a.tool[href="${href}"]`); if (!el) return null;
-      const ds = evDates(re, from, to, fb, stale), next = ds.find(s => s > now - 3 * 3600e3), ts = next != null ? next : ds[ds.length - 1];
-      if (!ds.length) return { el, ts: 8e15, past: false, tbc: true };
-      return { el, ts, past: next == null };
+    const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+    const cards = SiteSubjects.list.map(s => {
+      const el = grid.querySelector(`a.tool[href="${s.page}"]`); if (!el) return null;
+      const n = SiteSubjects.next(s.id);
+      if (!n) return { el, ts: 8e15, past: false, tbc: true };
+      return { el, ts: n.ts, past: n.past };
     }).filter(Boolean);
     cards.sort((a, b) => (a.past - b.past) || (a.past ? b.ts - a.ts : a.ts - b.ts));
     const anchor = grid.querySelector('.tool.soon');

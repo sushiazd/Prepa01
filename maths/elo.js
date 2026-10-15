@@ -13,6 +13,8 @@
      d'être GM sans tout le programme. Il ne dépend ni du nombre de questions faites ni du groupe.
    - Une même question (même qid) refaite ne compte qu'une fois ; les copies presque vides (≥ 80 % de
      réponses à 0) sont ignorées ; les copies du prof importées comptent (une réponse par question notée).
+   - Erreur marquée « erreur de calcul » : la méthode est sue, elle ne coûte que 30 % d'une vraie erreur
+     (comme dans les points faibles). Une fausse vaut alors 0,7 au lieu de 0, une partielle entre les deux.
    Difficultés calibrées le 15/10/2026 sur les 717 réponses du site (modèle logistique, a priori 1000) ;
    Hardcore fixé à 2000. Un modèle absent de la table prend la difficulté de son thème.
    ===================================================================== */
@@ -58,7 +60,7 @@
   function rank(members) {
     const obs = [];
     members.forEach(m => {
-      (m.attempts || []).forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip && r.theme).map(r => ({ qid: r.qid, theme: r.theme, pts: +r.pts, max: 1 })) }));
+      (m.attempts || []).forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip && r.theme).map(r => ({ qid: r.qid, theme: r.theme, pts: +r.pts, max: 1, slip: !!r.slip })) }));
       (m.controls || []).forEach(c => obs.push({ who: m.id, at: c.at != null ? c.at : (Date.parse(c.date) || 0), items: (c.items || []).filter(i => i.theme).map(i => ({ theme: i.theme, pts: +i.pts, max: +i.max || 1 })) }));
     });
     const A = {}, LV = {}, N = {}, OK = {}, H = {}, DONE = new Set(), Q = {}, QN = {}, QS = {};
@@ -69,7 +71,8 @@
       o.items.forEach(i => {
         if (!THEMES.includes(i.theme)) return;
         if (i.qid) { const k = o.who + '|' + i.qid; if (DONE.has(k)) return; DONE.add(k); }      // question refaite : ne compte plus
-        const d = diffOf(i.qid, i.theme), s = Math.min(1, Math.max(0, (i.pts / i.max + 0.5) / 1.5));
+        const d = diffOf(i.qid, i.theme), s0 = Math.min(1, Math.max(0, (i.pts / i.max + 0.5) / 1.5));
+        const s = i.slip && s0 < 1 ? s0 + 0.7 * (1 - s0) : s0;                                     // erreur de calcul : 30 % de la perte
         const T = (A[o.who] = A[o.who] || {})[i.theme] = (A[o.who][i.theme] || { n: [], h: [] });
         (d >= HC ? T.h : T.n).push({ d, s });
         touched.add(i.theme);

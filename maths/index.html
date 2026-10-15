@@ -8084,10 +8084,13 @@ const saveControls = () => ls.set(K.controls, controls);
 const savePrefs = () => ls.set(K.prefs, prefs);
 
 /* ---------- Statistiques par thème ---------- */
+// Copie Hardcore : onglet Hardcore, ou contrôle de groupe Hardcore (toutes ses questions sont des modèles hc_)
+function isHardQid(id) { return /^gen\.hc_/.test(String(id)); }
+function isHCAtt(a) { return a.kind === 'hardcore' || (a.kind === 'group' && !!(a.results || []).length && a.results.every(r => isHardQid(r.qid))); }
 function collectObs(ctls = controls, atts = attempts) {
   const obs = [];
   ctls.forEach(c => c.items.forEach(it => { if (it.theme && TH[it.theme]) obs.push({ theme: it.theme, pts: it.pts, max: it.max || 1 }); }));
-  atts.forEach(a => a.kind !== 'hardcore' && (a.results || []).forEach(r => { if (!r.skip && r.theme && TH[r.theme]) obs.push({ theme: r.theme, pts: r.pts, max: 1, slip: !!r.slip }); }));
+  atts.forEach(a => !isHCAtt(a) && (a.results || []).forEach(r => { if (!r.skip && r.theme && TH[r.theme]) obs.push({ theme: r.theme, pts: r.pts, max: 1, slip: !!r.slip }); }));
   return obs;
 }
 function themeStats() { return themeStatsFrom(controls, attempts); }
@@ -8261,17 +8264,14 @@ const HC_MODES = {
 K.hcount = 'qcmhub.hcount.v1';
 const HARD = Object.values(QGEN.TPL).filter(t => t.hard);
 const hcModeOf = a => (/^h:([a-z]+):/.exec(String(a.defId)) || [])[1];
-function hardcoreDef(mode) {
-  const m = HC_MODES[mode], k = ls.get(K.hcount, 0) + 1;
-  ls.set(K.hcount, k);
-  const used = {};
-  attempts.forEach(a => { if (a.kind === 'hardcore') (a.results || []).forEach(r => { const t = tplOfId(r.qid); if (t) used[t] = (used[t] || 0) + 1; }); });
+// n questions Hardcore, une par thème tant que possible ; used[modèle] = nombre de fois déjà tombé (les moins vus d'abord)
+function planHardcore(n, used) {
   const byTh = {};
   HARD.forEach(t => (byTh[t.theme] = byTh[t.theme] || []).push(t));
   const chosen = [];
-  while (chosen.length < Math.min(m.n, HARD.length)) {
+  while (chosen.length < Math.min(n, HARD.length)) {
     for (const th of shuffle(Object.keys(byTh))) {
-      if (chosen.length >= m.n) break;
+      if (chosen.length >= n) break;
       const left = shuffle(byTh[th].filter(t => !chosen.includes(t))).sort((x, y) => (used[x.id] || 0) - (used[y.id] || 0));
       if (left.length) chosen.push(left[0]);
     }
@@ -8279,8 +8279,16 @@ function hardcoreDef(mode) {
   chosen.sort((x, y) => TH[x.theme].order - TH[y.theme].order);
   const themeCount = {};
   chosen.forEach(t => { themeCount[t.theme] = (themeCount[t.theme] || 0) + 1; });
+  return { qids: chosen.map(t => `gen.${t.id}.${Math.floor(Math.random() * 2147483647).toString(36)}`), themeCount };
+}
+function hardcoreDef(mode) {
+  const m = HC_MODES[mode], k = ls.get(K.hcount, 0) + 1;
+  ls.set(K.hcount, k);
+  const used = {};
+  attempts.forEach(a => { if (isHCAtt(a)) (a.results || []).forEach(r => { const t = tplOfId(r.qid); if (t) used[t] = (used[t] || 0) + 1; }); });
+  const plan = planHardcore(m.n, used);
   return { id: `h:${mode}:${Date.now()}`, kind: 'hardcore', title: `Hardcore ${m.name} n° ${k}`, eyebrow: `Mode Hardcore · ${m.name} · sans calculatrice`,
-    qids: chosen.map(t => `gen.${t.id}.${Math.floor(Math.random() * 2147483647).toString(36)}`), duration: m.dur * 60, themeCount };
+    qids: plan.qids, duration: m.dur * 60, themeCount: plan.themeCount };
 }
 /* Construit l'épreuve (questions complètes + contexte d'exercice) à partir d'une définition */
 function buildTest(def) {
@@ -8827,7 +8835,7 @@ function renderHistorique() {
   const box = $('#histoBox');
   const A = attempts.filter(a => a.at).slice().sort((x, y) => x.at - y.at);
   if (!A.length) { box.innerHTML = `<section class="card"><p class="sub">Aucune épreuve rendue pour l'instant. Fais un contrôle ciblé ou un sujet : ton temps de travail jour par jour et ta progression apparaîtront ici.</p></section>`; return; }
-  const std = A.filter(a => a.kind !== 'hardcore');
+  const std = A.filter(a => !isHCAtt(a));
   const days = new Map(), dayOf = k => days.get(k) || (days.set(k, { k, used: 0, list: [], ctl: [] }), days.get(k));
   A.forEach(a => { const d = dayOf(hxDay(a.at)); d.used += a.used || 0; d.list.push(a); });
   controls.forEach(c => { const ts = Date.parse(c.date); if (ts) dayOf(hxDay(ts)).ctl.push(c); });
@@ -8856,8 +8864,8 @@ function renderHistorique() {
     return `<div class="hx-bar${b.k === today ? ' today' : ''}" title="${esc(tip)}"><i style="height:${b.m ? Math.max(3, b.m / mx * 100) : 0}%"></i><span>${b.d.getDay() === 1 || b.k === today ? b.d.getDate() : ''}</span></div>`;
   }).join('')}</div><p class="fine" style="margin-top:8px">Plus haute colonne : ${Math.round(mx)} min. Les numéros sous les colonnes sont les lundis et aujourd'hui ; survole ou touche une colonne pour le détail.</p>`;
   // Notes, copie après copie
-  const notePts = A.map(a => ({ y: Math.max(0, Math.min(20, +a.note || 0)), c: a.kind === 'hardcore' ? 'var(--flag)' : 'var(--pen)', tip: `${a.title} · ${fmtNum(a.note, 2)}/20 · ${fmtDate(a.at)}` }));
-  const acc = [], trend = A.map(a => { if (a.kind === 'hardcore') return null; acc.push(+a.note || 0); const w = acc.slice(-3); return w.reduce((s, x) => s + x, 0) / w.length; });
+  const notePts = A.map(a => ({ y: Math.max(0, Math.min(20, +a.note || 0)), c: isHCAtt(a) ? 'var(--flag)' : 'var(--pen)', tip: `${a.title} · ${fmtNum(a.note, 2)}/20 · ${fmtDate(a.at)}` }));
+  const acc = [], trend = A.map(a => { if (isHCAtt(a)) return null; acc.push(+a.note || 0); const w = acc.slice(-3); return w.reduce((s, x) => s + x, 0) / w.length; });
   const notesHTML = hxLine(notePts, 0, 20, [0, 5, 10, 15, 20], trend, 'Notes sur 20 de chaque copie, de la plus ancienne à la plus récente') +
     `<p class="fine" style="margin-top:6px"><span class="hx-key" style="background:var(--pen)"></span>copie · <span class="hx-key" style="background:var(--flag)"></span>Hardcore (plus dur, hors moyenne) · trait clair : moyenne des 3 dernières copies</p>`;
   // Débuts / maintenant
@@ -8884,13 +8892,13 @@ function renderHistorique() {
   const weeks = new Map();
   A.forEach(a => { const k = hxWeek(a.at); (weeks.get(k) || (weeks.set(k, []), weeks.get(k))).push(a); });
   const weekRows = [...weeks.entries()].sort((x, y) => y[0] - x[0]).map(([k, list]) => {
-    const s = list.filter(a => a.kind !== 'hardcore'), q = hxQ(s), qa = hxQ(list), used = list.reduce((t, a) => t + (a.used || 0), 0);
+    const s = list.filter(a => !isHCAtt(a)), q = hxQ(s), qa = hxQ(list), used = list.reduce((t, a) => t + (a.used || 0), 0);
     return `<tr><td>${new Date(k).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</td><td>${list.length}</td><td>${fmtHours(used)}</td><td>${qa.n}</td><td>${s.length ? fmtNum(hxNote(s), 1) + '/20' : '—'}</td><td>${hxPct(q.rate)}</td><td>${qa.spq == null ? '—' : Math.round(qa.spq) + ' s'}</td></tr>`;
   }).join('');
   // Journal jour par jour
   const journal = [...days.values()].sort((x, y) => (y.k > x.k ? 1 : -1)).slice(0, 30).map(d => {
     const dt = new Date(d.k + 'T12:00:00');
-    const items = d.list.slice().sort((x, y) => x.at - y.at).map(a => `<li><span class="hx-t">${new Date(a.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span><span class="hx-n">${esc(a.title)}${a.kind === 'hardcore' ? ' <span class="hx-hc">Hardcore</span>' : ''}</span><span class="hx-m">${graded(a)} q · ${fmtMS(a.used || 0)}</span><b>${fmtNum(a.note, 2)}/20</b></li>`).join('')
+    const items = d.list.slice().sort((x, y) => x.at - y.at).map(a => `<li><span class="hx-t">${new Date(a.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span><span class="hx-n">${esc(a.title)}${isHCAtt(a) ? ' <span class="hx-hc">Hardcore</span>' : ''}</span><span class="hx-m">${graded(a)} q · ${fmtMS(a.used || 0)}</span><b>${fmtNum(a.note, 2)}/20</b></li>`).join('')
       + d.ctl.map(c => `<li><span class="hx-t">—</span><span class="hx-n">Copie du prof importée : ${esc(c.name)}</span><span class="hx-m">${c.N} q</span><b>${c.noteProf != null ? fmtNum(c.noteProf, 2) + '/20' : ''}</b></li>`).join('');
     return `<div class="hx-day"><div class="hx-dh"><b>${esc(dt.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }))}</b><span>${d.list.length ? fmtHours(d.used) + ' · ' + d.list.length + ' copie' + (d.list.length > 1 ? 's' : '') : ''}</span></div><ul>${items}</ul></div>`;
   }).join('');
@@ -9184,7 +9192,7 @@ function replacementFor(i) {
   };
   const fromGen = () => {
     const used = new Set(S.def.qids.map(tplOf).filter(Boolean));
-    if (S.def.kind === 'hardcore') {
+    if (S.def.kind === 'hardcore' || S.def.hc) {
       const hard = HARD.filter(t => t.id !== tplOf(q.id) && !used.has(t.id)), same = hard.filter(t => t.theme === q.theme);
       const pool = same.length ? same : hard;
       return pool.length ? genId(pool[Math.floor(Math.random() * pool.length)].id) : genId(tplOf(q.id));
@@ -9483,7 +9491,7 @@ function renderResults(res) {
 
   <section class="card">
     <div class="card-head"><div><h2>Bilan par thème</h2>
-      <p class="sub">Où tu as gagné et perdu des points sur cette copie, du plus faible au plus solide. ${S.def.kind === 'hardcore' ? 'Copie Hardcore : elle ne compte pas dans tes points faibles ni dans le choix des contrôles ciblés.' : 'Cette copie compte maintenant dans tes statistiques et dans le choix des prochains contrôles ciblés.'}</p></div></div>
+      <p class="sub">Où tu as gagné et perdu des points sur cette copie, du plus faible au plus solide. ${S.def.kind === 'hardcore' || S.def.hc ? 'Copie Hardcore : elle ne compte pas dans tes points faibles ni dans le choix des contrôles ciblés.' : 'Cette copie compte maintenant dans tes statistiques et dans le choix des prochains contrôles ciblés.'}</p></div></div>
     <div style="overflow-x:auto"><table class="th-res"><thead><tr><th>Thème</th><th>Questions</th><th>Points</th><th>Détail</th><th></th></tr></thead><tbody>
       ${tRows.map(([t, o]) => `<tr><td><strong>${esc(themeName(t))}</strong></td><td>${o.n}</td><td class="${o.pts > 0 ? 'pts-pos' : o.pts < 0 ? 'pts-neg' : ''}">${fmtPts(o.pts)} / ${o.n}</td><td>${o.j ? o.j + ' ✓ ' : ''}${o.p ? o.p + ' ◐ ' : ''}${o.f ? o.f + ' ✗ ' : ''}${o.v ? o.v + ' – ' : ''}${o.sl ? `<span class="pill st-slip" title="Erreurs de calcul annotées">✎ ${o.sl} calcul</span>` : ''}</td><td>${TH[t] ? `<button type="button" class="link-m" data-method="${t}">Méthode</button>` : ''}</td></tr>`).join('')}
     </tbody></table></div>
@@ -10165,12 +10173,21 @@ function planGroupTest(n, stats, past, rnd = Math.random) {
 }
 async function createGroupTest() {
   if (!G) return;
-  const n = +$('#gtN').value || 20, dur = ({ 10: 30, 20: 60, 37: 90 })[n] || 60;
-  const stats = themeStatsFrom(G.controls, G.attempts);
+  const v = $('#gtN').value || '20', hcm = v.startsWith('hc:') ? HC_MODES[v.slice(3)] : null;
+  let plan, dur;
   // Questions inédites : la graine est dans l'identifiant, donc tout le groupe a exactement les mêmes questions.
-  const plan = planGroupTest(n, stats, G.tests.map(t => t.qids || []));
+  if (hcm) {
+    // Hardcore : les modèles les moins tombés dans les contrôles Hardcore précédents du groupe d'abord
+    const used = {};
+    G.tests.forEach(t => (t.qids || []).forEach(id => { const tp = isHardQid(id) && tplOfId(id); if (tp) used[tp] = (used[tp] || 0) + 1; }));
+    plan = planHardcore(hcm.n, used); dur = hcm.dur;
+  } else {
+    const n = +v || 20;
+    dur = ({ 10: 30, 20: 60, 37: 90 })[n] || 60;
+    plan = planGroupTest(n, themeStatsFrom(G.controls, G.attempts), G.tests.map(t => t.qids || []));
+  }
   if (plan.qids.length < 3) { toast('Pas assez de questions disponibles.'); return; }
-  const { data: row, error } = await sb.from('group_tests').insert({ group_id: G.gid, title: `Contrôle du groupe n° ${G.tests.length + 1}`, qids: plan.qids, duration_s: dur * 60, theme_count: plan.themeCount, created_by: me.id }).select().single();
+  const { data: row, error } = await sb.from('group_tests').insert({ group_id: G.gid, title: `Contrôle du groupe n° ${G.tests.length + 1}${hcm ? ' · Hardcore ' + hcm.name : ''}`, qids: plan.qids, duration_s: dur * 60, theme_count: plan.themeCount, created_by: me.id }).select().single();
   if (error) { toast(frErr(error), 5000); return; }
   toast('Salle d\'attente ouverte : le groupe la voit en haut de la page. Clique sur « Démarrer maintenant » quand tout le monde est là.', 6000);
   LIVE = [row].concat(LIVE.filter(t => t.id !== row.id));
@@ -10218,11 +10235,13 @@ function toggleGroupReview(tid) {
   });
   renderMath(el);
 }
+// Contrôle de groupe Hardcore : toutes ses questions viennent des modèles Hardcore
+function gtHard(t) { return Array.isArray(t.qids) && t.qids.length > 0 && t.qids.every(isHardQid); }
 // Numéro d'un contrôle : son rang de création parmi les contrôles encore présents (une suppression décale les suivants)
 function gtTitle(t) {
   const L = G && G.gid === t.group_id ? G.tests : null;
   if (!L || !L.some(x => x.id === t.id)) return t.title;
-  return `Contrôle du groupe n° ${1 + L.filter(x => Date.parse(x.created_at) < Date.parse(t.created_at)).length}`;
+  return `Contrôle du groupe n° ${1 + L.filter(x => Date.parse(x.created_at) < Date.parse(t.created_at)).length}${gtHard(t) ? ' · Hardcore' : ''}`;
 }
 async function deleteGroupTest(tid) {
   const t = G && G.tests.find(x => x.id === tid); if (!t) return;
@@ -10238,11 +10257,13 @@ async function deleteGroupTest(tid) {
 function groupTestDef(t) {
   const all = Array.isArray(t.qids) ? t.qids : [], qids = all.filter(id => qEntry(id));
   const g = myGroups.find(x => x.id === t.group_id) || (G && G.group);
-  const def = { id: 'g:' + t.id, kind: 'group', gid: t.group_id, title: gtTitle(t), eyebrow: `Contrôle du groupe · ${g ? g.name : ''}`, qids, duration: t.duration_s, themeCount: t.theme_count || null };
+  const hc = gtHard(t), hcT = hc ? 'Hardcore · sans calculatrice · ' : '';
+  const def = { id: 'g:' + t.id, kind: 'group', gid: t.group_id, title: gtTitle(t), eyebrow: `Contrôle du groupe · ${hcT}${g ? g.name : ''}`, qids, duration: t.duration_s, themeCount: t.theme_count || null };
+  if (hc) def.hc = true;
   // Questions créées par une version plus récente du site : cette page ne sait pas les afficher
   if (qids.length < all.length) def.missing = all.length - qids.length;
   const w = t.created_at ? liveWin(t) : null;
-  if (w && Date.now() < w.end) { def.live = { start: w.start, end: w.end, tid: t.id, owner: t.created_by, mgr: !!me && (t.created_by === me.id || !!(g && g.created_by === me.id)) }; def.eyebrow = 'Contrôle du groupe en direct · ' + (g ? g.name : ''); }
+  if (w && Date.now() < w.end) { def.live = { start: w.start, end: w.end, tid: t.id, owner: t.created_by, mgr: !!me && (t.created_by === me.id || !!(g && g.created_by === me.id)) }; def.eyebrow = 'Contrôle du groupe en direct · ' + hcT + (g ? g.name : ''); }
   return def;
 }
 // Ouvre un contrôle de groupe, sauf si la page est trop ancienne pour en afficher toutes les questions
@@ -10744,7 +10765,7 @@ function groupHTML() {
     const best = {}; res.forEach(a => { if (!best[a.user_id] || a.note > best[a.user_id].note) best[a.user_id] = a; });
     const board = Object.values(best).sort((a, b) => b.note - a.note);
     const mine = best[me.id];
-    return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(gtTitle(t))}</h3><p class="meta">${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${esc(G.pseudo(t.created_by) || 'un membre')} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
+    return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(gtTitle(t))}</h3><p class="meta">${gtHard(t) ? '<span class="tag tag-hc">Hardcore</span> ' : ''}${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${esc(G.pseudo(t.created_by) || 'un membre')} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
       <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.end && now < w.start ? '🔴 Rejoindre la salle d\'attente' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${(() => { const w = liveWin(t), now = Date.now(); return now < w.end ? `<button type="button" class="btn" data-spec="${t.id}">👁 Regarder</button>` : ''; })()}${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${mine ? `<button type="button" class="btn" data-gtcopy="${t.id}">Voir ma copie</button>` : `<button type="button" class="btn" data-gtq="${t.id}">Questions et corrigé</button>`}${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
       <div class="ctl-detail gtq" id="gtq-${t.id}" hidden></div>
       <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(G.pseudo(a.user_id) || '?')}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>`;
@@ -10762,7 +10783,7 @@ function groupHTML() {
     </section>
 
     <section class="card"><div class="card-head"><div><h2>Contrôles du groupe</h2><p class="sub">Un contrôle commun, construit sur les points faibles du groupe, à faire <b>ensemble en direct</b> : une salle d'attente s'ouvre, tout le groupe la voit en haut de la page et la rejoint, puis le créateur (ou le propriétaire du groupe) lance le départ ; chacun répond de son côté avec le même chrono, puis vous comparez vos notes. Une fois le temps écoulé, on peut encore le faire seul.</p></div></div>
-      <div class="data-row"><select id="gtN" aria-label="Longueur"><option value="10">10 questions · 30 min</option><option value="20" selected>20 questions · 1 h</option><option value="37">37 questions · 1 h 30</option></select><button type="button" class="btn btn-primary" data-g="newTest">Lancer un contrôle en direct</button></div>
+      <div class="data-row"><select id="gtN" aria-label="Type et longueur"><optgroup label="Normal"><option value="10">10 questions · 30 min</option><option value="20" selected>20 questions · 1 h</option><option value="37">37 questions · 1 h 30</option></optgroup><optgroup label="Hardcore · sans calculatrice">${Object.entries(HC_MODES).map(([k, m]) => `<option value="hc:${k}">Hardcore ${m.name} · ${m.n} questions · ${fmtMin(m.dur)}</option>`).join('')}</optgroup></select><button type="button" class="btn btn-primary" data-g="newTest">Lancer un contrôle en direct</button></div>
       <h3 style="margin:22px 0 4px;font:600 17px/1.3 var(--serif)">Historique des contrôles${G.tests.length ? ` (${G.tests.length})` : ''}</h3><p class="fine">Du plus récent au plus ancien : « Classement » montre les notes de chacun.${G.group && G.group.created_by === me.id ? ' En tant que propriétaire du groupe, tu peux supprimer n\'importe quel contrôle.' : ''}</p>
       <div style="margin-top:10px">${tests || '<p class="fine">Aucun contrôle de groupe pour le moment.</p>'}</div></section>
 

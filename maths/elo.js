@@ -1,26 +1,25 @@
 /* =====================================================================
    Elo absolu du QCM maths (0 à 2500) — partagé par maths/index.html et moi/index.html
    ---------------------------------------------------------------------
-   Chaque type de question a une difficulté fixe sur la même échelle qu'un Elo : on réussit une question
-   de difficulté d une fois sur deux quand on a d d'Elo, 9 fois sur 10 avec 500 de plus (échelle 500).
-   Repères par thème (30 réponses de base) : 1000 ≈ 50 % de justes ; 1420 ≈ 90 % ; 1750 = 100 % ; avec en plus
-   15 questions Hardcore : ≈ 1950 à moitié justes, ≈ 2350 à 90 %, 2500 (GM) toutes justes. L'Elo est la moyenne
-   des 21 thèmes : 2500 = tout le programme maîtrisé, Hardcore compris.
-   - Un niveau par thème : estimation la plus probable à partir des 30 dernières réponses aux questions
-     normales et des 15 dernières en Hardcore du thème, plus deux réponses fictives « à moitié justes » contre
-     1000 (un thème peu travaillé reste près de 1000, une seule question réussie ne le fait pas exploser). Juste = 1, vide = 1/3, faux = 0 (partiel entre).
-   - L'Elo est la moyenne des 21 thèmes : un thème jamais travaillé compte 1000, donc impossible
-     d'être GM sans tout le programme. Il ne dépend ni du nombre de questions faites ni du groupe.
+   Un niveau par thème = partie « base » (0 à 2000) + bonus Hardcore (0 à +500). L'Elo est la moyenne des
+   21 thèmes : un thème jamais travaillé compte 1000, donc 2500 (GM) = tout le programme maîtrisé, Hardcore compris.
+   - Base : réussite p sur les 30 dernières questions normales du thème, avec deux réponses fictives à moitié
+     justes (un thème peu travaillé reste près de 1000, une série courte ne l'envole pas). Niveau =
+     1000 + k·log10(p / (1 − p)), avec k tel que 30 sur 30 donne exactement 2000. Repères (30 réponses) :
+     50 % → 1000, 75 % → 1300, 90 % → 1570, 29 sur 30 → 1790, 30 sur 30 → 2000.
+   - Bonus Hardcore : sur les 15 dernières questions Hardcore du thème, +33 par juste, +11 par vide, 0 par
+     fausse (une partielle entre les deux). 15 justes sur 15 → +500. Il compte quel que soit le niveau de base.
+   - Score d'une réponse : juste = 1, vide = 1/3, faux = 0, partielle entre les deux. Erreur marquée « erreur de
+     calcul » : la méthode est sue, elle ne coûte que 30 % d'une vraie erreur (comme dans les points faibles).
    - Une même question (même qid) refaite ne compte qu'une fois ; les copies presque vides (≥ 80 % de
      réponses à 0) sont ignorées ; les copies du prof importées comptent (une réponse par question notée).
-   - Erreur marquée « erreur de calcul » : la méthode est sue, elle ne coûte que 30 % d'une vraie erreur
-     (comme dans les points faibles). Une fausse vaut alors 0,7 au lieu de 0, une partielle entre les deux.
-   Difficultés calibrées le 15/10/2026 sur les 717 réponses du site (modèle logistique, a priori 1000) ;
-   Hardcore fixé à 2000. Un modèle absent de la table prend la difficulté de son thème.
+   La table DIFF (difficulté de chaque type de question, calibrée le 15/10/2026 sur les 717 réponses du site,
+   Hardcore à 2000) ne sert qu'à comparer les questions entre elles (page moi/), pas au calcul du niveau.
    ===================================================================== */
 (function (root) {
   'use strict';
-  const SCALE = 500, C = Math.LN10 / SCALE, MAX = 2500, WIN = 30, WIN_HC = 15, HC = 2000, PRIOR = 2;
+  const MAX = 2500, BASE_MAX = 2000, BONUS = 500, WIN = 30, WIN_HC = 15, HC = 2000, PRIOR = 2;
+  const K = (BASE_MAX - 1000) / Math.log10(WIN + PRIOR / 2);   // 30 sur 30 (+ 2 fictives à moitié) → 2000
   const THEMES = ['polynomes', 'puiss_rad', 'ln_exp', 'eq_exp', 'fractions', 'developpement', 'equations', 'domaine', 'derivees', 'integrales',
     'limites', 'inegalites', 'equa_diff', 'geometrie', 'continuite', 'suites', 'etude_fonction', 'binomiale', 'espace', 'trigo', 'recurrence'];
   const DIFF = {
@@ -29,7 +28,7 @@
   };
   // Titres, comme aux échecs
   const TITLES = [[2500, 'GM', 'Grand Maître : tout le programme maîtrisé, Hardcore compris'], [2400, 'MI', 'Maître International'], [2300, 'MF', 'Maître FIDE'],
-    [2200, 'CM', 'Candidat Maître'], [2000, 'Expert', 'Expert : toutes les questions de base, et une bonne part du Hardcore'], [1800, 'Classe A', 'Classe A'],
+    [2200, 'CM', 'Candidat Maître'], [2000, 'Expert', 'Expert : toutes les questions de base maîtrisées dans tout le programme'], [1800, 'Classe A', 'Classe A'],
     [1600, 'Classe B', 'Classe B'], [1400, 'Classe C', 'Classe C'], [1200, 'Classe D', 'Classe D'], [-Infinity, 'Classe E', 'Classe E']];
   const title = elo => { const t = TITLES.find(([min]) => Math.round(elo) >= min); return { abbr: t[1], name: t[2] }; };
 
@@ -40,20 +39,14 @@
     if (t && t.startsWith('hc_')) return HC;
     return (t && DIFF.tpl[t]) || DIFF.theme[theme] || 1000;
   };
-  const expect = (elo, d) => 1 / (1 + 10 ** ((d - elo) / SCALE));
-  // Niveau le plus probable sur un thème (Newton ; les réponses fictives à 0,5 contre 1000 le gardent fini et stable)
-  function level(list) {
-    const all = list.concat(Array.from({ length: PRIOR }, () => ({ d: 1000, s: 0.5 })));
-    let x = 1000;
-    for (let it = 0; it < 40; it++) {
-      let g = 0, h = 0;
-      all.forEach(a => { const e = expect(x, a.d); g += C * (a.s - e); h += C * C * e * (1 - e); });
-      const step = Math.max(-300, Math.min(300, g / h));
-      x += step;
-      if (Math.abs(step) < 0.05) break;
-    }
-    return Math.max(0, Math.min(MAX, x));
+  // Partie base d'un thème (0 à 2000) à partir des scores de ses dernières questions normales
+  function base(list) {
+    const p = (list.reduce((t, a) => t + a.s, 0) + PRIOR / 2) / (list.length + PRIOR);
+    return Math.max(0, Math.min(BASE_MAX, 1000 + K * Math.log10(p / (1 - p))));
   }
+  // Bonus Hardcore d'un thème (0 à +500) : +500/15 par question juste parmi les 15 dernières
+  const bonus = list => Math.min(BONUS, BONUS / WIN_HC * list.reduce((t, a) => t + a.s, 0));
+  const themeLevel = T => Math.min(MAX, base(T.n.slice(-WIN)) + bonus(T.h.slice(-WIN_HC)));
 
   /* members : [{ id, attempts: [{ at, results: [{ qid, theme, pts, t, skip }] }], controls: [{ at | date, items: [{ theme, pts, max }] }] }]
      Renvoie { rank: [{ m, elo, title, themes, n, ok, hist, d7 }] (du meilleur au moins bon), Q: difficulté par clé, QN, QS } */
@@ -83,7 +76,7 @@
       });
       if (!touched.size) return;
       const L = LV[o.who] = LV[o.who] || {};
-      touched.forEach(th => { const T = A[o.who][th]; L[th] = level(T.n.slice(-WIN).concat(T.h.slice(-WIN_HC))); });
+      touched.forEach(th => { L[th] = themeLevel(A[o.who][th]); });
       (H[o.who] = H[o.who] || [[o.at - 1, 1000]]).push([o.at, global(o.who)]);
     });
     const wk = Date.now() - 7 * 864e5;
@@ -95,6 +88,6 @@
     return { rank: list, Q, QN, QS };
   }
 
-  root.QcmElo = { rank, title, key, diffOf, level, expect, THEMES, DIFF, MAX };
+  root.QcmElo = { rank, title, key, diffOf, base, bonus, themeLevel, THEMES, DIFF, MAX };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.QcmElo;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
 <script defer src="../account.js"></script>
+<script src="../maths/elo.js"></script>
 <style>
 :root{
   color-scheme:light;
@@ -184,49 +185,9 @@ tr:last-child td{border-bottom:0}
     if (d) { if (!confirm('Supprimer définitivement cette suggestion ?')) return; const { error } = await sb.from('feedback').delete().eq('id', d.dataset.fbdel); if (error) { alert(error.message); return; } FB = FB.filter(x => x.id !== d.dataset.fbdel); renderFeedback(); }
   });
 
-  /* ---------- Elo (même calcul que l'onglet Groupe du QCM maths) ----------
-     Équité : une même question refaite (même question de sujet, ou « Refaire cette épreuve ») ne
-   compte qu'à 25 % la 2e fois, puis plus du tout ; la rapidité compte : une bonne réponse rapide rapporte jusqu'à +20 % (45 s ou moins, 90 s en Hardcore),
-   neutre à 2 min 30, jusqu'à −20 % si elle prend plus de 6 min (12 min en Hardcore) ; elle ne fait jamais perdre de points. */
-  const eloKey = id => { const m = /^gen\.([a-z0-9_]+)\.[0-9a-z]+(?:\.(\d+))?$/.exec(String(id)); return m ? 'g:' + m[1] + (m[2] ? '#' + m[2] : '') : 'b:' + id; };
-  function eloRank(members) {
-    const obs = [];
-    members.forEach(m => {
-      m.attempts.forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip).map(r => ({ key: eloKey(r.qid), qid: r.qid, t: +r.t || 0, pts: +r.pts, max: 1 })) }));
-      m.controls.forEach(c => obs.push({ who: m.id, at: c.at, items: (c.items || []).filter(i => i.theme).map(i => ({ key: 'c:' + i.theme, pts: +i.pts, max: +i.max || 1 })) }));
-    });
-    const P = {}, Q = {}, N = {}, H = {}, OK = {}, QN = {}, QS = {}, DONE = {};
-    const kP = n => Math.max(16, 48 / Math.sqrt(1 + n / 20));
-    const REP = [1, 0.25];
-    // rythme : une bonne réponse (entière) rapide rapporte jusqu'à +20 % (≤ 45 s, ≤ 90 s en Hardcore), neutre à 2 min 30 (5 min en Hardcore), puis jusqu'à −20 % si très lent ;
-    // pas de bonus sous 8 s (15 s en Hardcore) : trop court pour avoir lu la question
-    const pace = (i, hard) => { const s = hard ? 2 : 1, f = 45 * s, a = 150 * s, b = 360 * s;
-      if (i.t >= a) return 1 - 0.2 * Math.min(1, (i.t - a) / (b - a));
-      if (i.pts < i.max || i.t < 8 * s) return 1;
-      return 1 + 0.2 * Math.min(1, (a - i.t) / (a - f)); };
-    obs.sort((a, b) => a.at - b.at).forEach(o => {
-      if (!o.items.length || o.items.filter(i => i.pts === 0).length / o.items.length >= 0.8) return;
-      o.items.forEach(i => {
-        const dk = i.qid ? o.who + '|' + i.qid : null, k = dk ? (DONE[dk] || 0) : 0, w = k < REP.length ? REP[k] : 0;
-        if (dk) DONE[dk] = k + 1;
-        if (!w) return;
-        const hard = i.key.startsWith('g:hc_');
-        const sc = Math.min(1, Math.max(0, (i.pts / i.max + 0.5) / 1.5));
-        const rp = P[o.who] ?? 1000, rq = Q[i.key] ?? (hard ? 1250 : 1000);
-        const e = 1 / (1 + 10 ** ((rq - rp) / 400)), n = N[o.who] || 0;
-        let d = kP(n) * (sc - e) * w;
-        if (d > 0 && i.pts > 0 && i.t) d *= pace(i, hard);
-        P[o.who] = rp + d; Q[i.key] = rq - 12 * (sc - e) * w; N[o.who] = n + (w === 1 ? 1 : 0);
-        if (i.pts >= i.max && w === 1) OK[o.who] = (OK[o.who] || 0) + 1;
-        if (w === 1) { QN[i.key] = (QN[i.key] || 0) + 1; QS[i.key] = (QS[i.key] || 0) + (i.pts >= i.max ? 1 : 0); }
-      });
-      (H[o.who] = H[o.who] || [[o.at - 1, 1000]]).push([o.at, P[o.who]]);
-    });
-    const wk = Date.now() - 7 * 864e5;
-    const rank = members.filter(m => N[m.id]).map(m => ({ m, elo: P[m.id], n: N[m.id], ok: OK[m.id] || 0, hist: H[m.id],
-      d7: P[m.id] - ((H[m.id].filter(([t]) => t < wk).pop() || [0, 1000])[1]) })).sort((a, b) => b.elo - a.elo);
-    return { rank, Q, QN, QS };
-  }
+  /* ---------- Elo absolu (0 à 2500) : même calcul que le QCM maths, dans ../maths/elo.js ---------- */
+  const eloKey = QcmElo.key;
+  const eloRank = members => QcmElo.rank(members);
 
   /* ---------- Chargement d'un groupe ---------- */
   function loadScope() {
@@ -335,9 +296,9 @@ tr:last-child td{border-bottom:0}
     const totQ = act.reduce((s, m) => s + st[m.id].n, 0), totT = act.reduce((s, m) => s + st[m.id].used, 0);
 
     box.innerHTML = `
-      <section class="card"><h2>Classement Elo</h2><p class="sub">${fmt(totQ)} questions répondues au total, ${fmtT(totT)} d'entraînement chronométré. Chaque question est un match contre la question ; tout le monde part à 1000.</p>
+      <section class="card"><h2>Classement Elo</h2><p class="sub">${fmt(totQ)} questions répondues au total, ${fmtT(totT)} d'entraînement chronométré. Elo absolu de 0 à 2500 : moyenne du niveau dans les 21 thèmes, 2500 = GM = tout le programme maîtrisé (Hardcore compris). Tout le monde part à 1000.</p>
         <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Pseudo</th><th>Elo</th><th>7 jours</th><th>Questions</th><th>Justes</th><th>Fausses</th><th>Vides</th></tr></thead><tbody>
-        ${rank.map((x, i) => { const s = st[x.m.id]; return `<tr><td>${i === 0 ? '🐐' : i + 1}</td><td><b>${esc(x.m.pseudo)}</b>${x.m.hidden ? ' 🙈' : ''}${x.m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td><b>${fmt(x.elo)}</b>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'up' : x.d7 < -0.5 ? 'down' : ''}">${x.d7 > 0.5 ? '+' : ''}${fmt(x.d7)}</td><td>${s.n}</td><td>${fmt(100 * s.ok / s.n)} %</td><td>${fmt(100 * s.bad / s.n)} %</td><td>${fmt(100 * s.blank / s.n)} %</td></tr>`; }).join('')}
+        ${rank.map((x, i) => { const s = st[x.m.id]; return `<tr><td>${i === 0 ? '🐐' : i + 1}</td><td><b>${esc(x.m.pseudo)}</b>${x.m.hidden ? ' 🙈' : ''}${x.m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td><b>${fmt(x.elo)}</b> <span class="fine" title="${esc(x.title.name)}">${esc(x.title.abbr)}</span>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'up' : x.d7 < -0.5 ? 'down' : ''}">${x.d7 > 0.5 ? '+' : ''}${fmt(x.d7)}</td><td>${s.n}</td><td>${fmt(100 * s.ok / s.n)} %</td><td>${fmt(100 * s.bad / s.n)} %</td><td>${fmt(100 * s.blank / s.n)} %</td></tr>`; }).join('')}
         </tbody></table></div>
         ${eloChart(rank)}</section>
 
@@ -345,7 +306,7 @@ tr:last-child td{border-bottom:0}
 
       <section class="card"><h2>${gid === 'all' ? 'Le site en chiffres' : 'Le groupe en chiffres'}</h2><div class="awards">
         ${cursed ? `<div class="award"><span class="ic">💀</span><b>La question maudite</b><span class="why">${esc(qName(cursed[0], members))}</span><span class="why">${fmt(100 * cursed[1])} % de réussite sur ${cursed[2]} essais.</span></div>` : ''}
-        ${hardest ? `<div class="award"><span class="ic">🧗</span><b>La question la plus « cotée »</b><span class="why">${esc(qName(hardest, members))}</span><span class="why">Elo de la question : ${fmt(Q[hardest])}.</span></div>` : ''}
+        ${hardest ? `<div class="award"><span class="ic">🧗</span><b>La question la plus « cotée »</b><span class="why">${esc(qName(hardest, members))}</span><span class="why">Difficulté de la question : ${fmt(Q[hardest])}.</span></div>` : ''}
         ${gthL.length ? `<div class="award"><span class="ic">💚</span><b>Thème chouchou</b><span class="who">${esc(TH[gthL[0][0]])}</span><span class="why">${fmt(gthL[0][1], 2)} point en moyenne par question.</span></div>
         <div class="award"><span class="ic">🧨</span><b>Bête noire ${gid === 'all' ? 'du site' : 'du groupe'}</b><span class="who">${esc(TH[gthL[gthL.length - 1][0]])}</span><span class="why">${fmt(gthL[gthL.length - 1][1], 2)} point en moyenne par question.</span></div>` : ''}
       </div></section>
@@ -358,7 +319,7 @@ tr:last-child td{border-bottom:0}
       <section class="card"><h2>Fiches</h2><div class="people">
         ${rank.map(x => { const s = st[x.m.id], m = x.m;
           const nem = act.filter(o => o.id !== m.id && D[o.id][m.id] > D[m.id][o.id]).sort((a, b) => (D[b.id][m.id] - D[m.id][b.id]) - (D[a.id][m.id] - D[m.id][a.id]))[0];
-          return `<article class="person"><h3>${E[m.id].pos === 1 ? '🐐 ' : ''}${esc(m.pseudo)}<span class="elo">${fmt(x.elo)} · ${E[m.id].pos}<sup>${E[m.id].pos === 1 ? 'er' : 'e'}</sup></span></h3>
+          return `<article class="person"><h3>${E[m.id].pos === 1 ? '🐐 ' : ''}${esc(m.pseudo)}<span class="elo">${fmt(x.elo)} ${esc(x.title.abbr)} · ${E[m.id].pos}<sup>${E[m.id].pos === 1 ? 'er' : 'e'}</sup></span></h3>
             <div class="bars" title="Justes · vides · fausses"><span style="background:var(--good);width:${(100 * s.ok / s.n).toFixed(1)}%"></span><span style="background:var(--muted);width:${(100 * s.blank / s.n).toFixed(1)}%"></span><span style="background:var(--red);width:${(100 * s.bad / s.n).toFixed(1)}%"></span></div>
             <dl class="kv">
               <dt>Questions</dt><dd>${s.n} · ${fmt(100 * s.ok / s.n)} % justes · ${fmt(100 * s.bad / s.n)} % fausses</dd>

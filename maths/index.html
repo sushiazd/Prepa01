@@ -11,6 +11,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../config.js"></script>
+<script src="elo.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -579,6 +580,8 @@ input:focus-visible,select:focus-visible{outline:2px solid var(--pen);outline-of
 .gtq .cc.picked{box-shadow:0 0 0 2px var(--good)}
 .gtq .cc.wrong{box-shadow:0 0 0 2px var(--red)}
 .cc-mine{margin-left:auto;padding-left:10px;font:600 11.5px/1 var(--sans);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);white-space:nowrap}
+.elo-title{display:inline-block;padding:1px 7px;border-radius:999px;font:700 11.5px/1.5 var(--sans);color:var(--muted);border:1px solid var(--rule-strong, var(--rule));vertical-align:1px}
+.elo-title.elo-master{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent);background:var(--red-soft)}
 .tag-hc{color:var(--red);background:var(--red-soft);border-color:color-mix(in srgb,var(--red) 30%,transparent)}
 .gen-try .data-row{margin-top:10px}
 .try-item{margin-top:14px;display:grid;gap:10px}
@@ -8916,9 +8919,9 @@ function renderHistorique() {
 // Courbe d'Elo : même calcul que le classement de l'onglet Groupe (il faut un compte et un groupe)
 function hxFillElo() {
   const el = $('#hxElo'); if (!el) return;
-  const head = '<div class="card-head"><div><h2>Mon Elo</h2><p class="sub">Même calcul que le classement de ton groupe, après chacune de tes copies.</p></div></div>';
+  const head = '<div class="card-head"><div><h2>Mon Elo</h2><p class="sub">Elo absolu de 0 à 2500 : la moyenne de ton niveau dans les 21 thèmes du programme. 2500 (GM) = tout maîtrisé, Hardcore compris.</p></div></div>';
   if (!me) { el.innerHTML = head + '<p class="fine">Connecte-toi (onglet Groupe) pour suivre ton Elo.</p>'; return; }
-  if (!curGroup) { el.innerHTML = head + '<p class="fine">Rejoins un groupe (onglet Groupe) : l\'Elo se calcule avec les autres membres.</p>'; return; }
+  if (!curGroup) { el.innerHTML = head + '<p class="fine">Rejoins un groupe (onglet Groupe) pour suivre ton Elo et te comparer aux autres.</p>'; return; }
   if (!G || G.gid !== curGroup) {
     el.innerHTML = head + '<p class="fine">Chargement…</p>';
     if (!hxEloLoading) {
@@ -8935,7 +8938,10 @@ function hxFillElo() {
   const ticks = []; for (let v = lo; v <= hi; v += (hi - lo > 300 ? 100 : 50)) ticks.push(v);
   const rank = E.indexOf(mine) + 1;
   el.innerHTML = head + hxLine(mine.hist.map(([t, v]) => ({ y: v, tip: `Elo ${Math.round(v)} · ${fmtDate(t)}` })), lo, hi, ticks, null, 'Évolution de ton Elo après chaque copie') +
-    `<p class="fine" style="margin-top:6px">Aujourd'hui : <b>${Math.round(mine.elo)}</b> (${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> du groupe) · ${mine.d7 >= 0 ? '+' : '−'}${Math.abs(Math.round(mine.d7))} sur 7 jours.</p>`;
+    `<p class="fine" style="margin-top:6px">Aujourd'hui : <b>${Math.round(mine.elo)}</b> ${eloTitle(mine)} (${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> du groupe) · ${mine.d7 >= 0 ? '+' : '−'}${Math.abs(Math.round(mine.d7))} sur 7 jours.</p>` +
+    (() => { const L = THEMES.map(t => ({ t, v: mine.themes[t.id] })).filter(x => x.v != null).sort((a, b) => a.v - b.v);
+      const row = x => `<div class="th-row"><div class="nm">${esc(x.t.short)}</div><div class="bar-cell" style="display:flex;align-items:center"><span class="pct">${Math.round(x.v)}</span><div class="bar ${x.v >= 1800 ? 'good' : x.v >= 1300 ? 'mid' : 'low'}" style="flex:1"><i style="width:${Math.max(3, x.v / 25)}%"></i></div></div></div>`;
+      return `<h3 class="hx-h3">Ton niveau par thème</h3><p class="fine">Du plus faible au plus fort. Un thème monte quand tu y réussis des questions plus dures que ton niveau (le Hardcore compte le plus) ; il descend avec tes erreurs récentes.</p><div class="th-rows">${L.map(row).join('')}</div>`; })();
 }
 
 /* =====================================================================
@@ -10769,52 +10775,12 @@ function wireSpec() {
   });
 }
 
-/* ---------- Classement Elo du groupe ----------
-   Chaque question répondue est un « match » entre la personne et la question : juste = victoire,
-   fausse = défaite, vide ou partielle entre les deux. Les questions ont aussi un Elo, qui monte
-   quand le groupe les rate : réussir une question difficile rapporte plus. Toutes les épreuves
-   comptent (contrôles ciblés, sujets, Hardcore, contrôles de groupe) ainsi que les copies du prof
-   importées (une « question » par thème). Les copies presque entièrement vides sont ignorées.
-   Équité : une même question refaite (même question de sujet, ou « Refaire cette épreuve ») ne
-   compte qu'à 25 % la 2e fois, puis plus du tout ; la rapidité compte : une bonne réponse rapide rapporte jusqu'à +20 % (45 s ou moins, 90 s en Hardcore),
-   neutre à 2 min 30, jusqu'à −20 % si elle prend plus de 6 min (12 min en Hardcore) ; elle ne fait jamais perdre de points. */
-const eloKey = id => { const m = /^gen\.([a-z0-9_]+)\.[0-9a-z]+(?:\.(\d+))?$/.exec(String(id)); return m ? 'g:' + m[1] + (m[2] ? '#' + m[2] : '') : 'b:' + id; };
-function eloRank(members) {
-  const obs = [];
-  members.forEach(m => {
-    m.attempts.forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip).map(r => ({ key: eloKey(r.qid), qid: r.qid, t: +r.t || 0, pts: +r.pts, max: 1 })) }));
-    m.controls.forEach(c => obs.push({ who: m.id, at: Date.parse(c.date) || 0, items: (c.items || []).filter(i => i.theme).map(i => ({ key: 'c:' + i.theme, pts: +i.pts, max: +i.max || 1 })) }));
-  });
-  const P = {}, Q = {}, N = {}, H = {}, OK = {}, DONE = {};
-  const kP = n => Math.max(16, 48 / Math.sqrt(1 + n / 20));   // rapide au début, plus stable ensuite
-  const REP = [1, 0.25];                                          // poids d'une question refaite : 1re fois, 2e fois, ensuite 0
-  // rythme : une bonne réponse (entière) rapide rapporte jusqu'à +20 % (≤ 45 s, ≤ 90 s en Hardcore), neutre à 2 min 30 (5 min en Hardcore), puis jusqu'à −20 % si très lent ;
-  // pas de bonus sous 8 s (15 s en Hardcore) : trop court pour avoir lu la question
-  const pace = (i, hard) => { const s = hard ? 2 : 1, f = 45 * s, a = 150 * s, b = 360 * s;
-    if (i.t >= a) return 1 - 0.2 * Math.min(1, (i.t - a) / (b - a));
-    if (i.pts < i.max || i.t < 8 * s) return 1;
-    return 1 + 0.2 * Math.min(1, (a - i.t) / (a - f)); };
-  obs.sort((a, b) => a.at - b.at).forEach(o => {
-    if (!o.items.length || o.items.filter(i => i.pts === 0).length / o.items.length >= 0.8) return;   // copie abandonnée
-    o.items.forEach(i => {
-      const dk = i.qid ? o.who + '|' + i.qid : null, k = dk ? (DONE[dk] || 0) : 0, w = k < REP.length ? REP[k] : 0;
-      if (dk) DONE[dk] = k + 1;
-      if (!w) return;                                               // question déjà faite deux fois : ne compte plus
-      const hard = i.key.startsWith('g:hc_');
-      const sc = Math.min(1, Math.max(0, (i.pts / i.max + 0.5) / 1.5));
-      const rp = P[o.who] ?? 1000, rq = Q[i.key] ?? (hard ? 1250 : 1000);
-      const e = 1 / (1 + 10 ** ((rq - rp) / 400)), n = N[o.who] || 0;
-      let d = kP(n) * (sc - e) * w;
-      if (d > 0 && i.pts > 0 && i.t) d *= pace(i, hard);             // rapide : gain majoré, lent : gain réduit, jamais de perte
-      P[o.who] = rp + d; Q[i.key] = rq - 12 * (sc - e) * w; N[o.who] = n + (w === 1 ? 1 : 0);
-      if (i.pts >= i.max && w === 1) OK[o.who] = (OK[o.who] || 0) + 1;
-    });
-    (H[o.who] = H[o.who] || []).push([o.at, P[o.who]]);
-  });
-  const wk = Date.now() - 7 * 864e5;
-  return members.filter(m => N[m.id]).map(m => ({ m, elo: P[m.id], n: N[m.id], ok: OK[m.id] || 0, hist: H[m.id],
-    d7: P[m.id] - ((H[m.id].filter(([t]) => t < wk).pop() || [0, 1000])[1]) })).sort((a, b) => b.elo - a.elo);
-}
+/* ---------- Classement Elo ----------
+   Elo absolu de 0 à 2500 (2500 = GM = tout le programme maîtrisé, Hardcore compris) : calcul dans elo.js,
+   partagé avec la page moi/. Un niveau par thème, l'Elo est la moyenne des 21 thèmes. */
+const eloKey = QcmElo.key;
+function eloRank(members) { return QcmElo.rank(members).rank; }
+const eloTitle = x => `<span class="elo-title${/^(GM|MI|MF|CM)$/.test(x.title.abbr) ? ' elo-master' : ''}" title="${esc(x.title.name)}">${esc(x.title.abbr)}</span>`;
 
 /* ---------- Statistiques d'une personne ---------- */
 function personStats(atts, ctls) {
@@ -10938,9 +10904,9 @@ function groupHTML() {
       <h3 style="margin:22px 0 4px;font:600 17px/1.3 var(--serif)">Historique des contrôles${G.tests.length ? ` (${G.tests.length})` : ''}</h3><p class="fine">Du plus récent au plus ancien : « Classement » montre les notes de chacun.${G.group && G.group.created_by === me.id ? ' En tant que propriétaire du groupe, tu peux supprimer n\'importe quel contrôle.' : ''}</p>
       <div style="margin-top:10px">${tests || '<p class="fine">Aucun contrôle de groupe pour le moment.</p>'}</div></section>
 
-    ${(() => { const E = eloRank(vis); if (!E.length) return ''; return `<section class="card"><div class="card-head"><div><h2>Classement Elo</h2><p class="sub">Calculé sur <b>toutes</b> les stats de chacun : chaque question répondue (contrôles, sujets, Hardcore, contrôles de groupe, copies du prof importées) est un match contre la question, et une question que le groupe rate souvent rapporte plus. Tout le monde part à 1000 ; « provisoire » tant qu'il y a moins de 50 questions.</p></div></div>
+    ${(() => { const E = eloRank(vis); if (!E.length) return ''; return `<section class="card"><div class="card-head"><div><h2>Classement Elo</h2><p class="sub">Elo absolu de 0 à 2500, comme aux échecs : <b>2500 = GM = tout le programme maîtrisé</b>, Hardcore compris. C'est la moyenne du niveau de chacun dans les 21 thèmes, estimé sur ses réponses récentes (contrôles, sujets, Hardcore, contrôles de groupe, copies du prof importées) face à la difficulté de chaque question. Refaire des questions faciles ne fait pas monter : seul le niveau compte. Tout le monde part à 1000 ; « provisoire » tant qu'il y a moins de 50 questions. Titres : Classe E (&lt; 1200), D, C, B, A (1800), Expert (2000), CM (2200), MF (2300), MI (2400), GM (2500).</p></div></div>
       <div style="overflow-x:auto"><table class="hist"><thead><tr><th>#</th><th>Pseudo</th><th>Elo</th><th>7 derniers jours</th><th>Questions</th><th>Justes</th></tr></thead><tbody>
-      ${E.map((x, i) => `<tr><td>${i + 1}</td><td><strong>${esc(x.m.pseudo)}</strong>${G.group && G.group.created_by === x.m.id ? ' <span class="crown" title="Propriétaire du groupe">👑</span>' : ''}${x.m.isMe ? ' <span class="fine">(toi)</span>' : ''}</td><td><strong>${Math.round(x.elo)}</strong>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'pts-pos' : x.d7 < -0.5 ? 'pts-neg' : ''}">${x.d7 > 0.5 ? '+' : ''}${Math.round(x.d7)}</td><td>${x.n}</td><td>${Math.round(100 * x.ok / x.n)} %</td></tr>`).join('')}
+      ${E.map((x, i) => `<tr><td>${i + 1}</td><td><strong>${esc(x.m.pseudo)}</strong>${G.group && G.group.created_by === x.m.id ? ' <span class="crown" title="Propriétaire du groupe">👑</span>' : ''}${x.m.isMe ? ' <span class="fine">(toi)</span>' : ''}</td><td><strong>${Math.round(x.elo)}</strong> ${eloTitle(x)}${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'pts-pos' : x.d7 < -0.5 ? 'pts-neg' : ''}">${x.d7 > 0.5 ? '+' : ''}${Math.round(x.d7)}</td><td>${x.n}</td><td>${Math.round(100 * x.ok / x.n)} %</td></tr>`).join('')}
       </tbody></table></div></section>`; })()}
 
     <section class="card"><div class="card-head"><div><h2>Membres</h2><p class="sub">Clique sur un membre pour voir son profil détaillé. Le temps compte les épreuves faites sur le site, pauses exclues.</p></div></div>

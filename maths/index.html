@@ -8990,7 +8990,124 @@ function load() {
   } catch (e) { console.warn('Session illisible', e); }
   return null;
 }
-function save() { if (S && S.rv) return; lastSave = Date.now(); ls.set(K.session, S); }   // S.rv : copie passée réaffichée, jamais enregistrée comme session
+function save() { if (S && S.rv) return; lastSave = Date.now(); const ch = sessStamp(); ls.set(K.session, S); if (ch) sessSoon(); }   // S.rv : copie passée réaffichée, jamais enregistrée comme session
+/* ---------- Épreuve en cours partagée entre appareils ----------
+   Avec un compte, l'épreuve en cours est copiée dans user_data (clé qcm.session) : on la reprend sur un
+   autre appareil, ou on l'a ouverte sur deux appareils à la fois. Fusion question par question : la
+   modification la plus récente gagne (S.qt[i]) ; pause, reprise et remise suivent S.gt. Une copie rendue
+   ou une épreuve abandonnée sur un appareil disparaît des autres. Valeur : { s: session } ou { sid, end, at }. */
+const SESS_KEY = 'qcm.session';
+let sessSnap = null, sessT = 0, sessBusy = false, sessAgain = false, sessTick = 0;
+const sessId = s => s && s.def && s.startedAt ? s.def.id + '|' + s.startedAt : null;
+const sessLast = s => Math.max(s.gt || 0, ...(s.qt || [0]));
+const sessLive = s => !!s && !!s.startedAt && (s.phase === 'test' || s.phase === 'done') && !s.rv;
+function sessPrints(s) {
+  return { sid: sessId(s), g: JSON.stringify([s.phase, s.paused, s.pausedAt, s.pauseTotal, s.pauseCount, s.submittedAt]),
+    q: s.answers.map((_, i) => JSON.stringify([s.answers[i], s.flags[i], s.skips[i], s.slips[i], s.was[i], s.def.qids[i]])) };
+}
+// Note l'heure de chaque changement depuis la dernière sauvegarde ; vrai s'il faut synchroniser
+function sessStamp() {
+  if (!sessLive(S)) return false;
+  const n = S.answers.length, p = sessPrints(S);
+  if (!S.aid) S.aid = uuid();
+  if (!Array.isArray(S.qt) || S.qt.length !== n) S.qt = Array(n).fill(0);
+  // épreuve commencée avant cette version : sa dernière activité connue, pas « maintenant »
+  if (!S.gt) S.gt = Math.max(S.startedAt, S.pausedAt || 0, S.submittedAt || 0);
+  if (!sessSnap || sessSnap.sid !== p.sid) { sessSnap = p; return true; }
+  const now = Date.now();
+  let ch = false;
+  p.q.forEach((j, i) => { if (j !== sessSnap.q[i]) { S.qt[i] = now; ch = true; } });
+  if (p.g !== sessSnap.g) { S.gt = now; ch = true; }
+  sessSnap = p;
+  return ch;
+}
+const sessSoon = () => { clearTimeout(sessT); sessT = setTimeout(sessSync, 800); };
+async function sessPush(value) {
+  if (!cloud.on() || !me) return;
+  const { error } = await sb.from('user_data').upsert({ user_id: me.id, key: SESS_KEY, value, updated_at: new Date().toISOString() });
+  if (error) console.warn('Épreuve en cours', error);
+}
+// Épreuve abandonnée ici : les autres appareils la retirent aussi
+function sessEnd(s, end) { const sid = sessId(s); if (sid && s.phase === 'test' && !s.rv && me) { sessSnap = null; sessPush({ sid, end, at: Date.now() }); } }
+// Fusionne la session distante R (même épreuve) dans S ; dit si S a changé et s'il faut renvoyer S
+function sessMerge(R) {
+  const n = S.answers.length;
+  let local = false, remote = false;
+  if (!Array.isArray(R.qt) || R.qt.length !== n) R.qt = Array(n).fill(0);
+  for (let i = 0; i < n; i++) {
+    const a = S.qt[i] || 0, b = R.qt[i] || 0;
+    if (b > a) { ['answers', 'flags', 'skips', 'slips', 'was'].forEach(k => { S[k][i] = R[k][i]; }); S.def.qids[i] = R.def.qids[i]; S.qt[i] = b; local = true; }
+    else if (a > b) remote = true;
+    if ((+R.times[i] || 0) > (+S.times[i] || 0)) S.times[i] = R.times[i];
+  }
+  if ((R.gt || 0) > (S.gt || 0)) { ['phase', 'paused', 'pausedAt', 'pauseTotal', 'pauseCount', 'submittedAt'].forEach(k => { S[k] = R[k]; }); S.gt = R.gt; local = true; }
+  else if ((S.gt || 0) > (R.gt || 0)) remote = true;
+  return { local, remote };
+}
+// Affiche ici l'état reçu d'un autre appareil
+function sessShow(newSession, wasPaused, qidsBefore) {
+  ls.set(K.session, S); lastSave = Date.now(); sessSnap = sessPrints(S);
+  const inTest = document.body.dataset.view === 'test';
+  if (newSession || qidsBefore !== JSON.stringify(S.def.qids)) activate(S.def);
+  if (!inTest) { renderBanners(); return; }
+  if (newSession) { stopTick(); $('#pauseLayer').hidden = true; enterTest(); return; }
+  if (S.paused && !wasPaused) { stopTick(); showPause(); }
+  else if (!S.paused && wasPaused) { $('#pauseLayer').hidden = true; document.title = 'QCM mathématiques'; activeSince = Date.now(); startTick(); }
+  renderQuestion();
+}
+// L'épreuve s'est terminée sur un autre appareil
+function sessDrop(msg, done) {
+  const inTest = document.body.dataset.view === 'test';
+  if (S && S.live && liveId) liveLeave();
+  stopTick(); S = null; ls.del(K.session); sessSnap = null;
+  $('#pauseLayer').hidden = true; document.title = 'QCM mathématiques';
+  toast(msg, 6000);
+  const after = () => { if (inTest) showTab(done ? 'historique' : 'controls'); else { renderBanners(); refreshViews(); } };
+  if (done && me) syncAll().then(after); else after();
+}
+async function sessSync() {
+  if (!cloud.on() || !me || (S && S.rv)) return;
+  if (sessBusy) { sessAgain = true; return; }
+  sessBusy = true;
+  const uid = me.id;
+  try {
+    if (S && S.phase === 'test' && !S.paused) commit();
+    if (sessLive(S)) sessStamp();
+    const { data, error } = await sb.from('user_data').select('value').eq('user_id', uid).eq('key', SESS_KEY).maybeSingle();
+    if (error) throw error;
+    if (!me || me.id !== uid || (S && S.rv)) return;
+    const R = data && data.value, RS = R && R.s && sessLive(R.s) ? R.s : null;
+    const L = sessLive(S) ? S : null, lsid = sessId(L);
+    if (R && R.end) {                                          // abandonnée ailleurs
+      if (L && L.phase === 'test') {
+        if (R.sid === lsid && R.at > sessLast(L)) sessDrop('Épreuve abandonnée sur ton autre appareil : aucune note enregistrée.');
+        else if (R.sid !== lsid) await sessPush({ s: L });
+      }
+    } else if (RS && sessId(RS) === lsid) {                    // même épreuve : fusion
+      if (RS.phase === 'done' && L.phase === 'test') sessDrop('Copie rendue sur ton autre appareil : elle est dans ton historique.', true);
+      else if (L.phase === 'done') { if (RS.phase === 'test') await sessPush({ s: L }); }   // rendue ici : la copie ne bouge plus
+      else {
+        const wasPaused = !!S.paused, qb = JSON.stringify(S.def.qids);
+        const m = sessMerge(RS);
+        if (m.local) sessShow(false, wasPaused, qb);
+        if (m.remote) await sessPush({ s: S });
+      }
+    } else if (RS && RS.phase === 'test' && (!L || L.phase === 'done' || sessLast(RS) > sessLast(L))) {
+      // une autre épreuve en cours, plus récente (ou rien en cours ici) : on la reprend ici
+      const v = document.body.dataset.view;
+      if (v === 'results' || v === 'intro') return;            // on ne coupe pas l'écran affiché
+      if (L && L.phase === 'test') toast('Épreuve plus récente ouverte sur ton autre appareil : elle remplace celle-ci.', 6000);
+      S = RS; S.cur = Math.min(S.cur || 0, S.answers.length - 1);
+      sessShow(true);
+    } else if (L && L.phase === 'test') await sessPush({ s: L }); // celle d'ici est la plus récente
+  } catch (e) { console.warn('Épreuve en cours', e); }
+  finally {
+    sessBusy = false;
+    if (sessAgain) { sessAgain = false; sessSoon(); }
+  }
+}
+// Pendant l'épreuve, on regarde toutes les 5 s si l'autre appareil a changé quelque chose (toutes les 15 s sinon)
+setInterval(() => { if (!me || document.hidden) return; if (document.body.dataset.view === 'test' || ++sessTick % 3 === 0) sessSync(); }, 5000);
 // Ajoute au compteur de la question courante le temps écoulé depuis le dernier point (jamais pendant une pause).
 function commit() {
   if (!S || S.phase !== 'test' || S.paused) return;
@@ -9355,7 +9472,8 @@ function resultRow(r) {
 function recordAttempt(res) {
   if (S.recorded) return;
   const raw = res.reduce((s, r) => s + r.pts, 0), ng = nGradedOf(res);
-  const rec = { id: uuid(), at: S.submittedAt, pauses: S.pauseCount || 0, defId: S.def.id, kind: S.def.kind, title: S.def.title, N,
+  // S.aid : même identifiant de copie sur tous les appareils où l'épreuve est ouverte (pas de doublon si les deux rendent)
+  const rec = { id: S.aid || uuid(), at: S.submittedAt, pauses: S.pauseCount || 0, defId: S.def.id, kind: S.def.kind, title: S.def.title, N,
     raw: Math.round(raw * 1e6) / 1e6, note: noteOf(raw, ng), used: Math.round((S.submittedAt - S.startedAt - (S.pauseTotal || 0)) / 1000),
     results: res.map(resultRow) };
   attempts.push(rec);
@@ -9875,7 +9993,7 @@ function init() {
 
   const flush = () => { if (S && S.phase === 'test' && !S.paused) { commit(); save(); } };
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { pollLive(); return; }
+    if (!document.hidden) { pollLive(); sessSync(); return; }
     if (S && S.phase === 'test' && !S.paused && prefs.autoPause) pauseTest(); else flush();
   });
   window.addEventListener('pagehide', flush);
@@ -9970,6 +10088,7 @@ async function onSession(session) {
   ls.set(K.owner, me.id);
   await syncAll(anonymous);
   if (!me || me.id !== u.id) return;
+  sessSync();
   await loadGroups();
   // Rechargement sur la page d'un groupe : on rouvre ce groupe
   const vg = ls.get('qcmhub.group.v1', null);
@@ -10402,6 +10521,7 @@ async function liveCancel(def) {
   liveCanceled(tid, null, true);
 }
 function discardLive() {
+  sessEnd(S, 'abandon');
   stopTick(); S = null; ls.del(K.session);
   $('#pauseLayer').hidden = true; document.title = 'QCM mathématiques';
 }

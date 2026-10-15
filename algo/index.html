@@ -7,10 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
-<script src="../subjects.js?v=20261015"></script>
-<script src="../core.js?v=2026101502"></script>
+<script src="../subjects.js?v=2026101503"></script>
+<script src="../core.js?v=2026101503"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026101502">
+<link rel="stylesheet" href="../core.css?v=2026101503">
 <style>
 :root{
   --accent:var(--algo); --accent-soft:var(--algo-soft);
@@ -114,7 +114,7 @@ const E = SiteCore({ id: 'algo', get DUR() { return DUR; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
   renderEx: () => renderEx(), renderExam: () => renderExam(), submitExam: auto => submitExam(auto) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton } = E;
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton, hideCorr } = E;
 const pre = code => `<pre class="code"><code>${esc(code)}</code></pre>`;
 const ic = s => `<code>${esc(s)}</code>`;
 
@@ -384,7 +384,12 @@ const CODE = [
   [1, 'code3', 'compte', 'compte(t)', 'renvoie un dictionnaire qui associe à chaque élément de la liste t son nombre d\'apparitions.', [["compte(['a', 'b', 'a'])", "{'a': 2, 'b': 1}"], ['compte([])', '{}'], ['compte([1, 1, 1])', '{1: 3}']], 'def compte(t):\n    d = {}\n    for x in t:\n        if x in d:\n            d[x] = d[x] + 1\n        else:\n            d[x] = 1\n    return d'],
   [1, 'code3', 'meilleur', 'meilleur(d)', 'reçoit un dictionnaire non vide nom → note et renvoie le nom qui a la meilleure note (le premier rencontré en cas d\'égalité).', [["meilleur({'Ana': 12, 'Bo': 15, 'Cy': 9})", "'Bo'"], ["meilleur({'Zed': 3})", "'Zed'"], ["meilleur({'A': 10, 'B': 10})", "'A'"]], 'def meilleur(d):\n    best = None\n    for nom in d:\n        if best is None or d[nom] > d[best]:\n            best = nom\n    return best'],
   [2, 'code3', 'inverse', 'inverse(d)', 'reçoit un dictionnaire dont les valeurs sont toutes différentes et renvoie le dictionnaire inverse (valeur → clé).', [["inverse({'a': 1, 'b': 2})", "{1: 'a', 2: 'b'}"], ['inverse({})', '{}']], 'def inverse(d):\n    res = {}\n    for c in d:\n        res[d[c]] = c\n    return res'],
-  [2, 'code3', 'frequences', 'frequences(texte)', 'renvoie un dictionnaire qui associe à chaque lettre du texte (espaces ignorés) son nombre d\'apparitions.', [["frequences('le lac')", "{'l': 2, 'e': 1, 'a': 1, 'c': 1}"], ["frequences('')", '{}'], ["frequences('aa a')", "{'a': 3}"]], 'def frequences(texte):\n    d = {}\n    for c in texte:\n        if c != \' \':\n            if c in d:\n                d[c] = d[c] + 1\n            else:\n                d[c] = 1\n    return d']
+  [2, 'code3', 'frequences', 'frequences(texte)', 'renvoie un dictionnaire qui associe à chaque lettre du texte (espaces ignorés) son nombre d\'apparitions.', [["frequences('le lac')", "{'l': 2, 'e': 1, 'a': 1, 'c': 1}"], ["frequences('')", '{}'], ["frequences('aa a')", "{'a': 3}"]], 'def frequences(texte):\n    d = {}\n    for c in texte:\n        if c != \' \':\n            if c in d:\n                d[c] = d[c] + 1\n            else:\n                d[c] = 1\n    return d'],
+  [2, 'mat', 'nb_impairs', 'nb_impairs(m)', 'renvoie le nombre d\'éléments impairs de la matrice m (liste de lignes), exercice 32.3.', [['nb_impairs([[2, 3, 7], [1, 2, 0]])', '3'], ['nb_impairs([[2]])', '0'], ['nb_impairs([[1, 1], [1, 1]])', '4']], 'def nb_impairs(m):\n    c = 0\n    for i in range(len(m)):\n        for j in range(len(m[0])):\n            if m[i][j] % 2 == 1:\n                c = c + 1\n    return c'],
+  [2, 'mat', 'est_symetrique', 'est_symetrique(t)', 'reçoit une matrice carrée t (n lignes, n colonnes) et renvoie True si t[i][j] == t[j][i] pour tous i et j, False sinon (exercice 33).', [['est_symetrique([[1, 2], [2, 5]])', 'True'], ['est_symetrique([[1, 2], [3, 1]])', 'False'], ['est_symetrique([[4]])', 'True'], ['est_symetrique([[1, 7, 3], [7, 4, 5], [3, 5, 6]])', 'True'], ['est_symetrique([[1, 7, 3], [7, 4, 5], [3, 0, 6]])', 'False']], 'def est_symetrique(t):\n    n = len(t)\n    for i in range(n):\n        for j in range(n):\n            if t[i][j] != t[j][i]:\n                return False\n    return True'],
+  [2, 'mat', 'somme_diagonale', 'somme_diagonale(m)', 'reçoit une matrice carrée m et renvoie la somme des éléments de sa diagonale m[0][0], m[1][1], …', [['somme_diagonale([[1, 2], [3, 4]])', '5'], ['somme_diagonale([[5]])', '5'], ['somme_diagonale([[1, 0, 0], [0, 2, 0], [0, 0, 3]])', '6']], 'def somme_diagonale(m):\n    s = 0\n    for i in range(len(m)):\n        s = s + m[i][i]\n    return s'],
+  [2, 'mat', 'transposee', 'transposee(m)', 'renvoie une NOUVELLE matrice dont les lignes sont les colonnes de m.', [['transposee([[1, 2, 3], [4, 5, 6]])', '[[1, 4], [2, 5], [3, 6]]'], ['transposee([[7]])', '[[7]]']], 'def transposee(m):\n    t = []\n    for j in range(len(m[0])):\n        col = []\n        for i in range(len(m)):\n            col.append(m[i][j])\n        t.append(col)\n    return t'],
+  [2, 'dicho', 'appartient_trie', 'appartient_trie(t, x)', 'renvoie True si x est dans la liste t, triée par ordre croissant, par recherche dichotomique (sans in) : on compare x à l\'élément du milieu et on ne garde que la bonne moitié.', [['appartient_trie([1, 3, 5, 8, 13], 8)', 'True'], ['appartient_trie([1, 3, 5, 8, 13], 4)', 'False'], ['appartient_trie([], 3)', 'False'], ['appartient_trie([2], 2)', 'True'], ['appartient_trie(list(range(0, 1000, 3)), 999)', 'True'], ['appartient_trie(list(range(0, 1000, 3)), 998)', 'False']], 'def appartient_trie(t, x):\n    g = 0\n    d = len(t) - 1\n    while g <= d:\n        m = (g + d) // 2\n        if t[m] == x:\n            return True\n        elif t[m] < x:\n            g = m + 1\n        else:\n            d = m - 1\n    return False']
 ];
 function codeGen(skill) {
   return (d, g) => {
@@ -396,6 +401,57 @@ function codeGen(skill) {
   };
 }
 GEN.code1 = codeGen('code1'); GEN.code2 = codeGen('code2'); GEN.code3 = codeGen('code3');
+
+/* ---------- Matrices : listes de lignes (exercices 32 à 35 du poly) ---------- */
+GEN.mat = (d, g) => {
+  if (d === 2 && g.r() < 0.5) return codeGen('mat')(2, g);
+  const nl = g.int(2, 3), nc = g.int(3, 4), m = Array.from({ length: nl }, () => Array.from({ length: nc }, () => g.int(0, 9)));
+  if (d === 0) {
+    const i = g.int(0, nl - 1), j = g.int(0, nc - 1), k = g.int(0, nl - 1);
+    const qs = g.shuffle([[`m[${i}][${j}]`, m[i][j]], ['len(m)', nl], ['len(m[0])', nc], [`m[${k}]`, m[k]], ['m[-1][0]', m[nl - 1][0]]]).slice(0, 3);
+    return { title: 'Matrices : lire une case', q: 'La matrice ci-dessous est codée par la liste de ses lignes. Donner la valeur de chaque expression.' + pre('m = ' + pyRepr(m)),
+      items: qs.map(([e, v]) => ({ type: 'val', label: e, exp: v })),
+      corr: `<ul>${qs.map(([e, v]) => `<li>${ic(e)} → ${ic(pyRepr(v))}</li>`).join('')}</ul><p class="fine"><code>m[i]</code> est la ligne i (une liste), <code>m[i][j]</code> la case ligne i, colonne j ; <code>len(m)</code> = nombre de lignes, <code>len(m[0])</code> = nombre de colonnes.</p>` };
+  }
+  const P = [
+    () => { let c = 0; m.forEach(l => l.forEach(x => { if (x % 2 === 1) c++; })); return [`def f(m):\n    c = 0\n    for i in range(len(m)):\n        for j in range(len(m[0])):\n            if m[i][j] % 2 == 1:\n                c = c + 1\n    return c`, c, 'le nombre de cases impaires (exercice 32.3)']; },
+    () => [`def f(m):\n    res = []\n    for ligne in m:\n        s = 0\n        for x in ligne:\n            s = s + x\n        res.append(s)\n    return res`, m.map(l => l.reduce((a, b) => a + b, 0)), 'la liste des sommes de chaque ligne'],
+    () => [`def f(m):\n    res = []\n    for j in range(len(m[0])):\n        s = 0\n        for i in range(len(m)):\n            s = s + m[i][j]\n        res.append(s)\n    return res`, m[0].map((_, j) => m.reduce((a, l) => a + l[j], 0)), 'la liste des sommes de chaque colonne (exercice 32.4)'],
+    () => { let bi = 0, bj = 0; m.forEach((l, i) => l.forEach((x, j) => { if (x > m[bi][bj]) { bi = i; bj = j; } })); return [`def f(m):\n    bi, bj = 0, 0\n    for i in range(len(m)):\n        for j in range(len(m[0])):\n            if m[i][j] > m[bi][bj]:\n                bi, bj = i, j\n    return [bi, bj]`, [bi, bj], 'la position [ligne, colonne] du premier maximum']; },
+    () => [`def f(m):\n    t = []\n    for j in range(len(m[0])):\n        col = []\n        for i in range(len(m)):\n            col.append(m[i][j])\n        t.append(col)\n    return t`, m[0].map((_, j) => m.map(l => l[j])), 'la transposée de m (les colonnes deviennent des lignes)']
+  ];
+  const [code, v, what] = P[g.pick(d === 1 ? [0, 1, 2] : [2, 3, 4])]();
+  const items = [typeof v === 'number' ? { type: 'int', label: 'f(m)', val: v } : { type: 'val', label: 'f(m)', exp: v }];
+  if (d === 2) items.push({ type: 'choice', label: 'complexité pour une matrice n × n', opts: CPLX_OPTS, ans: 'O(n²)' });
+  return { title: 'Parcourir une matrice', q: 'Que renvoie <code>f(m)</code> pour la matrice <code>m</code> ci-dessous ?' + pre('m = ' + pyRepr(m) + '\n\n' + code), items,
+    corr: `<p><code>f(m)</code> renvoie ${ic(pyRepr(v))} : ${what}.</p><p class="fine">Deux boucles imbriquées : l'une parcourt les lignes (i, de 0 à <code>len(m) − 1</code>), l'autre les colonnes (j, de 0 à <code>len(m[0]) − 1</code>). Pour une matrice n × n, cela fait n² tours : O(n²).</p>` };
+};
+
+/* ---------- Recherche dichotomique (cours : l'exemple de complexité O(log n)) ---------- */
+const DICHO = 'def recherche(t, x):\n    g = 0\n    d = len(t) - 1\n    while g <= d:\n        m = (g + d) // 2\n        if t[m] == x:\n            return m\n        elif t[m] < x:\n            g = m + 1\n        else:\n            d = m - 1\n    return -1';
+function dichoRun(t, x) {   // les tours de boucle de recherche(t, x) : [g, d, m, t[m]] et le résultat
+  let lo = 0, hi = t.length - 1; const steps = [];
+  while (lo <= hi) { const m = Math.floor((lo + hi) / 2); steps.push([lo, hi, m, t[m]]); if (t[m] === x) return { r: m, steps }; if (t[m] < x) lo = m + 1; else hi = m - 1; }
+  return { r: -1, steps };
+}
+GEN.dicho = (d, g) => {
+  if (d === 2 && g.r() < 0.4) return codeGen('dicho')(2, g);
+  const n = d === 0 ? g.int(7, 9) : g.int(10, 15), t = [g.int(0, 5)];
+  while (t.length < n) t.push(t[t.length - 1] + g.int(1, 5));
+  const gaps = t.slice(0, -1).map((v, i) => t[i + 1] - v > 1 ? v + 1 : null).filter(v => v != null);
+  const x = d === 0 || g.r() < 0.5 || !gaps.length ? g.pick(t) : g.pick(gaps);
+  const { r, steps } = dichoRun(t, x);
+  const items = [{ type: 'val', label: 'valeurs successives de m', exp: steps.map(s => s[2]) }, { type: 'int', label: `recherche(t, ${x})`, val: r }];
+  let extra = '';
+  if (d === 2) {
+    const N = g.pick([100, 1000, 5000, 100000]), k = Math.floor(Math.log2(N)) + 1;
+    items.push({ type: 'int', label: `au plus, tours pour ${N} éléments`, val: k }, { type: 'choice', label: 'complexité', opts: CPLX_OPTS, ans: 'O(log n)' });
+    extra = `<p>À chaque tour, la zone de recherche (de g à d) est divisée par 2 : pour ${N} éléments, au plus ${k} tours (2<sup>${k - 1}</sup> ≤ ${N} &lt; 2<sup>${k}</sup>). C'est O(log n), contre O(n) pour un parcours de toute la liste.</p>`;
+  }
+  return { title: 'Recherche dichotomique', q: `La liste <code>t</code> est triée. Donner les valeurs successives de <code>m</code> pendant l'appel <code>recherche(t, ${x})</code>, puis la valeur renvoyée${d === 2 ? ', le nombre maximal de tours pour une liste triée plus grande et la complexité' : ''}.` + pre('t = ' + pyRepr(t) + '\n\n' + DICHO),
+    items, corr: `<table class="t"><tr><th>g</th><th>d</th><th>m = (g + d) // 2</th><th>t[m]</th></tr>${steps.map(s => `<tr><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td><td>${s[3]}</td></tr>`).join('')}</table>
+      <p>${r >= 0 ? `t[${r}] = ${x} : la fonction renvoie <b>${r}</b>.` : `g dépasse d : ${x} n'est pas dans t, la fonction renvoie <b>-1</b>.`}</p>${extra}<p class="fine">Si t[m] &lt; x, x ne peut être qu'à droite : g = m + 1. Sinon d = m − 1. Le tableau doit être <b>trié</b>.</p>` };
+};
 
 /* =====================================================================
    PYTHON DANS LE NAVIGATEUR (Pyodide, dans un Worker : une boucle infinie ne bloque pas la page)
@@ -511,9 +567,11 @@ const SK = [
   { id: 'fonc', ch: 1, name: 'Fonctions et portée des variables', fiche: 2 },
   { id: 'code1', ch: 1, name: 'Écrire une fonction (conditions, boucles)', fiche: 7 },
   { id: 'cplx', ch: 2, name: 'Complexité d\'un algorithme', fiche: 3 },
+  { id: 'dicho', ch: 2, name: 'Recherche dichotomique', fiche: 8 },
   { id: 'list', ch: 3, name: 'Opérations sur les listes', fiche: 4 },
   { id: 'alias', ch: 3, name: 'Copies et références', fiche: 4 },
   { id: 'str', ch: 3, name: 'Chaînes de caractères', fiche: 5 },
+  { id: 'mat', ch: 3, name: 'Matrices (listes de listes)', fiche: 4 },
   { id: 'code2', ch: 3, name: 'Écrire une fonction sur des tableaux', fiche: 7 },
   { id: 'dict', ch: 4, name: 'Dictionnaires', fiche: 6 },
   { id: 'code3', ch: 4, name: 'Écrire une fonction avec un dictionnaire', fiche: 7 }
@@ -631,10 +689,24 @@ for c in d:              # parcourt les CLÉS
         if t[i] &gt; t[im]:
             im = i
     return im</code></pre>
-    <div class="box warn"><h5>Pièges</h5>Ne pas utiliser <code>max</code>, <code>min</code>, <code>sum</code>, <code>count</code> quand l'énoncé l'interdit · renvoyer une <b>nouvelle</b> liste si on le demande, au lieu de modifier celle reçue · indentation : tout ce qui est dans la boucle est décalé.</div>`]
+    <div class="box warn"><h5>Pièges</h5>Ne pas utiliser <code>max</code>, <code>min</code>, <code>sum</code>, <code>count</code> quand l'énoncé l'interdit · renvoyer une <b>nouvelle</b> liste si on le demande, au lieu de modifier celle reçue · indentation : tout ce qui est dans la boucle est décalé.</div>`],
+  ['9. Pièges de DS et complexité', 'pièges, dichotomie', `<h4><code>return</code> dans ou hors de la boucle</h4>
+    <pre class="code"><code>def contient(t, x):            def contient(t, x):
+    for e in t:                    for e in t:
+        if e == x:                     if e == x:
+            return True                    return True
+        else:                      return False   # APRÈS la boucle
+            return False   # FAUX : s'arrête au 1er élément</code></pre>
+    <p>Un <code>return</code> arrête la fonction tout de suite. « Faux pour tous » ne se décide qu'<b>après</b> avoir tout parcouru : le <code>return False</code> se place hors de la boucle, sous le <code>for</code>.</p>
+    <h4>Indices et <code>range</code></h4><ul><li><code>for i in range(len(t))</code> donne les <b>indices</b> 0 … len(t) − 1 ; <code>for x in t</code> donne les <b>valeurs</b>. Ne pas écrire <code>t[x]</code> avec une valeur.</li><li><code>t[len(t)]</code> → IndexError : le dernier élément est <code>t[len(t) - 1]</code>, ou <code>t[-1]</code>.</li><li>Comparer <code>t[i]</code> et <code>t[i + 1]</code> : boucle jusqu'à <code>range(len(t) - 1)</code>.</li><li>Matrice : <code>len(m)</code> lignes, <code>len(m[0])</code> colonnes, case <code>m[i][j]</code> (ligne d'abord).</li></ul>
+    <h4>Listes modifiables</h4><ul><li><code>y = x</code> : même liste, pas une copie. <code>y = list(x)</code> ou <code>x[:]</code> pour copier ; <code>[list(l) for l in m]</code> pour une matrice.</li><li>Une fonction qui fait <code>t.append(…)</code> ou <code>t[i] = …</code> modifie la liste de l'appelant ; <code>t = t + [x]</code> crée une nouvelle liste.</li><li><code>t.append(x)</code> renvoie <code>None</code> : jamais <code>t = t.append(x)</code>.</li><li>Ne pas supprimer d'éléments d'une liste pendant qu'on la parcourt : construire une nouvelle liste (exercice 25).</li></ul>
+    <h4>Petits pièges qui coûtent des points</h4><ul><li><code>=</code> affecte, <code>==</code> compare · <code>/</code> donne un float, <code>//</code> un entier · <code>print</code> n'est pas <code>return</code>.</li><li>Accumulateur initialisé <b>avant</b> la boucle (<code>s = 0</code>), sinon il repart de 0 à chaque tour.</li><li>Maximum : partir de <code>t[0]</code>, pas de 0 (les valeurs peuvent être négatives).</li></ul>
+    <h4>Complexités à connaître</h4><table class="t"><tr><th>Opération</th><th>Coût</th></tr><tr><td><code>t[i]</code>, <code>t[i] = x</code>, <code>len(t)</code>, <code>t.append(x)</code>, <code>d[c]</code>, <code>c in d</code></td><td>O(1)</td></tr><tr><td>recherche dichotomique dans une liste <b>triée</b> ; diviser n par 2 jusqu'à 1</td><td>O(log n)</td></tr><tr><td><code>x in t</code>, <code>t.count(x)</code>, <code>max(t)</code>, <code>t + u</code>, <code>t[a:b]</code>, une boucle sur t</td><td>O(n)</td></tr><tr><td>deux boucles imbriquées, parcours d'une matrice n × n, comparer tous les couples</td><td>O(n²)</td></tr></table>
+    <div class="box key"><h5>Recherche dichotomique</h5>Dans une liste triée : <code>m = (g + d) // 2</code> ; si <code>t[m] == x</code> trouvé ; si <code>t[m] &lt; x</code> alors <code>g = m + 1</code>, sinon <code>d = m − 1</code> ; on s'arrête quand <code>g &gt; d</code>. La zone est divisée par 2 à chaque tour : au plus ⌊log₂ n⌋ + 1 tours (10 pour 1 000 éléments, 20 pour un million).</div>
+    <div class="box warn"><h5>Pièges de complexité</h5>Un <code>x in t</code> caché dans une boucle fait O(n²), pas O(n) · deux boucles l'une après l'autre : O(n) + O(n) = O(n) · une boucle de 10 tours fixes : O(1).</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS du 23/10</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 8 fiches : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS du 23/10</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 9 fiches : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
     ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}
     <section class="card"><h2>Après le DS du 23/10</h2><p class="sub">Récursivité (cas de base + appel sur un problème plus petit), graphes (matrice et listes d'adjacence), piles et files, parcours en profondeur et en largeur, graphes pondérés, preuves de programmes : ce sera pour le DS du 7/12 et l'oral de janvier.</p></section>`;
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
@@ -643,14 +715,14 @@ function vCours(open) {
 /* ---------- Sujet blanc ---------- */
 let EXAM = null;
 const DUR = 5400;
-const EXAM_PLAN = [['Exercice 1 · Types et valeurs', [['types', 1]], 4], ['Exercice 2 · Que calcule ce programme ?', [['boucles', 2], ['trace', 2]], 4], ['Exercice 3 · Fonctions, listes et copies', [['fonc', 1], ['alias', 2], ['list', 1]], 4], ['Exercice 4 · Complexité', [['cplx', 1]], 2], ['Exercice 5 · Écrire des fonctions', [['code2', 1], ['code3', 1]], 6]];
+const EXAM_PLAN = [['Exercice 1 · Types et valeurs', [['types', 1]], 4], ['Exercice 2 · Que calcule ce programme ?', [['boucles', 2], ['trace', 2]], 4], ['Exercice 3 · Fonctions, listes, copies et matrices', [['fonc', 1], ['alias', 2], ['list', 1], ['mat', 1]], 4], ['Exercice 4 · Complexité et recherche dichotomique', [['cplx', 1], ['dicho', 0]], 2], ['Exercice 5 · Écrire des fonctions', [['code2', 1], ['code3', 1]], 6]];
 function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">5 exercices dans le style des TD : types et valeurs (4 pts), programme à suivre (4 pts), fonctions, listes et copies (4 pts), complexité (2 pts), deux fonctions à écrire (6 pts, notées sur les tests réussis).</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">5 exercices dans le style des TD : types et valeurs (4 pts), programme à suivre (4 pts), fonctions, listes, copies et matrices (4 pts), complexité et recherche dichotomique (2 pts), deux fonctions à écrire (6 pts, notées sur les tests réussis).</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button>${weakButton()}<span class="fine">Pour être au plus près du DS, écris d'abord tes fonctions sur papier, puis recopie-les.</span></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${r.cible ? ' · ciblé' : ''}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
@@ -661,6 +733,7 @@ function renderExam() {
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
       : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button><span class="fine pyload" id="pyNote"></span></div>`);
   if (EXAM.done && EXAM.fb) Object.entries(EXAM.fb).forEach(([id, h]) => { const fb = $(`.it[data-id="${id}"] .fb`, app); if (fb) fb.innerHTML = h; });
+  if (EXAM.done) hideCorr();   // corrigés des parties ratées masqués
   startTick();
 }
 async function submitExam(auto) {

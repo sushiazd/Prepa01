@@ -200,6 +200,23 @@
       ls.set(EK, cfg.EXAM); cfg.renderExam();
     });
 
+    /* ---------- Copie rendue : corrigés des parties ratées masqués ----------
+       Une partie dont une réponse est fausse ou vide garde son corrigé fermé (« Voir le corrigé ») : on peut
+       la chercher encore hors chrono avant de lire la solution. La page appelle hideCorr() à la fin de
+       renderExam quand la copie est rendue (EXAM.done), une fois les pastilles Juste / Faux / Vide posées. */
+    function hideCorr() {
+      const hidden = $$('details.corr', app).filter(det => $$('.fb .pill', det.closest('.ex') || det.parentElement).some(p => !p.classList.contains('ok')));
+      hidden.forEach(det => { det.open = false; det.querySelector('summary').textContent = 'Voir le corrigé'; });
+      if (!hidden.length || !app.firstElementChild) return;
+      const s = hidden.length > 1 ? 's' : '';
+      app.firstElementChild.insertAdjacentHTML('afterend', `<section class="card" id="corrBar"><div class="row"><p class="sub" style="margin:0;flex:1;min-width:220px">${hidden.length} corrigé${s} masqué${s} : les parties avec une réponse fausse ou vide. Cherche-les encore hors chrono, puis ouvre « Voir le corrigé ».</p><button type="button" class="btn" data-act="revealAll">Tout révéler</button></div></section>`);
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('[data-act="revealAll"]')) return;
+      $$('details.corr', app).forEach(d => { d.open = true; });
+      const bar = $('#corrBar'); if (bar) bar.remove();
+    });
+
     // Progression venue d'un autre appareil
     function wireAccount() {
       const A = window.SiteAccount; if (!A) return;
@@ -234,6 +251,6 @@
 
     return { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
       startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, examSynced, start,
-      tally, examRecord, examPlan, weakSkills, weakPlan, weakButton };
+      tally, examRecord, examPlan, weakSkills, weakPlan, weakButton, hideCorr };
   };
 })();

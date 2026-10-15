@@ -10,10 +10,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=20261015"></script>
-<script src="../core.js?v=2026101502"></script>
+<script src="../subjects.js?v=2026101503"></script>
+<script src="../core.js?v=2026101503"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026101502">
+<link rel="stylesheet" href="../core.css?v=2026101503">
 <style>
 :root{
   --accent:var(--phys); --accent-soft:var(--phys-soft);
@@ -113,7 +113,7 @@ const E = SiteCore({ id: 'ma2', get DUR() { return DUR; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
   renderEx: () => renderEx(), renderExam: () => renderExam(), submitExam: auto => submitExam(auto) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton } = E;
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton, hideCorr } = E;
 function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
 function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
 
@@ -756,6 +756,7 @@ function renderExam() {
   mathIn(app);
   $$('input[data-expr]', app).forEach(preview);
   if (EXAM.done && EXAM.fb) Object.entries(EXAM.fb).forEach(([id, h]) => { const fb = $(`.it[data-id="${id}"] .fb`, app); if (fb) fb.innerHTML = h; });
+  if (EXAM.done) hideCorr();   // corrigés des parties ratées masqués
   startTick();
 }
 const saveExam = () => { const { exs, ...rest } = EXAM; ls.set(EK, rest); };

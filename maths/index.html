@@ -294,6 +294,8 @@ dialog::backdrop{background:rgba(20,19,17,.45)}
 .choices.is-skipped{opacity:.4;pointer-events:none}
 .corr[data-skip="1"] .corr-main{opacity:.75}
 .slip-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-4px 0 14px}
+.corr-hide{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0 4px;padding:12px 14px;border:1px dashed var(--rule-strong);border-radius:12px}
+.corr-hide .fine{font:13px/1.4 var(--sans);color:var(--muted)}
 .slip-row .fine{font:13px/1.4 var(--sans);color:var(--muted)}
 .btn.slip-btn[aria-pressed="true"]{color:var(--pen);background:var(--pen-soft);border-color:var(--pen-line)}
 .pts-pos{color:var(--good);font-weight:600}
@@ -9516,8 +9518,38 @@ function ansHTML(q, idx) {
 function ptsHTML(p) { return `<span class="${p > 0 ? 'pts-pos' : p < 0 ? 'pts-neg' : ''}">${fmtPts(p)}</span>`; }
 function timeHTML(t) { return t > LONG ? `<span class="time-long">${ICON.clock}${fmtMS(t)}</span>` : fmtMS(t); }
 
+/* Corrigé masqué des questions fausses, partielles, vides ou passées : on peut les chercher encore hors
+   chrono avant de lire la solution (« Voir le corrigé », ou « Tout révéler »). Valable pour la copie affichée. */
+const REVEAL = { key: null, set: new Set() };
+function corrHidden(r) {
+  const key = S ? S.def.id + '|' + S.submittedAt : '';
+  if (REVEAL.key !== key) { REVEAL.key = key; REVEAL.set = new Set(); }
+  return r.status !== 'juste' && !REVEAL.set.has(r.i);
+}
+function revealCorr(v) {
+  if (!lastRes) return;
+  if (v === 'all') { lastRes.forEach(r => REVEAL.set.add(r.i)); const y = window.scrollY; showResults(); window.scrollTo(0, y); return; }
+  const i = +v, r = lastRes[i]; if (!r) return;
+  REVEAL.set.add(i);
+  const card = $('#corr-' + i); if (card) { card.outerHTML = corrCard(r); renderMath($('#corr-' + i)); }
+  const td = $(`#results td[data-exp="${i}"]`); if (td) { td.innerHTML = ansHTML(r.q, r.q.a); renderMath(td); }
+  if (!lastRes.some(corrHidden)) { const b = $('#results [data-reveal="all"]'); if (b) b.remove(); }
+}
 function corrCard(r) {
   const q = r.q, st = ST[r.status];
+  if (corrHidden(r)) {
+    const mine = q.c.map((c, k) => { const isS = r.sel.includes(k); return `<div class="cc${isS ? ' picked' : ''}"><span class="box" aria-hidden="true">${isS ? '•' : LETTERS[k]}</span><span class="cc-text"><span class="cc-letter">${LETTERS[k]}.</span>${c}</span>${isS ? '<span class="cc-tag">Ta réponse</span>' : ''}</div>`; }).join('');
+    return `<article class="corr" id="corr-${r.i}" data-status="${r.status}" data-long="${r.t > LONG ? 1 : 0}" data-flag="${r.flag ? 1 : 0}" data-slip="${r.slip ? 1 : 0}" data-skip="${r.skip ? 1 : 0}">
+    <div class="corr-margin"><span class="corr-score">${r.skip ? '—' : fmtNum(r.pts, 3) + '/1'}</span></div>
+    <div class="corr-main">
+      <header class="corr-head"><h3>Question ${r.i + 1}${q.multi ? '<span class="club" title="Une ou plusieurs bonnes réponses">♣</span>' : ''}</h3>${kindTag(q.id)}<span class="pill ${st.cls}">${st.icon} ${st.label}${r.skip ? ' · non notée' : ' · ' + fmtPts(r.pts)}</span><span class="pill st-empty">${timeHTML(r.t)}</span></header>
+      ${q.ctx ? `<div class="context"><span class="context-label">Exercice</span>${q.ctxText}</div>` : ''}
+      <div class="q-body">${q.q}</div>
+      <div class="corr-choices">${mine}</div>
+      <div class="corr-hide"><button type="button" class="btn" data-reveal="${r.i}">Voir le corrigé</button><span class="fine">Cherche-la encore hors chrono : la bonne réponse et la correction restent cachées jusque-là.</span></div>
+    </div>
+  </article>`;
+  }
   const choices = q.c.map((c, k) => {
     const isC = q.a.includes(k), isS = r.sel.includes(k);
     const cls = 'cc' + (isC ? ' right' : isS ? ' wrong' : '') + (isS ? ' picked' : '');
@@ -9668,7 +9700,7 @@ function renderResults(res) {
           ${res.map(r => `<tr data-go="${r.i}" tabindex="0">
             <td class="qn">${r.i + 1}${r.q.multi ? '<span class="club">♣</span>' : ''}${r.flag ? '<span class="flag-mini" title="Marquée à revoir">⚑</span>' : ''}${r.slip ? '<span class="flag-mini" style="color:var(--pen)" title="Erreur de calcul">✎</span>' : ''}</td>
             <td>${ansHTML(r.q, r.sel)}</td>
-            <td>${ansHTML(r.q, r.q.a)}</td>
+            <td data-exp="${r.i}">${corrHidden(r) ? '<span class="none">masquée</span>' : ansHTML(r.q, r.q.a)}</td>
             <td><span class="pill ${ST[r.status].cls}">${ST[r.status].icon} ${ST[r.status].label}</span></td>
             <td class="num">${r.skip ? '—' : ptsHTML(r.pts)}</td>
             <td class="num">${timeHTML(r.t)}</td>
@@ -9691,6 +9723,7 @@ function renderResults(res) {
         ${chip('passe', 'Passées', cS.length)}
         ${chip('long', '+ de 3 min', longs.length)}
         ${chip('flag', 'Marquées', nFlag)}
+        ${res.some(corrHidden) ? '<button type="button" class="btn" data-reveal="all">Tout révéler</button>' : ''}
       </div>
     </div>
     <div class="corr-list" id="corrList" style="margin-top:16px">${res.map(corrCard).join('')}</div>
@@ -9971,6 +10004,8 @@ function init() {
       else if (a.dataset.act === 'retry') ask('Refaire exactement les mêmes questions dans une nouvelle épreuve ?', 'Refaire').then(ok => { if (ok) openIntro(S.def); });
       return;
     }
+    const rv = e.target.closest('[data-reveal]');
+    if (rv) { revealCorr(rv.dataset.reveal); return; }
     const sl = e.target.closest('[data-slip]');
     if (sl && sl.tagName === 'BUTTON') { toggleSlip(+sl.dataset.slip); return; }
     const f = e.target.closest('[data-filter]');

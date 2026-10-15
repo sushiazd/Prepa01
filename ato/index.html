@@ -10,10 +10,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=20261015"></script>
-<script src="../core.js?v=2026101502"></script>
+<script src="../subjects.js?v=2026101503"></script>
+<script src="../core.js?v=2026101503"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026101502">
+<link rel="stylesheet" href="../core.css?v=2026101503">
 <style>
 :root{
   --accent:var(--chem); --accent-soft:var(--chem-soft);
@@ -104,7 +104,7 @@ const E = SiteCore({ id: 'ato', get DUR() { return 3600; }, clock: 'ms', rush: 3
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
   renderEx: () => renderEx(), renderExam: () => renderExam(), submitExam: auto => submitExam(auto) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton } = E;
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton, hideCorr } = E;
 function typeset(el) { if (el && window.renderMathInElement) try { renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); } catch (e) { /* ignore */ } }
 // générateur pseudo-aléatoire à graine (un exercice se retrouve à l'identique)
 
@@ -668,6 +668,7 @@ function renderExam() {
       : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div>`);
   typeset(app);
   if (EXAM.done) exs.forEach(ex => ex.parts.forEach(p => p.items.forEach(it => showFb(app, it))));
+  if (EXAM.done) hideCorr();   // corrigés des parties ratées masqués
   startTick();
 }
 function submitExam(auto) {

@@ -138,7 +138,7 @@
     function startTick() {
       clearInterval(tick); const clk = $('#clock'), EXAM = cfg.EXAM, DUR = cfg.DUR;
       if (!EXAM || EXAM.done) { clk.hidden = true; return; }
-      clk.hidden = false;
+      clk.hidden = false; aiBar();
       const two = n => String(n).padStart(2, '0');
       const upd = () => {
         const left = DUR - (Date.now() - EXAM.t0) / 1000, l = Math.max(0, left);
@@ -213,6 +213,7 @@
     // et le corrigé s'ouvre. La page fournit cfg.examItems (questions du sujet), cfg.check, cfg.valOf (et cfg.fbHTML).
     const barText = n => `${n} corrigé${n > 1 ? 's' : ''} masqué${n > 1 ? 's' : ''} : les parties avec une réponse fausse ou vide. Corrige tes réponses et clique sur « Vérifier mon essai », ou ouvre « Voir le corrigé ».`;
     function hideCorr() {
+      if (cfg.EXAM && cfg.EXAM.ai) { aiDecorate(); return; }   // copie corrigée par une IA : ses remarques à côté du corrigé, rien de masqué
       const hidden = $$('details.corr', app).filter(det => $$('.fb .pill', det.closest('.ex') || det.parentElement).some(p => !p.classList.contains('ok')));
       hidden.forEach(det => {
         det.open = false; det.querySelector('summary').textContent = 'Voir le corrigé';
@@ -258,6 +259,170 @@
       const bar = $('#corrBar'); if (bar) bar.remove();
     });
 
+    /* ---------- Copie sur papier corrigée par une IA externe (ChatGPT, Claude, Gemini…) ----------
+       Pendant un sujet blanc, l'élève rédige sur papier ou tablette. On génère un prompt qui contient tout le
+       sujet, les réponses exactes et le corrigé détaillé de chaque partie (la vérité de référence) ; l'élève
+       l'envoie à l'IA de son choix avec la photo de sa copie, puis colle la réponse. Le bloc JSON entre
+       ===PREPA01_START=== et ===PREPA01_END=== donne les points de chaque partie : la copie est rendue avec
+       cette note, enregistrée (« Corrigé IA ») et la maîtrise des compétences est mise à jour.
+       La page fournit cfg.exam() (les parties du sujet) et, si besoin, cfg.answerText(item). */
+    const AI_RULES = {
+      ato: 'Exige la configuration électronique complète (1s2 2s2 2p6…) : une notation abrégée avec un gaz rare, [Ar] ou (Ar), ne rapporte pas les points quand l\'énoncé demande la configuration complète. Exige les justifications demandées (pourquoi un ion est hydrogénoïde, comparaison de rayons ou d\'énergies d\'ionisation), les conversions et unités (nm, m, eV, J), les cases quantiques dessinées, et en partie 2 des schémas de Lewis dessinés avec tous les doublets et charges formelles.',
+      algo: 'Le code est écrit à la main, sans interpréteur : vérifie la syntaxe Python (indentation, deux-points, return et non print), le respect des interdictions de l\'énoncé (max, min, sum, count…), les cas limites (liste vide, 0, un seul élément) et la justification des complexités. Une fonction correcte écrite autrement que le corrigé a tous les points ; une fonction qui ne marcherait pas si on l\'exécutait n\'a pas les points du résultat.',
+      phys: 'Exige le schéma, le référentiel et le repère, le bilan des forces complet, les projections sur les axes, les expressions littérales avant toute application numérique, l\'homogénéité, les unités et le bon nombre de chiffres significatifs. Une démonstration demandée doit être menée jusqu\'au bout.',
+      meca: 'Exige l\'isolement du solide, le schéma des actions mécaniques extérieures, les torseurs écrits au bon point avec toutes leurs composantes, la justification des actions transmissibles par chaque liaison, le principe fondamental de la statique écrit en entier (résultante et moment), les unités.',
+      ms1: 'Exige les justifications : pas de table de vérité quand l\'énoncé l\'interdit, quantificateurs écrits dans le bon ordre, négations exactes, raisonnement annoncé (absurde, contraposée, récurrence, double inclusion) et mené jusqu\'au bout, dénombrements justifiés (ordre, répétitions, formule utilisée).',
+      ma2: 'Exige les justifications : domaine de définition et de dérivabilité, continuité ou intégrabilité justifiées, développements limités démontrés quand l\'énoncé le demande, tableaux de variations complets, limites justifiées (croissances comparées, DL), calculs menés proprement jusqu\'au résultat simplifié.',
+      el2: 'Exige les schémas (circuit redessiné, générateur de Thévenin équivalent), le fléchage des tensions et des courants, les lois utilisées nommées (Millman, pont diviseur, lois des mailles et des nœuds), l\'équation différentielle établie, la constante de temps, les tracés demandés et les unités.'
+    };
+    // texte lisible d'un morceau de HTML (énoncés, corrigés) : schémas signalés, TeX gardé tel quel
+    const toText = h => {
+      const d = document.createElement('div');
+      d.innerHTML = String(h == null ? '' : h).replace(/<svg[\s\S]*?<\/svg>/gi, ' [schéma] ').replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/t[dh]>/gi, ' | ').replace(/<\/(p|li|h\d|tr|div|pre|ul|ol|table)>/gi, '$&\n').replace(/<li[^>]*>/gi, '• ');
+      return d.textContent.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    };
+    function answerOf(it) {
+      const a = cfg.answerText ? cfg.answerText(it) : null;
+      if (a != null && a !== '') return String(a);
+      if (it.type === 'choice') { const o = (it.opts || []).find(o => String(o.v) === String(it.ans)); return o ? toText(o.t) : String(it.ans); }
+      if (it.sol != null && typeof it.sol !== 'function') return toText(String(it.sol));
+      if (typeof it.val === 'number') return String(+it.val.toPrecision(6)).replace('.', ',') + (it.unit ? ' ' + it.unit : '');
+      if (it.ans != null) return Array.isArray(it.ans) ? it.ans.join(', ') : typeof it.ans === 'object' ? JSON.stringify(it.ans) : String(it.ans);
+      return '';
+    }
+    const skillsOf = ex => [...new Set([].concat(...ex.parts.map(p => p.items.map(skOf))))];
+    const fmtP = x => String(Math.round(x * 100) / 100).replace('.', ',');
+    function aiPrompt() {
+      const exs = cfg.exam(), S = window.SiteSubjects && SiteSubjects.get(id), name = S && S.name ? S.name : id;
+      const L = [`Tu es un professeur correcteur exigeant à l'ESIR (prépa intégrée, CUPGE 1re année). L'étudiant t'envoie en photo sa copie manuscrite pour le sujet blanc suivant : ${name}, ${Math.round(cfg.DUR / 60)} min, sans document, noté sur 20.`,
+        '', 'Consignes de correction :',
+        '- Corrige comme au vrai contrôle sur table : la démarche, les justifications, les schémas, les unités et la rédaction comptent, pas seulement le résultat. Un résultat juste sans justification n\'a pas tous les points.',
+        '- Pour chaque partie, la solution exacte et le corrigé détaillé sont donnés ci-dessous : c\'est la référence absolue. Ne refais pas les calculs autrement et ne t\'en écarte pas.',
+        '- Une partie absente ou illisible sur la photo vaut 0 point (status "vide"). Si la photo est floue, dis-le dans ton retour.',
+        `- Rigueur propre à la matière : ${AI_RULES[id] || 'exige des justifications complètes.'}`,
+        '- Points par multiples de 0,25, entre 0 et le barème de la partie.', '', '=== SUJET ET CORRIGÉ DE RÉFÉRENCE ==='];
+      exs.forEach((ex, i) => {
+        L.push('', `--- Partie ${i + 1} (idx ${i}) · ${ex.title} · barème : /${fmtP(ex.pts)} · compétences (cid) : ${skillsOf(ex).join('+')} ---`);
+        ex.parts.forEach((p, j) => {
+          L.push(`Question ${i + 1}.${j + 1}${p.title ? ' · ' + toText(p.title) : ''}`, toText(p.q), 'Réponses exactes attendues :');
+          p.items.forEach(it => L.push(`  - ${toText(it.label || it.lab || '') || 'réponse'} : ${answerOf(it)}`));
+          L.push('Corrigé détaillé :', toText(p.corr));
+        });
+      });
+      const tpl = { v: 1, note: 0, general: 'Bilan global court…', parts: exs.map((ex, i) => ({ idx: i, cid: skillsOf(ex).join('+'), pts: 0, max: ex.pts, status: 'juste | partiel | faux | vide', good: 'Ce qui est bien rédigé et justifié…', missing: 'Ce qui manque, erreurs de rédaction ou de calcul…', advice: `Conseil précis pour avoir ${fmtP(ex.pts)}/${fmtP(ex.pts)} au vrai contrôle` })) };
+      L.push('', '=== FORMAT DE TA RÉPONSE ===', 'Fais d\'abord un retour lisible pour l\'étudiant, partie par partie. Termine OBLIGATOIREMENT par ce bloc, avec exactement une entrée par partie (idx 0 à ' + (exs.length - 1) + ') et note = somme des pts :',
+        '===PREPA01_START===', JSON.stringify(tpl, null, 2), '===PREPA01_END===');
+      return L.join('\n');
+    }
+    // lecture tolérante de la réponse collée : bloc entre balises, sinon le dernier objet JSON qui contient « parts »
+    function aiParse(raw, exs) {
+      let s = String(raw || '');
+      const m = /===\s*PREPA01_START\s*===([\s\S]*?)===\s*PREPA01_END\s*===/.exec(s);
+      if (m) s = m[1];
+      s = s.replace(/```(?:json)?/gi, '');
+      // tel quel, puis sans virgules finales, puis guillemets typographiques “ ” remplacés (seulement en dernier recours)
+      const tryJSON = t => { for (const u of [t, t.replace(/,\s*([}\]])/g, '$1'), t.replace(/,\s*([}\]])/g, '$1').replace(/[“”]/g, '"')]) { try { return JSON.parse(u); } catch (e) { /* essai suivant */ } } return null; };
+      let j = null;
+      for (let i = s.length - 1; i >= 0 && !j; i--) {
+        if (s[i] !== '{') continue;
+        let depth = 0, str = false;
+        for (let k = i; k < s.length; k++) {
+          const c = s[k];
+          if (str) { if (c === '\\') k++; else if (c === '"') str = false; continue; }
+          if (c === '"') str = true; else if (c === '{') depth++; else if (c === '}' && --depth === 0) { const o = tryJSON(s.slice(i, k + 1)); if (o && Array.isArray(o.parts)) j = o; break; }
+        }
+      }
+      if (!j) throw new Error('je ne trouve pas le bloc JSON de la correction (entre ===PREPA01_START=== et ===PREPA01_END===).');
+      const num = v => typeof v === 'number' ? v : parseFloat(String(v == null ? '' : v).replace(',', '.'));
+      const txt = v => String(v == null ? '' : v).trim().slice(0, 2000);
+      const parts = exs.map((ex, i) => {
+        const p = j.parts.find(x => num(x.idx) === i) || (j.parts.length === exs.length && j.parts[i] && j.parts[i].idx == null ? j.parts[i] : null);
+        if (!p) throw new Error(`la partie ${i + 1} (idx ${i}) manque dans la correction.`);
+        let pts = num(p.pts); const mx = num(p.max);
+        if (isFinite(mx) && mx > 0 && Math.abs(mx - ex.pts) > 1e-9 && pts <= mx) pts = pts / mx * ex.pts;   // barème recopié autrement : ramené au vrai
+        if (!isFinite(pts) || pts < 0 || pts > ex.pts + 1e-9) throw new Error(`partie ${i + 1} : ${p.pts} point(s) pour un barème de ${fmtP(ex.pts)}.`);
+        pts = Math.round(pts * 100) / 100;
+        const st = String(p.status || '').toLowerCase(), r = pts / ex.pts;
+        return { idx: i, t: ex.title, cid: skillsOf(ex).join('+'), pts, max: ex.pts, status: ['juste', 'partiel', 'faux', 'vide'].includes(st) ? st : r >= 1 ? 'juste' : r > 0 ? 'partiel' : 'faux',
+          good: txt(p.good), missing: txt(p.missing), advice: txt(p.advice) };
+      });
+      return { general: txt(j.general), parts, note: Math.round(parts.reduce((a, p) => a + p.pts, 0) * 100) / 100, noteIA: num(j.note) };
+    }
+    // la copie est rendue avec la note de l'IA : copie enregistrée, maîtrise des compétences mise à jour
+    function aiFinish(raw) {
+      const E = cfg.EXAM; if (!E || E.done) throw new Error('aucun sujet blanc en cours.');
+      const exs = cfg.exam(), c = aiParse(raw, exs), now = Date.now();
+      stopTick(); TALLY = {};
+      Object.assign(E, { done: true, running: false, closed: true, note: c.note, ai: { general: c.general, parts: c.parts, at: now } });
+      const sk = {}, rr = {};
+      c.parts.forEach((p, i) => skillsOf(exs[i]).forEach(k => { const t = sk[k] || (sk[k] = [0, 0]); t[0] += p.pts / p.max; t[1]++; }));
+      Object.keys(sk).forEach(k => { rr[k] = sk[k][0] / sk[k][1]; sk[k] = [Math.round(sk[k][0] * 100) / 100, sk[k][1]]; });
+      const H = ls.get(HK, []);
+      H.push(Object.assign({ id: String(E.seed), ts: now, note: c.note, dur: Math.min(cfg.DUR, Math.round((now - E.t0) / 1000)), sk, ai: { general: c.general, parts: c.parts } }, E.target ? { cible: true } : {}));
+      ls.set(HK, H);
+      const P = pst();
+      Object.keys(rr).forEach(k => { if (!skById(k)) return; const s = skS(P, k), r = rr[k], gain = r >= 0.99 ? 30 : r >= 0.75 ? 15 : r >= 0.5 ? 0 : -20; s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = now; if (isVal(s)) s.ever = true; });
+      ls.set(PK, P);
+      const { exs: _x, ...rest } = E; ls.set(EK, rest);
+      const m = $('#aiModal'); if (m) m.remove();
+      cfg.renderExam(); window.scrollTo(0, 0);
+      toast(`Copie corrigée par l'IA : ${fmtP(c.note)}/20.`);
+    }
+    const aiPartHTML = p => `<div class="ai-part ${esc(p.status)}"><div class="row"><span class="pill ${p.status === 'juste' ? 'ok' : p.status === 'partiel' ? 'part' : 'bad'}">${fmtP(p.pts)}/${fmtP(p.max)} · corrigé IA</span></div>
+      ${p.good ? `<p><b>✓ Ce qui est validé</b> ${esc(p.good)}</p>` : ''}${p.missing ? `<p><b>✗ Points perdus sur ta copie</b> ${esc(p.missing)}</p>` : ''}${p.advice ? `<p><b>💡 Conseil DS</b> ${esc(p.advice)}</p>` : ''}</div>`;
+    function aiDecorate() {
+      const ai = cfg.EXAM.ai, cards = $$('section.card', app).filter(s => $('.ex', s));
+      cards.forEach((card, i) => { const p = ai.parts[i]; if (!p) return; $$('.fb', card).forEach(f => { f.innerHTML = ''; }); const h = $('h2', card); if (h) h.insertAdjacentHTML('afterend', aiPartHTML(p)); });
+      if (app.firstElementChild) app.firstElementChild.insertAdjacentHTML('afterend', `<section class="card ai-sum"><div class="row"><span class="pill ai">Corrigé IA</span><b>${fmtP(cfg.EXAM.note)}/20</b><span class="fine">Note donnée par l'IA sur ta copie papier, avec le corrigé du site comme référence. Les réponses tapées à l'écran ne comptent pas.</span></div>${ai.general ? `<p class="sub" style="margin-top:8px">${esc(ai.general)}</p>` : ''}</section>`);
+    }
+    // étiquette d'une copie dans « Mes copies »
+    const copyTag = r => (r.cible ? ' · ciblé' : '') + (r.ai ? ` <span class="pill ai">Corrigé IA</span> <button type="button" class="linkbtn" data-aicopy="${esc(r.id)}">voir</button>` : '');
+    function aiReport(rid, btn) {
+      const r = ls.get(HK, []).filter(x => String(x.id) === String(rid) && x.ai).pop(); if (!r) return;
+      const old = $('#aiReport'); if (old) old.remove();
+      const host = btn.closest('section') || app.lastElementChild;
+      host.insertAdjacentHTML('afterend', `<section class="card" id="aiReport"><div class="row"><h2>Copie du ${new Date(r.ts).toLocaleDateString('fr-FR')} · ${fmtP(r.note)}/20</h2><span class="pill ai">Corrigé IA</span><span class="sp"></span><button type="button" class="btn btn-ghost" data-act="aiReportClose">Fermer</button></div>
+        ${r.ai.general ? `<p class="sub">${esc(r.ai.general)}</p>` : ''}${r.ai.parts.map(p => `<h3 style="font:600 17px/1.3 var(--serif);margin-top:14px">${esc(p.t || 'Partie ' + (p.idx + 1))}</h3>${aiPartHTML(p)}`).join('')}</section>`);
+      $('#aiReport').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // bandeau du sujet en cours, puis panneau en deux étapes
+    function aiBar() {
+      if (!cfg.exam || $('#aiBar') || !app.firstElementChild) return;
+      app.firstElementChild.insertAdjacentHTML('afterend', `<section class="card ai-bar" id="aiBar"><div class="row"><p class="sub" style="margin:0;flex:1;min-width:220px">Tu rédiges sur papier ou sur tablette ? Fais corriger ta vraie copie (schémas, justifications, rédaction) par une IA, avec le corrigé exact de ce sujet.</p><button type="button" class="btn btn-primary" data-act="aiOpen">📸 Corriger ma copie papier / tablette avec une IA</button></div></section>`);
+    }
+    function aiOpen() {
+      const old = $('#aiModal'); if (old) old.remove();
+      const prompt = aiPrompt();
+      document.body.insertAdjacentHTML('beforeend', `<div class="ai-modal" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiTitle"><div class="ai-box">
+        <div class="row"><h2 id="aiTitle">Corriger ma copie avec une IA</h2><span class="sp"></span><button type="button" class="btn btn-ghost" data-act="aiClose" aria-label="Fermer">✕</button></div>
+        <p class="sub">Rédige le sujet sur papier ou tablette, comme au vrai contrôle. Puis :</p>
+        <h3>1. Copier le prompt de correction</h3>
+        <p class="fine">Colle-le dans ChatGPT, Claude ou Gemini avec la photo (ou le PDF) de ta copie. Il contient tout le sujet, les réponses exactes et le corrigé détaillé, pour que l'IA ne se trompe pas.</p>
+        <div class="row" style="margin-top:8px"><button type="button" class="btn btn-primary" data-act="aiCopy">📋 Copier le prompt pour ChatGPT / Claude / Gemini</button><span class="fine" id="aiCopied"></span></div>
+        <details style="margin-top:8px"><summary class="fine" style="cursor:pointer">Voir le prompt</summary><textarea class="ai-text" id="aiPrompt" readonly>${esc(prompt)}</textarea></details>
+        <h3>2. Coller le retour de l'IA</h3>
+        <p class="fine">Colle toute sa réponse (ou seulement le bloc entre ===PREPA01_START=== et ===PREPA01_END===). La copie sera rendue avec sa note et enregistrée dans « Mes copies ».</p>
+        <textarea class="ai-text" id="aiPaste" placeholder="Colle ici la réponse de l'IA…"></textarea>
+        <div class="row" style="margin-top:8px"><button type="button" class="btn btn-primary" data-act="aiImport">Importer la correction IA</button><span class="fine" id="aiMsg" role="status"></span></div>
+      </div></div>`);
+    }
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-act^="ai"], [data-aicopy]'); if (!b) return;
+      const act = b.dataset.act;
+      if (b.dataset.aicopy) { aiReport(b.dataset.aicopy, b); return; }
+      if (act === 'aiOpen') { if (cfg.EXAM && !cfg.EXAM.done) aiOpen(); }
+      else if (act === 'aiClose') { const m = $('#aiModal'); if (m) m.remove(); }
+      else if (act === 'aiReportClose') { const r = $('#aiReport'); if (r) r.remove(); }
+      else if (act === 'aiCopy') {
+        const t = $('#aiPrompt'), done = ok => { $('#aiCopied').textContent = ok ? '✓ Copié : colle-le dans l\'IA avec la photo de ta copie.' : 'Copie impossible : ouvre « Voir le prompt » et copie-le à la main.'; };
+        const fallback = () => { try { t.closest('details').open = true; t.select(); done(document.execCommand('copy')); } catch (err) { done(false); } };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t.value).then(() => done(true), fallback); else fallback();
+      } else if (act === 'aiImport') {
+        try { aiFinish($('#aiPaste').value); } catch (err) { const m = $('#aiMsg'); if (m) { m.textContent = 'Import impossible : ' + (err.message || err); m.style.color = 'var(--bad)'; } }
+      }
+    });
+
     // Progression venue d'un autre appareil
     function wireAccount() {
       const A = window.SiteAccount; if (!A) return;
@@ -292,6 +457,6 @@
 
     return { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
       startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, examSynced, start,
-      tally, examRecord, examPlan, weakSkills, weakPlan, weakButton, hideCorr };
+      tally, examRecord, examPlan, weakSkills, weakPlan, weakButton, hideCorr, copyTag, aiPrompt, aiParse };
   };
 })();

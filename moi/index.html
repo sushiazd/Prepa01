@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
 <script defer src="../account.js"></script>
-<script src="../maths/elo.js"></script>
+<script src="../maths/elo.js?v=2026101602"></script>
 <script src="../subjects.js?v=2026101504"></script>
 <style>
 :root{
@@ -323,7 +323,7 @@ tr:last-child td{border-bottom:0}
     const totQ = act.reduce((s, m) => s + st[m.id].n, 0), totT = act.reduce((s, m) => s + st[m.id].used, 0);
 
     box.innerHTML = `
-      <section class="card"><h2>Classement Elo</h2><p class="sub">${fmt(totQ)} questions répondues au total, ${fmtT(totT)} d'entraînement chronométré. Elo absolu de 0 à 2500 : moyenne du niveau dans les 21 thèmes, 2500 = GM = tout le programme maîtrisé (Hardcore compris). Tout le monde part à 1000.</p>
+      <section class="card"><h2>Classement Elo</h2><p class="sub">${fmt(totQ)} questions répondues au total, ${fmtT(totT)} d'entraînement chronométré. Elo absolu de 0 à 2500 : moyenne des 21 thèmes de 2000 × maîtrise du thème (fiabilité des réponses récentes × couverture des types de questions, la même que les pastilles du QCM) + bonus Hardcore. 2000 = tout le programme maîtrisé, 2500 = GM (Hardcore compris). Un thème jamais travaillé compte 0.</p>
         <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Pseudo</th><th>Elo</th><th>7 jours</th><th>Questions</th><th>Justes</th><th>Fausses</th><th>Vides</th></tr></thead><tbody>
         ${rank.map((x, i) => { const s = st[x.m.id]; return `<tr><td>${i === 0 ? '🐐' : i + 1}</td><td><b>${esc(x.m.pseudo)}</b>${x.m.hidden ? ' 🙈' : ''}${x.m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td><b>${fmt(x.elo)}</b> <span class="fine" title="${esc(x.title.name)}">${esc(x.title.abbr)}</span>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'up' : x.d7 < -0.5 ? 'down' : ''}">${x.d7 > 0.5 ? '+' : ''}${fmt(x.d7)}</td><td>${s.n}</td><td>${fmt(100 * s.ok / s.n)} %</td><td>${fmt(100 * s.bad / s.n)} %</td><td>${fmt(100 * s.blank / s.n)} %</td></tr>`; }).join('')}
         </tbody></table></div>

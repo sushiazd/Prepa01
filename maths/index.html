@@ -674,6 +674,7 @@ input:focus-visible,select:focus-visible{outline:2px solid var(--pen);outline-of
 .cq .q-body{font-size:16.5px}
 .cq .context{font-size:15px;padding:10px 14px;margin:0 0 12px}
 .cq details{margin-top:12px}
+.gt-list{margin-top:22px}.gt-list>summary{cursor:pointer;font:600 17px/1.3 var(--serif);width:max-content;max-width:100%}
 .elo-how{margin-top:6px}.elo-how>summary{cursor:pointer;font:600 13px/1.4 var(--sans);color:var(--pen);width:max-content;max-width:100%}.elo-how>p{margin-top:6px}
 .cq summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen);padding:6px 0}
 .cq .corr-choices{margin-top:12px}
@@ -11146,6 +11147,9 @@ function wireSpec() {
    Elo absolu de 0 à 2500 (2500 = GM = tout le programme maîtrisé, Hardcore compris) : calcul dans elo.js,
    partagé avec la page moi/. Un niveau par thème, l'Elo est la moyenne des 21 thèmes. */
 const eloKey = QcmElo.key;
+// Historique des contrôles de groupe replié par défaut ; reste ouvert quand la vue Groupe se redessine
+let gtListOpen = false;
+document.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('gt-list')) gtListOpen = e.target.open; }, true);
 function eloRank(members) { return QcmElo.rank(members).rank; }
 const eloTitle = x => `<span class="elo-title${/^(GM|MI|MF|CM)$/.test(x.title.abbr) ? ' elo-master' : ''}" title="${esc(x.title.name)}">${esc(x.title.abbr)}</span>`;
 
@@ -11250,11 +11254,13 @@ function groupHTML() {
     const best = {}; res.forEach(a => { if (!best[a.user_id] || a.note > best[a.user_id].note) best[a.user_id] = a; });
     const board = Object.values(best).sort((a, b) => b.note - a.note);
     const mine = best[me.id];
-    return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(gtTitle(t))}</h3><p class="meta">${gtHard(t) ? '<span class="tag tag-hc">Hardcore</span> ' : ''}${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${G.pseudo(t.created_by) ? whoHTML(t.created_by) : 'un membre'} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
+    return { live: Date.now() < liveWin(t).end, html: `<div class="ctl"><div class="ctl-top"><div><h3>${esc(gtTitle(t))}</h3><p class="meta">${gtHard(t) ? '<span class="tag tag-hc">Hardcore</span> ' : ''}${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${G.pseudo(t.created_by) ? whoHTML(t.created_by) : 'un membre'} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
       <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.end && now < w.start ? '🔴 Rejoindre la salle d\'attente' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${(() => { const w = liveWin(t), now = Date.now(); return now < w.end ? `<button type="button" class="btn" data-spec="${t.id}">👁 Regarder</button>` : ''; })()}${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${mine ? `<button type="button" class="btn" data-gtcopy="${t.id}">Voir ma copie</button>` : `<button type="button" class="btn" data-gtq="${t.id}">Questions et corrigé</button>`}${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
       <div class="ctl-detail gtq" id="gtq-${t.id}" hidden></div>
-      <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${whoHTML(a.user_id)}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>`;
-  }).join('');
+      <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${whoHTML(a.user_id)}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>` };
+  });
+  // Contrôle en cours ou en salle d'attente : toujours visible ; les autres sont repliés dans l'historique
+  const testsLive = tests.filter(x => x.live).map(x => x.html).join(''), past = tests.filter(x => !x.live), testsPast = past.map(x => x.html).join('');
   return `
     <section class="card grp-head">
       <div class="card-head" style="margin:0"><div><button type="button" class="linkish" data-g="back">← Mes groupes</button><h2 style="margin-top:8px">${esc(g.name)}</h2>
@@ -11269,8 +11275,9 @@ function groupHTML() {
 
     <section class="card"><div class="card-head"><div><h2>Contrôles du groupe</h2><p class="sub">Un contrôle commun sur les points faibles du groupe, à faire ensemble en direct.</p><details class="elo-how"><summary>Comment ça marche ?</summary><p class="sub">Le contrôle est construit sur les points faibles du groupe et se fait <b>ensemble en direct</b> : une salle d'attente s'ouvre, tout le groupe la voit en haut de la page et la rejoint, puis le créateur (ou le propriétaire du groupe) lance le départ ; chacun répond de son côté avec le même chrono, puis vous comparez vos notes. Une fois le temps écoulé, on peut encore le faire seul.</p></details></div></div>
       <div class="data-row"><select id="gtN" aria-label="Type et longueur"><optgroup label="Normal"><option value="10">10 questions · 30 min</option><option value="20" selected>20 questions · 1 h</option><option value="37">37 questions · 1 h 30</option></optgroup><optgroup label="Hardcore · sans calculatrice">${Object.entries(HC_MODES).map(([k, m]) => `<option value="hc:${k}">Hardcore ${m.name} · ${m.n} questions · ${fmtMin(m.dur)}</option>`).join('')}</optgroup></select><button type="button" class="btn btn-primary" data-g="newTest">Lancer un contrôle en direct</button></div>
-      <h3 style="margin:22px 0 4px;font:600 17px/1.3 var(--serif)">Historique des contrôles${G.tests.length ? ` (${G.tests.length})` : ''}</h3><p class="fine">Du plus récent au plus ancien : « Classement » montre les notes de chacun.${G.group && G.group.created_by === me.id ? ' En tant que propriétaire du groupe, tu peux supprimer n\'importe quel contrôle.' : ''}</p>
-      <div style="margin-top:10px">${tests || '<p class="fine">Aucun contrôle de groupe pour le moment.</p>'}</div></section>
+      ${testsLive ? `<div style="margin-top:18px">${testsLive}</div>` : ''}
+      <details class="gt-list"${gtListOpen ? ' open' : ''}><summary>Historique des contrôles${past.length ? ` (${past.length})` : ''}</summary><p class="fine">Du plus récent au plus ancien : « Classement » montre les notes de chacun.${G.group && G.group.created_by === me.id ? ' En tant que propriétaire du groupe, tu peux supprimer n\'importe quel contrôle.' : ''}</p>
+      <div style="margin-top:10px">${testsPast || '<p class="fine">Aucun contrôle de groupe terminé pour le moment.</p>'}</div></details></section>
 
     ${(() => { const E = eloRank(vis); if (!E.length) return ''; return `<section class="card"><div class="card-head"><div><h2>Classement Elo</h2><p class="sub">De 0 à 2500 : 2000 = tout le programme maîtrisé, 2500 = GM.</p><details class="elo-how"><summary>Comment est calculé l'Elo ?</summary><p class="sub">Elo absolu de 0 à 2500, comme aux échecs : <b>2000 = tout le programme maîtrisé</b>, <b>2500 = GM</b> = tout maîtrisé, Hardcore compris. C'est la moyenne du niveau de chacun dans les 21 thèmes (un thème jamais travaillé compte 0). Niveau d'un thème = <b>2000 × maîtrise</b> du thème, la même maîtrise que les pastilles : fiabilité de ses réponses récentes (on doit être assez sûr qu'il réussit au moins 80 % des questions ; les réponses anciennes pèsent de moins en moins) × couverture de tous les types de questions du thème. Il faut donc réussir chaque type de question du thème, et plus on a fait d'erreurs, plus il faut de réussites pour remonter. Le Hardcore ajoute ensuite jusqu'à <b>+500</b> (+33 par question Hardcore juste, sur les 15 dernières). Toutes les épreuves comptent (contrôles, sujets, Hardcore, contrôles de groupe, copies du prof importées). Refaire une question déjà vue ne compte pas. Une erreur marquée « erreur de calcul » ne coûte que 30 % d'une vraie erreur. « Provisoire » tant qu'il y a moins de 50 questions. Titres : Classe E (&lt; 1200), D, C, B, A (1800), Expert (2000), CM (2200), MF (2300), MI (2400), GM (2500).</p></details></div></div>
       <div style="overflow-x:auto"><table class="hist"><thead><tr><th>#</th><th>Pseudo</th><th>Elo</th><th>7 derniers jours</th><th>Questions</th><th>Justes</th></tr></thead><tbody>

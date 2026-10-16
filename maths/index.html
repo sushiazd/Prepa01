@@ -12,6 +12,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../config.js"></script>
 <script src="elo.js"></script>
+<script src="pdj.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -702,6 +703,41 @@ input:focus-visible,select:focus-visible{outline:2px solid var(--pen);outline-of
 .intro-dist li b{color:var(--pen)}
 .pref-row{margin-top:16px}
 
+/* Problème du jour */
+.tab-pdj .dot-pdj{width:7px;height:7px;border-radius:50%;background:var(--pen)}
+.tab-pdj[aria-current="page"] .dot-pdj{background:var(--paper)}
+#pdjBox>*{min-width:0}
+.pdj-card{padding:30px 36px 28px}
+.pdj-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pdj-top .fine{margin-left:auto}
+.pdj-stars{color:var(--flag);letter-spacing:1px}
+.pdj-title{font:600 27px/1.2 var(--serif);letter-spacing:-.01em;margin-bottom:14px}
+.pdj-form{margin-top:24px;padding-top:20px;border-top:1px solid var(--rule);display:grid;gap:8px}
+.pdj-form .data-row input{flex:1;min-width:200px;max-width:340px}
+.pdj-msg{font-size:14.5px;min-height:1.4em}
+.pdj-msg.ko{color:var(--red)} .pdj-msg.near{color:var(--warn)}
+.pdj-win{margin-top:24px;padding:14px 18px;border-radius:12px;background:var(--good-soft);color:var(--good);font:15px/1.5 var(--sans)}
+.pdj-win b{color:inherit}
+.pdj-hints{display:grid;gap:10px;margin-top:18px}
+.pdj-hint{padding:12px 16px;border-radius:12px;background:var(--pen-soft);border:1px solid var(--pen-line);font:16px/1.6 var(--serif)}
+.pdj-hint b{font:600 11.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--pen);display:block;margin-bottom:6px}
+.pdj-sol{margin-top:18px;padding:18px 20px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16.5px/1.65 var(--serif)}
+.pdj-sol h3{font:600 19px/1.2 var(--serif);margin-bottom:8px}
+.pdj-sol p+p,.pdj-sol ul{margin-top:8px}
+.pdj-sol ul{padding-left:22px;margin-bottom:0}
+.pdj-list{display:grid}
+.pdj-row{display:grid;grid-template-columns:120px minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:10px 8px;border:0;border-bottom:1px solid var(--rule);background:none;text-align:left;cursor:pointer;border-radius:0}
+.pdj-row:hover{background:var(--sheet-2)}
+.pdj-row[aria-current="true"]{background:var(--pen-soft)}
+.pdj-row .pdj-d{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pdj-row .pdj-t{font:600 15.5px/1.3 var(--serif)}
+@media (max-width:720px){
+  .pdj-card{padding:22px 18px}
+  .pdj-row{grid-template-columns:minmax(0,1fr) auto;row-gap:4px}
+  .pdj-row .pdj-d{grid-column:1/-1}
+  .pdj-row .tag{display:none}
+}
+
 @media (max-width:1000px){
   .th-row{grid-template-columns:minmax(0,1fr) auto;row-gap:8px}
   .th-row .bar-cell{grid-column:1/-1;grid-row:2}
@@ -787,6 +823,7 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
     <button type="button" class="tab" data-tab="groupe">Groupe</button>
     <button type="button" class="tab" data-tab="results" id="tabResults" hidden>Dernière copie</button>
     <button type="button" class="tab tab-hc" data-tab="hardcore">Hardcore</button>
+    <button type="button" class="tab tab-pdj" data-tab="pdj">Problème du jour<span class="dot-pdj" id="pdjDot" hidden title="Pas encore trouvé aujourd'hui"></span></button>
     <button type="button" class="tab" data-tab="historique">Historique</button>
   </nav>
   <div class="clock" id="clock" hidden aria-live="off">
@@ -908,6 +945,17 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
     </header>
     <div class="sj-grid" id="hcGrid"></div>
     <section class="card"><div class="card-head"><div><h2>Mes copies Hardcore</h2><p class="sub">Même barème que le QCM : −0,5 par réponse fausse, donc laisse vide si tu n'es pas sûr. Ces copies ne comptent pas dans « Mes points faibles » : rater une question hardcore, c'est normal.</p></div></div><div id="hcHist"></div></section>
+  </section>
+
+  <!-- ============ PROBLÈME DU JOUR ============ -->
+  <section class="hub" id="hubPdj" hidden>
+    <div id="resumeBanner7"></div>
+    <header class="hub-head">
+      <p class="eyebrow" id="pdjEyebrow">Problème du jour</p>
+      <h1>Un problème à chercher, chaque jour</h1>
+      <p class="lede">Chaque jour un nouveau problème, le même pour tout le monde. Pas de recette du cours : il faut trouver l'idée (une symétrie, un dessin, un changement de point de vue…). Cherche vraiment avant de prendre un indice. Ça ne compte ni dans tes notes ni dans ton Elo.</p>
+    </header>
+    <div id="pdjBox" style="display:grid;gap:24px"></div>
   </section>
 
   <!-- ============ HISTORIQUE ============ -->
@@ -8578,7 +8626,7 @@ function renderBanners() {
     return `<div class="banner"><div><b>${S.paused ? '⏸ Épreuve en pause' : '⏱ Épreuve en cours'} : ${esc(S.def.title)}</b><p>${answered}/${total} questions répondues · ${fmtClock(rem)} restant${S.paused ? ' (chrono arrêté)' : ' (le chrono tourne !)'}</p></div><span class="spacer"></span><button type="button" class="btn btn-primary" data-resume>${S.paused ? 'Reprendre' : 'Revenir à l\'épreuve'}</button></div>`;
   })();
   const all = html + liveBannersHTML();
-  ['#resumeBanner1', '#resumeBanner2', '#resumeBanner3', '#resumeBanner4', '#resumeBanner5', '#resumeBanner6'].forEach(id => { const el = $(id); if (el) el.innerHTML = all; });
+  ['#resumeBanner1', '#resumeBanner2', '#resumeBanner3', '#resumeBanner4', '#resumeBanner5', '#resumeBanner6', '#resumeBanner7'].forEach(id => { const el = $(id); if (el) el.innerHTML = all; });
 }
 function renderBilan() {
   const st = themeStats();
@@ -9000,6 +9048,199 @@ function renderHardcore() {
 }
 
 /* =====================================================================
+   VUE « PROBLÈME DU JOUR » : un problème à chercher par jour (banque dans pdj.js)
+   Le même pour tout le monde ce jour-là : le jour n° n (compté depuis PDJ_START) donne PDJ_BANK[n % longueur].
+   Hors notes, hors Elo, hors stats : rien ne passe par attempts. Progression par problème :
+   { at: ouvert, ok: trouvé, n: réponses fausses, h: indices vus, sol: solution vue } (dates en ms),
+   dans ce navigateur et, connecté, dans user_data (clé qcm.pdj), fusionnée champ par champ.
+   ===================================================================== */
+const PDJ = window.PDJ_BANK || [], PDJ_K = 'qcmhub.pdj.v1', PDJ_KEY = 'qcm.pdj';
+let pdjState = ls.get(PDJ_K, {}), pdjDay = null, pdjT = 0;
+const pdjStart = (() => { const [y, m, d] = String(window.PDJ_START || '2026-10-10').split('-').map(Number); return Date.UTC(y, m - 1, d); })();
+// Jour n° n d'après la date locale (de minuit à minuit, heure de l'appareil)
+const pdjToday = () => { const d = new Date(); return Math.max(0, Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - pdjStart) / 864e5)); };
+const pdjOf = day => PDJ[day % PDJ.length];
+const pdjFmt = (day, o) => new Date(pdjStart + day * 864e5).toLocaleDateString('fr-FR', Object.assign({ timeZone: 'UTC' }, o));
+const pdjStars = d => '★'.repeat(d) + '☆'.repeat(3 - d);
+function pdjStatus(p) {
+  const r = pdjState[p.id] || {};
+  if (r.ok && !(r.sol && r.sol < r.ok)) return { k: 'ok', cls: 'st-good', label: r.h ? `Trouvé avec ${r.h} indice${r.h > 1 ? 's' : ''}` : 'Trouvé sans indice' };
+  if (r.sol) return { k: 'sol', cls: 'st-part', label: 'Solution vue' };
+  if (r.n || r.h) return { k: 'wip', cls: 'st-empty', label: 'En cours' };
+  return { k: 'new', cls: 'st-skip', label: r.at ? 'Pas encore trouvé' : 'Pas encore ouvert' };
+}
+function pdjSet(id, patch) {
+  pdjState[id] = Object.assign({}, pdjState[id], patch);
+  ls.set(PDJ_K, pdjState);
+  pdjDot();
+  if (cloud.on()) { clearTimeout(pdjT); pdjT = setTimeout(pdjSync, 800); }
+}
+// Pastille sur l'onglet : le problème d'aujourd'hui n'est ni trouvé ni abandonné (solution vue)
+function pdjDot() { const el = $('#pdjDot'); if (el && PDJ.length) el.hidden = ['ok', 'sol'].includes(pdjStatus(pdjOf(pdjToday())).k); }
+
+/* Lecture d'une réponse tapée : nombre décimal (virgule ou point), fraction, ou expression avec
+   sqrt / √, pi / π, e, ln, exp, ^ et multiplication sous-entendue (2sqrt3, 2π, 3(1+e)). NaN si illisible. */
+function pdjParse(src) {
+  const s = String(src).toLowerCase().replace(/\s+/g, '').replace(/[−–]/g, '-').replace(/[×·]/g, '*').replace(/,/g, '.')
+    .replace(/π/g, 'pi').replace(/√/g, 'sqrt').replace(/racine/g, 'sqrt').replace(/^[a-z]\w*=/, '').replace(/(°|cm)$/, '');
+  const FN = { sqrt: Math.sqrt, ln: Math.log, log: Math.log, exp: Math.exp, sin: Math.sin, cos: Math.cos }, CST = { pi: Math.PI, e: Math.E };
+  let i = 0;
+  const fail = () => { throw new Error('illisible'); };
+  function atom() {
+    if (s[i] === '(') { i++; const v = expr(); if (s[i] !== ')') fail(); i++; return v; }
+    let m = /^(\d+\.?\d*|\.\d+)/.exec(s.slice(i));
+    if (m) { i += m[0].length; return parseFloat(m[0]); }
+    m = /^(sqrt|ln|log|exp|sin|cos|pi|e)/.exec(s.slice(i));
+    if (!m) fail();
+    i += m[1].length;
+    return m[1] in CST ? CST[m[1]] : FN[m[1]](power());      // ln 2, ln(2), √3
+  }
+  function power() { const b = atom(); if (s[i] === '^') { i++; return Math.pow(b, unary()); } return b; }
+  function unary() { if (s[i] === '-') { i++; return -unary(); } if (s[i] === '+') { i++; return unary(); } return power(); }
+  function term() {
+    let v = unary();
+    for (;;) {
+      if (s[i] === '*') { i++; v *= unary(); }
+      else if (s[i] === '/') { i++; v /= unary(); }
+      else if (s[i] && /[\d(.a-z]/.test(s[i])) v *= power();   // multiplication sous-entendue
+      else return v;
+    }
+  }
+  function expr() { let v = term(); while (s[i] === '+' || s[i] === '-') { const c = s[i++], w = term(); v = c === '+' ? v + w : v - w; } return v; }
+  try { if (!s) return NaN; const v = expr(); return i === s.length && isFinite(v) ? v : NaN; } catch (e) { return NaN; }
+}
+// 'ok' (juste), 'near' (valeur approchée d'une réponse exacte : on demande la valeur exacte), 'ko', 'nan' (illisible)
+function pdjCheck(p, raw) {
+  const v = pdjParse(raw);
+  if (isNaN(v)) return 'nan';
+  const d = Math.abs(v - p.a);
+  if (d <= (p.tol != null ? p.tol : 1e-9 * Math.max(1, Math.abs(p.a)))) return 'ok';
+  if (p.tol == null && /[.,]/.test(raw) && d <= 5e-3 * Math.abs(p.a)) return 'near';
+  return 'ko';
+}
+
+function renderPdj() {
+  renderBanners();
+  if (!PDJ.length) { $('#pdjBox').innerHTML = '<p class="warn-box">La banque de problèmes (pdj.js) n\'a pas pu être chargée.</p>'; return; }
+  const today = pdjToday();
+  if (pdjDay == null || pdjDay > today) pdjDay = today;
+  const p = pdjOf(pdjDay);
+  if (!(pdjState[p.id] || {}).at) pdjSet(p.id, { at: Date.now() });
+  const r = pdjState[p.id], st = pdjStatus(p), nh = r.h || 0, solved = st.k === 'ok';
+  $('#pdjEyebrow').textContent = pdjDay === today ? `Problème du jour · ${pdjFmt(today, { weekday: 'long', day: 'numeric', month: 'long' })}` : 'Problème du jour';
+  const back = pdjDay === today ? '' : `<p><button type="button" class="linkish" data-pdj="today">← Revenir au problème d'aujourd'hui</button></p>`;
+  const answerBox = solved
+    ? `<div class="pdj-win">✓ <b>Bravo, c'est bien \\(${p.ans}\\).</b> ${r.n ? `Trouvé après ${r.n} réponse${r.n > 1 ? 's' : ''} fausse${r.n > 1 ? 's' : ''}` : 'Trouvé du premier coup'}${nh ? ` et ${nh} indice${nh > 1 ? 's' : ''}` : ', sans indice'}.${r.sol ? '' : ' Compare ta démarche avec la solution rédigée.'}</div>`
+    : r.ok ? `<div class="pdj-win">✓ <b>C'est bien \\(${p.ans}\\)</b>, retrouvé après avoir vu la solution.</div>`
+    : `<form class="pdj-form" id="pdjForm" autocomplete="off">
+        <label class="lbl-s" for="pdjIn">Ta réponse</label>
+        <div class="data-row"><input type="text" id="pdjIn" spellcheck="false" placeholder="${esc(p.fmt || 'un nombre')}"><button type="submit" class="btn btn-primary">Vérifier</button></div>
+        <p class="fine">Écris un nombre (1,5), une fraction (3/4) ou une valeur exacte : sqrt(2) ou √2, pi/4, ln(2), e^2, 2sqrt(3)…${r.sol ? ' Solution déjà vue : le problème reste marqué « solution vue ».' : ''}</p>
+        <p class="pdj-msg" id="pdjMsg" role="status">${r.n ? `${r.n} réponse${r.n > 1 ? 's' : ''} fausse${r.n > 1 ? 's' : ''} jusqu'ici.` : ''}</p>
+      </form>`;
+  const hints = p.h.slice(0, nh).map((h, i) => `<div class="pdj-hint"><b>Indice ${i + 1}</b>${h}</div>`).join('');
+  const hintBtn = nh < p.h.length ? `<button type="button" class="btn" data-pdj="hint">${nh ? 'Un autre indice' : 'Un indice'} (${nh + 1}/${p.h.length})</button>` : '<span class="fine">Tous les indices sont affichés.</span>';
+  const sol = r.sol ? `<div class="pdj-sol"><h3>Solution</h3><p><strong>Réponse : \\(${p.ans}\\)</strong></p>${p.s}</div>` : '';
+  const card = `${back}<section class="card pdj-card" aria-labelledby="pdjTitle">
+      <div class="pdj-top"><span class="tag">${esc(p.th)}</span><span class="tag pdj-stars" title="Difficulté ${p.d} sur 3">${pdjStars(p.d)}</span><span class="pill ${st.cls}">${st.label}</span><span class="fine">Jour n° ${pdjDay + 1} · ${pdjFmt(pdjDay, { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
+      <h2 class="pdj-title" id="pdjTitle">${esc(p.t)}</h2>
+      <div class="q-body">${p.q}</div>
+      ${answerBox}
+      <div class="pdj-hints">${hints}</div>
+      <div class="q-actions">${hintBtn}<span class="spacer"></span>${r.sol ? '' : `<button type="button" class="btn${solved ? ' btn-primary' : ''}" data-pdj="sol">${solved ? 'Voir la solution rédigée' : 'Voir la solution'}</button>`}</div>
+      ${sol}
+    </section>`;
+  // Jours passés (et aujourd'hui), du plus récent au plus ancien
+  const days = Array.from({ length: today + 1 }, (_, k) => today - k);
+  const seenP = [...new Set(days.map(pdjOf))];
+  const okP = seenP.filter(q => pdjStatus(q).k === 'ok'), nClean = okP.filter(q => !pdjState[q.id].h).length;
+  const rows = days.slice(0, 120).map(d => {
+    const q = pdjOf(d), s2 = pdjStatus(q);
+    return `<button type="button" class="pdj-row" data-pdjday="${d}"${d === pdjDay ? ' aria-current="true"' : ''}><span class="pdj-d">${d === today ? 'Aujourd\'hui' : pdjFmt(d, { weekday: 'short', day: 'numeric', month: 'short' })}</span><span class="pdj-t">${esc(q.t)}</span><span class="tag">${esc(q.th)}</span><span class="pill ${s2.cls}">${s2.label}</span></button>`;
+  }).join('');
+  const list = `<section class="card"><div class="card-head"><div><h2>Les jours précédents</h2><p class="sub">Clique sur un jour pour revoir son problème. Tu en as trouvé <strong>${okP.length}</strong> sur ${seenP.length}${okP.length ? `, dont ${nClean} sans indice` : ''}.${cloud.on() ? '' : ' Connecte-toi (onglet Groupe) pour retrouver ta progression sur tes autres appareils.'}</p></div></div><div class="pdj-list">${rows}</div></section>`;
+  const box = $('#pdjBox');
+  box.innerHTML = card + list;
+  renderMath(box);
+}
+function pdjAnswer() {
+  const p = pdjOf(pdjDay), inp = $('#pdjIn'), msg = $('#pdjMsg');
+  if (!inp || !msg) return;
+  const raw = inp.value.trim();
+  if (!raw) { inp.focus(); return; }
+  const res = pdjCheck(p, raw), r = pdjState[p.id] || {};
+  if (res === 'ok') { pdjSet(p.id, { ok: r.ok || Date.now() }); renderPdj(); toast('Bien joué !'); return; }
+  msg.className = 'pdj-msg ' + (res === 'ko' ? 'ko' : 'near');
+  if (res === 'nan') msg.textContent = 'Je n\'arrive pas à lire cette réponse. Exemples : 12, -3/4, 1,5, sqrt(2), pi/4, ln(2).';
+  else if (res === 'near') msg.textContent = 'C\'est très proche : donne la valeur exacte (fraction, racine, π, ln…), pas une valeur approchée.';
+  else {
+    const n = (r.n || 0) + 1;
+    pdjSet(p.id, { n });
+    msg.textContent = `Ce n'est pas ça (${n} réponse${n > 1 ? 's' : ''} fausse${n > 1 ? 's' : ''}). Cherche encore${(r.h || 0) < p.h.length ? ', ou prends un indice' : ''}.`;
+  }
+  inp.select();
+}
+function initPdj() {
+  pdjDot();
+  const hub = $('#hubPdj');
+  hub.addEventListener('submit', e => { if (e.target.id === 'pdjForm') { e.preventDefault(); pdjAnswer(); } });
+  hub.addEventListener('click', async e => {
+    const row = e.target.closest('[data-pdjday]');
+    if (row) { pdjDay = +row.dataset.pdjday; renderPdj(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    const b = e.target.closest('[data-pdj]');
+    if (!b) return;
+    const p = pdjOf(pdjDay), r = pdjState[p.id] || {};
+    if (b.dataset.pdj === 'today') { pdjDay = null; renderPdj(); }
+    else if (b.dataset.pdj === 'hint') {
+      pdjSet(p.id, { h: Math.min(p.h.length, (r.h || 0) + 1) });
+      const keep = $('#pdjIn') ? $('#pdjIn').value : '';
+      renderPdj();
+      if ($('#pdjIn')) $('#pdjIn').value = keep;
+      const all = $$('.pdj-hint'); if (all.length) all[all.length - 1].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    } else if (b.dataset.pdj === 'sol') {
+      if (pdjStatus(p).k !== 'ok' && !await ask('Voir la solution ? Le problème sera marqué « solution vue », même si tu trouves la réponse ensuite.', 'Voir la solution')) return;
+      pdjSet(p.id, { sol: r.sol || Date.now() });
+      renderPdj();
+      const s = $('.pdj-sol'); if (s) s.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  });
+}
+// Fusion champ par champ : premières dates (ouvert, trouvé, solution vue), plus grands compteurs
+function pdjMerge(A, B) {
+  const out = {}, min = (x, y) => (x && y ? Math.min(x, y) : x || y || 0);
+  new Set([...Object.keys(A || {}), ...Object.keys(B || {})]).forEach(id => {
+    const a = (A || {})[id] || {}, b = (B || {})[id] || {}, m = {};
+    ['at', 'ok', 'sol'].forEach(k => { const v = min(+a[k] || 0, +b[k] || 0); if (v) m[k] = v; });
+    ['n', 'h'].forEach(k => { const v = Math.max(+a[k] || 0, +b[k] || 0); if (v) m[k] = v; });
+    out[id] = m;
+  });
+  return out;
+}
+const pdjSig = X => JSON.stringify(Object.keys(X).sort().map(id => [id, ...['at', 'ok', 'sol', 'n', 'h'].map(k => +X[id][k] || 0)]));
+let pdjBusy = false;
+async function pdjSync() {
+  if (!cloud.on() || pdjBusy) return;
+  pdjBusy = true;
+  const uid = me.id;
+  try {
+    const { data, error } = await sb.from('user_data').select('value').eq('user_id', uid).eq('key', PDJ_KEY).maybeSingle();
+    if (error) throw error;
+    if (!me || me.id !== uid) return;
+    const R = pdjMerge({}, (data && data.value && data.value.p) || {}), M = pdjMerge(pdjState, R);
+    if (pdjSig(M) !== pdjSig(pdjState)) {
+      pdjState = M; ls.set(PDJ_K, M); pdjDot();
+      const inp = $('#pdjIn');
+      if (document.body.dataset.view === 'pdj' && !(inp && inp.value)) renderPdj();
+    }
+    if (pdjSig(M) !== pdjSig(R)) {
+      const { error: e2 } = await sb.from('user_data').upsert({ user_id: uid, key: PDJ_KEY, value: { p: M }, updated_at: new Date().toISOString() });
+      if (e2) throw e2;
+    }
+  } catch (e) { console.warn('Problème du jour', e); }
+  finally { pdjBusy = false; }
+}
+
+/* =====================================================================
    HUB — moteur d'épreuve : pause/reprise, notation, résultats
    ===================================================================== */
 const LONG = 180;              // seuil « question longue » (3 min)
@@ -9160,7 +9401,7 @@ const remaining = () => DURATION - elapsed();
 
 /* ---------- Vues ---------- */
 // Dernier onglet ouvert : on y revient quand la page est rechargée
-const HUB_VIEWS = ['controls', 'catalogue', 'sujets', 'groupe', 'hardcore', 'historique', 'results'];
+const HUB_VIEWS = ['controls', 'catalogue', 'sujets', 'groupe', 'hardcore', 'pdj', 'historique', 'results'];
 function setView(v) {
   if (v !== 'spec' && SPEC) specStop();
   if (HUB_VIEWS.includes(v)) ls.set('qcmhub.view.v1', v);
@@ -9169,6 +9410,7 @@ function setView(v) {
   $('#hubSujets').hidden = v !== 'sujets';
   $('#hubGroupe').hidden = v !== 'groupe';
   $('#hubHardcore').hidden = v !== 'hardcore';
+  $('#hubPdj').hidden = v !== 'pdj';
   $('#hubHistorique').hidden = v !== 'historique';
   $('#specView').hidden = v !== 'spec';
   $('#intro').hidden = v !== 'intro';
@@ -9191,6 +9433,7 @@ function showTab(tab) {
   else if (tab === 'sujets') { setView('sujets'); renderSujets(); }
   else if (tab === 'groupe') { setView('groupe'); renderGroupe(); }
   else if (tab === 'hardcore') { setView('hardcore'); renderHardcore(); }
+  else if (tab === 'pdj') { pdjDay = null; setView('pdj'); renderPdj(); pdjSync(); }
   else if (tab === 'historique') { hxWho = null; setView('historique'); renderHistorique(); }
   else if (tab === 'results' && S && S.phase === 'done') { activate(S.def); showResults(); }
 }
@@ -10106,6 +10349,7 @@ function init() {
   window.addEventListener('pagehide', flush);
 
   initGroupeEvents();
+  initPdj();
   initCloud();
 
   // Reprise de la session précédente
@@ -10186,6 +10430,7 @@ async function onSession(session) {
       // et les contrôles regardés, pour ne pas passer au prochain compte connecté ici
       if (S && !S.rv) { stopTick(); S = null; }
       ls.del(K.session); sessSnap = null; ls.del(SPEC_K); ls.del('qcmhub.group.v1');
+      pdjState = {}; ls.del(PDJ_K); pdjDot();
     }
     me = null; myGroups = []; curGroup = null; G = null; authMode = 'login'; setSync('idle');
     refreshViews(); return;
@@ -10201,7 +10446,7 @@ async function onSession(session) {
   ls.set(K.owner, me.id);
   await syncAll(anonymous);
   if (!me || me.id !== u.id) return;
-  sessSync();
+  sessSync(); pdjSync();
   await loadGroups();
   // Rechargement sur la page d'un groupe : on rouvre ce groupe
   const vg = ls.get('qcmhub.group.v1', null);
@@ -10254,6 +10499,7 @@ function refreshViews() {
   else if (v === 'controls') renderControls();
   else if (v === 'sujets') renderSujets();
   else if (v === 'hardcore') renderHardcore();
+  else if (v === 'pdj') renderPdj();
 }
 async function doAuth(form) {
   if (authBusy) return;

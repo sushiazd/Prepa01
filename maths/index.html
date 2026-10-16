@@ -731,6 +731,9 @@ input:focus-visible,select:focus-visible{outline:2px solid var(--pen);outline-of
 .auth-form input{width:100%}
 input[type="email"],input[type="password"]{font:15px/1.3 var(--sans);color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:40px;max-width:100%}
 .linkish{background:none;border:0;padding:0;color:var(--pen);font:600 14px/1.4 var(--sans);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+button.who{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline dotted;text-decoration-color:var(--muted);text-underline-offset:3px}
+button.who:hover,button.who:focus-visible{color:var(--pen);text-decoration-style:solid;text-decoration-color:currentColor}
+#hxBack{margin-bottom:10px}
 .grp-list{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
 .grp-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px;border:1px solid var(--rule-strong);border-radius:12px;background:var(--sheet-2);cursor:pointer;font:15px/1.3 var(--sans);color:var(--ink);text-align:left}
 .grp-item:hover{border-color:var(--pen)}
@@ -747,8 +750,6 @@ input[type="email"],input[type="password"]{font:15px/1.3 var(--sans);color:var(-
 .gq:first-of-type{border-top:0;padding-top:0}
 .cq.flat{border:0;padding:0;margin-top:6px;background:transparent}
 .cq.flat .cq-head{display:none}
-dialog.wide-dlg{width:min(760px,calc(100vw - 24px));max-height:88vh;overflow:auto}
-dialog.wide-dlg h2{font:600 26px/1.2 var(--serif)}
 code{font:13.5px ui-monospace,Menlo,Consolas,monospace;background:var(--sheet-2);padding:1px 5px;border-radius:5px}
 @media (max-width:720px){ input[type="email"],input[type="password"]{font-size:16px} }
 
@@ -913,9 +914,10 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
   <section class="hub" id="hubHistorique" hidden>
     <div id="resumeBanner6"></div>
     <header class="hub-head">
-      <p class="eyebrow">Historique</p>
-      <h1>Mon travail et ma progression</h1>
-      <p class="lede">Combien tu as travaillé chaque jour, tes notes copie après copie, et ce qui a changé depuis tes débuts. Connecté, tout ce que tu fais sur tes autres appareils est compté.</p>
+      <button type="button" class="linkish" id="hxBack" hidden>← Retour au groupe</button>
+      <p class="eyebrow" id="hxEyebrow">Historique</p>
+      <h1 id="hxTitle">Mon travail et ma progression</h1>
+      <p class="lede" id="hxLede">Combien tu as travaillé chaque jour, tes notes copie après copie, et ce qui a changé depuis tes débuts. Connecté, tout ce que tu fais sur tes autres appareils est compté.</p>
     </header>
     <div id="histoBox" style="display:grid;gap:24px"></div>
   </section>
@@ -1031,9 +1033,6 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
       <button type="button" class="btn btn-primary" id="askOk">Confirmer</button>
     </div>
   </div>
-</dialog>
-<dialog id="profileDlg" class="wide-dlg" aria-label="Profil">
-  <div class="dlg"><div id="profileBody"></div><div class="dlg-actions"><button type="button" class="btn" data-close>Fermer</button></div></div>
 </dialog>
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -8841,14 +8840,43 @@ function hxDelta(a, b, lowerBetter, fmt, tag = 'td') {
   return `<${tag} class="${flat ? '' : good ? 'hx-up' : 'hx-down'}">${flat ? '=' : (d > 0 ? '▲ +' : '▼ −') + fmt(Math.abs(d))}</${tag}>`;
 }
 let hxEloLoading = false;
+/* Historique d'un membre du groupe (clic sur son pseudo dans l'onglet Groupe) : même vue, avec ses copies.
+   Les règles RLS ne laissent lire que les membres qui partagent leurs stats ; les autres n'ont pas de pseudo. */
+let hxWho = null, hxBackY = 0;                // id du membre regardé (null = mon historique), défilement de l'onglet Groupe
+const hxMember = () => hxWho && G ? G.members.find(m => m.id === hxWho && !m.hidden && m.pseudo && !m.isMe) || null : null;
+const HX_HEAD = { eyebrow: 'Historique', title: 'Mon travail et ma progression', lede: $('#hxLede').textContent };
+function openMemberHisto(uid) {
+  const m = G && G.members.find(x => x.id === uid);
+  if (!m) return;
+  if (m.isMe) { showTab('historique'); return; }
+  if (m.hidden || !m.pseudo) { toast('Ce membre a choisi de ne pas partager ses stats avec ses groupes.'); return; }
+  hxBackY = document.body.dataset.view === 'groupe' ? window.scrollY : 0;
+  hxWho = uid;
+  setView('historique');
+  ls.set('qcmhub.view.v1', 'groupe');      // rechargée, la page revient au groupe
+  $$('#topnav .tab').forEach(b => { if (b.dataset.tab === 'groupe') b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  renderHistorique();
+}
+function closeMemberHisto() {
+  const y = hxBackY;
+  hxWho = null; showTab('groupe'); window.scrollTo(0, y);
+}
 function renderHistorique() {
-  const box = $('#histoBox');
-  const A = attempts.filter(a => a.at).slice().sort((x, y) => x.at - y.at);
-  if (!A.length) { box.innerHTML = `<section class="card"><p class="sub">Aucune épreuve rendue pour l'instant. Fais un contrôle ciblé ou un sujet : ton temps de travail jour par jour et ta progression apparaîtront ici.</p></section>`; return; }
+  const box = $('#histoBox'), who = hxMember(), nm = who ? esc(who.pseudo) : '';
+  // Textes : les miens, ou ceux du membre regardé
+  const T = (mine, theirs) => who ? theirs : mine;
+  $('#hxBack').hidden = !hxWho;
+  $('#hxEyebrow').textContent = who ? 'Groupe' + (G.group ? ' · ' + G.group.name : '') : HX_HEAD.eyebrow;
+  $('#hxTitle').textContent = who ? 'Historique de ' + who.pseudo : HX_HEAD.title;
+  $('#hxLede').textContent = who ? `Combien ${who.pseudo} a travaillé chaque jour, ses notes copie après copie, et ce qui a changé depuis ses débuts. Copies faites sur le site, sur tous ses appareils.` : HX_HEAD.lede;
+  if (who) document.title = 'Historique de ' + who.pseudo;
+  if (hxWho && !who) { box.innerHTML = `<section class="card"><p class="sub">Cet historique n'est plus disponible : le membre a masqué ses stats ou le groupe n'est plus ouvert.</p></section>`; return; }
+  const A = (who ? who.attempts : attempts).filter(a => a.at).slice().sort((x, y) => x.at - y.at), C = who ? who.controls : controls;
+  if (!A.length) { box.innerHTML = `<section class="card"><p class="sub">${T(`Aucune épreuve rendue pour l'instant. Fais un contrôle ciblé ou un sujet : ton temps de travail jour par jour et ta progression apparaîtront ici.`, `${nm} n'a encore rendu aucune épreuve sur le site.`)}</p></section>`; return; }
   const std = A.filter(a => !isHCAtt(a));
   const days = new Map(), dayOf = k => days.get(k) || (days.set(k, { k, used: 0, list: [], ctl: [] }), days.get(k));
   A.forEach(a => { const d = dayOf(hxDay(a.at)); d.used += a.used || 0; d.list.push(a); });
-  controls.forEach(c => { const ts = Date.parse(c.date); if (ts) dayOf(hxDay(ts)).ctl.push(c); });
+  C.forEach(c => { const ts = Date.parse(c.date); if (ts) dayOf(hxDay(ts)).ctl.push(c); });
   const work = new Set([...days.values()].filter(d => d.list.length).map(d => d.k)), today = hxDay(Date.now());
   // Série : jours consécutifs avec au moins une copie (en comptant aujourd'hui ou hier)
   let streak = 0;
@@ -8879,7 +8907,7 @@ function renderHistorique() {
   const notesHTML = hxLine(notePts, 0, 20, [0, 5, 10, 15, 20], trend, 'Notes sur 20 de chaque copie, de la plus ancienne à la plus récente') +
     `<p class="fine" style="margin-top:6px"><span class="hx-key" style="background:var(--pen)"></span>copie · <span class="hx-key" style="background:var(--flag)"></span>Hardcore (plus dur, hors moyenne) · trait clair : moyenne des 3 dernières copies</p>`;
   // Débuts / maintenant
-  let cmp = '<p class="fine">Il faut au moins 4 copies (hors Hardcore) pour comparer tes débuts à maintenant.</p>', themes = '';
+  let cmp = `<p class="fine">Il faut au moins 4 copies (hors Hardcore) pour comparer ${T('tes', 'ses')} débuts à maintenant.</p>`, themes = '';
   if (std.length >= 4) {
     const h = Math.min(5, Math.floor(std.length / 2)), early = std.slice(0, h), recent = std.slice(-h), qe = hxQ(early), qr = hxQ(recent);
     const f1 = x => fmtNum(x, 1), fp = x => String(Math.round(x * 100)) + ' pts', fs = x => Math.round(x) + ' s';
@@ -8895,8 +8923,8 @@ function renderHistorique() {
     const b0 = by(std.slice(0, mid)), b1 = by(std.slice(mid));
     const rows = THEMES.filter(t => b0[t.id] && b1[t.id] && b0[t.id].n >= 2 && b1[t.id].n >= 2).map(t => ({ t, r0: b0[t.id].g / b0[t.id].n, r1: b1[t.id].g / b1[t.id].n })).sort((x, y) => (y.r1 - y.r0) - (x.r1 - x.r0));
     themes = rows.length ? `<div class="hx-themes">${rows.map(x => `<div class="hx-th"><span class="hx-thn">${esc(TH[x.t.id].short)}</span><span class="hx-thb"><i class="r0" style="width:${Math.round(x.r0 * 100)}%"></i><i class="r1" style="width:${Math.round(x.r1 * 100)}%"></i></span><span class="hx-thv">${Math.round(x.r0 * 100)} → <b>${Math.round(x.r1 * 100)} %</b></span>${hxDelta(x.r0, x.r1, false, v => String(Math.round(v * 100)), 'span')}</div>`).join('')}</div>
-      <p class="fine" style="margin-top:8px"><span class="hx-key" style="background:var(--pen-line)"></span>première moitié de tes copies · <span class="hx-key" style="background:var(--pen)"></span>seconde moitié. Taux = points gagnés par question (une ♣ partielle compte en partie). Thèmes vus au moins 2 fois dans chaque moitié.</p>`
-      : '<p class="fine">Pas encore assez de questions par thème dans chaque moitié de tes copies.</p>';
+      <p class="fine" style="margin-top:8px"><span class="hx-key" style="background:var(--pen-line)"></span>première moitié de ${T('tes', 'ses')} copies · <span class="hx-key" style="background:var(--pen)"></span>seconde moitié. Taux = points gagnés par question (une ♣ partielle compte en partie). Thèmes vus au moins 2 fois dans chaque moitié.</p>`
+      : `<p class="fine">Pas encore assez de questions par thème dans chaque moitié de ${T('tes', 'ses')} copies.</p>`;
   }
   // Semaine par semaine
   const weeks = new Map();
@@ -8914,17 +8942,18 @@ function renderHistorique() {
   }).join('');
   box.innerHTML = `<section class="card">${tiles}</section>
     <section class="card"><div class="card-head"><div><h2>Travail par jour</h2><p class="sub">Minutes d'épreuve chronométrées (pauses exclues) sur les 4 dernières semaines.</p></div></div>${barsHTML}</section>
-    <section class="card"><div class="card-head"><div><h2>Mes notes</h2><p class="sub">Chaque copie, de la plus ancienne à la plus récente.</p></div></div>${notesHTML}</section>
-    <section class="card"><div class="card-head"><div><h2>Est-ce que je progresse ?</h2><p class="sub">Tes premières copies comparées aux dernières (hors Hardcore).</p></div></div>${cmp}${themes ? `<h3 class="hx-h3">Par thème</h3>${themes}` : ''}</section>
+    <section class="card"><div class="card-head"><div><h2>${T('Mes notes', 'Notes de ' + nm)}</h2><p class="sub">Chaque copie, de la plus ancienne à la plus récente.</p></div></div>${notesHTML}</section>
+    <section class="card"><div class="card-head"><div><h2>${T('Est-ce que je progresse ?', `Est-ce que ${nm} progresse ?`)}</h2><p class="sub">${T('Tes', 'Ses')} premières copies comparées aux dernières (hors Hardcore).</p></div></div>${cmp}${themes ? `<h3 class="hx-h3">Par thème</h3>${themes}` : ''}</section>
     <section class="card" id="hxElo"></section>
     <section class="card"><div class="card-head"><div><h2>Semaine par semaine</h2></div></div><div style="overflow-x:auto"><table class="hist"><thead><tr><th>Semaine du</th><th>Copies</th><th>Temps</th><th>Questions</th><th>Moyenne</th><th>Justes</th><th>Rythme</th></tr></thead><tbody>${weekRows}</tbody></table></div><p class="fine" style="margin-top:8px">Moyenne et taux de justes hors Hardcore.</p></section>
-    <section class="card"><div class="card-head"><div><h2>Journal</h2><p class="sub">Ce que tu as fait chaque jour, du plus récent au plus ancien (30 derniers jours).</p></div></div>${journal}</section>`;
-  hxFillElo();
+    <section class="card"><div class="card-head"><div><h2>Journal</h2><p class="sub">${T('Ce que tu as fait', `Ce que ${nm} a fait`)} chaque jour, du plus récent au plus ancien (30 derniers jours).</p></div></div>${journal}</section>`;
+  hxFillElo(who);
 }
 // Courbe d'Elo : même calcul que le classement de l'onglet Groupe (il faut un compte et un groupe)
-function hxFillElo() {
+function hxFillElo(who = null) {
   const el = $('#hxElo'); if (!el) return;
-  const head = '<div class="card-head"><div><h2>Mon Elo</h2><p class="sub">Elo absolu de 0 à 2500 : la moyenne de ton niveau dans les 21 thèmes du programme. 2500 (GM) = tout maîtrisé, Hardcore compris.</p></div></div>';
+  const T = (mine, theirs) => who ? theirs : mine, nm = who ? esc(who.pseudo) : '';
+  const head = `<div class="card-head"><div><h2>${T('Mon Elo', 'Elo de ' + nm)}</h2><p class="sub">Elo absolu de 0 à 2500 : la moyenne de ${T('ton', 'son')} niveau dans les 21 thèmes du programme. 2500 (GM) = tout maîtrisé, Hardcore compris.</p></div></div>`;
   if (!me) { el.innerHTML = head + '<p class="fine">Connecte-toi (onglet Groupe) pour suivre ton Elo.</p>'; return; }
   if (!curGroup) { el.innerHTML = head + '<p class="fine">Rejoins un groupe (onglet Groupe) pour suivre ton Elo et te comparer aux autres.</p>'; return; }
   if (!G || G.gid !== curGroup) {
@@ -8933,20 +8962,20 @@ function hxFillElo() {
       hxEloLoading = true;
       const gid = curGroup;
       loadGroupData(gid).then(g => { if (curGroup === gid && (!G || G.gid !== gid)) G = g; }).catch(e => console.warn(e))
-        .finally(() => { hxEloLoading = false; if (document.body.dataset.view === 'historique' && G && G.gid === curGroup) hxFillElo(); });
+        .finally(() => { hxEloLoading = false; if (document.body.dataset.view === 'historique' && !hxWho && G && G.gid === curGroup) hxFillElo(); });
     }
     return;
   }
-  const E = eloRank(G.members.filter(m => !m.hidden)), mine = E.find(x => x.m.isMe);
-  if (!mine || !mine.hist || !mine.hist.length) { el.innerHTML = head + '<p class="fine">Pas encore d\'Elo : rends une copie.</p>'; return; }
+  const E = eloRank(G.members.filter(m => !m.hidden)), mine = E.find(x => who ? x.m.id === who.id : x.m.isMe);
+  if (!mine || !mine.hist || !mine.hist.length) { el.innerHTML = head + `<p class="fine">${T('Pas encore d\'Elo : rends une copie.', 'Pas encore d\'Elo.')}</p>`; return; }
   const ys = mine.hist.map(h => h[1]), lo = Math.floor((Math.min(1000, ...ys) - 20) / 50) * 50, hi = Math.ceil((Math.max(1000, ...ys) + 20) / 50) * 50;
   const ticks = []; for (let v = lo; v <= hi; v += (hi - lo > 300 ? 100 : 50)) ticks.push(v);
   const rank = E.indexOf(mine) + 1;
-  el.innerHTML = head + hxLine(mine.hist.map(([t, v]) => ({ y: v, tip: `Elo ${Math.round(v)} · ${fmtDate(t)}` })), lo, hi, ticks, null, 'Évolution de ton Elo après chaque copie') +
+  el.innerHTML = head + hxLine(mine.hist.map(([t, v]) => ({ y: v, tip: `Elo ${Math.round(v)} · ${fmtDate(t)}` })), lo, hi, ticks, null, `Évolution de ${T('ton', 'son')} Elo après chaque copie`) +
     `<p class="fine" style="margin-top:6px">Aujourd'hui : <b>${Math.round(mine.elo)}</b> ${eloTitle(mine)} (${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> du groupe) · ${mine.d7 >= 0 ? '+' : '−'}${Math.abs(Math.round(mine.d7))} sur 7 jours.</p>` +
     (() => { const L = THEMES.map(t => ({ t, v: mine.themes[t.id] })).filter(x => x.v != null).sort((a, b) => a.v - b.v);
       const row = x => `<div class="th-row"><div class="nm">${esc(x.t.short)}</div><div class="bar-cell" style="display:flex;align-items:center"><span class="pct">${Math.round(x.v)}</span><div class="bar ${x.v >= 1800 ? 'good' : x.v >= 1300 ? 'mid' : 'low'}" style="flex:1"><i style="width:${Math.max(3, x.v / 25)}%"></i></div></div></div>`;
-      return `<h3 class="hx-h3">Ton niveau par thème</h3><p class="fine">Du plus faible au plus fort. Jusqu'à 2000 avec tes 30 dernières questions normales du thème : 2000 × ton taux de réussite (90 % = 1800, 30 sur 30 = 2000), puis +33 par question Hardcore juste (sur les 15 dernières), jusqu'à 2500. Une erreur sort du calcul après 30 nouvelles questions du thème.</p><div class="th-rows">${L.map(row).join('')}</div>`; })();
+      return `<h3 class="hx-h3">${T('Ton', 'Son')} niveau par thème</h3><p class="fine">Du plus faible au plus fort. Jusqu'à 2000 avec ${T('tes', 'ses')} 30 dernières questions normales du thème : 2000 × ${T('ton', 'son')} taux de réussite (90 % = 1800, 30 sur 30 = 2000), puis +33 par question Hardcore juste (sur les 15 dernières), jusqu'à 2500. Une erreur sort du calcul après 30 nouvelles questions du thème.</p><div class="th-rows">${L.map(row).join('')}</div>`; })();
 }
 
 /* =====================================================================
@@ -9162,7 +9191,7 @@ function showTab(tab) {
   else if (tab === 'sujets') { setView('sujets'); renderSujets(); }
   else if (tab === 'groupe') { setView('groupe'); renderGroupe(); }
   else if (tab === 'hardcore') { setView('hardcore'); renderHardcore(); }
-  else if (tab === 'historique') { setView('historique'); renderHistorique(); }
+  else if (tab === 'historique') { hxWho = null; setView('historique'); renderHistorique(); }
   else if (tab === 'results' && S && S.phase === 'done') { activate(S.def); showResults(); }
 }
 async function openIntro(def) {
@@ -10889,10 +10918,11 @@ function statsHTML(ps) {
     <div class="blk"><h4>Progression</h4>${spark}</div>
     <div class="two blk"><div><h4>Points faibles</h4><div class="chip-row">${chips(ps.weak, 'weak')}</div></div><div><h4>Points forts</h4><div class="chip-row">${chips(ps.strong, '')}</div></div></div>`;
 }
-function openProfile(uid) {
-  const m = G && G.members.find(x => x.id === uid); if (!m || m.hidden) return;
-  $('#profileBody').innerHTML = `<p class="eyebrow">Profil</p><h2>${esc(m.pseudo)}${G && G.group && G.group.created_by === m.id ? ' <span class="crown" title="Propriétaire du groupe" aria-label="Propriétaire du groupe">👑</span>' : ''}${m.isMe ? ' <span class="fine">(toi)</span>' : ''}</h2><div style="margin-top:18px">${statsHTML(personStats(m.attempts, m.controls))}</div>`;
-  $('#profileDlg').showModal();
+// Pseudo d'un membre : cliquable vers son historique s'il partage ses stats (un membre masqué n'a pas de pseudo lisible)
+function whoHTML(uid) {
+  const m = G && G.members.find(x => x.id === uid), nm = m && m.pseudo;
+  if (!m || m.hidden || !nm) return esc(nm || '?');
+  return `<button type="button" class="who" data-who="${m.id}" title="${m.isMe ? 'Voir mon historique' : 'Voir l\'historique de ' + esc(nm)}">${esc(nm)}</button>`;
 }
 
 /* ---------- Rendu de l'onglet Groupe ---------- */
@@ -10960,10 +10990,10 @@ function groupHTML() {
     const best = {}; res.forEach(a => { if (!best[a.user_id] || a.note > best[a.user_id].note) best[a.user_id] = a; });
     const board = Object.values(best).sort((a, b) => b.note - a.note);
     const mine = best[me.id];
-    return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(gtTitle(t))}</h3><p class="meta">${gtHard(t) ? '<span class="tag tag-hc">Hardcore</span> ' : ''}${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${esc(G.pseudo(t.created_by) || 'un membre')} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
+    return `<div class="ctl"><div class="ctl-top"><div><h3>${esc(gtTitle(t))}</h3><p class="meta">${gtHard(t) ? '<span class="tag tag-hc">Hardcore</span> ' : ''}${(t.qids || []).length} questions · ${fmtMin(Math.round(t.duration_s / 60))} · créé par ${G.pseudo(t.created_by) ? whoHTML(t.created_by) : 'un membre'} le ${fmtDate(t.created_at)} · ${board.length} participant${board.length > 1 ? 's' : ''}${board.length ? ` · moyenne du groupe : <strong>${fmtNum(board.reduce((x, a) => x + a.note, 0) / board.length, 2)}/20</strong>` : ''}${mine ? ` · ta note : <strong>${fmtNum(mine.note, 2)}/20</strong>` : ''}</p></div>
       <div class="ctl-actions"><button type="button" class="btn btn-primary" data-gt="${t.id}">${(() => { const w = liveWin(t), now = Date.now(); return now < w.end && now < w.start ? '🔴 Rejoindre la salle d\'attente' : now < w.end && !mine ? '🔴 Rejoindre en direct' : mine ? 'Refaire' : 'Faire ce contrôle'; })()}</button>${(() => { const w = liveWin(t), now = Date.now(); return now < w.end ? `<button type="button" class="btn" data-spec="${t.id}">👁 Regarder</button>` : ''; })()}${board.length ? `<button type="button" class="btn" data-board="${t.id}">Classement</button>` : ''}${mine ? `<button type="button" class="btn" data-gtcopy="${t.id}">Voir ma copie</button>` : `<button type="button" class="btn" data-gtq="${t.id}">Questions et corrigé</button>`}${t.created_by === me.id || (G.group && G.group.created_by === me.id) ? `<button type="button" class="btn btn-ghost" data-gtdel="${t.id}">Supprimer</button>` : ''}</div></div>
       <div class="ctl-detail gtq" id="gtq-${t.id}" hidden></div>
-      <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(G.pseudo(a.user_id) || '?')}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>`;
+      <div class="ctl-detail" id="board-${t.id}" hidden><table class="mini"><thead><tr><th>#</th><th>Pseudo</th><th>Note</th><th>Temps</th></tr></thead><tbody>${board.map((a, i) => `<tr><td>${i + 1}</td><td>${whoHTML(a.user_id)}${a.user_id === me.id ? ' (toi)' : ''}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used)}</td></tr>`).join('')}</tbody></table></div></div>`;
   }).join('');
   return `
     <section class="card grp-head">
@@ -10984,12 +11014,12 @@ function groupHTML() {
 
     ${(() => { const E = eloRank(vis); if (!E.length) return ''; return `<section class="card"><div class="card-head"><div><h2>Classement Elo</h2><p class="sub">Elo absolu de 0 à 2500, comme aux échecs : <b>2500 = GM = tout le programme maîtrisé</b>, Hardcore compris. C'est la moyenne du niveau de chacun dans les 21 thèmes. Dans un thème, les 30 dernières questions normales donnent jusqu'à <b>2000</b>, proportionnellement au taux de réussite (90 % = 1800, 30 justes sur 30 = 2000), puis le Hardcore ajoute un bonus jusqu'à <b>+500</b> (+33 par question Hardcore juste, sur les 15 dernières). Toutes les épreuves comptent (contrôles, sujets, Hardcore, contrôles de groupe, copies du prof importées). Refaire des questions déjà vues ne fait pas monter. Une erreur marquée « erreur de calcul » ne coûte que 30 % d'une vraie erreur. Tout le monde part à 1000 ; « provisoire » tant qu'il y a moins de 50 questions. Titres : Classe E (&lt; 1200), D, C, B, A (1800), Expert (2000), CM (2200), MF (2300), MI (2400), GM (2500).</p></div></div>
       <div style="overflow-x:auto"><table class="hist"><thead><tr><th>#</th><th>Pseudo</th><th>Elo</th><th>7 derniers jours</th><th>Questions</th><th>Justes</th></tr></thead><tbody>
-      ${E.map((x, i) => `<tr><td>${i + 1}</td><td><strong>${esc(x.m.pseudo)}</strong>${G.group && G.group.created_by === x.m.id ? ' <span class="crown" title="Propriétaire du groupe">👑</span>' : ''}${x.m.isMe ? ' <span class="fine">(toi)</span>' : ''}</td><td><strong>${Math.round(x.elo)}</strong> ${eloTitle(x)}${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'pts-pos' : x.d7 < -0.5 ? 'pts-neg' : ''}">${x.d7 > 0.5 ? '+' : ''}${Math.round(x.d7)}</td><td>${x.n}</td><td>${Math.round(100 * x.ok / x.n)} %</td></tr>`).join('')}
+      ${E.map((x, i) => `<tr><td>${i + 1}</td><td><strong>${whoHTML(x.m.id)}</strong>${G.group && G.group.created_by === x.m.id ? ' <span class="crown" title="Propriétaire du groupe">👑</span>' : ''}${x.m.isMe ? ' <span class="fine">(toi)</span>' : ''}</td><td><strong>${Math.round(x.elo)}</strong> ${eloTitle(x)}${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'pts-pos' : x.d7 < -0.5 ? 'pts-neg' : ''}">${x.d7 > 0.5 ? '+' : ''}${Math.round(x.d7)}</td><td>${x.n}</td><td>${Math.round(100 * x.ok / x.n)} %</td></tr>`).join('')}
       </tbody></table></div></section>`; })()}
 
-    <section class="card"><div class="card-head"><div><h2>Membres</h2><p class="sub">Clique sur un membre pour voir son profil détaillé. Le temps compte les épreuves faites sur le site, pauses exclues.</p></div></div>
+    <section class="card"><div class="card-head"><div><h2>Membres</h2><p class="sub">Clique sur un membre pour voir son historique : travail par jour, notes, progression, Elo. Le temps compte les épreuves faites sur le site, pauses exclues.</p></div></div>
       <div style="overflow-x:auto"><table class="hist members"><thead><tr><th>Pseudo</th><th>Temps</th><th>Épreuves</th><th>Moyenne</th><th>Dernière</th><th>Point faible</th><th>Actif</th></tr></thead><tbody>
-      ${rows.map(({ m, ps }) => `<tr data-prof="${m.id}" tabindex="0"><td><strong>${esc(m.pseudo)}</strong>${G && G.group && G.group.created_by === m.id ? ' <span class="crown" title="Propriétaire du groupe" aria-label="Propriétaire du groupe">👑</span>' : ''}${m.isMe ? ' <span class="fine">(toi)</span>' : ''}</td><td>${fmtHours(ps.used)}</td><td>${ps.n}</td><td>${ps.avg == null ? '—' : fmtNum(ps.avg, 1)}</td><td>${ps.lastNote == null ? '—' : fmtNum(ps.lastNote, 1)}</td><td>${ps.weak[0] ? esc(ps.weak[0].short) : '—'}</td><td>${ps.last ? fmtDate(ps.last) : '—'}</td></tr>`).join('')}
+      ${rows.map(({ m, ps }) => `<tr data-who="${m.id}"><td><strong>${whoHTML(m.id)}</strong>${G && G.group && G.group.created_by === m.id ? ' <span class="crown" title="Propriétaire du groupe" aria-label="Propriétaire du groupe">👑</span>' : ''}${m.isMe ? ' <span class="fine">(toi)</span>' : ''}</td><td>${fmtHours(ps.used)}</td><td>${ps.n}</td><td>${ps.avg == null ? '—' : fmtNum(ps.avg, 1)}</td><td>${ps.lastNote == null ? '—' : fmtNum(ps.lastNote, 1)}</td><td>${ps.weak[0] ? esc(ps.weak[0].short) : '—'}</td><td>${ps.last ? fmtDate(ps.last) : '—'}</td></tr>`).join('')}
       </tbody></table></div>${hid ? `<p class="fine" style="margin-top:10px">${hid} membre${hid > 1 ? 's ont' : ' a'} choisi de masquer ${hid > 1 ? 'leurs' : 'ses'} stats : elles ne comptent pas dans les vues de groupe.</p>` : ''}</section>
 
     <section class="card"><div class="card-head"><div><h2>Ce qui fait perdre le plus de points au groupe</h2><p class="sub">Thèmes classés par points perdus en moyenne par question, sur les copies importées et les épreuves de tous les membres visibles.</p></div></div>
@@ -11026,11 +11056,10 @@ function initGroupeEvents() {
     const gq = e.target.closest('[data-gtq]'); if (gq) { toggleGroupReview(gq.dataset.gtq); return; }
     const gc = e.target.closest('[data-gtcopy]');
     if (gc && G) { const t = G.tests.find(x => x.id === gc.dataset.gtcopy), a = G.attempts.filter(x => x.user_id === me.id && x.defId === 'g:' + gc.dataset.gtcopy).sort((x, y) => y.at - x.at)[0]; if (a) openPastCopy(attempts.find(x => x.id === a.id) || a, t); return; }
-    const pr = e.target.closest('[data-prof]'); if (pr) openProfile(pr.dataset.prof);
+    const wh = e.target.closest('[data-who]'); if (wh) openMemberHisto(wh.dataset.who);
   });
-  box.addEventListener('keydown', e => { const pr = e.target.closest('tr[data-prof]'); if (pr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openProfile(pr.dataset.prof); } });
   box.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'grpCode') joinGroup(); if (e.key === 'Enter' && e.target.id === 'grpName') createGroup(); });
-  $('#profileDlg').addEventListener('click', e => { if (e.target.closest('[data-method]')) $('#profileDlg').close(); if (e.target.closest('[data-close]')) $('#profileDlg').close(); });
+  $('#hxBack').addEventListener('click', closeMemberHisto);
 }
 
 })();

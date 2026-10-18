@@ -12,6 +12,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../subjects.js?v=2026101504"></script>
 <script src="../core.js?v=2026101601"></script>
+<script src="learn.js?v=2026101802"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026101601">
 <style>
@@ -66,6 +67,22 @@
 table.t{border-collapse:collapse;margin-top:10px;font:14.5px/1.4 var(--sans)}
 table.t td,table.t th{border:1px solid var(--rule);padding:5px 10px;text-align:center}
 .hist td,.hist th{padding:8px;border-bottom:1px solid var(--rule);text-align:left}
+/* leçons « Comprendre » */
+.learn h2{font:600 23px/1.3 var(--serif);margin-top:6px}
+.learn .lbody{font:17px/1.65 var(--serif);margin-top:10px}
+.learn .lbody p,.learn .lbody ul{margin-top:10px}
+.learn .lbody ul{padding-left:22px}
+.learn .lbody .katex{font-size:1.04em}
+.lfig{display:block;width:100%;max-width:470px;height:auto;margin:14px auto 4px}
+.lask{margin-top:16px;padding:16px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
+.lask .lq{font:600 16.5px/1.5 var(--serif)}
+.lask .items{margin-top:10px}
+.lwhy{margin-top:12px;padding:12px 16px;border-radius:10px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);font:16px/1.6 var(--serif)}
+.ldots{display:inline-flex;gap:5px;align-items:center}
+.ldots i{width:18px;height:5px;border-radius:3px;background:var(--rule-strong)} .ldots i.on{background:var(--chem)}
+.lnav{margin-top:18px}
+.tag-learn{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--chem);color:#fff;font:600 11.5px/1 var(--sans)}
+.llist{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 @media (max-width:760px){
   .card{padding:18px}
   .it{grid-template-columns:1fr}
@@ -692,8 +709,16 @@ function exHTML(ex, mode) {
 function renderEx() {
   const host = $('#exHost'); if (!host || !CUR) return;
   const k = CUR.k, s = skS(pst(), k.id);
-  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span class="sp" style="flex:1"></span><button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
-    + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
+  // compétence pas encore validée et leçon jamais finie : on comprend d'abord, on calcule ensuite
+  if (LEARN[k.id] && (CUR.lesson || (CUR.mode === 'path' && !CUR.review && !isVal(s) && !learned(k.id) && !Object.keys(CUR.first).length))) {
+    openLesson(host, k.id, () => { if (CUR) CUR.lesson = false; renderEx(); });
+    host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  const learnBtn = LEARN[k.id] ? `<button type="button" class="btn btn-ghost" data-learn="${k.id}">Comprendre</button>` : '';
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span class="sp" style="flex:1"></span>${learnBtn}<button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + (s.ko >= 2 && !CUR.review ? `<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n'étaient pas bons : exercice plus simple. ${learnBtn ? 'Reprends la leçon « Comprendre » (bouton ci-dessus)' : 'Relis la fiche du cours'}, puis la correction si tu bloques.</div>` : '')
+      : learnBtn ? `<div class="strip"><b>${esc(k.name)}</b><span class="sp" style="flex:1"></span>${learnBtn}</div>` : '')
     + exHTML(CUR.ex, 'train');
   // réponses déjà vérifiées : on remet les corrections
   CUR.ex.items.forEach(it => { if (it.id in CUR.first) showFb(host, it); const inp = $(`input[type=text][data-id="${it.id}"]`, host); if (inp && inp.value) $('.prev', inp.closest('.it')).innerHTML = preview(it, inp.value); });
@@ -719,6 +744,64 @@ function checkCur() {
 }
 
 /* =====================================================================
+   LEÇONS « COMPRENDRE » (learn.js) : avant les calculs d'une compétence, l'idée physique
+   étape par étape, avec une question sans enjeu à chaque étape (non notée, hors maîtrise)
+   ===================================================================== */
+const LK = 'ato.learn.v1';   // { id: { i: étape atteinte, done: date } }, synchronisé (account.js)
+const LEARN = window.ATO_LEARN ? window.ATO_LEARN({ conf, ionConf, confTex, confShortTex, sym }) : {};
+const lstate = () => ls.get(LK, {}) || {};
+const learned = id => !!(lstate()[id] || {}).done;
+let LES = null;   // { id, i, host, back, checked: {i: true}, ans: {} }
+function lessonItems(id, i) { const st = LEARN[id].steps[i]; return st.ask ? st.ask.items.map((it, j) => Object.assign({ id: `L-${id}-${i}-${j}` }, it)) : []; }
+function openLesson(host, id, back) {
+  const S = lstate()[id] || {};
+  LES = { id, i: S.done ? 0 : Math.min(S.i || 0, LEARN[id].steps.length - 1), host, back, checked: {}, ans: {} };
+  renderLesson();
+}
+function renderLesson() {
+  const { id, i, host } = LES, L = LEARN[id], st = L.steps[i], N = L.steps.length, k = skById(id), last = i === N - 1;
+  const items = lessonItems(id, i), seen = !!LES.checked[i];
+  host.innerHTML = `<div class="strip"><span class="tag-learn">Comprendre</span><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="sp" style="flex:1"></span><span class="ldots" aria-label="étape ${i + 1} sur ${N}">${L.steps.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</span><span class="fine">${i + 1}/${N}</span></div>
+    <article class="card learn"><p class="eyebrow">${esc(L.title)}</p><h2>${st.h}</h2><div class="lbody">${st.body}</div>
+      ${st.ask ? `<div class="lask"><p class="lq">${st.ask.q}</p><div class="items">${items.map(it => itemHTML(it, it.id, LES.ans[it.id] || '')).join('')}</div>
+        <div class="row" style="margin-top:12px"><button type="button" class="btn" data-lact="check">Vérifier</button><span class="fine">Pas noté : c'est pour voir si l'idée est passée.</span></div>
+        <div class="lwhy"${seen ? '' : ' hidden'}>${st.ask.why}</div></div>` : ''}
+      <div class="row lnav">${i ? '<button type="button" class="btn btn-ghost" data-lact="prev">← Précédent</button>' : ''}<span class="sp" style="flex:1"></span>
+        ${last ? '' : '<button type="button" class="btn btn-ghost" data-lact="end">Passer la leçon</button>'}
+        <button type="button" class="btn btn-primary" data-lact="next"${st.ask && !seen ? ' disabled title="Réponds d\'abord à la question"' : ''}>${last ? (LES.back.label || 'J\'ai compris : aux exercices') + ' →' : 'Suivant →'}</button></div></article>`;
+  if (seen) items.forEach(it => lessonFb(it));
+  typeset(host);
+}
+function lessonFb(it) {
+  const r = check(it, valOf(LES.host, it.id)), fb = $(`.it[data-id="${it.id}"] .fb`, LES.host);
+  if (fb) fb.innerHTML = PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '') + (r.st === 'bad' ? ` <span class="fine">→ réponse : ${esc(answerOf(it))}</span>` : '');
+  return r;
+}
+const answerOf = it => it.type === 'choice' ? (it.opts.find(o => o.v === it.ans) || {}).t.replace(/<[^>]+>|\\\(|\\\)/g, '') : it.type === 'conf' ? sorted(it.conf).map(k => k + it.conf[k]).join(' ') : it.type === 'num' ? `${txt(it.val, 3)} ${it.unit || ''}` : String(it.val);
+function lessonAct(act) {
+  if (!LES) return;
+  const { id } = LES, N = LEARN[id].steps.length;
+  if (act === 'check') {
+    const items = lessonItems(id, LES.i);
+    items.forEach(it => { LES.ans[it.id] = valOf(LES.host, it.id); });
+    if (items.some(it => check(it, LES.ans[it.id]).st === 'empty')) { toast('Réponds à la question (ou choisis une option) avant de vérifier.'); return; }
+    LES.checked[LES.i] = true;
+    $('.lwhy', LES.host).hidden = false;
+    items.forEach(it => lessonFb(it));
+    const nx = $('[data-lact="next"]', LES.host); nx.disabled = false; nx.removeAttribute('title');
+    typeset($('.lask', LES.host));
+    return;
+  }
+  const S = lstate();
+  if (act === 'prev') LES.i = Math.max(0, LES.i - 1);
+  else if (act === 'next' && LES.i < N - 1) LES.i++;
+  else { S[id] = { i: 0, done: Date.now() }; ls.set(LK, S); const back = LES.back; LES = null; back(); return; }
+  if (!(S[id] || {}).done) { S[id] = { i: Math.max(LES.i, (S[id] || {}).i || 0) }; ls.set(LK, S); }
+  renderLesson();
+  LES.host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* =====================================================================
    VUES
    ===================================================================== */
 let VIEW = 'home';
@@ -733,7 +816,7 @@ function vHome() {
     <p class="lede">Le CC (date à confirmer, il était prévu le 20/10) dure 1 h et porte sur la 1<sup>re</sup> partie du cours : <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique). La 2<sup>e</sup> partie, <b>les liaisons chimiques</b> (Lewis, VSEPR, hybridation, polarité), est au CC du 16/12 : elle est déjà dans la suite du parcours et dans l'onglet Cours.</p></div>
     <section class="card"><div class="count">${cc == null ? `<b>?</b><span>CC d'atomistique : date à confirmer (déplacé). Révise quand même, tout reste disponible.</span>` : `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC d'atomistique : ${esc(when)}</span>`}</div></section>
     <div class="grid2">
-      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du plus simple (composition d'un atome) au plus dur (anomalies d'énergie d'ionisation), avec une progression qui s'adapte à tes résultats.</p>
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du plus simple (composition d'un atome) au plus dur (anomalies d'énergie d'ionisation), avec une progression qui s'adapte à tes résultats. Chaque compétence commence par une leçon « Comprendre » : l'idée physique, des questions sans calcul, puis un calcul guidé, avant les exercices.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
       <section class="card"><h2>Sujet blanc (1 h)</h2><p class="sub">Même plan que le CC de 2021 (isotopes, spectre de He<sup>+</sup>, nombres quantiques, configurations et classification), noté sur 20, avec correction détaillée. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
@@ -802,6 +885,9 @@ const FICHES = [
 ];
 function vCours(open) {
   app.innerHTML = `<div><p class="eyebrow">Partie 1 · L'atome (CC, date à confirmer) · Partie 2 · Liaisons (CC du 16/12)</p><h1>Le cours utile</h1><p class="lede">Le cours de V. Bouquet condensé : les 5 chapitres de « L'atome » (fiches I à V), puis la liaison covalente, la VSEPR, l'hybridation et la polarité (fiches VI à VIII). Définitions, formules, méthodes et pièges.</p></div>
+    <section class="card"><h2>Les leçons « Comprendre »</h2><p class="sub">Si le résumé ne te parle pas encore, commence par là : l'idée physique pas à pas, avec une petite question à chaque étape. Les mêmes leçons ouvrent chaque compétence du parcours.</p>
+      ${CH.map((c, ci) => { const ks = SK.filter(k => k.ch === ci && LEARN[k.id]); return ks.length ? `<p class="fine" style="margin-top:12px">${ROM[ci + 1] || ci + 1}. ${esc(c)}</p><div class="llist" style="margin-top:6px">${ks.map(k => `<button type="button" class="btn${learned(k.id) ? '' : ' btn-primary'}" data-learn="${k.id}">${learned(k.id) ? '✓ ' : ''}${esc(LEARN[k.id].title)}</button>`).join('')}</div>` : ''; }).join('')}</section>
+    <div id="learnHost" style="display:grid;gap:16px"></div>
     ${FICHES.map(([t, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}</summary><div class="body">${b}</div></details>`).join('')}
     <section class="card"><h2>Constantes (poly de TD)</h2><p class="sub">\\(h = 6{,}626\\times10^{-34}\\) J·s · \\(c = 3{,}00\\times10^{8}\\) m/s · \\(N_A = 6{,}022\\times10^{23}\\) mol⁻¹ · \\(R_H = 1{,}097\\times10^{7}\\) m⁻¹ · \\(e = 1{,}602\\times10^{-19}\\) C · \\(m_e = 9{,}11\\times10^{-31}\\) kg · \\(m_n = 1{,}675\\times10^{-27}\\) kg</p></section>`;
   typeset(app);
@@ -854,6 +940,13 @@ function submitExam(auto) {
 document.addEventListener('click', e => {
   const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab); return; }
   const fi = e.target.closest('[data-fiche]'); if (fi) { setTab('cours'); vCours(+fi.dataset.fiche); return; }
+  const la = e.target.closest('[data-lact]'); if (la) { lessonAct(la.dataset.lact); return; }
+  const le = e.target.closest('[data-learn]');
+  if (le) {
+    if (VIEW === 'cours') { const host = $('#learnHost'), back = () => { vCours(); window.scrollTo(0, 0); }; back.label = 'Fermer la leçon'; openLesson(host, le.dataset.learn, back); host.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    else if (CUR) { CUR.lesson = true; renderEx(); }
+    return;
+  }
   const go = e.target.closest('[data-go]');
   if (go) { if (CUR && CUR.mode === 'path' && !CUR.done && CUR.k.id === go.dataset.go) { $('#exHost').scrollIntoView({ behavior: 'smooth' }); return; } startEx(skById(go.dataset.go), { user: true }); renderPathTop(); renderMap(); return; }
   const ft = e.target.closest('[data-ft]'); if (ft) { FREE.id = ft.dataset.ft; vExos(); return; }
@@ -871,6 +964,11 @@ document.addEventListener('click', e => {
 document.addEventListener('input', e => {
   const t = e.target; if (!t.matches('input')) return;
   const id = t.dataset.id || t.name; if (!id) return;
+  if (id.startsWith('L-')) {   // question d'une leçon : aperçu seulement, rien d'enregistré
+    const it = LES && lessonItems(LES.id, LES.i).find(x => x.id === id), pv = t.closest('.it') && $('.prev', t.closest('.it'));
+    if (it && pv && t.type === 'text') pv.innerHTML = preview(it, t.value);
+    return;
+  }
   if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; ls.set(EK, EXAM); }
   else if (CUR && !CUR.done && VIEW !== 'blanc') { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
   if (t.type === 'text') {
@@ -879,7 +977,11 @@ document.addEventListener('input', e => {
   }
 });
 let saveT = 0;
-document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); } });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !e.target.matches('input[type=text]')) return;
+  if (e.target.closest('.learn')) { e.preventDefault(); lessonAct('check'); }
+  else if (e.target.matches('#exHost input')) { e.preventDefault(); checkCur(); }
+});
 
 /* ---------- Thème ---------- */
 

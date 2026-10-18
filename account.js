@@ -61,6 +61,15 @@
   // atomistique : mêmes règles que l'élec (parcours compétence par compétence, copies réunies)
   SYNC['ato.path.v1'] = SYNC['elec.path.v1'];
   SYNC['ato.hist.v1'] = SYNC['elec.hist.v1'];
+  // leçons « Comprendre » : finie d'un côté = finie ; sinon l'étape la plus avancée
+  SYNC['ato.learn.v1'] = (L, R) => {
+    const out = {};
+    new Set([...Object.keys(L || {}), ...Object.keys(R || {})]).forEach(id => {
+      const a = (L || {})[id] || {}, b = (R || {})[id] || {};
+      out[id] = a.done || b.done ? { i: 0, done: Math.max(a.done || 0, b.done || 0) } : { i: Math.max(a.i || 0, b.i || 0) };
+    });
+    return out;
+  };
   SYNC['algo.path.v1'] = SYNC['elec.path.v1'];
   SYNC['algo.hist.v1'] = SYNC['elec.hist.v1'];
   SYNC['phys.path.v1'] = SYNC['elec.path.v1'];

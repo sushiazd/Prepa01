@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026102801"></script>
+<script src="../subjects.js?v=2026102802"></script>
 <script src="../core.js?v=2026101601"></script>
 <script src="learn.js?v=2026101802"></script>
 <script defer src="../account.js" data-lazy></script>
@@ -805,16 +805,17 @@ function lessonAct(act) {
    VUES
    ===================================================================== */
 let VIEW = 'home';
-// date du CC : subjects.js (emploi du temps, sinon date de secours ; null si à confirmer)
+// prochain CC : subjects.js ({ ts, n : CC1 ou CC2, tbc : sans date, before : date du CC suivant }), null si aucune date
 function nextCC() { return SiteSubjects.cc('ato'); }
 function vHome() {
-  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, N = SiteSubjects.next('ato'), cc = nextCC(), num = N ? N.n : 1;
+  const dayMonth = ts => new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long' }).format(ts);
   const days = cc == null ? 0 : Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
   const when = cc == null ? '' : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Chimie · Atomistique · V. Bouquet</p><h1>Réussir le CC d'atomistique</h1>
-    <p class="lede">Le CC d'atomistique de l'emploi du temps est le mercredi 16/12 (9h45, 1 h 30) ; le CC « L'atome » annoncé pour le 20/10 n'y figure pas. Celui du 16/12 porte sur tout le cours : la 1<sup>re</sup> partie, <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique), et la 2<sup>e</sup>, <b>les liaisons chimiques</b> (Lewis, VSEPR, hybridation, polarité), qui est dans la suite du parcours et dans l'onglet Cours.</p></div>
-    <section class="card"><div class="count">${cc == null ? `<b>?</b><span>CC d'atomistique : date à confirmer. Révise quand même, tout reste disponible.</span>` : `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC d'atomistique : ${esc(when)}</span>`}</div></section>
+    <p class="lede">Le CC1 (1 h) porte sur la 1<sup>re</sup> partie du cours : <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique). Annoncé pour le 20/10, il n'a pas eu lieu et attend une nouvelle date, forcément avant le CC2. Le CC2 du mercredi 16/12 (1 h 30) porte sur tout le cours, avec la 2<sup>e</sup> partie, <b>les liaisons chimiques</b> (Lewis, VSEPR, hybridation, polarité), déjà dans la suite du parcours et dans l'onglet Cours.</p></div>
+    <section class="card"><div class="count">${cc == null ? `<b>?</b><span>CC${num} d'atomistique : date à confirmer${N && N.before ? `, avant le CC${num + 1} du ${esc(dayMonth(N.before))}` : ''}. Révise quand même, tout reste disponible.</span>` : `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC${num} d'atomistique : ${esc(when)}</span>`}</div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du plus simple (composition d'un atome) au plus dur (anomalies d'énergie d'ionisation), avec une progression qui s'adapte à tes résultats. Chaque compétence commence par une leçon « Comprendre » : l'idée physique, des questions sans calcul, puis un calcul guidé, avant les exercices.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
@@ -884,7 +885,7 @@ const FICHES = [
     <div class="box warn"><h5>Complément (pas dans les slides du cours)</h5>Entre molécules : forces de <b>Van der Waals</b> (Keesom entre dipôles permanents, Debye dipôle–dipôle induit, London entre molécules polarisables, d'autant plus fortes qu'il y a d'électrons) et <b>liaison hydrogène</b> (H lié à F, O ou N face à un doublet de F, O ou N), plus forte : températures d'ébullition élevées de H<sub>2</sub>O, HF, NH<sub>3</sub>.</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Partie 1 · L'atome · Partie 2 · Liaisons · CC du 16/12 sur les deux</p><h1>Le cours utile</h1><p class="lede">Le cours de V. Bouquet condensé : les 5 chapitres de « L'atome » (fiches I à V), puis la liaison covalente, la VSEPR, l'hybridation et la polarité (fiches VI à VIII). Définitions, formules, méthodes et pièges.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Partie 1 · L'atome (CC1) · Partie 2 · Liaisons (CC2 du 16/12, sur les deux)</p><h1>Le cours utile</h1><p class="lede">Le cours de V. Bouquet condensé : les 5 chapitres de « L'atome » (fiches I à V), puis la liaison covalente, la VSEPR, l'hybridation et la polarité (fiches VI à VIII). Définitions, formules, méthodes et pièges.</p></div>
     <section class="card"><h2>Les leçons « Comprendre »</h2><p class="sub">Si le résumé ne te parle pas encore, commence par là : l'idée physique pas à pas, avec une petite question à chaque étape. Les mêmes leçons ouvrent chaque compétence du parcours.</p>
       ${CH.map((c, ci) => { const ks = SK.filter(k => k.ch === ci && LEARN[k.id]); return ks.length ? `<p class="fine" style="margin-top:12px">${ROM[ci + 1] || ci + 1}. ${esc(c)}</p><div class="llist" style="margin-top:6px">${ks.map(k => `<button type="button" class="btn${learned(k.id) ? '' : ' btn-primary'}" data-learn="${k.id}">${learned(k.id) ? '✓ ' : ''}${esc(LEARN[k.id].title)}</button>`).join('')}</div>` : ''; }).join('')}</section>
     <div id="learnHost" style="display:grid;gap:16px"></div>

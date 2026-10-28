@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
-<script src="subjects.js?v=2026102801"></script>
+<script src="subjects.js?v=2026102802"></script>
 <script defer src="account.js"></script>
 <script defer src="planning.js?v=2026101502"></script>
 <style>
@@ -387,25 +387,27 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
     const dm = ts => new Date(ts).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' }).split('/').slice(0, 2).map(Number).join('/');   // « 5/11 »
     const cards = SiteSubjects.list.map((s, i) => {
       const el = grid.querySelector(`a.tool[href="${s.page}"]`); if (!el) return null;
-      const n = SiteSubjects.next(s.id);
+      const n = SiteSubjects.next(s.id), num = s.count && n ? String(n.n) : '';   // « CC1 », « CC2 » quand la matière en compte plusieurs
       if (!n) return { el, i, rank: 1, ts: 0 };
-      return { el, i, rank: n.past ? 2 : 0, ts: n.ts, past: n.past, shared: n.shared };
+      // CC sans date mais qui tombera avant le suivant : rangé à la date de ce suivant
+      if (n.tbc) return { el, i, rank: n.before ? 0 : 1, ts: n.before || 0, tbc: true, num };
+      return { el, i, rank: n.past ? 2 : 0, ts: n.ts, past: n.past, shared: n.shared, num };
     }).filter(Boolean);
     cards.sort((a, b) => (a.rank - b.rank) || (a.rank === 2 ? b.ts - a.ts : a.ts - b.ts) || (a.i - b.i));
     const anchor = grid.querySelector('.tool.soon');
-    cards.forEach(({ el, rank, ts, past, shared }) => {
+    cards.forEach(({ el, rank, ts, past, shared, tbc, num }) => {
       grid.insertBefore(el, anchor);
       let w = el.querySelector('.when'); if (!w) { w = document.createElement('span'); w.className = 'when'; el.prepend(w); }
       const k = el.querySelector('.kind[data-kind]');
-      if (rank === 1) {
+      if (rank === 1 || tbc) {
         w.textContent = 'date à confirmer'; el.classList.remove('past', 'near');
-        if (k) k.textContent = k.dataset.kind + ' · date à confirmer';
+        if (k) k.textContent = k.dataset.kind + num + ' · date à confirmer' + (ts ? `, avant le CC${num ? +num + 1 : ''} du ${dm(ts)}` : '');
         return;
       }
       const day = new Date(ts); day.setHours(0, 0, 0, 0);
       const n = Math.round((day - t0) / 864e5);
       w.textContent = past ? 'passé · ' + dm(ts) : n <= 0 ? 'aujourd\'hui' : n === 1 ? 'demain · ' + dm(ts) : `J−${n} · ${dm(ts)}`;
-      if (k) k.textContent = `${k.dataset.kind} du ${dm(ts)}${shared ? ' (même CC que le CC1 pour l\'instant)' : ''}`;
+      if (k) k.textContent = `${k.dataset.kind}${num} du ${dm(ts)}${shared ? ' (même CC que le CC1 pour l\'instant)' : ''}`;
       el.classList.toggle('past', past); el.classList.toggle('near', !past && n <= 7);
     });
   }

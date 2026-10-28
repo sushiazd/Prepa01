@@ -7,6 +7,8 @@
    - nth : quand plusieurs pages se partagent une matière (CC1 / CC2), la page prend le n-ième CC de l'année
      (0 = le premier) : le CC1 tombe toujours avant le CC2, même si un CC est déplacé ou annulé.
      S'il y a moins de CC que de pages, les dernières pages partagent le dernier CC (shared: true)
+   - count : nombre de CC de l'année quand certains ne sont pas encore dans ADE ; ceux qui manquent sont
+     comptés AVANT ceux qui y sont (CC1 sans date, CC2 déjà placé) et rendus avec tbc: true
    - ignore : ancien créneau d'un CC déplacé, ignoré tant qu'ADE ne le retire pas
    - name : nom court (tableau de bord moi/) ; skills : nombre de compétences du parcours (affiché sur l'accueil),
      sans les compétences bonus (bonus : leurs identifiants, non comptées)
@@ -23,8 +25,8 @@
       dates: ['2026-09-18T13:00:00Z', '2026-09-28T14:45:00Z', '2026-11-06T13:00:00Z', '2026-11-16T07:45:00Z', '2026-12-02T14:00:00Z', '2026-12-17T09:15:00Z', '2027-01-14T11:00:00Z'] },
     { id: 'ms1', name: 'Maths S1', page: 'maths-s1/', ade: MATH, nth: 0, dates: MATH_CC, skills: 16 },
     { id: 'ma2', name: 'Analyse', page: 'maths-s1-analyse/', ade: MATH, nth: 1, dates: MATH_CC, skills: 14 },
-    // le CC « L'atome » du 20/10 n'est pas dans ADE : le seul CC d'atomistique est celui du 16/12 (tout le cours)
-    { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), dates: ['2026-12-16T08:45:00Z'], skills: 17 },
+    // CC1 « L'atome » prévu le 20/10, pas encore passé et sans nouvelle date ; CC2 (tout le cours) le 16/12
+    { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-12-16T08:45:00Z'], skills: 17 },
     { id: 'elec', name: 'Élec CC1', page: 'elec/', ade: /ELECa/i, nth: 0, dates: ELEC_CC, skills: 21, bonus: ['thv'] },
     { id: 'el2', name: 'Élec CC2', page: 'elec2/', ade: /ELECa/i, nth: 1, dates: ELEC_CC, skills: 9 },
     // DS du 23/10 reporté au 5/11, puis DS 2 le 7/12 (et l'oral sur machine en janvier, avec { oral: true })
@@ -46,21 +48,29 @@
     return c.evs.filter(e => s.ade.test(e.t) && (s.qcm || CC.test(e.t)) && !/tiers|rattrapage/i.test(e.t) && (o.oral || !/oraux/i.test(e.t))
       && !s.ignoreTs.includes(e.s)).sort((a, b) => a.s - b.s);
   }
-  // Tous les CC de la matière : l'emploi du temps s'il en a, sinon les dates de secours
+  // Tous les CC de la matière : l'emploi du temps s'il en a, sinon les dates de secours ; avec count, les CC
+  // pas encore placés d'abord (ts: null). n : numéro du CC dans l'année
   function slots(id, o) {
     const s = byId[id], evs = events(id, o);
-    return evs.length ? evs.map(e => ({ ts: e.s, ev: e })) : (s.dates || []).map(d => ({ ts: Date.parse(d), ev: null }));
+    const list = evs.length ? evs.map(e => ({ ts: e.s, ev: e })) : (s.dates || []).map(d => ({ ts: Date.parse(d), ev: null }));
+    const miss = Math.max(0, (s.count || 0) - list.length);
+    return Array.from({ length: miss }, () => ({ ts: null, ev: null })).concat(list).map((x, i) => Object.assign(x, { n: i + 1 }));
   }
-  // Contrôle de la page : { ts, ev (créneau ADE ou null pour une date de secours), past, shared }.
+  // Contrôle de la page : { ts, ev (créneau ADE ou null pour une date de secours), n, past, shared, tbc, before }.
   // Page avec nth : son CC de l'année ; sinon le prochain, ou le dernier avec past: true s'ils sont tous passés.
-  // null si aucune date connue (CC à confirmer)
+  // tbc : CC sans date (ts null), before : date du CC suivant qui en a une (il tombera avant).
+  // null si aucune date connue du tout (CC à confirmer)
   function next(id, o) {
     const s = byId[id]; if (!s) return null;
     const list = slots(id, o); if (!list.length) return null;
-    const soon = Date.now() - 3 * 3600e3;
-    if (s.nth != null) { const x = list[Math.min(s.nth, list.length - 1)]; return Object.assign({ past: x.ts <= soon, shared: s.nth >= list.length }, x); }
-    const n = list.find(x => x.ts > soon);
-    return n ? Object.assign({ past: false, shared: false }, n) : Object.assign({ past: true, shared: false }, list[list.length - 1]);
+    const soon = Date.now() - 3 * 3600e3, past = x => x.ts != null && x.ts <= soon;
+    const out = (x, shared) => {
+      const after = x.ts == null ? list.find(y => y.n > x.n && y.ts != null) : null;
+      return Object.assign({ past: past(x), shared, tbc: x.ts == null, before: after ? after.ts : null }, x);
+    };
+    if (s.nth != null) return out(list[Math.min(s.nth, list.length - 1)], s.nth >= list.length);
+    const n = list.find(x => !past(x));
+    return out(n || list[list.length - 1], false);
   }
   const cc = (id, o) => { const n = next(id, o); return n ? n.ts : null; };
   // Page de révision d'un créneau ADE (CC ou cours) : parmi les pages de la matière, celle dont le CC est le

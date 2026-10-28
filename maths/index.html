@@ -11,7 +11,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../config.js"></script>
-<script src="elo.js?v=2026101602"></script>
+<script src="elo.js?v=2026102801"></script>
 <script src="pdj.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -302,6 +302,19 @@ dialog::backdrop{background:rgba(20,19,17,.45)}
 .cc.try:hover{border-color:var(--pen)}
 .slip-row .fine{font:13px/1.4 var(--sans);color:var(--muted)}
 .btn.slip-btn[aria-pressed="true"]{color:var(--pen);background:var(--pen-soft);border-color:var(--pen-line)}
+.slip-row .why-lbl{flex-basis:100%;font:600 12.5px/1.3 var(--sans);color:var(--ink-2)}
+/* confiance déclarée pendant l'épreuve */
+.conf-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px}
+.conf-lbl{font:600 11.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.conf-btn{height:32px;padding:0 13px;border-radius:999px;border:1.5px solid var(--rule);background:var(--sheet);color:var(--ink-2);font:600 13.5px/1 var(--sans);cursor:pointer}
+.conf-btn:hover:not(:disabled){border-color:var(--rule-strong)}
+.conf-btn[aria-pressed="true"]{border-color:var(--pen);background:var(--pen-soft);color:var(--pen)}
+.conf-btn:disabled{opacity:.45;cursor:default}
+.conf-help{font:12.5px/1.35 var(--sans);color:var(--muted)}
+.pill.st-conf{background:var(--sheet-2);color:var(--ink-2);border:1px solid var(--rule)}
+.pill.st-idee{background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent)}
+.calib{display:grid;gap:6px;margin-top:10px;font:14px/1.45 var(--sans);color:var(--ink-2)}
+.calib b{color:var(--ink)}
 .pts-pos{color:var(--good);font-weight:600}
 .pts-neg{color:var(--red);font-weight:600}
 .time-long{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;background:var(--warn-soft);color:var(--warn);font-weight:600}
@@ -850,6 +863,7 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
       <h1>Importer, repérer, s'entraîner</h1>
       <p class="lede">Dépose tes copies corrigées en PDF : je lis les notes, je classe chaque question par thème, et je fabrique des contrôles centrés sur ce que tu rates.</p>
     </header>
+    <div id="warmCard"></div>
 
     <section class="card" id="importCard" aria-labelledby="impTitle">
       <div class="card-head"><div><h2 id="impTitle"><span class="step-no">1</span>Importer un contrôle corrigé</h2>
@@ -8052,9 +8066,11 @@ const qidsOf = (id, s36) => (TPL[id].group ? Array.from({ length: TPL[id].size }
 const wpick = (obj, rnd) => { const ks = Object.keys(obj), tot = ks.reduce((s, k) => s + obj[k], 0); let r = rnd() * tot; for (const k of ks) { if ((r -= obj[k]) < 0) return k; } return ks[ks.length - 1]; };
 const byTheme = {};
 Object.values(TPL).filter(t => !t.hard).forEach(t => { (byTheme[t.theme] = byTheme[t.theme] || {})[t.id] = t.w; });
-function unit(theme, rnd = Math.random) {
+// wt(modèle) : coefficient de besoin (types faibles ou jamais vus d'abord), multiplié par le poids du modèle
+function unit(theme, rnd = Math.random, wt) {
   if (!byTheme[theme]) return null;
-  const id = wpick(byTheme[theme], rnd), t = TPL[id], s = newSeed();
+  const pool = wt ? Object.fromEntries(Object.entries(byTheme[theme]).map(([k, w]) => [k, w * wt(k)])) : byTheme[theme];
+  const id = wpick(pool, rnd), t = TPL[id], s = newSeed();
   return { gen: true, tpl: id, qids: qidsOf(id, s), size: t.size, theme, group: t.group };
 }
 function exam(kind, rnd = Math.random) {
@@ -8204,6 +8220,39 @@ const UNITS = (() => {
 })();
 const seenCount = u => u.qids.reduce((s, id) => s + (seen[id] || 0), 0);
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// Range une liste en alternant : jamais deux éléments du même groupe (thème) ni du même type à la suite quand
+// c'est possible ; le groupe qui a le plus d'éléments restants passe en premier, pour ne pas finir en bloc.
+function spreadOut(list, grp, typ) {
+  const rest = shuffle(list), out = [];
+  while (rest.length) {
+    const p = out[out.length - 1], left = {}, leftT = {};
+    rest.forEach(c => { left[grp(c)] = (left[grp(c)] || 0) + 1; leftT[typ(c)] = (leftT[typ(c)] || 0) + 1; });
+    let best = 0, bs = -1;
+    rest.forEach((c, k) => { const s = (p && grp(c) === grp(p) ? 0 : 1e4) + (p && typ(c) === typ(p) ? 0 : 5e3) + 50 * left[grp(c)] + leftT[typ(c)]; if (s > bs) { bs = s; best = k; } });
+    out.push(rest.splice(best, 1)[0]);
+  }
+  return out;
+}
+/* Dernière réponse à chaque type de question (modèle du générateur), hors Hardcore : { modèle: résultat + at } */
+function lastByType(atts = attempts) {
+  const last = {};
+  atts.slice().sort((a, b) => (a.at || 0) - (b.at || 0)).forEach(a => {
+    if (isHCAtt(a)) return;
+    (a.results || []).forEach(r => { const t = tplOfId(r.qid); if (t) last[t] = Object.assign({ at: a.at || 0 }, r); if (r.was && tplOfId(r.was)) last[tplOfId(r.was)] = { at: a.at || 0, skip: true }; });
+  });
+  return last;
+}
+/* Besoin de retravailler un type, d'après la dernière réponse : jamais vu 1 ; juste 0,15, vide 0,7, faux 1
+   (erreur de calcul annotée : 0,3 de la perte) ; passé ou remplacé (méthode connue) 0,15 ;
+   juste « au pif » 0,6 ; faux en étant sûr ou « je croyais que c'était juste » (idée fausse) 1,6. */
+function needOf(r) {
+  if (!r) return 1;
+  if (r.skip) return 0.15;
+  if (r.status !== 'juste' && (r.conf === 's' || r.why === 'idee')) return 1.6;
+  if (r.status === 'juste' && r.conf === 'p') return 0.6;
+  const s0 = Math.min(1, Math.max(0, (r.pts + 0.5) / 1.5)), s = r.slip && s0 < 1 ? s0 + 0.7 * (1 - s0) : s0;
+  return Math.max(0.15, 1 - 0.85 * s);
+}
 
 /* ---------- Générateur de contrôle ciblé ---------- */
 function planTargeted(o) {
@@ -8214,6 +8263,9 @@ function planTargeted(o) {
   // src : 'gen' (questions inédites), 'bank' (questions des sujets) ou 'mix'
   const src = o.src || 'gen';
   const mastered = masteredTypes();
+  // dans chaque thème, les types de questions faibles ou jamais vus d'abord ; un type déjà tiré l'est ensuite moins
+  const last = lastByType(), drawn = {};
+  const tw = tp => needOf(last[tp]) * Math.pow(0.3, drawn[tp] || 0);
   const pool = src === 'gen' ? [] : UNITS.filter(u => (!picked || picked.includes(u.theme)) && keepUnit(u, mastered));
   const used = new Set();
   const chosen = [];
@@ -8227,7 +8279,7 @@ function planTargeted(o) {
         .sort((a, b) => seenCount(a) - seenCount(b));
       if (src !== 'bank' && (!picked || picked.includes(t.id))) {
         const fresh = [];
-        for (let k = 0; fresh.length < o.n && k < o.n * 4; k++) { const u = QGEN.unit(t.id); if (u && keepUnit(u, mastered)) fresh.push(u); }
+        for (let k = 0; fresh.length < o.n && k < o.n * 4; k++) { const u = QGEN.unit(t.id, Math.random, tw); if (u && keepUnit(u, mastered)) { fresh.push(u); drawn[u.tpl] = (drawn[u.tpl] || 0) + 1; } }
         avail[t.id] = src === 'gen' ? fresh : shuffle(avail[t.id].concat(fresh)).sort((a, b) => seenCount(a) - seenCount(b));
       }
     });
@@ -8253,9 +8305,10 @@ function planTargeted(o) {
     const rest = pool.filter(u => !used.has(u) && u.group && (o.allowSeen || seenCount(u) === 0)).sort((a, b) => wt(b.theme) - wt(a.theme))[0];
     if (rest) { chosen.push({ u: { ...rest, qids: rest.qids.slice(0, left), size: Math.min(left, rest.size) }, allowed: true }); counts[rest.theme] = (counts[rest.theme] || 0) + Math.min(left, rest.size); left -= Math.min(left, rest.size); }
   }
-  // Ordre : questions isolées (ordre canonique des thèmes), puis exercices
+  // Ordre : questions isolées mélangées (jamais deux du même thème ni du même type à la suite : il faut
+  // reconnaître seul la méthode, comme au contrôle), puis exercices
   const key = c => TH[c.u.theme].order;
-  const singles = chosen.filter(c => !c.u.group).sort((a, b) => key(a) - key(b));
+  const singles = spreadOut(chosen.filter(c => !c.u.group), c => c.u.theme, c => tplOfId(c.u.qids[0]) || c.u.qids[0]);
   const groups = chosen.filter(c => c.u.group).sort((a, b) => key(a) - key(b));
   const qids = [].concat(...singles.concat(groups).map(c => c.u.qids));
   const themeCount = {};
@@ -8296,24 +8349,52 @@ const typeKey = id => tplOfId(id) || id;   // le modèle du générateur, ou la 
 const isQcmType = id => { const t = tplOfId(id); return t ? EXAM_TPL.has(t) : !!QINDEX[id]; };
 const kindTag = id => (QGEN.TPL[tplOfId(id)] && QGEN.TPL[tplOfId(id)].hard ? '<span class="tag tag-hc" title="Question du mode Hardcore, à la limite du programme">Hardcore</span>' : isQcmType(id) ? '<span class="tag tag-qcm" title="Ce genre de question est déjà tombé dans les QCM du prof">Type QCM</span>'
   : '<span class="tag tag-new" title="Question du programme de Terminale qui n\'est pas encore tombée en QCM">Nouveau type</span>');
-/* Type QCM maîtrisé : passé ou remplacé (méthode connue), ou réussi 2 fois de suite.
-   Une vraie erreur le remet en jeu ; une erreur de calcul annotée ne change rien. */
+/* Type QCM maîtrisé : passé ou remplacé (méthode connue), ou réussi 2 fois de suite, deux jours différents
+   (deux réussites le même jour, juste après la correction, ne prouvent pas qu'on s'en souviendra au contrôle).
+   Une réussite « au pif » ne compte pas ; une vraie erreur le remet en jeu ; une erreur de calcul annotée ne change rien. */
 const KEEP_MASTERED = 0.1;   // un type maîtrisé revient quand même de temps en temps, pour vérifier
+const dayOf = t => new Date(t || 0).toDateString();
 function masteredTypes(atts = attempts) {
   const st = {};
-  const mark = (id, fn) => { if (!isQcmType(id)) return; const k = typeKey(id); fn(st[k] || (st[k] = { ok: 0, m: false })); };
+  const mark = (id, fn) => { if (!isQcmType(id)) return; const k = typeKey(id); fn(st[k] || (st[k] = { ok: 0, day: null, m: false })); };
   atts.slice().sort((a, b) => (a.at || 0) - (b.at || 0)).forEach(a => (a.results || []).forEach(r => {
     if (r.was) mark(r.was, x => { x.m = true; });
     mark(r.qid, x => {
       if (r.skip) x.m = true;
-      else if (r.pts >= 1) { x.ok++; if (x.ok >= 2) x.m = true; }
-      else if (!r.slip) { x.ok = 0; x.m = false; }
+      else if (r.pts >= 1) { if (r.conf !== 'p' && x.day !== dayOf(a.at)) { x.ok++; x.day = dayOf(a.at); } if (x.ok >= 2) x.m = true; }
+      else if (!r.slip) { x.ok = 0; x.day = null; x.m = false; }
     });
   }));
   return new Set(Object.keys(st).filter(k => st[k].m));
 }
 // Garde une unité de tirage sauf si toutes ses questions sont d'un type QCM maîtrisé (sauf exception aléatoire)
 const keepUnit = (u, mastered) => !u.qids.every(id => mastered.has(typeKey(id))) || Math.random() < KEEP_MASTERED;
+/* Échauffement : les types de questions ratés lors d'une séance précédente (un autre jour) et pas réussis depuis,
+   reposés en version inédite, les idées fausses d'abord. Revoir une erreur à distance, sous une autre forme,
+   montre si la méthode est vraiment revenue (la refaire juste après le corrigé ne le prouve pas). */
+const WARM_N = 6;
+function retestTypes() {
+  const last = lastByType(), today = dayOf(Date.now());
+  return Object.entries(last).filter(([t, r]) => { const T = QGEN.TPL[t]; return T && !T.hard && !T.group && !r.skip && r.status !== 'juste' && !r.slip && dayOf(r.at) !== today; })
+    .sort((a, b) => needOf(b[1]) - needOf(a[1]) || b[1].at - a[1].at).map(([t, r]) => ({ t, theme: QGEN.TPL[t].theme, r }));
+}
+function warmupDef() {
+  const L = spreadOut(retestTypes().slice(0, WARM_N), x => x.theme, x => x.t);
+  if (!L.length) return null;
+  const themeCount = {};
+  L.forEach(x => { themeCount[x.theme] = (themeCount[x.theme] || 0) + 1; });
+  return { id: 'w' + Date.now(), kind: 'warmup', title: 'Échauffement : erreurs à revoir', eyebrow: 'Échauffement · tes erreurs des séances précédentes, en version inédite',
+    qids: L.map(x => `gen.${x.t}.${Math.floor(Math.random() * 2147483647).toString(36)}`), duration: 3 * L.length * 60, themeCount };
+}
+function warmCardHTML(tag = 'section') {
+  const L = retestTypes();
+  if (!L.length) return '';
+  const n = Math.min(WARM_N, L.length), idee = L.slice(0, n).filter(x => needOf(x.r) > 1).length;
+  const th = [...new Set(L.slice(0, n).map(x => TH[x.theme] ? TH[x.theme].short : x.theme))];
+  return `<${tag} class="card warm"><div class="card-head"><div><h2>Échauffement : ${L.length} erreur${L.length > 1 ? 's' : ''} à revoir</h2>
+    <p class="sub">${n} question${n > 1 ? 's' : ''} inédite${n > 1 ? 's' : ''} sur les types que tu as ratés lors d'une séance précédente${idee ? `, dont ${idee} idée${idee > 1 ? 's' : ''} fausse${idee > 1 ? 's' : ''} (faux alors que tu étais sûr)` : ''} : ${th.map(esc).join(' · ')}. Une erreur revue un autre jour, sous une autre forme, montre si la méthode est vraiment acquise. ${fmtMin(3 * n)}.</p></div></div>
+    <div class="gen-actions"><button type="button" class="btn btn-primary" data-warmup="1">Commencer l'échauffement</button><span class="fine">Réussi, un type sort de la liste ; raté, il y reste.</span></div></${tag}>`;
+}
 function newTypesDef() {
   const k = ls.get(K.ncount, 0) + 1; ls.set(K.ncount, k);
   const qids = [], themeCount = {};
@@ -8663,7 +8744,23 @@ function renderBilan() {
       <div class="bar-cell" style="display:flex;align-items:center" title="${esc(masteryTip(s))}"><span class="pct">${pct == null ? '—' : pct + ' %'}</span><div class="bar ${rateClass(s.rate)}" style="flex:1"><i style="width:${pct == null ? 0 : Math.max(3, pct)}%"></i></div></div>
       <div class="cnt">${det}</div>
       <button type="button" class="btn" data-method="${t.id}">Méthode</button></div>`;
-  }).join('');
+  }).join('') + calibHTML();
+}
+/* Ta confiance est-elle fiable ? Réussite selon la confiance déclarée, et origine des erreurs annotées */
+function calibHTML() {
+  const C = { s: [0, 0], h: [0, 0], p: [0, 0] }, W = { calc: 0, meth: 0, mix: 0, idee: 0 };
+  attempts.forEach(a => !isHCAtt(a) && (a.results || []).forEach(r => {
+    if (r.skip) return;
+    if (r.conf && C[r.conf]) { C[r.conf][1]++; if (r.status === 'juste') C[r.conf][0]++; }
+    if (r.slip) W.calc++; else if (r.why && r.why in W) W[r.why]++;
+  }));
+  const rows = Object.keys(C).filter(k => C[k][1]).map(k => `quand tu es <b>${CONF_NAME[k]}</b> : ${Math.round(100 * C[k][0] / C[k][1])} % de justes (${C[k][1]} question${C[k][1] > 1 ? 's' : ''})`);
+  const nw = W.calc + W.meth + W.mix + W.idee;
+  const why = nw ? `${nw > 1 ? `Origine de tes ${nw} erreurs annotées` : 'Origine de ton erreur annotée'} :${[[W.calc, 'calcul'], [W.meth, 'méthode pas trouvée'], [W.mix, 'méthodes confondues'], [W.idee, 'idée fausse']].filter(x => x[0]).map(([n, l]) => `${l} ${Math.round(100 * n / nw)} %`).join(' · ')}.` : '';
+  if (!rows.length && !why) return '';
+  const sure = C.s[1] >= 5 ? C.s[0] / C.s[1] : null;
+  const tip = sure == null ? '' : sure >= 0.9 ? ' Ton « sûr » est fiable : tu peux t\'y fier pour décider de répondre.' : ` Ton « sûr » se trompe ${Math.round(100 * (1 - sure))} fois sur 100 : avec −0,5 par faute, vérifie avant de cocher.`;
+  return `<div class="calib">${rows.length ? `<p>Ta confiance : ${rows.join(' · ')}.${tip}</p>` : ''}${why ? `<p>${why}</p>` : ''}</div>`;
 }
 function renderControlList() {
   const box = $('#ctlList');
@@ -8710,7 +8807,8 @@ function renderGenerator() {
   $('#genInfo').textContent = (g.src === 'gen' ? 'Questions inédites : jamais deux fois la même.'
     : g.src === 'mix' ? `Questions des sujets (${unseen} jamais faites) complétées par des questions inédites.`
     : `${unseen} questions des sujets encore jamais faites sur ${avail}.`) +
-    (nm ? ` ${nm} type${pl} QCM maîtrisé${pl} (passé${pl} ou réussi${pl} 2 fois de suite) écarté${pl} : ils ne reviennent que rarement.` : '');
+    (nm ? ` ${nm} type${pl} QCM maîtrisé${pl} (passé${pl}, ou réussi${pl} 2 fois de suite sur deux jours différents) écarté${pl} : ils ne reviennent que rarement.` : '') +
+    ' Dans chaque thème, les types de questions ratés ou jamais vus passent en premier.';
 }
 function generate() {
   const g = prefs.gen;
@@ -8757,7 +8855,7 @@ async function importData(file) {
   } catch (e) { toast("Ce fichier n'est pas une sauvegarde valide."); }
 }
 
-function renderControls() { renderBanners(); renderBilan(); renderControlList(); renderGenerator(); renderReview(); }
+function renderControls() { renderBanners(); $('#warmCard').innerHTML = warmCardHTML(); renderBilan(); renderControlList(); renderGenerator(); renderReview(); }
 
 /* =====================================================================
    VUE « CATALOGUE »
@@ -8855,7 +8953,7 @@ function renderSujets() {
       <div class="meta-chips"><span class="meta-chip">${NEWTYPES.n} questions</span><span class="meta-chip">${fmtMin(NEWTYPES.dur)}</span><span class="meta-chip">Toujours nouveau</span></div>
       <p class="last">${lastN ? `Dernière copie : <strong>${fmtNum(lastN.note, 2)}/20</strong> (${fmtDate(lastN.at)})` : 'Pas encore tenté.'}</p>
       <button type="button" class="btn btn-primary" data-newtypes="1">Générer et commencer</button></article>`;
-  $('#sjGrid').innerHTML = genCards + newCard + BANK_ORDER.map(b => {
+  $('#sjGrid').innerHTML = warmCardHTML('article') + genCards + newCard + BANK_ORDER.map(b => {
     const Q = BANKS[b].Q, m = BANK_META[b], last = attempts.filter(a => a.defId === b).slice(-1)[0];
     const multi = Q.filter(q => q.multi).length;
     return `<article class="card sj"><h3>${m.title}</h3><p class="sub">${m.sub}</p>
@@ -8864,7 +8962,7 @@ function renderSujets() {
       <button type="button" class="btn btn-primary" data-bank="${b}">Commencer</button></article>`;
   }).join('');
   const rows = attempts.slice().reverse().slice(0, 25);
-  $('#histBox').innerHTML = rows.length ? `<div style="overflow-x:auto"><table class="hist"><thead><tr><th>Date</th><th>Épreuve</th><th>Questions</th><th>Note</th><th>Temps</th></tr></thead><tbody>${rows.map(a => `<tr><td>${fmtDate(a.at)}</td><td>${a.kind === 'targeted' || a.kind === 'genexam' || a.kind === 'newtypes' || a.kind === 'hardcore' ? '<span class="tag-t">' + esc(a.title) + '</span>' : esc(a.title)}</td><td>${a.N}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used || 0)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="fine">Aucune épreuve rendue pour le moment.</p>';
+  $('#histBox').innerHTML = rows.length ? `<div style="overflow-x:auto"><table class="hist"><thead><tr><th>Date</th><th>Épreuve</th><th>Questions</th><th>Note</th><th>Temps</th></tr></thead><tbody>${rows.map(a => `<tr><td>${fmtDate(a.at)}</td><td>${a.kind === 'targeted' || a.kind === 'genexam' || a.kind === 'newtypes' || a.kind === 'warmup' || a.kind === 'hardcore' ? '<span class="tag-t">' + esc(a.title) + '</span>' : esc(a.title)}</td><td>${a.N}</td><td><strong>${fmtNum(a.note, 2)}/20</strong></td><td>${fmtMS(a.used || 0)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="fine">Aucune épreuve rendue pour le moment.</p>';
 }
 
 /* =====================================================================
@@ -9268,12 +9366,12 @@ function activate(def) { Q = buildTest(def); N = Q.length; DURATION = def.durati
 function fresh(def) {
   return { v: 2, phase: 'intro', def, startedAt: 0, submittedAt: 0, auto: false, cur: 0, paused: false, pausedAt: 0, pauseTotal: 0, pauseCount: 0, recorded: false,
     answers: Array.from({ length: N }, () => []), flags: Array(N).fill(false), times: Array(N).fill(0),
-    skips: Array(N).fill(false), slips: Array(N).fill(false), was: Array(N).fill(null) };
+    skips: Array(N).fill(false), slips: Array(N).fill(false), was: Array(N).fill(null), confs: Array(N).fill(null), whys: Array(N).fill(null) };
 }
 // Sessions enregistrées avant l'ajout de « passer » / « erreur de calcul »
 function normalize(s) {
   ['skips', 'slips'].forEach(k => { if (!Array.isArray(s[k]) || s[k].length !== N) s[k] = Array(N).fill(false); });
-  if (!Array.isArray(s.was) || s.was.length !== N) s.was = Array(N).fill(null);
+  ['was', 'confs', 'whys'].forEach(k => { if (!Array.isArray(s[k]) || s[k].length !== N) s[k] = Array(N).fill(null); });
   return s;
 }
 function load() {
@@ -9299,7 +9397,7 @@ const sessLast = s => Math.max(s.gt || 0, ...(s.qt || [0]));
 const sessLive = s => !!s && !!s.startedAt && (s.phase === 'test' || s.phase === 'done') && !s.rv;
 function sessPrints(s) {
   return { sid: sessId(s), g: JSON.stringify([s.phase, s.paused, s.pausedAt, s.pauseTotal, s.pauseCount, s.submittedAt]),
-    q: s.answers.map((_, i) => JSON.stringify([s.answers[i], s.flags[i], s.skips[i], s.slips[i], s.was[i], s.def.qids[i]])) };
+    q: s.answers.map((_, i) => JSON.stringify([s.answers[i], s.flags[i], s.skips[i], s.slips[i], s.was[i], s.def.qids[i], (s.confs || [])[i] || null, (s.whys || [])[i] || null])) };
 }
 // Note l'heure de chaque changement depuis la dernière sauvegarde ; vrai s'il faut synchroniser
 function sessStamp() {
@@ -9332,7 +9430,7 @@ function sessMerge(R) {
   if (!Array.isArray(R.qt) || R.qt.length !== n) R.qt = Array(n).fill(0);
   for (let i = 0; i < n; i++) {
     const a = S.qt[i] || 0, b = R.qt[i] || 0;
-    if (b > a) { ['answers', 'flags', 'skips', 'slips', 'was'].forEach(k => { S[k][i] = R[k][i]; }); S.def.qids[i] = R.def.qids[i]; S.qt[i] = b; local = true; }
+    if (b > a) { ['answers', 'flags', 'skips', 'slips', 'was', 'confs', 'whys'].forEach(k => { if (Array.isArray(R[k]) && Array.isArray(S[k])) S[k][i] = R[k][i]; }); S.def.qids[i] = R.def.qids[i]; S.qt[i] = b; local = true; }
     else if (a > b) remote = true;
     if ((+R.times[i] || 0) > (+S.times[i] || 0)) S.times[i] = R.times[i];
   }
@@ -9549,6 +9647,11 @@ function renderQuestion() {
     <div class="choices${S.skips[i] ? ' is-skipped' : ''}" role="${multi ? 'group' : 'radiogroup'}" aria-label="Propositions">
       ${q.c.map((c, k) => `<button type="button" class="choice" role="${multi ? 'checkbox' : 'radio'}" aria-checked="false" data-k="${k}"><span class="box" aria-hidden="true">${LETTERS[k]}</span><span class="choice-text">${c}</span></button>`).join('')}
     </div>
+    <div class="conf-row" role="group" aria-label="Ta confiance dans cette réponse">
+      <span class="conf-lbl">Ta confiance</span>
+      ${CONF_OPTS.map(([v, l, t]) => `<button type="button" class="conf-btn" data-conf="${v}" aria-pressed="false" title="${t}">${l}</button>`).join('')}
+      <span class="fine conf-help">Facultatif. Faux alors que tu étais sûr = idée fausse à corriger en priorité.</span>
+    </div>
     <div class="q-actions">
       <button type="button" class="btn btn-ghost" data-act="clear">${ICON.erase}Effacer</button>
       <button type="button" class="btn btn-ghost" data-act="flag" aria-pressed="false">${ICON.flag}<span>Marquer à revoir</span></button>
@@ -9568,6 +9671,7 @@ function syncQuestion() {
   const sel = S.answers[S.cur];
   $$('#qSheet .choice').forEach(b => b.setAttribute('aria-checked', String(sel.includes(+b.dataset.k))));
   $('#qSheet [data-act="clear"]').disabled = sel.length === 0 || S.skips[S.cur];
+  $$('#qSheet .conf-btn').forEach(b => { b.setAttribute('aria-pressed', String(S.confs[S.cur] === b.dataset.conf)); b.disabled = sel.length === 0 || S.skips[S.cur]; });
   const fb = $('#qSheet [data-act="flag"]');
   fb.setAttribute('aria-pressed', String(S.flags[S.cur]));
   fb.querySelector('span').textContent = S.flags[S.cur] ? 'Marquée à revoir' : 'Marquer à revoir';
@@ -9584,6 +9688,9 @@ function toggleChoice(k) {
   syncQuestion(); updateNav(); save();
 }
 function clearAnswer() { if (S.paused || !S.answers[S.cur].length) return; S.answers[S.cur] = []; syncQuestion(); updateNav(); save(); }
+// Confiance déclarée sur une réponse : sûr (s), hésitant (h), au pif (p)
+const CONF_OPTS = [['s', 'Sûr', 'Je suis sûr de ma réponse'], ['h', 'Hésitant', 'Je pense que c\'est ça, sans être sûr'], ['p', 'Au pif', 'J\'ai répondu un peu au hasard']];
+const CONF_NAME = { s: 'sûr', h: 'hésitant', p: 'au pif' };
 function toggleFlag() { if (S.paused) return; S.flags[S.cur] = !S.flags[S.cur]; syncQuestion(); updateNav(); save(); }
 // Passer : la question n'est pas notée (note sur N − nombre de questions passées)
 function toggleSkip() {
@@ -9636,7 +9743,7 @@ function swapQuestion() {
   if (!S.was[i]) S.was[i] = q.id;           // la question écartée d'origine (pour ne plus la reproposer)
   S.def.qids[i] = id;
   activate(S.def);
-  S.answers[i] = []; S.times[i] = 0; S.skips[i] = false; S.flags[i] = false;
+  S.answers[i] = []; S.times[i] = 0; S.skips[i] = false; S.flags[i] = false; S.confs[i] = null;
   activeSince = Date.now();
   save(); renderQuestion();
   toast('Question remplacée.');
@@ -9754,7 +9861,7 @@ function scoreQ(q, sel) {
 }
 const compute = () => Q.map((q, i) => ({ i, q, sel: S.answers[i], t: S.times[i], flag: S.flags[i], skip: !!S.skips[i], was: S.was[i] || null,
   ...(S.rv ? { pts: S.rv[i].pts, status: S.rv[i].status } : S.skips[i] ? { pts: 0, status: 'passe' } : scoreQ(q, S.answers[i])),
-  slip: !S.skips[i] && !!S.slips[i] }));
+  slip: !S.skips[i] && !!S.slips[i], conf: S.answers[i].length && S.confs ? S.confs[i] || null : null, why: S.whys ? S.whys[i] || null : null }));
 // Une erreur de calcul ne s'annote que sur une question où des points ont été perdus
 const canSlip = r => r.status === 'faux' || r.status === 'partiel';
 const nGradedOf = res => res.filter(r => !r.skip).length;
@@ -9764,6 +9871,8 @@ function resultRow(r) {
   if (r.sel && r.sel.length) o.sel = r.sel.slice();
   if (r.skip) o.skip = true;
   if (r.slip) o.slip = true;
+  if (r.conf) o.conf = r.conf;
+  if (r.why) o.why = r.why;
   if (r.was) o.was = r.was;
   return o;
 }
@@ -9788,10 +9897,28 @@ function recordAttempt(res) {
 function toggleSlip(i) {
   if (!S || S.phase !== 'done' || !lastRes || !lastRes[i] || !canSlip(lastRes[i])) return;
   S.slips[i] = !S.slips[i];
+  if (S.slips[i] && S.whys) S.whys[i] = null;
+  saveAnnot(i);
+}
+/* Origine d'une erreur, annotée sur la copie rendue : méthode pas trouvée (meth), confondue avec une autre (mix),
+   idée fausse (idee). L'erreur de calcul reste « slip ». Une idée fausse fait revenir le type en priorité. */
+const WHY = { meth: 'Pas trouvé la méthode', mix: 'Confondu avec une autre méthode', idee: 'Je croyais que c\'était juste' };
+const canWhy = r => !r.skip && r.status !== 'juste' && r.status !== 'passe';
+function setWhy(i, v) {
+  if (!S || S.phase !== 'done' || !lastRes || !lastRes[i] || !canWhy(lastRes[i]) || !WHY[v]) return;
+  if (!S.whys) S.whys = Array(N).fill(null);
+  S.whys[i] = S.whys[i] === v ? null : v;
+  if (S.whys[i]) S.slips[i] = false;
+  saveAnnot(i);
+}
+// Annotation modifiée : copie enregistrée (et compte) mise à jour, puis copie réaffichée au même endroit
+function saveAnnot(i) {
   save();
   const rec = attempts.find(a => a.id === S.attemptId) || attempts.find(a => a.at === S.submittedAt && a.defId === S.def.id);
   if (rec && rec.results && rec.results[i]) {
-    if (S.slips[i]) rec.results[i].slip = true; else delete rec.results[i].slip;
+    const o = rec.results[i];
+    if (S.slips[i]) o.slip = true; else delete o.slip;
+    if (S.whys && S.whys[i]) o.why = S.whys[i]; else delete o.why;
     ls.set(K.attempts, attempts);
     cloud.pushAttempt(rec);
   }
@@ -9879,8 +10006,14 @@ function corrCard(r) {
     : `<div class="expl official"><h4>Corrigé</h4><p class="empty">Le corrigé d'origine ne détaille pas cette question.</p></div>`;
   const note = q.n ? `<div class="expl note"><h4>Remarque</h4>${q.n}</div>` : '';
   const more = q.d ? `<div class="expl more"><h4>À retenir</h4>${q.d}</div>` : '';
-  const slip = canSlip(r) ? `<div class="slip-row"><button type="button" class="btn slip-btn" data-slip="${r.i}" aria-pressed="${r.slip}">✎ ${r.slip ? 'Annotée : erreur de calcul' : 'C\'était une erreur de calcul'}</button>
-      <span class="fine">${r.slip ? 'Les points restent perdus, mais ce thème pèse moins dans tes points faibles.' : 'Méthode connue, simple étourderie ? Annote-la pour la distinguer d\'un vrai problème de méthode.'}</span></div>` : '';
+  const why = r.why || null, wb = v => `<button type="button" class="btn slip-btn" data-why="${r.i}:${v}" aria-pressed="${why === v}">${WHY[v]}</button>`;
+  const whyTip = r.slip ? 'Les points restent perdus, mais ce thème pèse moins dans tes points faibles.'
+    : why === 'idee' ? 'Idée fausse : ce type de question reviendra en priorité. Relis bien le corrigé et la fiche de méthode.'
+    : why === 'mix' ? 'Compare les deux méthodes dans la fiche : à quel indice de l\'énoncé reconnaît-on la bonne ?'
+    : why === 'meth' ? 'Ce type de question reviendra dans tes prochains contrôles ciblés et dans l\'échauffement.'
+    : 'Facultatif, mais ça rend tes points faibles plus précis.';
+  const slip = canWhy(r) ? `<div class="slip-row"><span class="why-lbl">D'où vient l'erreur ?</span>${canSlip(r) ? `<button type="button" class="btn slip-btn" data-slip="${r.i}" aria-pressed="${r.slip}">✎ Erreur de calcul</button>` : ''}${wb('meth')}${wb('mix')}${canSlip(r) ? wb('idee') : ''}
+      <span class="fine">${whyTip}</span></div>` : '';
   return `<article class="corr" id="corr-${r.i}" data-status="${r.status}" data-long="${r.t > LONG ? 1 : 0}" data-flag="${r.flag ? 1 : 0}" data-slip="${r.slip ? 1 : 0}" data-skip="${r.skip ? 1 : 0}">
     <div class="corr-margin"><span class="corr-score">${r.skip ? '—' : fmtNum(r.pts, 3) + '/1'}</span></div>
     <div class="corr-main">
@@ -9889,6 +10022,9 @@ function corrCard(r) {
         ${kindTag(q.id)}
         ${r.flag ? `<span class="pill st-empty" style="color:var(--flag)">⚑ À revoir</span>` : ''}
         ${r.slip ? '<span class="pill st-slip">✎ Erreur de calcul</span>' : ''}
+        ${r.why ? `<span class="pill ${r.why === 'idee' ? 'st-idee' : 'st-slip'}">${esc(WHY[r.why])}</span>` : ''}
+        ${canWhy(r) && r.conf === 's' && r.why !== 'idee' ? '<span class="pill st-idee" title="Tu étais sûr de ta réponse : c\'est sans doute une idée fausse, ce type reviendra en priorité">Faux alors que tu étais sûr</span>' : ''}
+        ${r.conf && !(canWhy(r) && r.conf === 's') ? `<span class="pill st-conf" title="Confiance déclarée pendant l'épreuve">${r.status === 'juste' && r.conf === 'p' ? 'Juste, mais au pif' : 'Confiance : ' + CONF_NAME[r.conf]}</span>` : ''}
         <span class="pill ${st.cls}">${st.icon} ${st.label}${r.skip ? ' · non notée' : ' · ' + fmtPts(r.pts)}</span>
         ${REVEAL.found.has(r.i) && REVEAL.key === (S ? S.def.id + '|' + S.submittedAt : '') ? `<span class="pill ${ST.juste.cls}">✓ Trouvé après coup !${(REVEAL.tries.get(r.i) || {}).n > 1 ? ` (${REVEAL.tries.get(r.i).n} essais)` : ''}</span>` : ''}
         <span class="pill st-empty">${timeHTML(r.t)}</span>
@@ -10178,6 +10314,7 @@ function init() {
     const gx = e.target.closest('[data-genexam]');
     if (gx) { openIntro(genExamDef(gx.dataset.genexam)); return; }
     if (e.target.closest('[data-newtypes]')) { openIntro(newTypesDef()); return; }
+    if (e.target.closest('[data-warmup]')) { const d = warmupDef(); if (d) openIntro(d); else toast('Aucune erreur à revoir pour le moment.'); return; }
     const la = e.target.closest('[data-lact]');
     if (la) { liveAction(la.dataset.lact); return; }
     const spb = e.target.closest('[data-spec]');
@@ -10278,6 +10415,8 @@ function init() {
   $('#qSheet').addEventListener('click', e => {
     const ch = e.target.closest('.choice');
     if (ch) { toggleChoice(+ch.dataset.k); return; }
+    const cf = e.target.closest('[data-conf]');
+    if (cf) { if (!cf.disabled && !S.paused) { S.confs[S.cur] = S.confs[S.cur] === cf.dataset.conf ? null : cf.dataset.conf; syncQuestion(); save(); } return; }
     const b = e.target.closest('[data-act]');
     if (!b || b.disabled) return;
     const act = b.dataset.act;
@@ -10330,6 +10469,8 @@ function init() {
     if (rv) { revealCorr(rv.dataset.reveal); return; }
     const sl = e.target.closest('[data-slip]');
     if (sl && sl.tagName === 'BUTTON') { toggleSlip(+sl.dataset.slip); return; }
+    const wy = e.target.closest('button[data-why]');
+    if (wy) { const [i, v] = wy.dataset.why.split(':'); setWhy(+i, v); return; }
     const f = e.target.closest('[data-filter]');
     if (f) { applyFilter(f.dataset.filter); return; }
     const hit = e.target.closest('.hit');
@@ -10701,7 +10842,7 @@ function openPastCopy(att, t) {
   activate(def);
   const R = fresh(def);
   Object.assign(R, { phase: 'done', recorded: true, attemptId: att.id, startedAt: att.at - (att.used || 0) * 1000, submittedAt: att.at, pauseTotal: 0, pauseCount: att.pauses || 0,
-    answers: results.map(r => (r.sel || []).slice()), times: results.map(r => r.t || 0), skips: results.map(r => !!r.skip), slips: results.map(r => !!r.slip), was: results.map(r => r.was || null),
+    answers: results.map(r => (r.sel || []).slice()), times: results.map(r => r.t || 0), skips: results.map(r => !!r.skip), slips: results.map(r => !!r.slip), was: results.map(r => r.was || null), confs: results.map(r => r.conf || null), whys: results.map(r => r.why || null),
     rv: results.map(r => ({ pts: r.pts, status: r.status })) });
   S = R;
   showResults();

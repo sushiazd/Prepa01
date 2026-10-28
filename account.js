@@ -82,6 +82,7 @@
   SYNC['ma2.hist.v1'] = SYNC['elec.hist.v1'];
   SYNC['el2.path.v1'] = SYNC['elec.path.v1'];
   SYNC['el2.hist.v1'] = SYNC['elec.hist.v1'];
+  ['elec', 'algo', 'phys', 'meca', 'ms1', 'ma2', 'el2'].forEach(p => { SYNC[p + '.learn.v1'] = SYNC['ato.learn.v1']; });
   const KEYS = Object.keys(SYNC);
 
   /* ---------- Outils ---------- */

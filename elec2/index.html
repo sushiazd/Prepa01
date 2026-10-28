@@ -11,9 +11,10 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../subjects.js?v=2026102802"></script>
-<script src="../core.js?v=2026101601"></script>
+<script src="../core.js?v=2026102802"></script>
+<script src="learn.js?v=2026102802"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026101601">
+<link rel="stylesheet" href="../core.css?v=2026102803">
 <style>
 :root{
   --accent:var(--phys); --accent-soft:var(--phys-soft);
@@ -117,7 +118,7 @@ table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:l
    OUTILS
    ===================================================================== */
 // Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
-const E = SiteCore({ id: 'el2', get DUR() { return DUR; },
+const E = SiteCore({ id: 'el2', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return DUR; },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
@@ -159,6 +160,8 @@ const UN = {
   'kg·m²/s': { 'kg.m2/s': 1, 'kg.m2.s-1': 1, 'J.s': 1, Js: 1, 'kgm2/s': 1 },
   'N·m': { 'N.m': 1, Nm: 1, 'm.N': 1 },
   'kg/s': { 'kg/s': 1, 'kg.s-1': 1 },
+  'V': { V: 1, mV: 1e-3, kV: 1e3 },
+  'Hz': { Hz: 1, kHz: 1e3, MHz: 1e6 },
   '': {}
 };
 function parseNum(raw, unit) {
@@ -476,6 +479,7 @@ const HELP = '<p class="fine" style="margin-top:12px">Formules : <code>2R</code>
    COMPÉTENCES ET PROGRESSION (mêmes règles que les autres matières)
    ===================================================================== */
 const CH = ['Démonstrations', 'Théorème de Thévenin', 'Condensateur et bobine', 'Circuits du premier ordre'];
+const LEARN = window.SITE_LEARN ? window.SITE_LEARN({ Ch, Nn, Ex, K, esc }) : {};
 const SK = [
   { id: 'demos', ch: 0, name: 'Démos : ponts diviseurs, Millman', fiche: 0 },
   { id: 'rth', ch: 1, name: 'Résistance de Thévenin', fiche: 1 },
@@ -503,13 +507,15 @@ function exHTML(ex) {
 }
 function renderEx() {
   const host = $('#exHost'); if (!host || !CUR) return;
+  if (E.lessonGate(host)) return;
   const k = CUR.k, s = skS(pst(), k.id);
-  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span><button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span>${E.learnBtn(k)}<button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
     + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
     + exHTML(CUR.ex);
   mathIn(host);
   CUR.ex.items.forEach(it => { if (it.id in CUR.first) { const fb = $(`.it[data-id="${it.id}"] .fb`, host); if (fb) fb.innerHTML = fbHTML(check(it, valOf(host, it.id))); } });
   $$('input[data-expr]', host).forEach(preview);
+  E.decorateEx(host);
   host.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function checkCur() {
@@ -518,7 +524,7 @@ function checkCur() {
   CUR.ex.items.forEach(it => {
     const r = check(it, valOf(host, it.id)), fb = $(`.it[data-id="${it.id}"] .fb`, host);
     if (fb) fb.innerHTML = fbHTML(r);
-    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? 1 : 0;
+    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? E.credit() : 0;
   });
   saveCur();
   if (CUR.ex.items.every(it => it.id in CUR.first)) finish(CUR.ex.items.reduce((a, it) => a + CUR.first[it.id], 0) / CUR.ex.items.length);
@@ -580,6 +586,7 @@ const FICHES = [
 ];
 function vCours(open) {
   app.innerHTML = `<div><p class="eyebrow">Électronique analogique · CC2</p><h1>Le cours utile</h1><p class="lede">Ce qu'il faut savoir pour le CC2, dans l'ordre des exercices des annales : démonstrations, Thévenin, condensateur et bobine, circuits du premier ordre.</p></div>
+    ${E.lessonList()}<div id="learnHost" style="display:grid;gap:16px"></div>
     ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
   mathIn(app);
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }

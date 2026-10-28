@@ -8,9 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
 <script src="../subjects.js?v=2026102802"></script>
-<script src="../core.js?v=2026101601"></script>
+<script src="../core.js?v=2026102802"></script>
+<script src="learn.js?v=2026102802"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026101601">
+<link rel="stylesheet" href="../core.css?v=2026102803">
 <style>
 :root{
   --accent:var(--algo); --accent-soft:var(--algo-soft);
@@ -108,7 +109,7 @@ code,pre,.mono,.it-lab,.ch,textarea,input,.tests{font-variant-ligatures:none;fon
    OUTILS
    ===================================================================== */
 // Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
-const E = SiteCore({ id: 'algo', get DUR() { return DUR; },
+const E = SiteCore({ id: 'algo', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: checkSync, valOf, fbHTML }; }, get DUR() { return DUR; },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
@@ -562,6 +563,7 @@ const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); 
    COMPÉTENCES ET PROGRESSION (mêmes règles que l'élec et l'atomistique)
    ===================================================================== */
 const CH = ['Bases de Python', 'Fonctions', 'Complexité', 'Tableaux et chaînes', 'Dictionnaires'];
+const LEARN = window.SITE_LEARN ? window.SITE_LEARN({ esc }) : {};
 const SK = [
   { id: 'types', ch: 0, name: 'Types et valeurs d\'expressions', fiche: 0 },
   { id: 'trace', ch: 0, name: 'Suivre l\'exécution d\'un programme', fiche: 1 },
@@ -588,12 +590,14 @@ function exHTML(ex) {
 }
 function renderEx() {
   const host = $('#exHost'); if (!host || !CUR) return;
+  if (E.lessonGate(host)) return;
   const k = CUR.k, s = skS(pst(), k.id);
-  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span><button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span>${E.learnBtn(k)}<button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
     + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
     + exHTML(CUR.ex);
   CUR.ex.items.forEach(it => { if (it.id in CUR.first && it.type !== 'code') { const fb = $(`.it[data-id="${it.id}"] .fb`, host); if (fb) fb.innerHTML = fbHTML(checkSync(it, valOf(host, it.id))); } });
   if (CUR.ex.items.some(it => it.type === 'code') && !pyWarm) $('#pyNote').textContent = 'Le premier test charge Python dans le navigateur (≈ 10 Mo, une seule fois) : ça peut prendre 10 à 30 secondes.';
+  E.decorateEx(host);
   host.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 async function checkCur() {
@@ -606,7 +610,7 @@ async function checkCur() {
     const fb = $(`.it[data-id="${it.id}"] .fb`, host);
     if (fb) fb.innerHTML = fbHTML(r);
     if (r.retry) continue;
-    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? 1 : (r.frac && !CUR.peek ? r.frac : 0);
+    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? E.credit() : (r.frac && !CUR.peek ? r.frac : 0);
   }
   busy = false; if (btn) { btn.disabled = false; btn.textContent = 'Vérifier'; }
   if ($('#pyNote')) $('#pyNote').textContent = '';
@@ -709,6 +713,7 @@ for c in d:              # parcourt les CLÉS
 ];
 function vCours(open) {
   app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS du 5/11</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 9 fiches : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
+    ${E.lessonList()}<div id="learnHost" style="display:grid;gap:16px"></div>
     ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}
     <section class="card"><h2>Après le DS du 5/11</h2><p class="sub">Récursivité (cas de base + appel sur un problème plus petit), graphes (matrice et listes d'adjacence), piles et files, parcours en profondeur et en largeur, graphes pondérés, preuves de programmes : ce sera pour le DS du 7/12 et l'oral de janvier.</p></section>`;
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }

@@ -60,7 +60,7 @@
 
     return {
       /* =================== I. Structure de l'atome =================== */
-      noyau: { title: 'Ce qu\'il y a dans un atome', steps: [
+      noyau: { title: 'Ce qu\'il y a dans un atome', meth: "\\(Z\\) = protons (c'est l'élément), \\(N = A - Z\\) neutrons, électrons = \\(Z\\) − charge (un cation a <b>perdu</b> des électrons).", steps: [
         { h: 'Un noyau minuscule qui porte presque toute la masse',
           body: `<p>Un atome, c'est un <b>noyau</b> (des protons, chargés +e, et des neutrons, neutres) entouré d'<b>électrons</b> (chargés −e). Protons et neutrons sont les <b>nucléons</b>.</p>
             <ul><li>Tailles : noyau ≈ \\(10^{-14}\\) m, atome ≈ \\(10^{-10}\\) m (1 Å). L'atome est 10 000 fois plus grand que son noyau : si le noyau était une bille de 1 cm, les électrons seraient à 100 m. <b>L'atome est surtout du vide.</b></li>
@@ -89,7 +89,7 @@
             why: 'Même \\(A = 40\\) mais \\(Z\\) différents (18 et 20) : deux éléments différents de même nombre de masse, ce sont des isobares.' } }
       ] },
 
-      iso: { title: 'Isotopes et masse molaire', steps: [
+      iso: { title: 'Isotopes et masse molaire', meth: "masse molaire = moyenne pondérée \\(M = \\sum x_i M_i\\) avec \\(\\sum x_i = 1\\) ; pour retrouver une abondance, pose \\(x\\) et \\(1 - x\\).", steps: [
         { h: 'La mole : compter les atomes par paquets',
           body: `<p>Un atome est bien trop léger pour être pesé seul. On compte donc par <b>paquets</b> : 1 mole = \\(N_A = 6{,}022\\times10^{23}\\) entités (autant que d'atomes dans 12 g de carbone 12). C'est comme une « douzaine », en beaucoup plus gros.</p>
             <p>La <b>masse molaire</b> \\(M\\) (g/mol) est la masse d'une mole. Pour un isotope, \\(M \\approx A\\) g/mol, car chaque nucléon pèse environ 1 u (1 u = 1/12 de la masse d'un atome de \\({}^{12}\\mathrm{C}\\) = \\(1{,}66\\times10^{-27}\\) kg) : \\({}^{12}\\mathrm{C}\\) fait 12 g/mol.</p>`,
@@ -110,7 +110,7 @@
       ] },
 
       /* =================== II. Spectres atomiques =================== */
-      onde: { title: 'La lumière : onde et photons', steps: [
+      onde: { title: 'La lumière : onde et photons', meth: "\\(\\nu = c/\\lambda\\) et \\(E = h\\nu = hc/\\lambda\\) ; λ en mètres ; 1 eV = \\(1{,}602\\times10^{-19}\\) J.", steps: [
         { h: 'Une onde, c\'est une oscillation qui avance',
           body: `<p>La lumière est une <b>onde électromagnétique</b> : un champ électrique et un champ magnétique qui oscillent en avançant, dans le vide, à \\(c = 3{,}00\\times10^{8}\\) m/s. Deux grandeurs la décrivent :</p>
             <ul><li>la <b>longueur d'onde</b> \\(\\lambda\\) (en m) : la distance entre deux crêtes ;</li><li>la <b>fréquence</b> \\(\\nu\\) (en Hz, c'est-à-dire s⁻¹) : le nombre d'oscillations par seconde.</li></ul>${WAVES}
@@ -161,7 +161,7 @@
             why: '\\(\\lambda = \\dfrac{6{,}626\\times10^{-34}}{9{,}11\\times10^{-31}\\times2{,}2\\times10^{6}} = 3{,}31\\times10^{-10}\\) m = 331 pm. C\'est la taille d\'un atome : l\'électron « ondule » à l\'échelle de l\'atome, donc sa nature d\'onde ne peut pas être ignorée.' } }
       ] },
 
-      niv: { title: 'Les niveaux d\'énergie de l\'atome', steps: [
+      niv: { title: 'Les niveaux d\'énergie de l\'atome', meth: "\\(E_n = -\\dfrac{13{,}6\\,Z^2}{n^2}\\) eV pour un hydrogénoïde (un seul électron) ; ioniser depuis le niveau \\(n\\) coûte \\(-E_n\\).", steps: [
         { h: 'L\'énigme : l\'hydrogène n\'émet que quelques couleurs',
           body: `<p>Dans un tube rempli d'hydrogène sous faible pression, on applique une très haute tension : le gaz brille. À travers un prisme, on n'obtient pas un arc-en-ciel mais 4 fines raies visibles (plus d'autres dans l'UV et l'IR) :</p>${spectrum([[410.1, '410'], [434.0, '434'], [486.1, '486'], [656.3, '656 nm']])}
             <p>C'est un <b>spectre de raies</b> (discontinu). Le modèle classique de Rutherford prévoyait l'inverse : l'électron devrait tomber en spirale sur le noyau en émettant toutes les couleurs, et l'atome ne serait pas stable. Il faut un autre modèle : celui de <b>Bohr</b> (1913).</p>`,
@@ -197,7 +197,7 @@
             why: 'Li<sup>2+</sup> : 3 − 2 = 1 électron ✓ (He, Li<sup>+</sup> et H<sup>−</sup> en ont 2). Pour He<sup>+</sup>, \\(E_1 = -13{,}6\\times\\dfrac{2^2}{1^2} = -54{,}4\\) eV, 4 fois plus bas que pour H.' } }
       ] },
 
-      trans: { title: 'Les sauts : absorption et émission', steps: [
+      trans: { title: 'Les sauts : absorption et émission', meth: "photon émis ou absorbé : \\(|\\Delta E| = |E_{n_2} - E_{n_1}|\\), puis \\(\\lambda = hc/|\\Delta E|\\) avec \\(\\Delta E\\) en joules.", steps: [
         { h: 'Changer de marche, c\'est échanger un photon',
           body: `<p>L'électron passe d'un niveau à un autre d'un seul coup : c'est une <b>transition</b>. L'énergie se conserve : ce que l'atome gagne ou perd, c'est exactement l'énergie d'un photon.</p>
             <ul><li>Il <b>monte</b> : l'atome gagne de l'énergie en <b>absorbant</b> un photon (absorption).</li><li>Il <b>descend</b> : l'atome perd de l'énergie en <b>émettant</b> un photon (émission).</li></ul>${levels([[1, 3, 130, '#16a34a'], [3, 2, 260, '#dc2626']], [[130, 'absorption 1 → 3', '#16a34a'], [260, 'émission 3 → 2', '#dc2626']])}
@@ -233,7 +233,7 @@
             why: '\\(|\\Delta E| = 13{,}6\\times4\\times\\left(1 - \\dfrac14\\right) = 40{,}8\\) eV \\(= 6{,}54\\times10^{-18}\\) J ; \\(\\lambda = \\dfrac{1{,}988\\times10^{-25}}{6{,}54\\times10^{-18}} = 3{,}04\\times10^{-8}\\) m = 30,4 nm, dans l\'UV ; \\(\\nu = \\dfrac{3{,}00\\times10^{8}}{3{,}04\\times10^{-8}} = 9{,}87\\times10^{15}\\) Hz. Pour H, ce même saut donnerait 122 nm : \\(Z^2 = 4\\) fois plus.' } }
       ] },
 
-      serie: { title: 'Séries de raies et formule de Ritz', steps: [
+      serie: { title: 'Séries de raies et formule de Ritz', meth: "Ritz : \\(\\dfrac1\\lambda = R_H Z^2\\left(\\dfrac{1}{n_1^2} - \\dfrac{1}{n_2^2}\\right)\\) ; \\(n_1\\) fixe la série (1 Lyman, UV ; 2 Balmer, visible ; 3 Paschen, IR).", steps: [
         { h: 'Une série, ce sont tous les sauts qui arrivent sur le même niveau',
           body: `<p>On range les raies d'émission selon le niveau d'arrivée \\(n\\) (le départ \\(p > n\\) varie) :</p>${levels([[2, 1, 84, '#7c3aed'], [3, 1, 100, '#7c3aed'], [4, 1, 116, '#7c3aed'], [3, 2, 180, '#dc2626'], [4, 2, 196, '#dc2626'], [5, 2, 212, '#dc2626'], [4, 3, 280, '#b45309'], [5, 3, 296, '#b45309'], [6, 3, 312, '#b45309']], [[100, 'Lyman (UV)', '#7c3aed'], [200, 'Balmer (visible)', '#dc2626'], [305, 'Paschen (IR)', '#b45309']])}
             ${tbl(['arrivée n', 'série', 'domaine'], [['1', 'Lyman', 'UV'], ['2', 'Balmer', 'visible'], ['3', 'Paschen', 'IR'], ['4, 5', 'Brackett, Pfund', 'IR']])}
@@ -266,7 +266,7 @@
       ] },
 
       /* =================== III. Modèle quantique =================== */
-      nq: { title: 'Pourquoi des nombres quantiques ?', steps: [
+      nq: { title: 'Pourquoi des nombres quantiques ?', meth: "\\(n \\geq 1\\), \\(0 \\leq \\ell \\leq n - 1\\), \\(-\\ell \\leq m_\\ell \\leq \\ell\\), \\(m_s = \\pm\\tfrac12\\) ; \\(\\ell\\) = 0, 1, 2, 3 pour s, p, d, f.", steps: [
         { h: 'Fini les trajectoires',
           body: `<p>On l'a vu avec De Broglie : l'électron d'un atome est une onde, de la taille de l'atome. Et <b>Heisenberg</b> montre qu'on ne peut pas connaître à la fois sa position et sa vitesse (\\(\\Delta x\\,\\Delta p \\geq h/4\\pi\\)). Les orbites de Bohr n'ont donc plus de sens.</p>
             <p>On décrit l'électron par une <b>fonction d'onde</b> \\(\\psi\\), solution de l'équation de Schrödinger ; \\(|\\psi|^2\\) donne la probabilité de le trouver à chaque endroit. Une <b>orbitale atomique</b> (O.A.) est une de ces fonctions : une zone où l'électron a de fortes chances d'être.</p>
@@ -297,7 +297,7 @@
       ] },
 
       /* =================== IV. Atomes polyélectroniques =================== */
-      conf: { title: 'Remplir les électrons dans l\'ordre', steps: [
+      conf: { title: 'Remplir les électrons dans l\'ordre', meth: "règle de Klechkowski (\\(n + \\ell\\) croissant, puis \\(n\\) croissant) : 1s 2s 2p 3s 3p 4s 3d 4p 5s 4d… ; au plus 2 électrons en s, 6 en p, 10 en d.", steps: [
         { h: 'Avec plusieurs électrons, l\'énergie dépend de n et de ℓ',
           body: `<p>Dans H, l'énergie ne dépend que de \\(n\\). Avec plusieurs électrons, ceux de l'intérieur font écran : un électron externe ne ressent qu'une charge effective \\(Z^* = Z - \\sigma\\), plus petite que \\(Z\\). Et cet écran dépend de la forme de l'orbitale : un électron 4s pénètre plus près du noyau qu'un 3d, donc 4s est plus bas en énergie que 3d.</p>
             <p>Dans l'état fondamental, les électrons occupent les places les plus basses disponibles, comme un hôtel qu'on remplit en commençant par le rez-de-chaussée.</p>`,
@@ -325,7 +325,7 @@
             why: 'Cl : (Ne) 3s² 3p⁵, soit 2 + 5 = 7 électrons de valence. Il lui en manque un pour avoir la structure de l\'argon : d\'où Cl<sup>−</sup>.' } }
       ] },
 
-      exc: { title: 'Exceptions et ions', steps: [
+      exc: { title: 'Exceptions et ions', meth: "Cr, Cu, Mo, Ag : d⁵ s¹ ou d¹⁰ s¹ ; un ion d'élément de transition perd d'abord ses électrons 4s, avant les 3d.", steps: [
         { h: 'Demi-pleine ou pleine : plus stable',
           body: `<p>Une sous-couche d à moitié pleine (d⁵) ou pleine (d¹⁰) est particulièrement stable. Quand Klechkowski donne d⁴ s² ou d⁹ s², un électron s passe donc dans la sous-couche d :</p>
             <ul><li>Cr (\\(Z = 24\\)) : (Ar) 3d⁴ 4s² → <b>(Ar) 3d⁵ 4s¹</b></li><li>Cu (\\(Z = 29\\)) : (Ar) 3d⁹ 4s² → <b>(Ar) 3d¹⁰ 4s¹</b></li><li>De même dans la colonne en dessous : Mo (\\(Z = 42\\)) = (Kr) 4d⁵ 5s¹ et Ag (\\(Z = 47\\)) = (Kr) 4d¹⁰ 5s¹.</li></ul>
@@ -339,7 +339,7 @@
             why: 'S a 6 électrons de valence : il en gagne 2 pour avoir (Ar), donc S<sup>2−</sup>. Mg, (Ne) 3s², perd ses 2 électrons 3s : Mg<sup>2+</sup> = 1s² 2s² 2p⁶ = (Ne).' } }
       ] },
 
-      case: { title: 'Cases quantiques et règle de Hund', steps: [
+      case: { title: 'Cases quantiques et règle de Hund', meth: "une case par orbitale, au plus 2 électrons de spins opposés (Pauli) ; dans une sous-couche, une flèche par case avant d'apparier (Hund).", steps: [
         { h: 'Dessiner les électrons dans des cases',
           body: `<p>Chaque orbitale est une case ${mono('[ ]')}, chaque électron une flèche : ↑ (\\(m_s = +\\tfrac12\\)) ou ↓ (\\(-\\tfrac12\\)). Pauli : au plus ↑↓ dans une case. Une sous-couche s a 1 case, p en a 3, d en a 5. En général, on ne dessine que la couche de valence.</p>`,
           ask: { q: 'Combien de cases compte une sous-couche d ?', items: [choice('réponse', [['3', '3'], ['5', '5'], ['7', '7'], ['10', '10']], '5')],
@@ -357,7 +357,7 @@
       ] },
 
       /* =================== V. Tableau périodique =================== */
-      place: { title: 'Lire le tableau périodique', steps: [
+      place: { title: 'Lire le tableau périodique', meth: "période = plus grand \\(n\\) ; bloc = dernière sous-couche remplie ; colonne d'après les électrons de valence (s + p, ou s + d pour le bloc d).", steps: [
         { h: 'Un tableau rangé par configuration',
           body: `<p>Mendeleïev rangeait les éléments par masse ; aujourd'hui, on les range par \\(Z\\). Chaque <b>ligne</b> (période) commence une nouvelle couche : la <b>période</b> est le \\(n\\) le plus grand de la configuration. Chaque <b>colonne</b> regroupe la même configuration de valence, donc une chimie semblable : tous les alcalins (ns¹) réagissent violemment avec l'eau.</p>
             <p>Connaître la configuration, c'est connaître la place, et inversement.</p>`,
@@ -375,7 +375,7 @@
             why: 'ns¹ : colonne 1, c\'est un alcalin (4<sup>e</sup> période).' } }
       ] },
 
-      prop: { title: 'Pourquoi les propriétés évoluent', steps: [
+      prop: { title: 'Pourquoi les propriétés évoluent', meth: "deux effets : \\(n\\) (distance) et \\(Z^*\\) (attraction) ; le rayon diminue vers la droite et augmente vers le bas, l'E.I. et l'électronégativité font l'inverse.", steps: [
         { h: 'Deux effets seulement : n et Z*',
           body: `<p>Tout découle de deux choses : la distance de l'électron externe (fixée par \\(n\\)) et la charge effective \\(Z^*\\) qu'il ressent (\\(Z\\) moins l'écran des électrons internes).</p>
             <ul><li><b>En descendant une colonne</b> : \\(n\\) augmente, l'électron externe est plus loin et plus écranté. L'atome est plus gros et l'électron moins retenu.</li>
@@ -398,6 +398,53 @@
             <p class="fine">Aussi : Zn (3d¹⁰ 4s² pleines) > Ga.</p>`,
           ask: { q: 'Plus grande énergie de 1<sup>re</sup> ionisation : N ou O ?', items: [choice('réponse', [['N', 'N'], ['O', 'O']], 'N')],
             why: 'Anomalie : N (2p³, demi-pleine) est plus stable. L\'électron apparié de O (2p⁴) est plus facile à arracher, donc E.I.(N) > E.I.(O), alors que O est plus à droite.' } }
+      ] },
+
+      /* =================== Partie 2 : liaisons chimiques (CC du 16/12) =================== */
+      lewis: { title: 'La liaison covalente et la règle de l\'octet', meth: 'compte les électrons de valence (colonne : s + p) de tous les atomes, ajuste avec la charge, place les liaisons simples, complète les octets (2 pour H) avec des doublets non liants, et passe en liaison double si un atome manque d\'électrons.', steps: [
+        { h: 'Partager pour compléter sa couche',
+          guess: { q: 'Combien de doublets non liants porte l\'oxygène dans H<sub>2</sub>O ?', items: [int('doublets', 2)] },
+          body: `<p>Un atome est stable quand sa couche externe est pleine, comme celle d'un gaz rare : 8 électrons (s² p⁶), la <b>règle de l'octet</b> (2 pour H, comme He). Pour y arriver sans gagner ni perdre d'électrons, deux atomes <b>mettent en commun</b> chacun un électron : c'est une liaison covalente, un doublet liant compté pour les deux.</p>
+            <p>O a 6 électrons de valence (colonne 16) : il lui en manque 2, il fait 2 liaisons (avec les deux H). Ses 4 électrons restants forment 2 <b>doublets non liants</b>. Bilan autour de O : 2 liaisons (4 électrons) + 2 doublets (4 électrons) = 8.</p>`,
+          ask: { q: 'Nombre total d\'électrons de valence de CO<sub>2</sub> (C : colonne 14, O : colonne 16) ?', items: [int('électrons', 16)], why: '4 + 6 + 6 = 16 électrons, soit 8 doublets : O=C=O, avec deux doublets non liants sur chaque O.' } },
+        { h: 'La méthode pas à pas',
+          body: `<ol><li>Total des électrons de valence (ajouter 1 par charge −, retirer 1 par charge +) ; diviser par 2 : nombre de doublets.</li><li>Atome central = le moins électronégatif (jamais H) ; liaisons simples vers les autres.</li><li>Compléter l'octet des atomes externes avec des doublets non liants, puis l'atome central.</li><li>S'il manque des électrons au centre, transformer un doublet non liant voisin en liaison double.</li></ol>`,
+          ask: { q: 'Dans N<sub>2</sub> (10 électrons de valence), la liaison entre les deux N est :', items: [choice('réponse', [['1', 'simple'], ['2', 'double'], ['3', 'triple']], '3')], why: 'Chaque N a 5 électrons et en veut 8 : il doit en partager 3. N≡N, avec un doublet non liant sur chaque N.' } }
+      ] },
+
+      cf: { title: 'Charges formelles et mésomérie', meth: 'charge formelle = électrons de valence de l\'atome − (électrons des doublets non liants + nombre de liaisons) ; leur somme vaut la charge de l\'édifice ; les formes mésomères ne diffèrent que par la place des électrons.', steps: [
+        { h: 'Qui a « trop » ou « pas assez » d\'électrons',
+          guess: { q: 'Dans l\'ion ammonium NH<sub>4</sub><sup>+</sup>, quel atome porte la charge + ?', items: [choice('réponse', [['N', 'N'], ['H', 'un des H']], 'N')] },
+          body: `<p>Dans une liaison, chaque atome « possède » un électron du doublet ; les doublets non liants sont entièrement à lui. On compare à ce qu'il a à l'état isolé (sa colonne) :</p>\\[CF = n_{\\text{valence}} - (n_{\\text{non liants}} + n_{\\text{liaisons}})\\]
+            <p>N dans NH<sub>4</sub><sup>+</sup> : 5 électrons de valence, 4 liaisons, aucun doublet non liant : \\(CF = 5 - 4 = +1\\). Les H ont \\(1 - 1 = 0\\). La somme \\(+1\\) est bien la charge de l'ion.</p>`,
+          ask: { q: 'Charge formelle d\'un O qui porte 3 doublets non liants (6 électrons) et 1 liaison simple ?', items: [int('CF', -1)], why: '\\(6 - (6 + 1) = -1\\), comme dans OH<sup>−</sup>.' } },
+        { h: 'Mésomérie : la vraie molécule est un mélange',
+          body: `<p>Parfois plusieurs schémas de Lewis sont possibles, qui ne diffèrent que par la place des doublets (ion carbonate, ozone). Aucun n'est « le vrai » : la molécule réelle est un intermédiaire, les électrons sont <b>délocalisés</b>. Dans CO<sub>3</sub><sup>2−</sup>, les trois liaisons C–O sont identiques, entre simple et double.</p>`,
+          ask: { q: 'D\'une forme mésomère à l\'autre, on déplace :', items: [choice('réponse', [['e', 'des électrons (doublets)'], ['a', 'des atomes'], ['b', 'les deux']], 'e')], why: 'Les atomes restent à leur place : seuls les doublets bougent.' } }
+      ] },
+
+      vsepr: { title: 'VSEPR : les doublets se repoussent', meth: 'autour de l\'atome central, compte \\(n\\) atomes liés (X, une liaison multiple compte pour un) et \\(p\\) doublets non liants (E) ; \\(n + p\\) fixe la figure (2 linéaire, 3 triangle, 4 tétraèdre), et la forme se lit en ne regardant que les atomes.', steps: [
+        { h: 'S\'écarter le plus possible',
+          guess: { q: 'Forme de la molécule CH<sub>4</sub> ?', items: [choice('réponse', [['c', 'carrée plane'], ['t', 'tétraédrique'], ['p', 'pyramidale']], 't')] },
+          body: `<p>Les doublets d'électrons autour de l'atome central se repoussent : ils se placent <b>le plus loin possible</b> les uns des autres. Deux doublets : à 180° (linéaire). Trois : à 120° (triangle). Quatre : dans les quatre directions d'un tétraèdre (109,5°), plus loin qu'un carré (90°).</p>
+            <p>Notation AX<sub>n</sub>E<sub>p</sub> : n atomes liés, p doublets non liants. CH<sub>4</sub> = AX<sub>4</sub> : tétraèdre. NH<sub>3</sub> = AX<sub>3</sub>E : les 4 doublets forment un tétraèdre, mais on ne « voit » que les 3 H : <b>pyramide</b>. H<sub>2</sub>O = AX<sub>2</sub>E<sub>2</sub> : molécule <b>coudée</b>.</p>`,
+          ask: { q: 'H<sub>2</sub>O est AX<sub>2</sub>E<sub>2</sub>. Son angle H–O–H est :', items: [choice('réponse', [['a', 'exactement 109,5°'], ['b', 'un peu moins (104,5°)'], ['c', '180°']], 'b')], why: 'Un doublet non liant prend plus de place qu\'une liaison : les deux doublets de O écrasent l\'angle H–O–H à 104,5°.' } }
+      ] },
+
+      hyb: { title: 'Hybridation et liaisons σ, π', meth: '\\(n + p\\) = 2, 3, 4 → hybridation sp, sp², sp³ ; une liaison simple = 1 σ ; double = 1 σ + 1 π ; triple = 1 σ + 2 π.', steps: [
+        { h: 'Mélanger les orbitales pour pointer dans les bonnes directions',
+          guess: { q: 'Le carbone de l\'éthylène C<sub>2</sub>H<sub>4</sub> (AX<sub>3</sub>, plan, 120°) est hybridé :', items: [choice('réponse', [['sp', 'sp'], ['sp2', 'sp²'], ['sp3', 'sp³']], 'sp2')] },
+          body: `<p>Les orbitales s et p d'un atome ne pointent pas dans les directions données par la VSEPR. L'atome les « mélange » (hybride) pour obtenir des orbitales identiques bien orientées : 1 s + 3 p → 4 orbitales sp³ (tétraèdre) ; 1 s + 2 p → 3 sp² (triangle, une p reste) ; 1 s + 1 p → 2 sp (ligne, deux p restent).</p>
+            <p>Les orbitales hybrides se recouvrent <b>dans l'axe</b> de la liaison : liaison <b>σ</b>. Les p restantes, parallèles, se recouvrent <b>sur le côté</b> : liaison <b>π</b>, plus faible. Une double liaison = σ + π, une triple = σ + 2 π.</p>`,
+          ask: { q: 'Combien de liaisons π dans N≡N ?', items: [int('π', 2)], why: 'Une triple liaison : 1 σ dans l\'axe + 2 π sur les côtés.' } }
+      ] },
+
+      polar: { title: 'Polarité et interactions entre molécules', meth: 'une liaison entre deux atomes d\'électronégativités différentes est polarisée (δ− sur le plus électronégatif) ; le moment dipolaire de la molécule est la somme vectorielle : une molécule symétrique (CO<sub>2</sub>, CCl<sub>4</sub>) est apolaire.', steps: [
+        { h: 'Un tir à la corde pour les électrons',
+          guess: { q: 'La molécule CO<sub>2</sub> (linéaire, O=C=O) est-elle polaire ?', items: [choice('réponse', [['o', 'oui'], ['n', 'non']], 'n')] },
+          body: `<p>Dans une liaison, l'atome le plus électronégatif tire le doublet vers lui : il porte une charge partielle δ−, l'autre δ+. Chaque liaison a un petit moment dipolaire (une flèche).</p>
+            <p>Pour la molécule entière, on <b>additionne les flèches</b>. Dans CO<sub>2</sub>, les deux liaisons C=O sont polarisées, mais elles tirent en sens opposés : la somme est nulle, CO<sub>2</sub> est <b>apolaire</b>. H<sub>2</sub>O est coudée : les deux flèches ne se compensent pas, elle est <b>polaire</b>. La géométrie (VSEPR) décide.</p>`,
+          ask: { q: 'Pourquoi l\'eau bout-elle à 100 °C, bien plus haut que H<sub>2</sub>S (−60 °C) ?', items: [choice('réponse', [['h', 'liaisons hydrogène entre molécules d\'eau'], ['m', 'H₂O est plus lourde'], ['c', 'liaisons covalentes plus fortes dans H₂O']], 'h')], why: 'H lié à O (très électronégatif) est attiré par les doublets d\'un O voisin : ces liaisons hydrogène retiennent les molécules entre elles. H₂O est pourtant plus légère que H₂S.' } }
       ] }
     };
   };

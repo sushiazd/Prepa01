@@ -11,6 +11,8 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../subjects.js?v=2026102802"></script>
+<script src="../core.js?v=2026102802"></script>
+<script src="learn.js?v=2026102802"></script>
 <script defer src="../account.js" data-lazy></script>
 <style>
 :root{
@@ -352,6 +354,47 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
 .topbar{top:env(safe-area-inset-top,0px)}
 @supports not (background:color-mix(in srgb,red 50%,blue)){ .topbar{background:var(--paper)} }
 @media print{ .topbar{display:none} body{background:#fff} .card{box-shadow:none;break-inside:avoid} }
+/* ---------- leçons « Comprendre », indice, origine de l'erreur (comme core.css) ---------- */
+:root{--accent:var(--pen);--accent-soft:var(--pen-soft)}
+.strip{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.strip b{font:600 17px/1.3 var(--serif)}
+.pwhy-tip:empty{display:none}
+/* ---------- Leçons « Comprendre » (core.js) ---------- */
+.learn h2{font:600 23px/1.3 var(--serif);margin-top:6px}
+.learn .lbody{font:17px/1.65 var(--serif);margin-top:12px}
+.learn .lbody p,.learn .lbody ul,.learn .lbody ol{margin-top:10px}
+.learn .lbody ul,.learn .lbody ol{padding-left:22px}
+.learn .lbody li+li{margin-top:4px}
+.learn .lbody .katex{font-size:1.04em}
+.learn .lbody .key{margin-top:14px;padding:12px 16px;border-left:3px solid var(--accent);background:var(--sheet-2);border-radius:0 10px 10px 0}
+.learn .lbody code{font:500 .92em/1.4 "JetBrains Mono",ui-monospace,monospace;font-variant-ligatures:none;background:var(--sheet-2);padding:1px 5px;border-radius:5px}
+.learn .lbody pre{margin-top:10px;padding:12px 14px;border-radius:10px;background:var(--sheet-2);border:1px solid var(--rule);overflow-x:auto;font:500 14.5px/1.5 "JetBrains Mono",ui-monospace,monospace;font-variant-ligatures:none}
+.learn .lbody pre code{background:none;padding:0}
+.lfig{display:block;width:100%;max-width:470px;height:auto;margin:14px auto 4px}
+.lask{margin-top:16px;padding:16px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule)}
+.lask.lguess{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.lask .ltag{font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.lask .lq{font:600 16.5px/1.5 var(--serif);margin-top:6px}
+.lask .items{margin-top:10px}
+.lwhy{margin-top:12px;padding:12px 16px;border-radius:10px;background:var(--sheet);border:1px solid var(--rule);font:16px/1.6 var(--serif)}
+.ldots{display:inline-flex;gap:5px;align-items:center}
+.ldots i{width:18px;height:5px;border-radius:3px;background:var(--rule-strong)} .ldots i.on{background:var(--accent)}
+.lnav{margin-top:18px}
+.tag-learn{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:var(--accent);color:#fff;font:600 11.5px/1 var(--sans)}
+.llist{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.llist .btn{max-width:100%;height:auto;min-height:40px;padding-top:8px;padding-bottom:8px;white-space:normal;text-align:left;line-height:1.3}
+/* indices gradués */
+.hints{display:grid;gap:8px;margin-top:14px}
+.hints:empty{display:none}
+.hint{padding:12px 16px;border-radius:12px;background:var(--pen-soft);border:1px solid color-mix(in srgb,var(--pen) 25%,transparent);font:16px/1.6 var(--serif)}
+.hint .hint-n{display:block;font:700 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--pen);margin-bottom:6px}
+.hint b{font-weight:600}
+/* origine de l'erreur, sous le résultat d'un exercice */
+.pwhy{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;padding:12px 14px;border:1px dashed var(--rule-strong);border-radius:12px}
+.pwhy>.fine{flex-basis:100%}
+.pwhy .btn{max-width:100%;height:auto;min-height:36px;white-space:normal;text-align:left}
+.pwhy .btn.on{color:var(--pen);background:var(--pen-soft);border-color:color-mix(in srgb,var(--pen) 35%,transparent)}
+.pwhy .sub{flex-basis:100%;margin:2px 0 0}
 </style>
 </head>
 <body data-view="home">
@@ -425,6 +468,8 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
     <h1>Le cours utile</h1>
     <p class="lede">Le cours d'électronique condensé en 7 fiches : définitions, formules, méthodes et pièges. Chaque fiche dit dans quel exercice du CC elle sert.</p>
   </div>
+  <div id="learnList"></div>
+  <div id="learnHost" style="display:grid;gap:16px"></div>
   <div id="coursBody" style="display:grid;gap:14px">
 
   <details class="th-card" open>
@@ -1581,6 +1626,7 @@ function showTab(tab) {
   if (tab === 'exos' && !$('#exHost').children.length) newExercise();
   if (tab === 'annales' && !$('#annGrid').children.length) renderAnnales();
   if (tab === 'blanc') renderBlanc();
+  if (tab === 'cours') renderLearnList();
   setView(tab);
   if (VIEWS.includes(tab) && tab !== 'exam' && tab !== 'res') history.replaceState(null, '', '#' + tab);
 }
@@ -2214,7 +2260,7 @@ function saveCur(bump = true) {
   clearTimeout(saveCurT);
   if (!CUR) return;
   const P = pst();
-  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, review: CUR.review, place: CUR.place, seed: CUR.seed, ans: CUR.ans, first: Object.fromEntries(CUR.first), peek: [...CUR.peek] };
+  P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, review: CUR.review, place: CUR.place, seed: CUR.seed, ans: CUR.ans, first: Object.fromEntries(CUR.first), peek: [...CUR.peek], hint: CUR.hint || 0 };
   if (bump) P.curT = Date.now();
   ls.set(PK, P);
 }
@@ -2234,14 +2280,22 @@ function pathStrip() {
   return `<div class="pstrip"><span class="lbl-s">${head}</span><b>${esc(k.name)}</b>`
     + (k.demo ? '' : `<span class="lvl" title="Difficulté">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>`)
     + (CUR.review ? '<span class="tag-rev">Révision</span>' : '')
-    + `<span class="spacer"></span><button type="button" class="btn btn-ghost btn-sm" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + `<span class="spacer"></span>${LS.button(k.id, 'btn btn-ghost btn-sm')}<button type="button" class="btn btn-ghost btn-sm" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + hintHTML()
     + (s.ko >= 2 && !CUR.review && !CUR.place ? `<div class="box warn"><h5>On ralentit</h5>Les deux derniers essais n'étaient pas bons, alors l'exercice est plus simple. Relis la fiche du cours (2 minutes), puis lis la correction en entier si tu bloques : c'est comme ça qu'on progresse.</div>` : '');
 }
 function startPathEx(k, o = {}) {
   const s = skS(pst(), k.id), R = o.resume || null;
+  if (!o.noLesson && LS.has(k.id) && (o.lesson || (!o.review && !o.place && !(R && Object.keys(R.first || {}).length) && (pst().relearn === k.id || (!isVal(s) && !LS.learned(k.id)))))) {
+    const host = $('#pathHost');
+    CUR = null;
+    LS.open(host, k.id, () => startPathEx(k, Object.assign({}, o, { noLesson: true, lesson: false })));
+    host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
   const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s);
   const seed = R && R.seed != null ? R.seed : Math.floor(Math.random() * 4294967296);
-  CUR = { k, d, seed, review: R ? !!R.review : !!o.review, place: R ? !!R.place : !!o.place, done: false, ids: [],
+  CUR = { k, d, seed, review: R ? !!R.review : !!o.review, place: R ? !!R.place : !!o.place, done: false, ids: [], hint: R ? R.hint || 0 : 0,
     first: new Map(R ? Object.entries(R.first || {}) : []), peek: new Set(R ? R.peek || [] : []), ans: R ? Object.assign({}, R.ans) : {} };
   const host = $('#pathHost');
   if (k.demo) { host.innerHTML = pathStrip() + `<article class="card exo"><div class="exo-head"><h2>${esc(DEMOS[k.demo].short)}</h2></div><p class="qb-text">« ${esc(DEMOS[k.demo].stmt)} »</p><div class="paper">Écris d'abord la démonstration sur ta feuille, sans regarder. Ensuite, remets les étapes dans l'ordre ci-dessous : zéro erreur pour valider.</div><div class="demo-panel" id="pDemo"></div></article>`; withSeed(seed, () => pathDemo(k.demo)); }
@@ -2291,16 +2345,17 @@ function pathCheck(bi) {
     fb.innerHTML = pill(r.st) + ' <span>' + msg + '</span>'; mathIn(fb);
     if (r.st !== 'empty' && r.st !== 'err' && !CUR.first.has(id)) {
       const ok = r.st === 'ok' && !CUR.peek.has(bi);
-      CUR.first.set(id, ok);
+      CUR.first.set(id, ok ? (CUR.hint ? 0.75 : 1) : 0);
       if (['ex2', 'ex3', 'ex4'].includes(CUR.ex.key) && !CUR.place) addStat(CUR.ex.key, ok);
       saveCurSoon();
     }
   });
-  if (!CUR.done && CUR.ids.every(id => CUR.first.has(id))) pathFinish(CUR.ids.filter(id => CUR.first.get(id)).length / CUR.ids.length);
+  if (!CUR.done && CUR.ids.every(id => CUR.first.has(id))) pathFinish(CUR.ids.reduce((a, id) => a + Number(CUR.first.get(id)), 0) / CUR.ids.length);
 }
 function pathFinish(r) {
   if (!CUR || CUR.done) return; CUR.done = true;
   const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
+  CUR.fin = { r, m0, ko0: s.ko || 0, review: CUR.review, why: null };
   s.n++; if (r === 1) s.ok++;
   let title, msg = '', extra = '';
   if (CUR.place) {
@@ -2321,6 +2376,7 @@ function pathFinish(r) {
     if (CUR.review) gain = r === 1 ? 15 : r >= .5 ? 0 : -30;
     else gain = r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
     if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
+    CUR.fin.gain = gain;
     s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now();
     const now = isVal(s); if (now) s.ever = true;
     P.since = CUR.review ? 0 : P.since + 1;
@@ -2350,9 +2406,10 @@ function pathFinish(r) {
   const st = r === 1 ? ['st-good', 'Parfait'] : r >= .5 ? ['st-part', 'Partiel'] : ['st-bad', 'Raté'];
   $('#pathHost').insertAdjacentHTML('beforeend', `<section class="card pres" id="pathRes">
     <div class="row"><span class="pill ${st[0]}">${st[1]}</span><span class="fine">${Math.round(r * 100)} % juste du premier coup</span></div>
-    <h3>${esc(title)}</h3><p class="sub">${esc(msg)}</p>
+    <h3>${esc(title)}</h3><p class="sub">${esc(msg)}</p>${CUR.hint ? '<p class="fine">1 indice utilisé : une réponse juste compte 3/4.</p>' : ''}
     ${CUR.place ? '' : `<div class="pm"><span class="fine">Maîtrise de « ${esc(k.name)} »</span><div class="bar ${s.m >= VAL ? '' : s.m >= 40 ? 'mid' : 'low'}"><i style="width:${pct(s.m)}%"></i></div><span class="fine">${pct(m0)} % → <b>${pct(s.m)} %</b></span></div>`}
     ${extra}
+    ${!CUR.place && r < 1 ? pathWhyHTML() : ''}
     <div class="row"><button type="button" class="btn btn-primary btn-lg" data-pact="next">Continuer</button>${CUR.place ? '' : `<button type="button" class="btn" data-pgo="${k.id}">Refaire ce type</button>`}</div>
   </section>`);
   mathIn($('#pathRes'));
@@ -2360,6 +2417,69 @@ function pathFinish(r) {
   renderPathTop(); renderPathMap();
   setTimeout(() => { const el = $('#pathRes'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60);
 }
+
+/* =====================================================================
+   LEÇONS « COMPRENDRE » (learn.js, moteur SiteLessons de core.js), INDICE, ORIGINE DE L'ERREUR
+   La leçon passe avant le premier exercice d'une compétence pas encore validée : l'idée, le pourquoi, une
+   prédiction (« Devine d'abord ») puis l'explication, et une petite question non notée par étape.
+   ===================================================================== */
+const LEARN = window.SITE_LEARN ? window.SITE_LEARN({ esc }) : {};
+const lNum = raw => { const t = String(raw == null ? '' : raw).trim().replace(/\s+/g, '').replace(',', '.').replace(/[×x]10\^?/i, 'e'); return t === '' ? NaN : Number(t); };
+const LS = window.SiteLessons ? window.SiteLessons({ id: 'elec', LEARN: () => LEARN, SK: () => SK, CH: () => PCH, typeset: el => mathIn(el),
+  kit: () => ({
+    itemHTML: (it, id, val) => it.type === 'choice'
+      ? `<div class="it" data-id="${id}"><span class="it-lab">${it.lab || ''}</span><div class="it-in ch-row">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${o.t}</span></label>`).join('')}</div><div class="fb"></div></div>`
+      : `<div class="it" data-id="${id}"><span class="it-lab">${it.lab || ''}</span><div class="it-in"><input type="text" class="l-in" data-id="${id}" inputmode="decimal" autocomplete="off" spellcheck="false" value="${esc(val || '')}" placeholder="ex : 2,5">${it.unit ? `<span class="unit">${it.unit}</span>` : ''}</div><div class="fb"></div></div>`,
+    check: (it, raw) => {
+      if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
+      const v = lNum(raw); if (String(raw || '').trim() === '') return { st: 'empty' };
+      if (!isFinite(v)) return { st: 'err', msg: 'écris un nombre (virgule ou point).' };
+      return { st: Math.abs(v - it.val) <= Math.max((it.tol || 0.02) * Math.abs(it.val), 1e-9) ? 'ok' : 'bad' };
+    },
+    valOf: (root, id) => { const r = $(`input[name="${id}"]:checked`, root); if (r) return r.value; const t = $(`input.l-in[data-id="${id}"]`, root); return t ? t.value : ''; },
+    fbHTML: r => pill(r.st) + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '')
+  }),
+  onLearn: (k, b) => { if (!$('#pathHost').contains(b)) return false; const sk = skById(k); if (sk) startPathEx(sk, CUR && CUR.k === sk && !CUR.done ? { resume: Object.assign(pst().cur || {}, {}), lesson: true } : { lesson: true }); return true; },
+  onDone: k => { const P = pst(); if (P.relearn === k) { delete P.relearn; ls.set(PK, P); } },
+  listHost: () => $('#learnHost'), onClose: () => renderLearnList() }) : { has: () => false, learned: () => true, button: () => '', list: () => '', meth: () => '', open() {} };
+function renderLearnList() { const el = $('#learnList'), h = $('#learnHost'); if (el) el.innerHTML = LS.list(); if (h) h.innerHTML = ''; }
+// Un indice : ce qu'il faut reconnaître et la méthode ; une réponse juste après l'indice compte 3/4
+function hintHTML() {
+  if (!CUR || CUR.place || !LS.meth(CUR.k.id)) return '';
+  return CUR.hint ? `<div class="hint"><span class="hint-n">Indice</span>${LS.meth(CUR.k.id)}</div>`
+    : (CUR.done ? '' : '<div class="row"><button type="button" class="btn btn-ghost btn-sm" data-phint="1" title="Une réponse juste après l\'indice compte 3/4 : bien mieux que lire la correction">💡 Un indice : par où commencer ?</button></div>');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('[data-phint]') || !CUR || CUR.done) return;
+  CUR.hint = 1; saveCur();
+  const b = e.target.closest('.row'); b.outerHTML = hintHTML(); mathIn($('#pathHost'));
+});
+// Origine de l'erreur : erreur de calcul (rien de perdu), méthode pas trouvée, confusion, idée fausse (la leçon repasse)
+const PWHY = { calc: '✎ Erreur de calcul', meth: 'Pas trouvé la méthode', mix: 'Confondu avec une autre méthode', idee: 'Je croyais que c\'était juste' };
+function pathWhyTip() {
+  const F = CUR && CUR.fin, k = CUR && CUR.k; if (!F || !F.why) return '';
+  return F.why === 'calc' ? 'Erreur de calcul : ta maîtrise ne baisse pas. Refais le calcul de la correction ligne à ligne.'
+    : F.why === 'meth' ? 'Méthode pas trouvée.' + (LS.meth(k.id) ? ' Ce qu\'il fallait reconnaître : ' + LS.meth(k.id) : ' Relis la fiche du cours.')
+    : F.why === 'mix' ? 'Deux méthodes confondues : relis la fiche. Quel indice de l\'énoncé dit laquelle utiliser ?'
+    : LS.has(k.id) ? 'Idée fausse : la leçon « Comprendre » repassera avant le prochain exercice de cette compétence.' : 'Idée fausse : relis la fiche du cours avant de continuer.';
+}
+function pathWhyHTML() {
+  const F = CUR.fin, k = CUR.k;
+  return `<div class="pwhy" id="pathWhy"><span class="fine">D'où vient l'erreur ? (facultatif)</span>${Object.keys(PWHY).map(v => `<button type="button" class="btn btn-ghost btn-sm${F.why === v ? ' on' : ''}" data-pwhy="${v}" aria-pressed="${F.why === v}">${PWHY[v]}</button>`).join('')}<p class="sub pwhy-tip">${pathWhyTip()}</p>${LS.has(k.id) && (F.why === 'meth' || F.why === 'idee') ? `<button type="button" class="btn btn-sm" data-learn="${k.id}">Revoir la leçon « Comprendre »</button>` : ''}</div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-pwhy]'); if (!b || !CUR || !CUR.done || !CUR.fin || CUR.fin.gain == null) return;
+  const F = CUR.fin, v = b.dataset.pwhy; F.why = F.why === v ? null : v;
+  const P = pst(), s = skS(P, CUR.k.id);
+  s.m = Math.max(0, Math.min(MMAX, F.m0 + (F.why === 'calc' && F.r < 1 ? 0 : F.gain))); s.ko = F.ko0 + (F.r < .5 && F.why !== 'calc' ? 1 : 0); if (isVal(s)) s.ever = true;
+  s.why = F.why || undefined;
+  if (F.why === 'idee' && LS.has(CUR.k.id)) P.relearn = CUR.k.id; else if (P.relearn === CUR.k.id) delete P.relearn;
+  ls.set(PK, P);
+  $('#pathWhy').outerHTML = pathWhyHTML();
+  const pm = $('#pathRes .pm b'), bar = $('#pathRes .pm .bar i'); const pct = Math.min(100, Math.round(s.m));
+  if (pm) pm.textContent = pct + ' %'; if (bar) bar.style.width = pct + '%';
+  renderPathTop(); renderPathMap();
+});
 function renderPathTop() {
   const P = pst(), { n, tot } = coreDone(P), f = frontier(P), pct = Math.round(100 * n / tot), fresh = !P.n && !CUR;
   const btns = fresh ? `<button type="button" class="btn btn-primary btn-lg" data-pact="next">Commencer depuis le début</button><button type="button" class="btn btn-lg" data-pact="place">J'ai des bases : test rapide</button>`

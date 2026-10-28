@@ -12,6 +12,129 @@
    ===================================================================== */
 (function () {
   'use strict';
+  /* =====================================================================
+     Leçons « Comprendre » : moteur autonome, utilisé par SiteCore (7 matières) et par la page d'élec.
+     Avant les exercices d'une compétence : l'idée (le pourquoi, une image concrète ou physique), étape par étape.
+     Une étape peut s'ouvrir par « Devine d'abord » (guess : une prédiction sur ce qui va être expliqué, non notée,
+     même au hasard) ; l'explication arrive ensuite et répond à la prédiction ; une petite vérification non notée
+     (ask) la ferme. Données : LEARN = { compétence: { title, meth, steps: [{ h, guess?, body, ask? }] } }, guess et
+     ask = { q, items, why }. meth = ce qu'il faut reconnaître dans l'énoncé et la méthode (sert aussi d'indice).
+     o = { id, LEARN(), SK(), CH(), kit() → { itemHTML, check (synchrone), valOf, fbHTML?, answer? }, typeset?,
+           onLearn(k, bouton) → true si la page gère le clic (bouton « Comprendre » d'un exercice), onDone(k)?,
+           listHost() → hôte de l'onglet Cours, onClose() → réaffiche l'onglet Cours }
+     Progression <id>.learn.v1 : { compétence: { i: étape atteinte, done: date } }, synchronisée (account.js).
+     ===================================================================== */
+  window.SiteLessons = function (o) {
+    const $ = (s, r = document) => r.querySelector(s);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const ls = {
+      get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+      set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
+    };
+    const toast = t => { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 3500); };
+    const PILL = { ok: '<span class="pill ok">Juste</span>', bad: '<span class="pill bad">Faux</span>', err: '<span class="pill bad">Illisible</span>', sign: '<span class="pill bad">Au signe près</span>' };
+    const plain = h => { const d = document.createElement('div'); d.innerHTML = String(h == null ? '' : h); return d.textContent.trim(); };
+    const LK = o.id + '.learn.v1';
+    const LEARN = () => o.LEARN() || {};
+    const kit = () => o.kit();
+    const lstate = () => ls.get(LK, {}) || {};
+    const learned = k => !!(lstate()[k] || {}).done;
+    const has = k => !!LEARN()[k];
+    let LES = null;   // { id, i, host, back, g: {i: true}, checked: {i: true}, ans: {} }
+    const items = (k, i, part) => { const b = LEARN()[k].steps[i][part]; return b ? b.items.map((it, j) => Object.assign({ id: `L-${k}-${i}-${part[0]}${j}` }, it)) : []; };
+    function answer(it) {
+      const a = kit().answer ? kit().answer(it) : null;
+      if (a != null && a !== '') return String(a);
+      if (it.type === 'choice') { const c = (it.opts || []).find(x => String(x.v) === String(it.ans)); return c ? plain(c.t) : String(it.ans); }
+      if (typeof it.val === 'number') return String(+it.val.toPrecision(6)).replace('.', ',') + (it.unit ? ' ' + it.unit : '');
+      return it.ans != null ? String(it.ans) : it.val != null ? String(it.val) : '';
+    }
+    function fb(it) {
+      const K = kit(), r = K.check(it, K.valOf(LES.host, it.id)), el = $(`.it[data-id="${it.id}"] .fb`, LES.host);
+      if (el) el.innerHTML = (r.st === 'empty' ? '' : K.fbHTML ? K.fbHTML(r) : (PILL[r.st] || '') + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '')) + (r.st !== 'ok' ? ` <span class="fine">→ réponse : ${esc(answer(it))}</span>` : '');
+      return r;
+    }
+    function open(host, k, back) {
+      const S = lstate()[k] || {};
+      LES = { id: k, i: S.done ? 0 : Math.min(S.i || 0, LEARN()[k].steps.length - 1), host, back, g: {}, checked: {}, ans: {} };
+      render();
+    }
+    function render() {
+      const { id: k, i, host } = LES, L = LEARN()[k], st = L.steps[i], N = L.steps.length, sk = o.SK().find(x => x.id === k), last = i === N - 1;
+      const guessed = !st.guess || !!LES.g[i], seen = !!LES.checked[i];
+      const box = (part, b, done, btns) => `<div class="lask${part === 'guess' ? ' lguess' : ''}"><p class="ltag">${part === 'guess' ? 'Devine d\'abord' : 'Vérifie'}</p><p class="lq">${b.q}</p>
+        <div class="items">${items(k, i, part).map(it => kit().itemHTML(it, it.id, LES.ans[it.id] || '')).join('')}</div>
+        ${done ? (b.why ? `<div class="lwhy">${b.why}</div>` : '') : `<div class="row" style="margin-top:12px">${btns}</div>`}</div>`;
+      host.innerHTML = `<div class="strip"><span class="tag-learn">Comprendre</span><span class="fine">${esc(o.CH()[sk.ch])}</span><b>${esc(sk.name)}</b><span class="sp" style="flex:1"></span><span class="ldots" aria-label="étape ${i + 1} sur ${N}">${L.steps.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</span><span class="fine">${i + 1}/${N}</span></div>
+        <article class="card learn"><p class="eyebrow">${esc(L.title)}</p><h2>${st.h}</h2>
+          ${st.guess ? box('guess', st.guess, guessed, '<button type="button" class="btn btn-primary" data-lact="guess">Je propose</button><button type="button" class="btn btn-ghost" data-lact="noidea">Aucune idée</button><span class="fine">Pas noté : essaie avant l\'explication, même au hasard. C\'est ce qui la fait retenir.</span>') : ''}
+          ${guessed ? `<div class="lbody">${st.body}</div>${st.ask ? box('ask', st.ask, seen, '<button type="button" class="btn" data-lact="check">Vérifier</button><span class="fine">Pas noté : c\'est pour voir si l\'idée est passée.</span>') : ''}` : ''}
+          <div class="row lnav">${i ? '<button type="button" class="btn btn-ghost" data-lact="prev">← Précédent</button>' : ''}<span class="sp" style="flex:1"></span>
+            ${last ? '' : '<button type="button" class="btn btn-ghost" data-lact="end">Passer la leçon</button>'}
+            <button type="button" class="btn btn-primary" data-lact="next"${!guessed || (st.ask && !seen) ? ' disabled title="Réponds d\'abord à la question"' : ''}>${last ? (LES.back.label || 'J\'ai compris : aux exercices') + ' →' : 'Suivant →'}</button></div></article>`;
+      if (st.guess && guessed) items(k, i, 'guess').forEach(fb);
+      if (seen) items(k, i, 'ask').forEach(fb);
+      if (o.typeset) o.typeset(host);
+    }
+    function act(a) {
+      if (!LES) return;
+      const k = LES.id, N = LEARN()[k].steps.length;
+      if (a === 'guess' || a === 'noidea' || a === 'check') {
+        const part = a === 'check' ? 'ask' : 'guess', its = items(k, LES.i, part);
+        its.forEach(it => { LES.ans[it.id] = kit().valOf(LES.host, it.id); });
+        if (a !== 'noidea' && its.some(it => kit().check(it, LES.ans[it.id]).st === 'empty')) { toast(part === 'guess' ? 'Propose une réponse (ou clique sur « Aucune idée »).' : 'Réponds à la question avant de vérifier.'); return; }
+        if (a === 'noidea') its.forEach(it => { LES.ans[it.id] = ''; });
+        if (part === 'ask') LES.checked[LES.i] = true; else LES.g[LES.i] = true;
+        render();
+        const tgt = $(part === 'ask' ? '.lask:not(.lguess) .lwhy' : '.lbody', LES.host);
+        if (tgt) tgt.scrollIntoView({ behavior: 'smooth', block: part === 'ask' ? 'nearest' : 'start' });
+        return;
+      }
+      const S = lstate();
+      if (a === 'prev') LES.i = Math.max(0, LES.i - 1);
+      else if (a === 'next' && LES.i < N - 1) LES.i++;
+      else {
+        S[k] = { i: 0, done: Date.now() }; ls.set(LK, S);
+        if (o.onDone) o.onDone(k);
+        const back = LES.back; LES = null; back(); return;
+      }
+      if (!(S[k] || {}).done) { S[k] = { i: Math.max(LES.i, (S[k] || {}).i || 0) }; ls.set(LK, S); }
+      render();
+      LES.host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // question de la leçon affichée (ids « L-… ») : pour l'aperçu de saisie de la page
+    const item = qid => LES ? items(LES.id, LES.i, 'guess').concat(items(LES.id, LES.i, 'ask')).find(x => x.id === qid) || null : null;
+    const button = (k, cls = 'btn btn-ghost') => has(k) ? `<button type="button" class="${cls}" data-learn="${k}">Comprendre</button>` : '';
+    // carte de l'onglet Cours : toutes les leçons, par chapitre (la page met un hôte pour la leçon ouverte)
+    function list() {
+      const ks = o.SK().filter(k => has(k.id));
+      if (!ks.length) return '';
+      const nd = ks.filter(k => learned(k.id)).length;
+      return `<section class="card"><h2>Les leçons « Comprendre »</h2><p class="sub">Le cours expliqué pour de vrai : d'où viennent les formules, ce qui se passe physiquement, pourquoi la méthode marche. À chaque étape, tu devines d'abord, l'explication arrive, puis une petite question sans enjeu. Les mêmes leçons ouvrent chaque compétence du parcours. ${nd}/${ks.length} finies.</p>
+        ${o.CH().map((c, ci) => { const l = ks.filter(k => k.ch === ci); return l.length ? `<p class="fine" style="margin-top:12px">${ci + 1}. ${esc(c)}</p><div class="llist">${l.map(k => `<button type="button" class="btn${learned(k.id) ? '' : ' btn-primary'}" data-learn="${k.id}">${learned(k.id) ? '✓ ' : ''}${esc(LEARN()[k.id].title)}</button>`).join('')}</div>` : ''; }).join('')}</section>`;
+    }
+    document.addEventListener('click', e => {
+      const la = e.target.closest('[data-lact]');
+      if (la) { if (!la.disabled) act(la.dataset.lact); return; }
+      const le = e.target.closest('[data-learn]'); if (!le || !has(le.dataset.learn)) return;
+      const k = le.dataset.learn;
+      if (o.onLearn && o.onLearn(k, le)) return;
+      const host = o.listHost(); if (!host) return;
+      const back = () => { LES = null; o.onClose(); window.scrollTo(0, 0); };
+      back.label = 'Fermer la leçon';
+      open(host, k, back);
+      host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    // Entrée dans une leçon : propose (devine) ou vérifie, sans déclencher la vérification de l'exercice de la page
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' || !LES || !e.target.closest || !e.target.closest('.learn') || e.target.tagName === 'TEXTAREA') return;
+      e.preventDefault(); e.stopPropagation();
+      const st = LEARN()[LES.id].steps[LES.i];
+      act(st.guess && !LES.g[LES.i] ? 'guess' : 'check');
+    }, true);
+    return { has, learned, open, item, button, list, meth: k => (LEARN()[k] || {}).meth || '', active: () => !!LES };
+  };
+
   window.SiteCore = function (cfg) {
     /* ---------- Outils ---------- */
     const $ = (s, r = document) => r.querySelector(s);
@@ -53,7 +176,7 @@
     function startEx(k, o = {}) {
       const P = pst(), s = skS(P, k.id), R = o.resume || null;
       const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s), seed = R ? R.seed : newSeed();
-      cfg.CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), done: false };
+      cfg.CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), hint: R ? R.hint || 0 : 0, done: false };
       cfg.CUR.ex = build(k.id, d, seed);
       if (cfg.CUR.mode === 'path' && !R) saveCur(!!o.user);
       cfg.renderEx();
@@ -62,7 +185,7 @@
       const CUR = cfg.CUR;
       if (!CUR || CUR.mode !== 'path') return;
       const P = pst();
-      P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek };
+      P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek, hint: CUR.hint || 0 };
       if (bump) P.curT = Date.now();
       ls.set(PK, P);
     }
@@ -74,21 +197,125 @@
       $('details.corr', host).open = true;
       if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); if (cfg.typeset) cfg.typeset(host); return; }
       const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
+      CUR.fin = { r, m0, ko0: s.ko || 0, st0: s.st || 0, review: CUR.review, was, why: null };
       s.n++; if (r === 1) s.ok++;
-      const gain = CUR.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
       if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
-      s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now(); if (isVal(s)) s.ever = true;
+      s.m = Math.max(0, Math.min(MMAX, s.m + gainOf(CUR.fin))); s.last = Date.now(); if (isVal(s)) s.ever = true;
       P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
       ls.set(PK, P);
-      const f = frontier(P), now = isVal(s);
-      const title = CUR.review ? (r === 1 ? 'Toujours acquis' : was && !now ? 'Un peu oublié' : 'À surveiller') : !was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
-      const msg = !was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
-      host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span></div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
-        <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
-        <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`);
-      if (!was && now && !CUR.review) toast('Compétence validée : ' + k.name);
+      host.insertAdjacentHTML('beforeend', resCard());
+      if (!was && isVal(s) && !CUR.review) toast('Compétence validée : ' + k.name);
       renderPathTop(); renderMap();
     }
+    // gain de maîtrise d'un exercice ; une erreur de calcul annotée ne fait rien perdre (la méthode est sue)
+    function gainOf(F) {
+      const r = F.r;
+      if (F.why === 'calc' && r < 1) return 0;
+      return F.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (F.st0 >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
+    }
+    /* Origine d'une erreur dans un exercice du parcours : calc (erreur de calcul : rien de perdu), meth (méthode pas
+       trouvée), mix (deux méthodes confondues), idee (idée fausse : la leçon « Comprendre » repasse avant l'exercice suivant). */
+    const PWHY = { calc: '✎ Erreur de calcul', meth: 'Pas trouvé la méthode', mix: 'Confondu avec une autre méthode', idee: 'Je croyais que c\'était juste' };
+    function resCard() {
+      const CUR = cfg.CUR, F = CUR.fin, r = F.r, k = CUR.k, P = pst(), s = skS(P, k.id), now = isVal(s), f = frontier(P), L = LEARN()[k.id];
+      const title = CUR.review ? (r === 1 ? 'Toujours acquis' : F.was && !now ? 'Un peu oublié' : 'À surveiller') : !F.was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
+      const msg = !F.was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+      const tip = F.why === 'calc' ? 'Erreur de calcul : ta maîtrise ne baisse pas. Refais le calcul de la correction ligne à ligne pour voir où ça a dérapé.'
+        : F.why === 'meth' ? 'Méthode pas trouvée.' + (L && L.meth ? ` Ce qu'il fallait reconnaître : ${L.meth}` : ' Relis la fiche du cours.')
+        : F.why === 'mix' ? 'Deux méthodes confondues : relis la fiche du cours. Quel indice de l\'énoncé dit laquelle utiliser ?'
+        : F.why === 'idee' ? (L ? 'Idée fausse : la leçon « Comprendre » repassera avant le prochain exercice de cette compétence.' : 'Idée fausse : relis la fiche du cours avant le prochain exercice.') : '';
+      const whyRow = r < 1 && CUR.mode === 'path' ? `<div class="pwhy"><span class="fine">D'où vient l'erreur ? (facultatif)</span>${Object.keys(PWHY).map(v => `<button type="button" class="btn btn-ghost${F.why === v ? ' on' : ''}" data-pwhy="${v}" aria-pressed="${F.why === v}">${PWHY[v]}</button>`).join('')}${tip ? `<p class="sub">${tip}</p>` : ''}${L && (F.why === 'meth' || F.why === 'idee') ? `<button type="button" class="btn" data-learn="${k.id}">Revoir la leçon « Comprendre »</button>` : ''}</div>` : '';
+      return `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span>${CUR.hint ? `<span class="fine">${CUR.hint} indice${CUR.hint > 1 ? 's' : ''} utilisé${CUR.hint > 1 ? 's' : ''}</span>` : ''}</div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
+        ${whyRow}
+        <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(F.m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
+        <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`;
+    }
+    function pathWhy(v) {
+      const CUR = cfg.CUR, F = CUR && CUR.done && CUR.fin;
+      if (!F || !PWHY[v]) return;
+      F.why = F.why === v ? null : v;
+      const P = pst(), s = skS(P, CUR.k.id);
+      s.m = Math.max(0, Math.min(MMAX, F.m0 + gainOf(F))); s.ko = F.ko0 + (F.r < .5 && F.why !== 'calc' ? 1 : 0); if (isVal(s)) s.ever = true;
+      s.why = F.why || undefined;
+      if (F.why === 'idee' && LEARN()[CUR.k.id]) P.relearn = CUR.k.id; else if (P.relearn === CUR.k.id) delete P.relearn;
+      ls.set(PK, P);
+      const card = $('#exHost .card.res'); if (card) { card.outerHTML = resCard(); }
+      renderPathTop(); renderMap();
+    }
+    document.addEventListener('click', e => { const b = e.target.closest('[data-pwhy]'); if (b) pathWhy(b.dataset.pwhy); });
+
+    /* ---------- Indices gradués ----------
+       Avant d'ouvrir la correction, on peut demander un indice, un à la fois : 1) ce qu'il faut reconnaître et la
+       méthode (cfg.LEARN[compétence].meth), 2) le début de la correction de CET exercice. Une réponse juste après
+       1 indice compte 3/4, après 2 indices 1/2 (exercice « presque » : +15 au lieu de −20 si on lit la correction).
+       La page appelle decorateEx(host) à la fin de renderEx, et note une réponse juste credit() au lieu de 1. */
+    const credit = () => [1, 0.75, 0.5][Math.min(2, (cfg.CUR && cfg.CUR.hint) || 0)];
+    // premier morceau de la correction : son premier paragraphe (ou sa première phrase s'il contient tout)
+    function corrStart(html) {
+      const d = document.createElement('div'); d.innerHTML = String(html || '');
+      const total = d.textContent.trim().length;
+      let b = d.firstElementChild;
+      while (b && /^(UL|OL)$/.test(b.tagName) && b.firstElementChild) b = b.firstElementChild;
+      let h = b ? b.innerHTML : d.innerHTML;
+      const len = x => { const e = document.createElement('div'); e.innerHTML = x; return e.textContent.trim().length; };
+      // trop long (tout le corrigé) : on coupe après une ponctuation hors formule (\( \) et \[ \] équilibrés)
+      if (total && len(h) >= 0.8 * total) {
+        const re = /[.;:](?=\s)/g, open = x => (x.split('\\(').length - x.split('\\)').length) + (x.split('\\[').length - x.split('\\]').length);
+        let m, cut = '';
+        while ((m = re.exec(h))) { const p = h.slice(0, m.index + 1); if (open(p) === 0 && len(p) >= 25) { if (len(p) < 0.8 * total) cut = p; break; } }
+        h = cut;
+      }
+      return h && len(h) < 0.8 * total ? h : '';
+    }
+    function hintList() {
+      const CUR = cfg.CUR, L = LEARN()[CUR.k.id], out = [];
+      out.push(L && L.meth ? `<b>Ce qu'il faut reconnaître</b> ${L.meth}` : `<b>Méthode</b> relis la fiche « ${esc(CUR.k.name)} » du cours : quelle loi ou quelle définition s'applique ici ?`);
+      const st = corrStart(CUR.ex.corr);
+      if (st) out.push(`<b>Le début de la correction</b> ${st}`);
+      return out;
+    }
+    function decorateEx(host) {
+      const CUR = cfg.CUR, card = $('.ex', host), act = card && $('.actions', card);
+      if (!CUR || !act || $('.hints', card)) return;
+      const H = hintList(), n = Math.min(CUR.hint || 0, H.length);
+      act.insertAdjacentHTML('beforebegin', `<div class="hints">${H.slice(0, n).map((h, i) => `<div class="hint"><span class="hint-n">Indice ${i + 1}</span>${h}</div>`).join('')}</div>`);
+      if (!CUR.done && !CUR.peek && n < H.length) act.insertAdjacentHTML('beforeend', `<button type="button" class="btn btn-ghost" data-act="hint" title="Un indice à la fois. Une réponse juste après un indice compte un peu moins, mais bien plus qu'après avoir lu la correction.">💡 ${n ? 'Un autre indice' : 'Un indice'} (${n + 1}/${H.length})</button>`);
+      if (cfg.typeset) cfg.typeset($('.hints', card));
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('[data-act="hint"]')) return;
+      const CUR = cfg.CUR; if (!CUR || CUR.done) return;
+      CUR.hint = Math.min(2, (CUR.hint || 0) + 1); saveCur();
+      const host = $('#exHost'), card = host && $('.ex', host);
+      if (!card) return;
+      $$('.hints, [data-act="hint"]', card).forEach(x => x.remove());
+      decorateEx(host);
+      const hs = $$('.hint', card); if (hs.length) hs[hs.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    /* ---------- Leçons « Comprendre » (moteur SiteLessons ci-dessus) ----------
+       La page donne cfg.LEARN (ses leçons) et cfg.lesson = { itemHTML, check (synchrone), valOf, fbHTML? }. */
+    const LEARN = () => cfg.LEARN || {};
+    const LS = window.SiteLessons({ id, LEARN, SK: () => cfg.SK, CH: () => cfg.CH, kit: () => Object.assign({ answer: cfg.answerText }, cfg.lesson || {}),
+      typeset: el => { if (cfg.typeset) cfg.typeset(el); },
+      // bouton « Comprendre » d'un exercice (ou « Revoir la leçon » sous son résultat) : la leçon s'ouvre à sa place
+      onLearn: (k, b) => { const ex = $('#exHost'), CUR = cfg.CUR; if (!(ex && ex.contains(b) && CUR && CUR.k.id === k)) return false; CUR.lesson = true; cfg.renderEx(); return true; },
+      onDone: k => { const P = pst(); if (P.relearn === k) { delete P.relearn; ls.set(PK, P); } },
+      listHost: () => $('#learnHost'), onClose: () => { if (cfg.views && cfg.views.cours) cfg.views.cours(); } });
+    // à appeler au début de renderEx : la leçon passe avant le premier exercice d'une compétence pas encore validée
+    // (ou après une idée fausse annotée) ; renvoie true si elle est affichée à la place de l'exercice
+    function lessonGate(host) {
+      const CUR = cfg.CUR; if (!CUR || !LS.has(CUR.k.id)) return false;
+      const k = CUR.k, P = pst(), s = skS(P, k.id), fresh = !Object.keys(CUR.first).length && !CUR.done;
+      if (CUR.lesson || (CUR.mode === 'path' && !CUR.review && fresh && (P.relearn === k.id || (!isVal(s) && !LS.learned(k.id))))) {
+        // leçon rouverte depuis un exercice fini (« Revoir la leçon ») : on enchaîne sur l'exercice suivant
+        LS.open(host, k.id, () => { const C = cfg.CUR; if (C) C.lesson = false; if (C && C.done && C.mode === 'path') nextPath({ fresh: true, user: true }); else cfg.renderEx(); });
+        host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return true;
+      }
+      return false;
+    }
+    const learnBtn = k => LS.button(k.id), lessonList = () => LS.list(), learned = k => LS.learned(k), lessonItem = qid => LS.item(qid);
 
     /* ---------- Onglets ---------- */
     const TABS = ['home', 'path', 'cours', 'exos', 'blanc'];
@@ -457,6 +684,7 @@
 
     return { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
       startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, examSynced, start,
-      tally, examRecord, examPlan, weakSkills, weakPlan, weakButton, hideCorr, copyTag, aiPrompt, aiParse };
+      tally, examRecord, examPlan, weakSkills, weakPlan, weakButton, hideCorr, copyTag, aiPrompt, aiParse,
+      credit, decorateEx, lessonGate, learnBtn, lessonList, learned, lessonItem };
   };
 })();

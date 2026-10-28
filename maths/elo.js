@@ -10,7 +10,7 @@
      fiabilité = on est assez sûr que tu réussis au moins 80 % des questions du thème. Beaucoup d'erreurs
      passées → il faut plus de réussites pour remonter ; une faute isolée ne ruine pas tout.
    - Couverture : la moyenne, sur TOUS les types de questions du thème (les modèles du générateur), de ta
-     dernière réponse à ce type (juste 1, vide 1/3, faux 0, partielle entre les deux). Un type jamais vu
+     dernière réponse à ce type (juste 1, juste mais « au pif » 1/2, vide 1/3, faux 0, partielle entre les deux). Un type jamais vu
      compte 50 % : on ne sait pas (comme un Elo de départ). 100 % de couverture = chaque type du thème réussi
      la dernière fois. Réussir 5 questions d'un seul type sur 20 ne prouve donc pas qu'on maîtrise le thème.
    Repères (thème de 9 types, jamais travaillé) : 5 justes sur 5 types → 69 %, 9 justes (un par type) → 99 %,
@@ -83,7 +83,7 @@
     if (i.qid && tplOf(i.qid) && tplOf(i.qid).startsWith('hc_')) { T.h.push({ s }); return; }
     T.S = T.S * LAMBDA + s; T.n = T.n * LAMBDA + 1; T.cnt++;
     const tp = i.qid && tplOf(i.qid);
-    if (tp && (CATALOG[th] || []).includes(tp)) T.last[tp] = s;
+    if (tp && (CATALOG[th] || []).includes(tp)) T.last[tp] = i.conf === 'p' && s >= 1 ? 0.5 : s;   // juste « au pif » : à moitié couvert
   }
   function themeMastery(T, th) {
     const types = CATALOG[th] || [];
@@ -100,7 +100,7 @@
   // copies d'un membre → observations dans l'ordre (épreuves et copies du prof)
   function observations(m) {
     const obs = [];
-    (m.attempts || []).forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip && r.theme).map(r => ({ qid: r.qid, theme: r.theme, pts: +r.pts, max: 1, slip: !!r.slip })) }));
+    (m.attempts || []).forEach(a => obs.push({ who: m.id, at: a.at, items: (a.results || []).filter(r => !r.skip && r.theme).map(r => ({ qid: r.qid, theme: r.theme, pts: +r.pts, max: 1, slip: !!r.slip, conf: r.conf })) }));
     (m.controls || []).forEach(c => obs.push({ who: m.id, at: c.at != null ? c.at : (Date.parse(c.date) || 0), items: (c.items || []).filter(i => i.theme).map(i => ({ theme: i.theme, pts: +i.pts, max: +i.max || 1 })) }));
     return obs;
   }

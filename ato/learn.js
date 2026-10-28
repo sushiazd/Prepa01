@@ -58,7 +58,7 @@
     const tbl = (head, rows) => `<table class="t"><tr>${head.map(x => `<th>${x}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(x => `<td>${x}</td>`).join('')}</tr>`).join('')}</table>`;
     const mono = s => `<span style="font-family:ui-monospace,Menlo,Consolas,monospace">${s}</span>`;
 
-    return {
+    const L = {
       /* =================== I. Structure de l'atome =================== */
       noyau: { title: 'Ce qu\'il y a dans un atome', meth: "\\(Z\\) = protons (c'est l'élément), \\(N = A - Z\\) neutrons, électrons = \\(Z\\) − charge (un cation a <b>perdu</b> des électrons).", steps: [
         { h: 'Un noyau minuscule qui porte presque toute la masse',
@@ -447,5 +447,39 @@
           ask: { q: 'Pourquoi l\'eau bout-elle à 100 °C, bien plus haut que H<sub>2</sub>S (−60 °C) ?', items: [choice('réponse', [['h', 'liaisons hydrogène entre molécules d\'eau'], ['m', 'H₂O est plus lourde'], ['c', 'liaisons covalentes plus fortes dans H₂O']], 'h')], why: 'H lié à O (très électronégatif) est attiré par les doublets d\'un O voisin : ces liaisons hydrogène retiennent les molécules entre elles. H₂O est pourtant plus légère que H₂S.' } }
       ] }
     };
+    /* ---------- Étapes ajoutées à la partie 2 (liaisons) : exercices guidés au format du CC ---------- */
+    const guided = '<p class="fine">Exercice guidé : fais le schéma sur ta feuille, étape par étape, puis tape les résultats.</p>';
+    const MORE = {
+      lewis: [
+        { h: 'Exercice guidé : le schéma de Lewis de HCN',
+          body: `${guided}<ol><li>Électrons de valence : H 1, C 4, N 5. Total ?</li><li>C au centre (H ne fait qu'une liaison) : H–C–N, deux liaisons simples, 4 électrons utilisés.</li><li>On complète l'octet de N, puis on constate qu'il manque des électrons à C : on transforme des doublets non liants de N en liaisons multiples.</li></ol>`,
+          ask: { q: 'Résultats :', items: [int('électrons de valence', 10), choice('liaison C–N', [['1', 'simple'], ['2', 'double'], ['3', 'triple']], '3'), int('doublets non liants sur N', 1)], why: '10 électrons = 5 doublets : H–C≡N, avec un doublet non liant sur N. C a 4 liaisons (8 électrons), N 3 liaisons + 1 doublet (8 électrons), H 2 électrons.' } }
+      ],
+      cf: [
+        { h: 'Exercice guidé : les charges formelles de CO₃²⁻',
+          body: `${guided}<p>Une des formes mésomères de l'ion carbonate : C au centre, une liaison double C=O, deux liaisons simples C–O.</p>
+            <ol><li>Électrons : 4 + 3×6 + 2 = 24 (12 doublets).</li><li>O doublement lié : 2 doublets non liants. O simplement lié : 3 doublets non liants.</li><li>\\(CF = n_{valence} - (n_{non\\ liants} + n_{liaisons})\\) pour chaque atome.</li></ol>`,
+          ask: { q: 'Charges formelles :', items: [int('O doublement lié', 0), int('O simplement lié', -1), int('C', 0)], why: 'O= : \\(6 - (4 + 2) = 0\\) ; O– : \\(6 - (6 + 1) = -1\\) (deux fois) ; C : \\(4 - (0 + 4) = 0\\). Total \\(-2\\) : c\'est bien la charge de l\'ion. Les trois formes mésomères déplacent la double liaison.' } }
+      ],
+      vsepr: [
+        { h: 'Exercice guidé : de Lewis à la géométrie',
+          body: `${guided}<p>Pour CO₂, NH₃ et SO₂ : écris d'abord le schéma de Lewis, puis compte autour de l'atome central les atomes liés (n, une liaison double compte pour 1) et les doublets non liants (p).</p>
+            <ol><li>CO₂ : O=C=O, aucun doublet sur C : AX₂.</li><li>NH₃ : trois liaisons et un doublet : AX₃E.</li><li>SO₂ : O=S–O (forme mésomère), un doublet sur S : AX₂E.</li></ol>`,
+          ask: { q: 'Géométries :', items: [choice('CO₂', [['l', 'linéaire'], ['c', 'coudée']], 'l'), choice('NH₃', [['t', 'triangle plan'], ['p', 'pyramide trigonale']], 'p'), choice('SO₂', [['l', 'linéaire'], ['c', 'coudée']], 'c')], why: 'AX₂ : linéaire (180°). AX₃E : pyramide. AX₂E : coudée (environ 119°), le doublet de S repousse les deux O. CO₂ et SO₂ n\'ont pas la même forme malgré une formule voisine.' } }
+      ],
+      hyb: [
+        { h: 'Exercice guidé : compter σ et π',
+          body: `${guided}<p>Molécule d'acétylène H–C≡C–H.</p><ol><li>Chaque liaison simple : 1 σ.</li><li>La triple liaison : 1 σ + 2 π.</li><li>Chaque C est AX₂ : hybridation ?</li></ol>`,
+          ask: { q: 'Résultats :', items: [int('liaisons σ', 3), int('liaisons π', 2), choice('hybridation de C', [['sp', 'sp'], ['sp2', 'sp²'], ['sp3', 'sp³']], 'sp')], why: '2 C–H + 1 σ de la triple liaison = 3 σ ; 2 π. AX₂ : sp, molécule linéaire.' } }
+      ],
+      polar: [
+        { h: 'Exercice guidé : polaire ou pas ?',
+          body: `${guided}<p>Méthode : géométrie (VSEPR), polarité de chaque liaison (électronégativités), puis somme des flèches.</p>
+            <ol><li>CCl₄ : AX₄, tétraèdre, 4 liaisons C–Cl identiques.</li><li>CHCl₃ : même tétraèdre, mais une liaison C–H différente des trois C–Cl.</li><li>NH₃ : pyramide, liaisons N–H polarisées vers N.</li></ol>`,
+          ask: { q: 'Polaire ?', items: [choice('CCl₄', [['o', 'oui'], ['n', 'non']], 'n'), choice('CHCl₃', [['o', 'oui'], ['n', 'non']], 'o'), choice('NH₃', [['o', 'oui'], ['n', 'non']], 'o')], why: 'CCl₄ : 4 flèches identiques dans un tétraèdre, la somme est nulle. CHCl₃ : une liaison différente casse la symétrie, polaire. NH₃ : pyramide, les flèches s\'additionnent vers le haut, polaire.' } }
+      ]
+    };
+    Object.entries(MORE).forEach(([k, st]) => { if (L[k]) L[k].steps.push(...st); });
+    return L;
   };
 })();

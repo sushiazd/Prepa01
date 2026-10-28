@@ -11,7 +11,7 @@
     const I = (label, val) => ({ type: 'int', label, val });
     const V = (label, exp) => ({ type: 'val', label, exp });
     const pre = s => `<pre><code>${s.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</code></pre>`;
-    return {
+    const L = {
       types: { title: 'Ce que Python fait de tes calculs', meth: 'évalue de l\'intérieur vers l\'extérieur en notant le type à chaque étape : <code>/</code> donne toujours un float, <code>//</code> et <code>%</code> sur des int donnent des int, + entre deux str colle les chaînes.', steps: [
         { h: 'Le type dépend de l\'opération, pas du résultat',
           guess: { q: 'Que vaut <code>9 / 3</code> en Python ?', items: [C('valeur', [['i', '3 (un int)'], ['f', '3.0 (un float)'], ['e', 'une erreur']], 'f')] },
@@ -168,5 +168,97 @@
           ask: { q: 'Pour trouver le mot le plus fréquent d\'un texte, la clé du dictionnaire est :', items: [C('réponse', [['m', 'le mot'], ['n', 'le nombre d\'apparitions'], ['p', 'la position dans le texte']], 'm')], why: 'On compte par mot (clé = mot, valeur = compteur), puis on cherche la clé de plus grande valeur.' } }
       ] }
     };
+    /* ---------- Étapes ajoutées : exercices guidés au format du DS (suivre, compléter, écrire) ---------- */
+    const guided = '<p class="fine">Exercice guidé : fais le tableau des variables sur ta feuille, puis tape les résultats.</p>';
+    const MORE = {
+      types: [
+        { h: 'Exercice guidé : type et valeur, de l\'intérieur vers l\'extérieur',
+          body: `${guided}<p>Pour <code>int('7') + 3 * 2 // 4</code> :</p><ol><li><code>int('7')</code> donne l'entier <code>7</code>.</li><li>Priorités : <code>*</code> et <code>//</code> avant <code>+</code>, de gauche à droite : <code>3 * 2 = 6</code>, puis <code>6 // 4 = 1</code>.</li><li><code>7 + 1</code>.</li></ol>
+            <p>Et <code>7 / 2 * 2</code> ? <code>/</code> donne <code>3.5</code>, puis <code>7.0</code> : un float, même si la valeur est entière.</p>`,
+          ask: { q: 'Valeurs :', items: [I("int('7') + 3 * 2 // 4", 8), C('type de 7 / 2 * 2', [['i', 'int'], ['f', 'float']], 'f')], why: '<code>7 + 1 = 8</code> ; <code>7 / 2 * 2 = 7.0</code>, un float car <code>/</code> donne toujours un float.' } }
+      ],
+      trace: [
+        { h: 'Exercice guidé : une boucle au tableau',
+          body: `${guided}${pre('a = 1\nb = 1\nfor i in range(4):\n    a, b = b, a + b\nprint(a)')}
+            <p>Tableau : une ligne par tour.</p><table class="t"><tr><th>tour i</th><th>a</th><th>b</th></tr><tr><td>avant</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>2</td></tr><tr><td>1</td><td>2</td><td>3</td></tr><tr><td>2</td><td>?</td><td>?</td></tr><tr><td>3</td><td>?</td><td>?</td></tr></table>
+            <p><code>a, b = b, a + b</code> calcule les deux valeurs de droite <b>avant</b> d'affecter : c'est la suite de Fibonacci.</p>`,
+          ask: { q: 'Qu\'affiche le programme ?', items: [I('affichage', 5)], why: 'Tour 2 : a = 3, b = 5 ; tour 3 : a = 5, b = 8. Il affiche 5.' } }
+      ],
+      boucles: [
+        { h: 'Exercice guidé : que calcule cette fonction ?',
+          body: `${guided}${pre('def f(n):\n    c = 0\n    for d in range(1, n + 1):\n        if n % d == 0:\n            c = c + 1\n    return c')}
+            <ol><li>Fais tourner pour n = 6 : quels d donnent <code>n % d == 0</code> ?</li><li>Que compte c ?</li><li>Que vaut f(7) ? Qu'a de particulier 7 ?</li></ol>`,
+          ask: { q: 'Résultats :', items: [I('f(6)', 4), I('f(7)', 2), C('f calcule', [['d', 'le nombre de diviseurs de n'], ['s', 'la somme des diviseurs de n'], ['p', 'si n est pair']], 'd')], why: 'Les diviseurs de 6 sont 1, 2, 3, 6 : f(6) = 4. 7 n\'a que 1 et 7 : f(7) = 2, c\'est un nombre premier.' } }
+      ],
+      fonc: [
+        { h: 'Exercice guidé : une fonction qui renvoie deux valeurs',
+          body: `${guided}${pre('def min_max(t):\n    m, M = t[0], t[0]\n    for x in t:\n        if x < m:\n            m = x\n        if x > M:\n            M = x\n    return m, M\n\na, b = min_max([4, -2, 7, 0])')}
+            <p>Une fonction renvoie un seul objet, mais cet objet peut être un tuple : <code>return m, M</code>. À l'appel, on le « déballe » dans deux variables.</p>`,
+          ask: { q: 'Valeurs :', items: [I('a', -2), I('b', 7)], why: 'Minimum −2, maximum 7. Remarque : on initialise avec <code>t[0]</code>, pas avec 0.' } }
+      ],
+      code1: [
+        { h: 'Exercice guidé : écrire somme_chiffres(n)',
+          body: `${guided}<p>On veut la somme des chiffres d'un entier positif : <code>somme_chiffres(472)</code> vaut 13.</p>
+            <ol><li>Le dernier chiffre de n est <code>n % 10</code> ; enlever ce chiffre : <code>n // 10</code>.</li><li>Accumulateur <code>s = 0</code>, boucle <code>while n &gt; 0</code>.</li></ol>${pre('def somme_chiffres(n):\n    s = 0\n    while n > 0:\n        s = s + n % 10\n        n = n // 10\n    return s')}`,
+          ask: { q: 'Que valent <code>somme_chiffres(9081)</code> et <code>somme_chiffres(0)</code> ?', items: [I('somme_chiffres(9081)', 18), I('somme_chiffres(0)', 0)], why: '9 + 0 + 8 + 1 = 18. Pour 0, la boucle ne tourne pas : s = 0, ce qui est juste. Teste toujours le cas limite.' } }
+      ],
+      cplx: [
+        { h: 'Exercice guidé : compter les tours',
+          body: `${guided}${pre('def f(n):\n    s = 0\n    for i in range(n):\n        for j in range(10):\n            s = s + i * j\n    k = n\n    while k > 1:\n        k = k // 2\n    return s')}
+            <ol><li>Boucles imbriquées : n tours × 10 tours. Le 10 est une constante.</li><li>La boucle while divise par 2 : environ log₂ n tours.</li><li>On additionne les deux parties (elles se suivent) et on garde le terme dominant.</li></ol>`,
+          ask: { q: 'Complexité de f :', items: [C('réponse', [['n', 'O(n)'], ['n2', 'O(n²)'], ['nl', 'O(n log n)']], 'n')], why: '10n + log n : le terme dominant est n, donc O(n). Une boucle de 10 tours fixes ne change pas l\'ordre de grandeur.' } }
+      ],
+      dicho: [
+        { h: 'Exercice guidé : dérouler la dichotomie',
+          body: `${guided}<p>On cherche 9 dans <code>t = [1, 3, 4, 7, 9, 11, 15]</code> avec la fonction du cours.</p>
+            <table class="t"><tr><th>g</th><th>d</th><th>m</th><th>t[m]</th></tr><tr><td>0</td><td>6</td><td>3</td><td>7</td></tr><tr><td>?</td><td>6</td><td>?</td><td>?</td></tr></table>
+            <p>7 &lt; 9 : la valeur est à droite, donc g = m + 1.</p>`,
+          ask: { q: 'Au deuxième tour, et au final :', items: [I('m au 2e tour', 5), I('indice renvoyé', 4)], why: 'g = 4, d = 6, m = 5, t[5] = 11 &gt; 9 donc d = 4 ; puis g = d = 4, m = 4, t[4] = 9 : trouvé, la fonction renvoie 4.' } }
+      ],
+      list: [
+        { h: 'Exercice guidé : construire une liste',
+          body: `${guided}${pre('t = [3, 8, 1, 6]\nu = []\nfor x in t:\n    if x % 2 == 0:\n        u.append(x * 10)\nv = [x + 1 for x in t]')}
+            <ol><li>u garde les pairs, multipliés par 10.</li><li>v est une liste en compréhension : <code>x + 1</code> pour chaque x de t.</li></ol>`,
+          ask: { q: 'Valeurs :', items: [V('u', [80, 60]), V('v', [4, 9, 2, 7])], why: 'Pairs : 8 et 6, donc u = [80, 60]. v = [4, 9, 2, 7].' } }
+      ],
+      alias: [
+        { h: 'Exercice guidé : une fonction modifie la liste',
+          body: `${guided}${pre('def double(t):\n    for i in range(len(t)):\n        t[i] = 2 * t[i]\n\ndef double2(t):\n    t = [2 * x for x in t]\n\na = [1, 2]\nb = [1, 2]\ndouble(a)\ndouble2(b)')}
+            <ol><li><code>double</code> modifie les cases de la liste reçue : c'est la même liste que <code>a</code>.</li><li><code>double2</code> fabrique une <b>nouvelle</b> liste et colle l'étiquette locale <code>t</code> dessus : <code>b</code> n'est pas touchée.</li></ol>`,
+          ask: { q: 'Valeurs :', items: [V('a', [2, 4]), V('b', [1, 2])], why: 'a = [2, 4] (modifiée en place) ; b = [1, 2] (la nouvelle liste est perdue à la fin de double2, il manquait un return).' } }
+      ],
+      str: [
+        { h: 'Exercice guidé : renverser une chaîne',
+          body: `${guided}${pre("def renverse(s):\n    r = ''\n    for c in s:\n        r = c + r\n    return r")}
+            <ol><li>À chaque tour, on colle la lettre <b>devant</b> ce qu'on a déjà.</li><li>Fais le tableau pour 'abc' : r = 'a', puis 'ba', puis…</li><li>Un palindrome est un mot égal à son renversé.</li></ol>`,
+          ask: { q: 'Valeurs :', items: [V("renverse('chat')", 'tahc'), C("renverse('kayak') == 'kayak'", [['t', 'True'], ['f', 'False']], 't')], why: "'tahc' ; kayak se lit pareil dans les deux sens : True. (En Python, s[::-1] fait aussi le renversement.)" } }
+      ],
+      mat: [
+        { h: 'Exercice guidé : somme de chaque ligne',
+          body: `${guided}${pre('def sommes_lignes(m):\n    res = []\n    for ligne in m:\n        s = 0\n        for x in ligne:\n            s = s + x\n        res.append(s)\n    return res')}
+            <ol><li>La boucle extérieure parcourt les lignes, l'intérieure les éléments d'une ligne.</li><li>L'accumulateur <code>s</code> est remis à 0 <b>pour chaque ligne</b>, d'où sa place dans la boucle.</li></ol>`,
+          ask: { q: 'Que renvoie <code>sommes_lignes([[1, 2], [3, 4], [5, 6]])</code> ?', items: [V('valeur', [3, 7, 11])], why: '[1 + 2, 3 + 4, 5 + 6] = [3, 7, 11]. Si s = 0 était placé avant la première boucle, on obtiendrait [3, 10, 21].' } }
+      ],
+      code2: [
+        { h: 'Exercice guidé : compter les éléments au-dessus de la moyenne',
+          body: `${guided}${pre('def au_dessus(t):\n    moy = sum(t) / len(t)\n    c = 0\n    for x in t:\n        if x > moy:\n            c = c + 1\n    return c')}
+            <ol><li>Deux parcours : un pour la moyenne, un pour compter. On ne peut pas comparer à la moyenne avant de l'avoir.</li><li>Si l'énoncé interdit <code>sum</code>, on calcule la somme avec une boucle et un accumulateur.</li></ol>`,
+          ask: { q: 'Que renvoie <code>au_dessus([2, 4, 9, 7])</code> ?', items: [I('valeur', 2)], why: 'Moyenne 22 / 4 = 5,5 : 9 et 7 sont au-dessus, donc 2.' } }
+      ],
+      dict: [
+        { h: 'Exercice guidé : inverser un dictionnaire',
+          body: `${guided}${pre("notes = {'Ali': 12, 'Bea': 15, 'Cyr': 12}\npar_note = {}\nfor nom in notes:\n    n = notes[nom]\n    if n in par_note:\n        par_note[n].append(nom)\n    else:\n        par_note[n] = [nom]")}
+            <ol><li>On parcourt les <b>clés</b> (les noms) ; la valeur <code>notes[nom]</code> devient la clé du nouveau dictionnaire.</li><li>Deux élèves ont 12 : leur liste a deux noms.</li></ol>`,
+          ask: { q: 'Valeurs :', items: [V('par_note[12]', ['Ali', 'Cyr']), I('len(par_note)', 2)], why: "par_note = {12: ['Ali', 'Cyr'], 15: ['Bea']} : deux clés." } }
+      ],
+      code3: [
+        { h: 'Exercice guidé : le mot le plus fréquent',
+          body: `${guided}${pre("def plus_frequent(mots):\n    d = {}\n    for m in mots:\n        if m in d:\n            d[m] = d[m] + 1\n        else:\n            d[m] = 1\n    meilleur = mots[0]\n    for m in d:\n        if d[m] > d[meilleur]:\n            meilleur = m\n    return meilleur")}
+            <ol><li>D'abord compter (le schéma du cours).</li><li>Puis chercher la clé de plus grande valeur, comme un maximum de liste.</li></ol>`,
+          ask: { q: "Que renvoie <code>plus_frequent(['a', 'b', 'a', 'c', 'b', 'a'])</code> ?", items: [V('valeur', 'a')], why: "d = {'a': 3, 'b': 2, 'c': 1} : 'a'." } }
+      ]
+    };
+    Object.entries(MORE).forEach(([k, st]) => { if (L[k]) L[k].steps.push(...st); });
+    return L;
   };
 })();

@@ -11,8 +11,8 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../subjects.js?v=2026102802"></script>
-<script src="../core.js?v=2026102802"></script>
-<script src="learn.js?v=2026102802"></script>
+<script src="../core.js?v=2026102806"></script>
+<script src="learn.js?v=2026102806"></script>
 <script defer src="../account.js" data-lazy></script>
 <style>
 :root{
@@ -2195,11 +2195,12 @@ function pThv(d) {
 
 /* =====================================================================
    PARCOURS : COMPÉTENCES ET PROGRESSION ADAPTATIVE
-   Maîtrise de 0 à 130 par compétence, validée à 100.
-   100 % juste : +40 (+60 si la précédente était aussi parfaite) ; 50-99 % : +15 ; moins : -20.
-   Révision d'une compétence validée : +15 / 0 / -30 (sous 100 elle repasse « à revoir »).
+   Maîtrise avec l'oubli : même modèle que les autres matières, SiteMastery dans core.js (niveau 0 à 100, validé
+   à 75, maîtrise qui baisse chaque jour sans pratique, révision dès qu'elle passe sous 60 %).
    ===================================================================== */
-const PK = 'elec.path.v1', VAL = 100, MMAX = 130;
+// maîtrise avec l'oubli : même modèle que les autres matières (SiteMastery, core.js)
+const MS = window.SiteMastery;
+const PK = 'elec.path.v1', VAL = MS.VAL, MMAX = 100;
 const PCH = ['Les bases', 'Résistance équivalente', 'Lois de Kirchhoff', 'Ponts diviseurs', 'Théorème de Millman', 'Exercices complets du CC', 'Bonus'];
 const PCH_FOR = ['tout le sujet', 'Ex 2', 'Ex 3', 'Ex 1 et Ex 4', 'Ex 1, Ex 3 et Ex 4', 'le sujet entier', 'culture : jamais tombé au CC1'];
 const SK = [
@@ -2230,19 +2231,20 @@ const SK = [
 const PROBES = [{ id: 'conv', d: 2 }, { id: 'lad2', d: 1 }, { id: 'loop', d: 1 }, { id: 'pdc', d: 1 }, { id: 'mi2', d: 1 }];
 const skById = id => SK.find(k => k.id === id);
 function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; if (P.place === undefined) P.place = null; return P; }
-function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false }); }
-const isVal = s => s.m >= VAL;
-const levelOf = s => s.m < 40 ? 0 : s.m < 80 ? 1 : 2;
+function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false, S: 1 }); }
+const isVal = MS.isVal, eff = s => MS.eff(s);
+const levelOf = s => eff(s) < 40 ? 0 : eff(s) < 75 ? 1 : 2;
 function frontier(P) { return SK.find(k => !isVal(skS(P, k.id))) || null; }
 function coreDone(P) { const core = SK.filter(k => !k.bonus); return { n: core.filter(k => isVal(skS(P, k.id))).length, tot: core.length }; }
 function pickNext(P) {
   const f = frontier(P);
-  const pool = SK.filter(k => k !== f && skS(P, k.id).ever);
-  const wantRev = pool.length >= 2 && (P.since >= 6 || (P.since >= 3 && Math.random() < .35));
+  const pool = SK.filter(k => k !== f && isVal(skS(P, k.id)));
+  const due = pool.filter(k => MS.due(skS(P, k.id)));
+  const wantRev = pool.length && (due.length && P.since >= 1 || P.since >= 6 || (pool.length >= 2 && P.since >= 3 && Math.random() < .35));
   if (f && (!wantRev || !pool.length)) return { k: f, review: false };
   if (!pool.length) return null;
   const now = Date.now();
-  return { k: wpick(pool.map(k => { const s = skS(P, k.id); return [k, (MMAX + 20 - s.m) * (1 + Math.min(3, (now - s.last) / 864e5))]; })), review: true };
+  return { k: wpick((due.length ? due : pool).map(k => [k, 105 - MS.eff(skS(P, k.id), now)])), review: true };
 }
 
 let CUR = null;
@@ -2354,13 +2356,13 @@ function pathCheck(bi) {
 }
 function pathFinish(r) {
   if (!CUR || CUR.done) return; CUR.done = true;
-  const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
-  CUR.fin = { r, m0, ko0: s.ko || 0, review: CUR.review, why: null };
+  const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s);
+  CUR.fin = MS.before(s, r, CUR.review);
   s.n++; if (r === 1) s.ok++;
   let title, msg = '', extra = '';
   if (CUR.place) {
     if (r === 1) {
-      SK.filter(x => x.ch === k.ch && !x.demo).forEach(x => { const t = skS(P, x.id); t.m = Math.max(t.m, VAL); t.ever = true; });
+      SK.filter(x => x.ch === k.ch && !x.demo).forEach(x => { const t = skS(P, x.id); t.m = Math.max(t.m, VAL); t.ever = true; t.last = t.last || Date.now(); });
       P.place++;
       title = `Chapitre ${k.ch + 1} validé d'office`;
       msg = P.place < PROBES.length ? 'Bien joué. Question suivante : le chapitre d\'après.' : 'Tu as tout réussi : tu attaques directement les démos et les exercices complets.';
@@ -2372,13 +2374,10 @@ function pathFinish(r) {
     }
     s.last = Date.now();
   } else {
-    let gain;
-    if (CUR.review) gain = r === 1 ? 15 : r >= .5 ? 0 : -30;
-    else gain = r === 1 ? (s.st >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
     if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
-    CUR.fin.gain = gain;
-    s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = Date.now();
-    const now = isVal(s); if (now) s.ever = true;
+    CUR.fin.gain = true;
+    MS.apply(s, CUR.fin);
+    const now = isVal(s) && !MS.due(s);
     P.since = CUR.review ? 0 : P.since + 1;
     const f = frontier(P);
     if (CUR.review) {
@@ -2389,7 +2388,7 @@ function pathFinish(r) {
       msg = f ? `Prochaine étape : « ${f.name} »${f.ch !== k.ch ? ` (nouveau chapitre : ${PCH[f.ch]})` : ''}.` : 'Tout le parcours est validé.';
     } else if (r === 1) {
       title = 'Parfait';
-      msg = s.m + 60 >= VAL ? 'Encore une réussite parfaite et cette compétence est validée.' : 'Continue comme ça, la difficulté va monter.';
+      msg = s.m + 35 >= VAL ? 'Encore une réussite parfaite et cette compétence est validée.' : 'Continue comme ça, la difficulté va monter.';
     } else if (r >= .5) {
       title = 'Presque';
       msg = 'Ouvre la correction des réponses fausses et repère l\'étape qui coince. Tu restes sur cette compétence.';
@@ -2407,7 +2406,7 @@ function pathFinish(r) {
   $('#pathHost').insertAdjacentHTML('beforeend', `<section class="card pres" id="pathRes">
     <div class="row"><span class="pill ${st[0]}">${st[1]}</span><span class="fine">${Math.round(r * 100)} % juste du premier coup</span></div>
     <h3>${esc(title)}</h3><p class="sub">${esc(msg)}</p>${CUR.hint ? '<p class="fine">1 indice utilisé : une réponse juste compte 3/4.</p>' : ''}
-    ${CUR.place ? '' : `<div class="pm"><span class="fine">Maîtrise de « ${esc(k.name)} »</span><div class="bar ${s.m >= VAL ? '' : s.m >= 40 ? 'mid' : 'low'}"><i style="width:${pct(s.m)}%"></i></div><span class="fine">${pct(m0)} % → <b>${pct(s.m)} %</b></span></div>`}
+    ${CUR.place ? '' : `<div class="pm"><span class="fine">Maîtrise de « ${esc(k.name)} »</span><div class="bar ${s.m >= VAL ? '' : s.m >= 40 ? 'mid' : 'low'}"><i style="width:${pct(s.m)}%"></i></div><span class="fine"><b>${pct(s.m)} %</b></span></div><p class="fine pmem">${MS.memText(s, CUR.fin)}</p>`}
     ${extra}
     ${!CUR.place && r < 1 ? pathWhyHTML() : ''}
     <div class="row"><button type="button" class="btn btn-primary btn-lg" data-pact="next">Continuer</button>${CUR.place ? '' : `<button type="button" class="btn" data-pgo="${k.id}">Refaire ce type</button>`}</div>
@@ -2471,13 +2470,14 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-pwhy]'); if (!b || !CUR || !CUR.done || !CUR.fin || CUR.fin.gain == null) return;
   const F = CUR.fin, v = b.dataset.pwhy; F.why = F.why === v ? null : v;
   const P = pst(), s = skS(P, CUR.k.id);
-  s.m = Math.max(0, Math.min(MMAX, F.m0 + (F.why === 'calc' && F.r < 1 ? 0 : F.gain))); s.ko = F.ko0 + (F.r < .5 && F.why !== 'calc' ? 1 : 0); if (isVal(s)) s.ever = true;
+  MS.apply(s, F); s.ever = F.was || s.m >= VAL; s.ko = F.ko0 + (F.r < .5 && F.why !== 'calc' ? 1 : 0);
   s.why = F.why || undefined;
   if (F.why === 'idee' && LS.has(CUR.k.id)) P.relearn = CUR.k.id; else if (P.relearn === CUR.k.id) delete P.relearn;
   ls.set(PK, P);
   $('#pathWhy').outerHTML = pathWhyHTML();
   const pm = $('#pathRes .pm b'), bar = $('#pathRes .pm .bar i'); const pct = Math.min(100, Math.round(s.m));
   if (pm) pm.textContent = pct + ' %'; if (bar) bar.style.width = pct + '%';
+  const mm = $('#pathRes .pmem'); if (mm) mm.innerHTML = MS.memText(s, F);
   renderPathTop(); renderPathMap();
 });
 function renderPathTop() {
@@ -2493,10 +2493,11 @@ function renderPathTop() {
     <details class="corr-d"><summary>Comment marche la progression ?</summary><div class="expl help">
       <ul>
         <li>Chaque exercice est noté sur la part de réponses justes <b>à la première vérification</b>.</li>
-        <li>100 % juste : +40 % de maîtrise, et +60 % si l'exercice précédent était aussi parfait. Entre 50 et 99 % : +15 %. Moins de 50 % : −20 %.</li>
-        <li>À 100 % de maîtrise, la compétence est validée et la suivante se débloque : <b>deux sans-faute d'affilée suffisent</b>.</li>
-        <li>La difficulté (niveaux 1 à 3) monte avec ta maîtrise et redescend quand tu rates. Après deux ratés, le parcours te conseille la fiche du cours.</li>
-        <li>Toutes les 3 à 6 questions, une compétence déjà validée revient en <b>révision</b> au niveau 3. Si tu la rates nettement, elle repasse « à revoir » et tu la refais avant d'avancer.</li>
+        <li>100 % juste : +25 % de maîtrise, et +35 % si l'exercice précédent était aussi parfait. Entre 50 et 99 % : +10 %. Moins de 50 % : −15 %.</li>
+        <li>À 75 %, la compétence est validée et la suivante se débloque : il faut <b>3 sans-faute</b>.</li>
+        <li><b>La maîtrise baisse chaque jour sans pratique</b>, comme la mémoire. Au début elle tient environ 2 jours ; chaque révision réussie après une pause la fait tenir plus longtemps (une semaine, puis un mois…). Refaire dix fois le même exercice le même jour ne l'allonge presque pas.</li>
+        <li>Dès qu'une compétence validée passe sous 60 %, elle revient en <b>révision</b> au niveau 3, en priorité celle qui a le plus baissé.</li>
+        <li>La difficulté (niveaux 1 à 3) suit ta maîtrise et redescend quand tu rates. Après deux ratés, le parcours te conseille la fiche du cours.</li>
       </ul></div></details>
   </section>`;
 }
@@ -2504,9 +2505,9 @@ function renderPathMap() {
   const P = pst(), f = frontier(P);
   $('#pathMap').innerHTML = '<div class="pmap">' + PCH.map((c, ci) => `<div class="pch"><div class="pch-head"><h3>${ci + 1}. ${esc(c)}</h3><span class="fine">sert pour : ${esc(PCH_FOR[ci])}</span></div>`
     + SK.filter(k => k.ch === ci).map(k => {
-      const s = skS(P, k.id), val = isVal(s), open = val || k === f || s.n > 0, pct = Math.min(100, Math.round(s.m));
-      const cls = val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock';
-      return `<div class="psk ${cls}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}<small>${esc(k.desc)}${s.ever && !val ? ' · à revoir' : ''}</small></span>
+      const s = skS(P, k.id), due = MS.due(s), val = isVal(s) && !due, open = isVal(s) || k === f || s.n > 0, pct = Math.min(100, Math.round(eff(s)));
+      const cls = val ? 'val' : due ? 'rev' : k === f ? 'cur' : open ? 'cur' : 'lock';
+      return `<div class="psk ${cls}"><span class="ic">${val ? '✓' : due ? '!' : k === f ? '▶' : ''}</span><span class="nm">${esc(k.name)}<small>${esc(k.desc)}${s.last ? ` · ${pct} %${isVal(s) ? ' · ' + MS.when(s) : ''}` : ''}</small></span>
         <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>
         ${open ? `<button type="button" class="btn btn-sm" data-pgo="${k.id}">${CUR && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
     }).join('') + '</div>').join('') + '</div>'

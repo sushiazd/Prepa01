@@ -372,7 +372,7 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   // pages à parcours : compétences validées (nombre total dans subjects.js) et dernier sujet blanc
   SiteSubjects.list.filter(s => s.skills && s.id !== 'elec').forEach(s => {   // l'élec a son propre résumé (ci-dessus)
     const el = document.getElementById(s.id + 'Meta'); if (!el) return;
-    const p = get(s.id + '.path.v1', null), n = p && p.sk ? Object.values(p.sk).filter(k => k.m >= 100).length : 0, H = get(s.id + '.hist.v1', []);
+    const p = get(s.id + '.path.v1', null), n = p && p.sk ? Object.values(p.sk).filter(k => k.ever || k.m >= 75).length : 0, H = get(s.id + '.hist.v1', []);
     el.innerHTML = [n ? `<b>${n}/${s.skills}</b> compétences validées` : '', H.length ? `dernier sujet blanc : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
   });
   orderTools();

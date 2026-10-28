@@ -8,7 +8,7 @@
   'use strict';
   window.SITE_LEARN = function (H) {
     const { Ch, Nn } = H;
-    return {
+    const L = {
       demos: { title: 'Les trois démonstrations, une seule idée', meth: 'schéma fléché, puis la bonne loi de Kirchhoff (nœuds pour le pont diviseur de courant et Millman, mailles pour le pont diviseur de tension), la loi d\'Ohm sur chaque résistance, on isole et on remplace.', steps: [
         { h: 'Toujours le même squelette',
           guess: { q: 'Pour démontrer le pont diviseur de courant (des résistances en parallèle), quelle loi relie le courant total aux courants des branches ?', items: [Ch('réponse', [['n', 'la loi des nœuds'], ['m', 'la loi des mailles']], 'n')] },
@@ -117,5 +117,66 @@
           ask: { q: '\\(\\tau = 1\\) ms. Fréquence de coupure \\(f_c\\) ≈ ? (en Hz)', items: [Nn('f_c', 159, 'Hz')], why: '\\(\\omega_c = 1/\\tau = 1000\\) rad/s, \\(f_c = \\dfrac{1000}{2\\pi} \\approx 159\\) Hz.' } }
       ] }
     };
+    /* ---------- Étapes ajoutées : calculs guidés au format du CC2 ---------- */
+    const guided = '<p class="fine">Calcul guidé : fais-le sur ta feuille, étape par étape, puis tape les résultats intermédiaires.</p>';
+    const MORE = {
+      demos: [
+        { h: 'Démonstration guidée : le pont diviseur de courant à N résistances',
+          body: `${guided}<p>On veut \\(I_k\\) en fonction de \\(I\\). Remets chaque ligne à sa place :</p>
+            <ol><li>Schéma : \\(I\\) arrive sur \\(N\\) résistances en parallèle, même tension \\(U\\) aux bornes de chacune.</li><li>Ohm : \\(I_k = \\dfrac{U}{R_k}\\).</li><li>Nœud : \\(I = \\sum_j I_j = U\\sum_j\\dfrac{1}{R_j}\\), donc \\(U = \\dfrac{I}{\\sum_j 1/R_j}\\).</li><li>On remplace : \\(I_k = \\dfrac{1/R_k}{\\sum_j 1/R_j}\\,I\\).</li></ol>
+            <p>Application : 3 résistances \\(R\\), \\(2R\\), \\(2R\\) traversées au total par \\(I = 6\\) mA.</p>`,
+          ask: { q: 'Résultats :', items: [Nn('\\sum 1/R_j\\ (\\text{en } 1/R)', 2), Nn('I_R\\ (\\mathrm{mA})', 3)], why: '\\(\\dfrac1R + \\dfrac{1}{2R} + \\dfrac{1}{2R} = \\dfrac2R\\) ; \\(I_R = \\dfrac{1/R}{2/R}\\times6 = 3\\) mA (et 1,5 mA dans chaque \\(2R\\)).' } }
+      ],
+      rth: [
+        { h: 'Calcul guidé : R_TH pas à pas',
+          body: `${guided}<p>Circuit : \\(E_1\\) en série avec \\(3R\\) jusqu'au nœud A ; de A vers la masse, une branche \\(3R\\) et une branche \\(3R\\) + \\(E_2\\) ; puis \\(R\\) de A vers la borne de \\(R_L\\).</p>
+            <ol><li>On enlève \\(R_L\\) et on éteint \\(E_1\\) et \\(E_2\\) (des fils).</li><li>Les trois \\(3R\\) relient alors A à la masse : en parallèle.</li><li>La \\(R\\) vers la borne est en série avec ce groupe.</li></ol>`,
+          ask: { q: 'Résultats (en multiples de \\(R\\)) :', items: [Nn('3R \\parallel 3R \\parallel 3R\\ (\\text{en } R)', 1), Nn('R_{TH}\\ (\\text{en } R)', 2)], why: 'Trois \\(3R\\) identiques en parallèle : \\(3R/3 = R\\) ; plus \\(R\\) en série : \\(R_{TH} = 2R\\).' } }
+      ],
+      eth: [
+        { h: 'Calcul guidé : E_TH par Millman',
+          body: `${guided}<p>Même circuit, \\(E_1 = 12\\) V, \\(E_2 = 6\\) V (les deux \\(+\\) vers A). À vide, \\(E_{TH} = V_A\\).</p>
+            <ol><li>Numérateur : \\(\\dfrac{E_1}{3R} + \\dfrac{0}{3R} + \\dfrac{E_2}{3R}\\).</li><li>Dénominateur : \\(\\dfrac{3}{3R} = \\dfrac1R\\).</li><li>Simplifie par \\(R\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('E_{TH}', 6, 'V')], why: '\\(E_{TH} = \\dfrac{(E_1 + E_2)/3R}{1/R} = \\dfrac{E_1 + E_2}{3} = \\dfrac{18}{3} = 6\\) V.' } }
+      ],
+      thev: [
+        { h: 'Calcul guidé : toute la question du CC',
+          body: `${guided}<p>\\(R_{TH} = 2R\\), \\(E_{TH} = \\dfrac{E_1 + E_2}{3}\\). On branche \\(R_L = 4R\\), avec \\(E_1 = 12\\) V et \\(E_2 = 6\\) V.</p>
+            <ol><li>Schéma du générateur équivalent : \\(E_{TH}\\), \\(R_{TH}\\), puis \\(R_L\\) : une seule maille.</li><li>Pont diviseur : \\(U_L = \\dfrac{R_L}{R_{TH} + R_L}E_{TH}\\), simplifie par \\(R\\).</li><li>Courant dans \\(R_L\\) avec \\(R = 1\\) kΩ.</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('U_L', 4, 'V'), Nn('I_L\\ (\\mathrm{mA})', 1)], why: '\\(U_L = \\dfrac{4R}{6R}\\times6 = 4\\) V ; \\(I_L = \\dfrac{4\\ \\text{V}}{4\\ \\text{k}\\Omega} = 1\\) mA.' } }
+      ],
+      loi: [
+        { h: 'Calcul guidé : courant dans un condensateur',
+          body: `${guided}<p>La tension d'un condensateur de \\(C = 2\\ \\mu\\)F monte régulièrement de 0 à 10 V en 5 ms.</p>
+            <ol><li>Pente : \\(\\dfrac{du}{dt} = \\dfrac{10}{5\\times10^{-3}}\\) V/s.</li><li>\\(i = C\\,\\dfrac{du}{dt}\\).</li><li>Après 5 ms, la tension reste à 10 V : que vaut \\(i\\) ?</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('i\\ \\text{pendant la montée (mA)}', 4), Nn('i\\ \\text{ensuite (mA)}', 0)], why: '\\(\\dfrac{du}{dt} = 2000\\) V/s, \\(i = 2\\times10^{-6}\\times2000 = 4\\times10^{-3}\\) A = 4 mA. Tension constante ensuite : \\(i = 0\\), le condensateur est un circuit ouvert.' } }
+      ],
+      bfhf: [
+        { h: 'Exercice guidé : un circuit à deux éléments',
+          body: `${guided}<p>Générateur \\(e(t)\\), puis \\(C\\) en série, puis \\(R\\) vers la masse. La sortie \\(u\\) est prise aux bornes de \\(R\\).</p>
+            <ol><li>BF : remplace \\(C\\) par une coupure. Courant dans \\(R\\) ? Donc \\(u\\) ?</li><li>HF : remplace \\(C\\) par un fil. \\(R\\) est alors directement sous \\(e\\).</li><li>Conclus sur le filtre.</li></ol>`,
+          ask: { q: 'Résultats :', items: [Ch('\\(u\\) en BF', [['0', '0'], ['e', '\\(e\\)']], '0'), Ch('\\(u\\) en HF', [['0', '0'], ['e', '\\(e\\)']], 'e'), Ch('filtre', [['b', 'passe-bas'], ['h', 'passe-haut']], 'h')], why: 'En BF, C coupe tout : pas de courant, \\(u = 0\\). En HF, C est un fil : \\(u = e\\). Les hautes fréquences passent : passe-haut.' } }
+      ],
+      edo: [
+        { h: 'Calcul guidé : l\'équation du circuit RL',
+          body: `${guided}<p>Générateur \\(e\\), puis \\(R\\), puis \\(L\\) vers la masse ; sortie \\(u\\) aux bornes de \\(L\\). Inconnue de départ : le courant \\(i\\).</p>
+            <ol><li>Mailles : \\(e = R\\,i + L\\,\\dfrac{di}{dt}\\).</li><li>Divise par \\(R\\) : \\(\\dfrac{L}{R}\\,i' + i = \\dfrac{e}{R}\\). Forme canonique en \\(i\\), \\(\\tau = L/R\\).</li><li>Avec \\(L = 10\\) mH et \\(R = 100\\ \\Omega\\), calcule \\(\\tau\\).</li></ol>`,
+          ask: { q: 'Résultat :', items: [Nn('\\tau\\ (\\mathrm{ms})', 0.1)], why: '\\(\\tau = \\dfrac{10\\times10^{-3}}{100} = 10^{-4}\\) s = 0,1 ms.' } }
+      ],
+      reponse: [
+        { h: 'Calcul guidé : lire τ et écrire u(t)',
+          body: `${guided}<p>Un condensateur se charge sous \\(E = 5\\) V à partir de 0, avec \\(R = 1\\) kΩ et \\(C = 10\\ \\mu\\)F.</p>
+            <ol><li>\\(\\tau = RC\\) en ms.</li><li>\\(u(t) = E(1 - e^{-t/\\tau})\\) : valeur à \\(t = 3\\tau\\) (95 %).</li><li>Combien de temps pour être « quasi chargé » (\\(5\\tau\\)) ?</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('\\tau\\ (\\mathrm{ms})', 10), Nn('u(3\\tau)', 4.75, 'V'), Nn('5\\tau\\ (\\mathrm{ms})', 50)], why: '\\(\\tau = 10^3\\times10^{-5} = 10^{-2}\\) s = 10 ms ; \\(u(3\\tau) = 0{,}95\\times5 = 4{,}75\\) V ; quasi chargé après 50 ms.' } }
+      ],
+      sinus: [
+        { h: 'Calcul guidé : amplitude à la sortie du passe-bas',
+          body: `${guided}<p>Passe-bas RC avec \\(\\tau = 1\\) ms, entrée \\(E_0 = 10\\) V.</p>
+            <ol><li>Pour \\(\\omega = 1000\\) rad/s : \\(\\omega\\tau = 1\\), amplitude \\(\\dfrac{E_0}{\\sqrt2}\\).</li><li>Pour \\(\\omega = 10\\,000\\) rad/s : \\(\\omega\\tau = 10\\), amplitude \\(\\dfrac{E_0}{\\sqrt{101}}\\).</li></ol>`,
+          ask: { q: 'Amplitudes :', items: [Nn('\\omega\\tau = 1', 7.07, 'V'), Nn('\\omega\\tau = 10', 0.995, 'V')], why: '\\(10/\\sqrt2 \\approx 7{,}07\\) V ; \\(10/\\sqrt{101} \\approx 0{,}995\\) V : dix fois au-dessus de la coupure, le signal est divisé par 10 environ.' } }
+      ]
+    };
+    Object.entries(MORE).forEach(([k, st]) => { if (L[k]) L[k].steps.push(...st); });
+    return L;
   };
 })();

@@ -23,7 +23,7 @@
       <text x="240" y="20" style="${INK};font-weight:600">parallèle</text>${dot(240, 70)}${dot(400, 70)}${W(240, 70, 260, 70)}${W(380, 70, 400, 70)}${W(260, 45, 260, 95)}${W(380, 45, 380, 95)}${Rh(290, 45, 'R₁')}${W(260, 45, 290, 45)}${W(350, 45, 380, 45)}${Rh(290, 95, '')}<text x="320" y="122" text-anchor="middle" style="${INK}">R₂</text>${W(260, 95, 290, 95)}${W(350, 95, 380, 95)}
       <text x="240" y="145" style="${INK}">deux chemins, même tension</text></svg>`;
 
-    return {
+    const L = {
       /* =================== Les bases =================== */
       ohm: { title: 'Tension, courant, résistance', meth: 'repère la résistance, la tension à ses bornes et le courant qui la traverse, puis \\(U = R\\,I\\) avec \\(U\\) en V, \\(R\\) en kΩ et \\(I\\) en mA (les puissances de 10 se compensent).', steps: [
         { h: 'Le potentiel, c\'est une altitude',
@@ -290,5 +290,144 @@
             why: 'Générateur éteint = fil : les deux \\(R\\) relient les deux bornes, elles sont en parallèle, \\(R/2\\). Et \\(E_{th} = E/2\\) (pont diviseur à vide).' } }
       ] }
     };
+    /* ---------- Schémas de circuits « à deux rails » (fil du haut, ligne du bas à 0 V) ----------
+       br : branches verticales { x, els: [{ k: 'R' | 'E', lab }] } ; top : résistances sur le fil du haut
+       { x1, x2, lab } ; ab : bornes A (haut) et B (bas) à gauche ; w : largeur */
+    const RVb = (x, yc, lab) => `<rect x="${x - 8}" y="${yc - 18}" width="16" height="36" style="${LINE};fill:var(--sheet)"/><text x="${x + 13}" y="${yc + 5}" style="${INK}">${lab}</text>`;
+    const GVb = (x, yc, lab) => `<circle cx="${x}" cy="${yc}" r="14" style="${LINE};fill:var(--sheet)"/><line x1="${x}" y1="${yc - 9}" x2="${x}" y2="${yc + 9}" style="${LINE}"/><text x="${x - 16}" y="${yc - 14}" style="${INK};font-size:14px">+</text><text x="${x + 19}" y="${yc + 5}" style="${INK}">${lab}</text>`;
+    function rail(o) {
+      const xs = o.br.map(b => b.x), x0 = o.ab ? 30 : Math.min(...xs), x1 = Math.max(...xs), Y1 = 40, Y2 = 170, w = o.w || 420;
+      let s = W(x0, Y1, x1, Y1) + W(x0, Y2, x1, Y2);
+      o.br.forEach(b => {
+        s += W(b.x, Y1, b.x, Y2);
+        const n = b.els.length;
+        b.els.forEach((e, i) => { const yc = n === 1 ? (Y1 + Y2) / 2 : Y1 + (Y2 - Y1) * (i + 1) / (n + 1); s += e.k === 'E' ? GVb(b.x, yc, e.lab) : RVb(b.x, yc, e.lab); });
+      });
+      (o.top || []).forEach(t => { const xm = (t.x1 + t.x2) / 2; s += `<rect x="${xm - 18}" y="${Y1 - 8}" width="36" height="16" style="${LINE};fill:var(--sheet)"/><text x="${xm}" y="${Y1 - 14}" text-anchor="middle" style="${INK}">${t.lab}</text>`; });
+      if (o.ab) s += `<circle cx="${x0}" cy="${Y1}" r="4" style="${LINE};fill:var(--sheet)"/><circle cx="${x0}" cy="${Y2}" r="4" style="${LINE};fill:var(--sheet)"/><text x="${x0 - 6}" y="${Y1 + 22}" text-anchor="end" style="${INK}">A</text><text x="${x0 - 6}" y="${Y2 - 8}" text-anchor="end" style="${INK}">B</text>`;
+      (o.nodes || []).forEach(([x, lab]) => { s += dot(x, Y1) + `<text x="${x}" y="${Y1 - 14}" text-anchor="middle" style="${INK};font-weight:600">${lab}</text>`; });
+      if (o.gnd) s += `<text x="${x1 + 8}" y="${Y2 + 5}" style="${INK};font-size:13px">0 V</text>`;
+      return `<svg class="lfig" viewBox="0 0 ${w} 200" role="img" aria-label="${o.alt || 'schéma du circuit'}">${s}</svg>`;
+    }
+    const R = lab => ({ k: 'R', lab }), E = lab => ({ k: 'E', lab });
+    const guided = '<p class="fine">Calcul guidé : fais-le sur ta feuille, étape par étape, puis tape les résultats intermédiaires.</p>';
+
+    /* ---------- Étapes ajoutées : schémas et calculs guidés, à la suite des étapes de chaque leçon ---------- */
+    const MORE = {
+      ohm: [
+        { h: 'Calcul guidé : un générateur et une résistance',
+          body: `${rail({ br: [{ x: 120, els: [E('12 V')] }, { x: 300, els: [R('4 kΩ')] }], alt: 'un générateur de 12 V branché sur une résistance de 4 kΩ' })}${guided}
+            <ol><li>La résistance est branchée directement aux bornes du générateur : elle a <b>toute</b> sa tension, \\(U = 12\\) V.</li><li>Loi d'Ohm : \\(I = U/R\\), en V et kΩ pour avoir des mA.</li><li>Si on remplace la résistance par une deux fois plus grande, que devient le courant ?</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(I\\)', 3, 'mA'), N('\\(I\\) avec 8 kΩ', 1.5, 'mA')], why: '\\(I = 12/4 = 3\\) mA ; avec 8 kΩ, \\(12/8 = 1{,}5\\) mA : deux fois moins de passage, deux fois moins de débit.' } }
+      ],
+      conv: [
+        { h: 'Calcul guidé : flécher puis calculer',
+          body: `${rail({ br: [{ x: 120, els: [E('9 V')] }, { x: 300, els: [R('3 kΩ')] }], alt: 'un générateur de 9 V et une résistance de 3 kΩ' })}${guided}
+            <ol><li>On flèche \\(I\\) sortant du \\(+\\) du générateur (convention générateur) : il descend dans la résistance, qu'on flèche en récepteur, tension \\(U\\) vers le haut.</li><li>La résistance a la tension du générateur : \\(U = 9\\) V, donc \\(I = U/R\\).</li><li>Un camarade a fléché \\(I'\\) dans l'autre sens. Que trouve-t-il ?</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(I\\)', 3, 'mA'), N("\\(I'\\)", -3, 'mA')], why: '\\(I = 9/3 = 3\\) mA. Fléché dans l\'autre sens, le même courant vaut \\(I\' = -3\\) mA : le signe dit seulement que la flèche est à l\'envers.' } }
+      ],
+      as2: [
+        { h: 'Calcul guidé : série et parallèle mélangés',
+          body: `${rail({ ab: true, br: [{ x: 220, els: [R('3 kΩ')] }, { x: 360, els: [R('6 kΩ')] }], top: [{ x1: 30, x2: 220, lab: '2 kΩ' }], alt: 'entre A et B : 2 kΩ en série avec 3 kΩ et 6 kΩ en parallèle' })}${guided}
+            <ol><li>Les deux résistances verticales relient les deux mêmes fils : elles sont en <b>parallèle</b>. Produit sur somme.</li><li>Ce groupe est traversé par tout le courant venant de la 2 kΩ : il est en <b>série</b> avec elle. On additionne.</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(3 \\parallel 6\\)', 2, 'kΩ'), N('\\(R_{AB}\\)', 4, 'kΩ')], why: '\\(\\dfrac{3\\times6}{9} = 2\\) kΩ, puis \\(2 + 2 = 4\\) kΩ.' } }
+      ],
+      asn: [
+        { h: 'Calcul guidé : trois branches d\'un coup',
+          body: `${rail({ ab: true, br: [{ x: 180, els: [R('4R')] }, { x: 270, els: [R('4R')] }, { x: 360, els: [R('2R')] }], top: [{ x1: 30, x2: 180, lab: 'R' }], alt: 'R en série avec trois branches 4R, 4R et 2R en parallèle' })}${guided}
+            <ol><li>Les deux \\(4R\\) identiques d'abord : \\(4R/2\\).</li><li>Le résultat avec la \\(2R\\) : encore deux résistances égales.</li><li>Puis la \\(R\\) du haut, en série.</li></ol>`,
+          ask: { q: 'Résultats (en multiples de \\(R\\)) :', items: [N('\\(4R \\parallel 4R \\parallel 2R\\) (en R)', 1), N('\\(R_{AB}\\) (en R)', 2)], why: '\\(4R \\parallel 4R = 2R\\), puis \\(2R \\parallel 2R = R\\), plus \\(R\\) en série : \\(2R\\).' } }
+      ],
+      lad1: [
+        { h: 'Calcul guidé : une échelle complète',
+          body: `${rail({ ab: true, br: [{ x: 160, els: [R('6R')] }, { x: 290, els: [R('6R')] }, { x: 400, els: [R('R')] }], top: [{ x1: 30, x2: 160, lab: 'R' }, { x1: 160, x2: 290, lab: 'R' }, { x1: 290, x2: 400, lab: '2R' }], w: 440, alt: 'réseau en échelle de trois étages' })}${guided}
+            <ol><li>Au bout : la \\(R\\) verticale et la \\(2R\\) horizontale juste avant sont en série.</li><li>Ce groupe est en parallèle avec la \\(6R\\) verticale du milieu.</li><li>Puis en série avec la \\(R\\) horizontale du milieu, en parallèle avec la \\(6R\\) côté A, et enfin en série avec la \\(R\\) côté A.</li></ol>`,
+          ask: { q: 'Étapes (en multiples de \\(R\\)) :', items: [N('étape 1', 3), N('étape 2', 2), N('\\(R_{AB}\\)', 3)], why: '\\(R + 2R = 3R\\) ; \\(3R \\parallel 6R = \\dfrac{18}{9}R = 2R\\) ; \\(2R + R = 3R\\) ; \\(3R \\parallel 6R = 2R\\) ; plus \\(R\\) côté A : \\(R_{AB} = 3R\\). Chaque étage : une série, puis une parallèle.' } }
+      ],
+      nd: [
+        { h: 'Calcul guidé : un nœud à quatre branches',
+          body: `<p>Au nœud A arrivent (d'après les flèches) \\(I_1 = 5\\) mA et \\(I_2\\) ; en partent \\(I_3 = 2\\) mA et \\(I_4 = 6\\) mA.</p>${guided}
+            <ol><li>Écris la loi : entrants = sortants.</li><li>Isole \\(I_2\\).</li><li>Le signe te dit si \\(I_2\\) entre vraiment.</li></ol>`,
+          ask: { q: 'Résultat :', items: [N('\\(I_2\\)', 3, 'mA')], why: '\\(5 + I_2 = 2 + 6\\), donc \\(I_2 = 3\\) mA, positif : il entre bien dans A.' } }
+      ],
+      ml: [
+        { h: 'Calcul guidé : deux mailles',
+          body: `${rail({ br: [{ x: 90, els: [E('10 V')] }, { x: 230, els: [R('U₂')] }, { x: 370, els: [R('U₃')] }], top: [{ x1: 90, x2: 230, lab: 'U₁' }], alt: 'générateur de 10 V, une résistance en haut de tension U1, puis deux résistances en parallèle de tensions U2 et U3' })}${guided}
+            <p>On connaît \\(U_1 = 4\\) V (fléchée en récepteur). Les tensions \\(U_2\\) et \\(U_3\\) sont fléchées vers le haut.</p>
+            <ol><li>Maille de gauche (générateur, \\(U_1\\), \\(U_2\\)) : \\(E - U_1 - U_2 = 0\\).</li><li>Maille de droite (\\(U_2\\) et \\(U_3\\)) : \\(U_2 - U_3 = 0\\). Deux branches en parallèle ont la même tension !</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(U_2\\)', 6, 'V'), N('\\(U_3\\)', 6, 'V')], why: '\\(U_2 = 10 - 4 = 6\\) V et \\(U_3 = U_2 = 6\\) V : la loi des mailles redémontre que deux branches en parallèle ont la même tension.' } }
+      ],
+      loop: [
+        { h: 'Calcul guidé : courant et tensions d\'une maille',
+          body: `${rail({ br: [{ x: 110, els: [E('12 V')] }, { x: 330, els: [R('3 kΩ')] }], top: [{ x1: 110, x2: 330, lab: '1 kΩ' }], alt: 'un générateur de 12 V, une résistance de 1 kΩ en haut et une de 3 kΩ' })}${guided}
+            <ol><li>Une seule maille : \\(I = \\dfrac{E}{R_1 + R_2}\\).</li><li>Puis chaque tension par la loi d'Ohm.</li><li>Vérifie : les deux tensions additionnées redonnent \\(E\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(I\\)', 3, 'mA'), N('\\(U_{3k}\\)', 9, 'V'), N('\\(U_{1k}\\)', 3, 'V')], why: '\\(I = 12/4 = 3\\) mA ; \\(U_{3k} = 9\\) V, \\(U_{1k} = 3\\) V, total 12 V.' } }
+      ],
+      pdt: [
+        { h: 'Calcul guidé : pont diviseur puis charge',
+          body: `${rail({ br: [{ x: 90, els: [E('12 V')] }, { x: 300, els: [R('2 kΩ')] }], top: [{ x1: 90, x2: 300, lab: '1 kΩ' }], nodes: [[300, 'S']], alt: 'générateur de 12 V, 1 kΩ en haut, 2 kΩ vers la masse, sortie S' })}${guided}
+            <ol><li>Sans charge : pont diviseur, \\(U_S = \\dfrac{2}{1 + 2}\\times12\\).</li><li>On branche maintenant une charge de 2 kΩ entre S et la masse. Elle est en parallèle avec la 2 kΩ : regroupe-les d'abord.</li><li>Nouveau pont diviseur avec cette résistance équivalente.</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(U_S\\) à vide', 8, 'V'), N('\\(U_S\\) avec la charge', 6, 'V')], why: 'À vide : \\(8\\) V. Avec la charge : \\(2 \\parallel 2 = 1\\) kΩ, puis \\(\\dfrac{1}{1 + 1}\\times12 = 6\\) V. La charge fait baisser la tension : c\'est pour ça qu\'on ne peut pas appliquer le pont diviseur directement.' } }
+      ],
+      pdc: [
+        { h: 'Calcul guidé : trois branches',
+          body: `<p>6 mA se partagent entre trois branches en parallèle : 1 kΩ, 2 kΩ et 2 kΩ.</p>${guided}
+            <ol><li>Les poids sont les \\(1/R\\) : 1, 1/2, 1/2 (en kΩ⁻¹). Leur somme ?</li><li>\\(I_k = \\dfrac{1/R_k}{\\sum 1/R}\\,I\\).</li><li>Vérifie : la somme des trois courants redonne 6 mA.</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(I_{1k}\\)', 3, 'mA'), N('\\(I_{2k}\\) (chacune)', 1.5, 'mA')], why: 'Somme des poids : 2. \\(I_{1k} = \\dfrac{1}{2}\\times6 = 3\\) mA, et \\(\\dfrac{1/2}{2}\\times6 = 1{,}5\\) mA dans chaque 2 kΩ : \\(3 + 1{,}5 + 1{,}5 = 6\\).' } }
+      ],
+      mi1: [
+        { h: 'Calcul guidé : Millman sur un vrai circuit',
+          body: `${rail({ br: [{ x: 90, els: [R('1 kΩ'), E('6 V')] }, { x: 230, els: [R('2 kΩ')] }, { x: 370, els: [R('2 kΩ'), E('4 V')] }], nodes: [[230, 'A']], gnd: true, alt: 'trois branches entre A et la masse : 1 kΩ et 6 V, 2 kΩ seule, 2 kΩ et 4 V' })}${guided}
+            <ol><li>0 V sur la ligne du bas. Les deux générateurs ont leur \\(+\\) côté A.</li><li>Numérateur : \\(\\dfrac{6}{1} + \\dfrac{0}{2} + \\dfrac{4}{2}\\). Dénominateur : \\(\\dfrac11 + \\dfrac12 + \\dfrac12\\).</li><li>Puis le courant dans la 2 kΩ seule, de A vers le bas : \\(V_A / 2\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('numérateur', 8), N('\\(V_A\\)', 4, 'V'), N('\\(I\\) dans la 2 kΩ seule', 2, 'mA')], why: 'Numérateur \\(6 + 0 + 2 = 8\\), dénominateur \\(2\\) : \\(V_A = 4\\) V. Courant \\(4/2 = 2\\) mA vers le bas.' } }
+      ],
+      mi2: [
+        { h: 'Calcul guidé : Millman puis un courant, en littéral',
+          body: `<p>Branches entre A et la masse : \\(E\\) + \\(R\\), \\(2R\\) seule, \\(2E\\) + \\(2R\\) (tous les \\(+\\) côté A).</p>${guided}
+            <ol><li>Écris \\(V_A\\) avec les termes \\(E/R\\), \\(0/2R\\), \\(2E/2R\\) et les \\(1/R\\).</li><li>Multiplie haut et bas par \\(2R\\).</li><li>Courant dans la \\(2R\\) seule : \\(V_A/(2R)\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [C('\\(V_A\\)', [['a', '\\(E\\)'], ['b', '\\(\\dfrac{4E}{3}\\)'], ['c', '\\(\\dfrac{3E}{2}\\)']], 'a'), C('\\(I\\) dans la \\(2R\\)', [['a', '\\(\\dfrac{E}{2R}\\)'], ['b', '\\(\\dfrac{E}{R}\\)'], ['c', '\\(\\dfrac{2E}{3R}\\)']], 'a')],
+            why: '\\(V_A = \\dfrac{E/R + 0 + E/R}{1/R + 1/(2R) + 1/(2R)} = \\dfrac{2E/R}{2/R} = E\\). Puis \\(I = \\dfrac{E}{2R}\\) : une tension divisée par une résistance, c\'est bien homogène à un courant.' } }
+      ],
+      x3a: [
+        { h: 'Calcul guidé : l\'Ex 3 de A à Z',
+          body: `${rail({ br: [{ x: 90, els: [R('R'), E('E₁')] }, { x: 230, els: [R('R')] }, { x: 370, els: [R('R'), E('E₂')] }], nodes: [[230, 'A']], gnd: true, alt: 'trois branches : R et E1, R seule, R et E2' })}${guided}
+            <p>\\(E_1 = 12\\) V, \\(E_2 = 6\\) V, \\(R = 1\\) kΩ. \\(I_1\\) et \\(I_2\\) montent vers A dans les branches des générateurs, \\(I\\) descend dans la branche du milieu.</p>
+            <ol><li>Maille gauche : \\(E_1 - R I_1 - R I = 0\\) ; maille droite : \\(E_2 - R I_2 - R I = 0\\).</li><li>Nœud A : \\(I_1 + I_2 = I\\). On remplace : \\(E_1 + E_2 - 2RI = RI\\).</li><li>Puis \\(I_1\\) et \\(I_2\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(I\\)', 6, 'mA'), N('\\(I_1\\)', 6, 'mA'), N('\\(I_2\\)', 0, 'mA')], why: '\\(I = \\dfrac{E_1 + E_2}{3R} = \\dfrac{18}{3} = 6\\) mA ; \\(I_1 = 12 - 6 = 6\\) mA ; \\(I_2 = 6 - 6 = 0\\) : aucun courant dans la branche de \\(E_2\\) (le point A est justement à 6 V). Vérification : \\(6 + 0 = 6\\).' } }
+      ],
+      x4: [
+        { h: 'Calcul guidé : la charge, en nombres',
+          body: `${rail({ br: [{ x: 70, els: [E('E')] }, { x: 230, els: [R('R')] }, { x: 380, els: [R('R_L')] }], top: [{ x1: 70, x2: 230, lab: 'R' }, { x1: 230, x2: 380, lab: 'R' }], alt: 'générateur E, R en haut, R vers la masse, puis R en haut et la charge RL' })}${guided}
+            <p>\\(E = 12\\) V, \\(R = R_L = 1\\) kΩ.</p>
+            <ol><li>Branche de droite : \\(R\\) (haut) en série avec \\(R_L\\) : \\(2\\) kΩ.</li><li>En parallèle avec la \\(R\\) du milieu : \\(R_{eq}\\).</li><li>Pont diviseur : \\(U = \\dfrac{R_{eq}}{R + R_{eq}}E\\), puis \\(U_L = \\dfrac{R_L}{R + R_L}U\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(R_{eq}\\)', 2 / 3, 'kΩ'), N('\\(U\\)', 4.8, 'V'), N('\\(U_L\\)', 2.4, 'V')], why: '\\(R_{eq} = 1 \\parallel 2 = \\dfrac23\\) kΩ ; \\(U = \\dfrac{2/3}{1 + 2/3}\\times12 = \\dfrac25\\times12 = 4{,}8\\) V ; \\(U_L = \\dfrac12\\times4{,}8 = 2{,}4\\) V.' } }
+      ],
+      x3b: [
+        { h: 'Calcul guidé : vérifier par Millman',
+          body: `<p>Mêmes branches que l'Ex 3 : \\(E_1\\) + \\(R\\), \\(R\\) seule, \\(E_2\\) + \\(2R\\). \\(E_1 = 9\\) V, \\(E_2 = 6\\) V, \\(R = 1\\) kΩ.</p>${guided}
+            <ol><li>Millman : \\(V_A = \\dfrac{9/1 + 0 + 6/2}{1 + 1 + 1/2}\\).</li><li>Courant dans la branche du milieu : \\(V_A/R\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(V_A\\)', 4.8, 'V'), N('\\(I\\)', 4.8, 'mA')], why: '\\(V_A = \\dfrac{12}{2{,}5} = 4{,}8\\) V et \\(I = 4{,}8\\) mA. Si tes lois de Kirchhoff donnent autre chose, une équation est fausse.' } }
+      ],
+      lad3: [
+        { h: 'Calcul guidé : échelle avec fractions',
+          body: `<p>De A vers le bout : \\(R\\) en haut, \\(2R\\) verticale, \\(R\\) en haut, puis \\(R\\) et \\(R\\) en parallèle au bout (deux verticales).</p>${guided}
+            <ol><li>Le bout : \\(R \\parallel R\\).</li><li>En série avec la \\(R\\) du haut.</li><li>En parallèle avec la \\(2R\\), puis en série avec la \\(R\\) côté A.</li></ol>`,
+          ask: { q: 'Étapes (en multiples de \\(R\\)) :', items: [N('bout', 0.5), N('après la série', 1.5), N('\\(R_{AB}\\)', 1 + 6 / 7)], why: '\\(R/2\\) ; \\(1{,}5R\\) ; \\(1{,}5R \\parallel 2R = \\dfrac{3R^2}{3{,}5R} = \\dfrac{6R}{7}\\) ; plus \\(R\\) : \\(\\dfrac{13R}{7} \\approx 1{,}86R\\).' } }
+      ],
+      x3c: [
+        { h: 'Calcul guidé : un générateur retourné',
+          body: `<p>Branches entre A et la masse : \\(E_1 = 12\\) V + \\(R\\) (\\(+\\) côté A), \\(R\\) seule, \\(E_2 = 3\\) V + \\(R\\) avec le \\(+\\) <b>en bas</b>. \\(R = 1\\) kΩ.</p>${guided}
+            <ol><li>Millman avec \\(-E_2/R\\) pour la branche retournée.</li><li>Courant de la branche de \\(E_2\\), fléché vers A : \\(R I_2 = -E_2 - V_A\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(V_A\\)', 3, 'V'), N('\\(I_2\\)', -6, 'mA')], why: '\\(V_A = \\dfrac{12 + 0 - 3}{3} = 3\\) V. En haut de la branche de \\(E_2\\), le potentiel est \\(-3\\) V : \\(I_2 = \\dfrac{-3 - 3}{1} = -6\\) mA. Le signe moins : le courant descend en réalité dans cette branche.' } }
+      ],
+      thv: [
+        { h: 'Calcul guidé : Thévenin puis la charge',
+          body: `${rail({ br: [{ x: 70, els: [E('12 V')] }, { x: 230, els: [R('3 kΩ')] }, { x: 380, els: [R('R_L')] }], top: [{ x1: 70, x2: 230, lab: '6 kΩ' }, { x1: 230, x2: 380, lab: '1 kΩ' }], alt: 'générateur 12 V, 6 kΩ en haut, 3 kΩ vers la masse, 1 kΩ en haut puis la charge' })}${guided}
+            <ol><li>\\(E_{th}\\) : on enlève \\(R_L\\) ; plus de courant dans la 1 kΩ, donc pont diviseur 6 kΩ / 3 kΩ.</li><li>\\(R_{th}\\) : générateur éteint (fil) : \\(6 \\parallel 3\\), plus la 1 kΩ en série.</li><li>Avec \\(R_L = 3\\) kΩ : \\(U_L = \\dfrac{R_L}{R_{th} + R_L}E_{th}\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [N('\\(E_{th}\\)', 4, 'V'), N('\\(R_{th}\\)', 3, 'kΩ'), N('\\(U_L\\)', 2, 'V')], why: '\\(E_{th} = \\dfrac{3}{9}\\times12 = 4\\) V ; \\(R_{th} = 2 + 1 = 3\\) kΩ ; \\(U_L = \\dfrac36\\times4 = 2\\) V.' } }
+      ]
+    };
+    Object.entries(MORE).forEach(([k, st]) => { if (L[k]) L[k].steps.push(...st); });
+    return L;
   };
 })();

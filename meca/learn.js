@@ -8,7 +8,7 @@
   'use strict';
   window.SITE_LEARN = function (H) {
     const { Ch, Nn } = H;
-    return {
+    const L = {
       /* =================== Vecteurs et moments =================== */
       proj: { title: 'Projeter une force', meth: 'repère l\'angle entre la force et un axe : composante \\(F\\cos\\alpha\\) sur cet axe (côté adjacent), \\(F\\sin\\alpha\\) sur l\'axe perpendiculaire ; les signes se lisent sur la figure (vers les \\(x\\) ou \\(y\\) négatifs : signe moins).', steps: [
         { h: 'L\'ombre de la force sur chaque axe',
@@ -105,5 +105,86 @@
           ask: { q: 'Après avoir isolé la biellette 2 reliée au solide 3, l\'action de 3 sur 2 et celle de 2 sur 3 sont :', items: [Ch('réponse', [['o', 'opposées'], ['e', 'égales'], ['i', 'indépendantes']], 'o')], why: 'Actions réciproques : \\(\\vec F_{3\\to2} = -\\vec F_{2\\to3}\\). On reporte l\'effort trouvé, avec le signe opposé, dans l\'isolement suivant.' } }
       ] }
     };
+    /* ---------- Étapes ajoutées : la méthode du PFS pas à pas, puis un calcul guidé au format du DS ---------- */
+    const guided = '<p class="fine">Calcul guidé : isole le solide, fais le bilan sur ta feuille, puis tape les résultats.</p>';
+    const INK = 'fill:var(--ink-2);font:15px var(--sans)';
+    const arr = (x1, y1, x2, y2, c, lab, lx, ly) => { const a = Math.atan2(y2 - y1, x2 - x1), h = 9; return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:${c};stroke-width:2.5"/><path d="M${x2} ${y2} L${x2 - h * Math.cos(a - 0.4)} ${y2 - h * Math.sin(a - 0.4)} L${x2 - h * Math.cos(a + 0.4)} ${y2 - h * Math.sin(a + 0.4)}Z" style="fill:${c}"/>${lab ? `<text x="${lx}" y="${ly}" style="${INK};fill:${c}">${lab}</text>` : ''}`; };
+    // poutre sur deux appuis A et B, charge F
+    const POUTRE = (xa, xf, xb, labF) => `<svg class="lfig" viewBox="0 0 420 170" role="img" aria-label="poutre sur deux appuis avec une charge">
+      <rect x="${xa - 10}" y="70" width="${xb - xa + 20}" height="14" rx="3" style="fill:var(--sheet-2);stroke:var(--ink-2);stroke-width:1.5"/>
+      <polygon points="${xa},84 ${xa - 14},110 ${xa + 14},110" style="fill:none;stroke:var(--ink-2);stroke-width:1.5"/><polygon points="${xb},84 ${xb - 14},110 ${xb + 14},110" style="fill:none;stroke:var(--ink-2);stroke-width:1.5"/>
+      <text x="${xa - 4}" y="130" style="${INK}">A</text><text x="${xb - 4}" y="130" style="${INK}">B</text>
+      ${arr(xf, 20, xf, 66, '#dc2626', labF, xf + 8, 34)}${arr(xa, 160, xa, 114, '#2563eb', 'Y_A', xa + 8, 150)}${arr(xb, 160, xb, 114, '#2563eb', 'Y_B', xb + 8, 150)}</svg>`;
+    const MORE = {
+      proj: [
+        { h: 'Calcul guidé : deux forces sur un même point',
+          body: `${guided}<p>\\(\\vec F_1\\) : 10 N à 30° au-dessus de \\(\\vec x\\). \\(\\vec F_2\\) : 10 N à 60° au-dessus de \\(-\\vec x\\) (vers la gauche).</p>
+            <ol><li>\\(F_{1x} = 10\\cos30°\\), \\(F_{1y} = 10\\sin30°\\).</li><li>\\(F_{2x} = -10\\cos60°\\) (vers la gauche : signe moins), \\(F_{2y} = 10\\sin60°\\).</li><li>Somme composante par composante.</li></ol>`,
+          ask: { q: 'Résultante (en N) :', items: [Nn('R_x', 10 * Math.cos(Math.PI / 6) - 5, 'N'), Nn('R_y', 5 + 10 * Math.sin(Math.PI / 3), 'N')], why: '\\(R_x = 8{,}66 - 5 = 3{,}66\\) N ; \\(R_y = 5 + 8{,}66 = 13{,}66\\) N. On additionne toujours des composantes, jamais des normes.' } }
+      ],
+      pvec: [
+        { h: 'Calcul guidé : un produit vectoriel en composantes',
+          body: `${guided}<p>\\(\\vec u = (1, 2, 0)\\), \\(\\vec v = (3, 0, 1)\\).</p>
+            <ol><li>\\(x\\) : \\(u_yv_z - u_zv_y = 2\\times1 - 0\\times0\\).</li><li>\\(y\\) : \\(u_zv_x - u_xv_z = 0\\times3 - 1\\times1\\).</li><li>\\(z\\) : \\(u_xv_y - u_yv_x = 1\\times0 - 2\\times3\\).</li></ol>
+            <p>Vérification : le résultat doit être perpendiculaire à \\(\\vec u\\) (produit scalaire nul).</p>`,
+          ask: { q: 'Composantes de \\(\\vec u\\wedge\\vec v\\) :', items: [Nn('x', 2), Nn('y', -1), Nn('z', -6)], why: '\\((2, -1, -6)\\). Vérification : \\(1\\times2 + 2\\times(-1) + 0\\times(-6) = 0\\), perpendiculaire à \\(\\vec u\\).' } }
+      ],
+      moment: [
+        { h: 'Calcul guidé : le moment en 2D, avec son signe',
+          body: `${guided}<p>Force \\(\\vec F = (0, -50)\\) N (vers le bas) appliquée en B ; \\(\\vec{AB} = (2, 0)\\) m.</p>
+            <ol><li>En plan : \\(\\mathcal M_{A,z} = x_{AB}F_y - y_{AB}F_x\\).</li><li>Bras de levier : la distance horizontale de A à la ligne d'action verticale.</li><li>Le signe : la force fait-elle tourner autour de A dans le sens trigonométrique ?</li></ol>`,
+          ask: { q: 'Moment en A :', items: [Nn('\\mathcal M_{A,z}', -100, 'N·m')], why: '\\(2\\times(-50) - 0\\times0 = -100\\) N·m : 50 N × 2 m, dans le sens horaire (une charge à droite qui fait plonger la poutre), d\'où le signe moins.' } }
+      ],
+      transport: [
+        { h: 'Calcul guidé : transporter un torseur',
+          body: `${guided}<p>En A : \\(\\vec R = (0, -100, 0)\\) N et \\(\\vec{\\mathcal M}_A = \\vec 0\\). On veut le moment en B, avec \\(\\vec{BA} = (-3, 0, 0)\\) m.</p>
+            <ol><li>BABAR : \\(\\vec{\\mathcal M}_B = \\vec{\\mathcal M}_A + \\vec{BA}\\wedge\\vec R\\).</li><li>\\((-3\\vec x)\\wedge(-100\\vec y) = 300\\,\\vec x\\wedge\\vec y\\).</li></ol>`,
+          ask: { q: 'Composante \\(z\\) de \\(\\vec{\\mathcal M}_B\\) :', items: [Nn('\\mathcal M_{B,z}', 300, 'N·m')], why: '\\(\\vec x\\wedge\\vec y = \\vec z\\) : \\(\\vec{\\mathcal M}_B = 300\\,\\vec z\\) N·m. La force passe par A (moment nul en A) mais elle est à 3 m de B.' } }
+      ],
+      liaisons: [
+        { h: 'Exercice guidé : compter inconnues et équations',
+          body: `${guided}<p>Une poutre plane est tenue en A par un <b>pivot</b> d'axe \\(\\vec z\\) et en B par un <b>appui ponctuel</b> de normale \\(\\vec y\\).</p>
+            <ol><li>Pivot en plan : \\(X_A, Y_A\\).</li><li>Appui ponctuel : \\(Y_B\\).</li><li>Le PFS plan donne 3 équations (\\(x\\), \\(y\\), moment).</li></ol>`,
+          ask: { q: 'Bilan :', items: [Nn('\\text{inconnues}', 3), Ch('le problème', [['i', 'est résoluble (isostatique)'], ['h', 'a trop d\'inconnues (hyperstatique)']], 'i')], why: '3 inconnues, 3 équations : isostatique, on peut tout calculer.' } }
+      ],
+      cables: [
+        { h: 'Calcul guidé : la géométrie donne l\'angle',
+          body: `${guided}<p>Une charge \\(P = 600\\) N pend au milieu d'un câble de longueur totale \\(2\\ell = 10\\) m dont les extrémités sont à \\(L = 8\\) m l'une de l'autre, au même niveau.</p>
+            <ol><li>Chaque brin mesure \\(\\ell = 5\\) m et couvre \\(L/2 = 4\\) m à l'horizontale.</li><li>Flèche (hauteur) : \\(h = \\sqrt{\\ell^2 - (L/2)^2}\\) ; \\(\\sin\\theta = h/\\ell\\).</li><li>\\(F = \\dfrac{P}{2\\sin\\theta}\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('h', 3, 'm'), Nn('F', 500, 'N')], why: '\\(h = \\sqrt{25 - 16} = 3\\) m, \\(\\sin\\theta = 0{,}6\\), \\(F = \\dfrac{600}{1{,}2} = 500\\) N.' } }
+      ],
+      encastre: [
+        { h: 'Calcul guidé : potence encastrée',
+          body: `${guided}<p>Un poteau vertical encastré au sol en A porte un bras horizontal de 1,5 m ; au bout, une charge de 200 N. On néglige les poids propres.</p>
+            <ol><li>Résultante : \\(X_A = 0\\), \\(Y_A\\) compense la charge.</li><li>Moments en A : la charge est à 1,5 m horizontalement de A.</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('Y_A', 200, 'N'), Nn('|N_A|', 300, 'N·m')], why: '\\(Y_A = 200\\) N ; \\(|N_A| = 200\\times1{,}5 = 300\\) N·m. La hauteur du poteau n\'intervient pas : le bras de levier d\'une force verticale est horizontal.' } }
+      ],
+      appuis: [
+        { h: 'Calcul guidé : la poutre et le basculement',
+          body: `${POUTRE(70, 150, 300, 'F = 120 N')}${guided}<p>Appuis A et B distants de 6 m ; \\(F = 120\\) N à 2 m de A.</p>
+            <ol><li>Moments en A : \\(6\\,Y_B - 2\\times120 = 0\\).</li><li>Résultante : \\(Y_A + Y_B = 120\\).</li><li>Si on déplaçait \\(F\\) au-delà de B (en porte-à-faux), \\(Y_A\\) deviendrait négatif : l'appui A décollerait, c'est le basculement.</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('Y_B', 40, 'N'), Nn('Y_A', 80, 'N')], why: '\\(Y_B = 240/6 = 40\\) N ; \\(Y_A = 80\\) N. L\'appui le plus proche de la charge porte le plus.' } }
+      ],
+      contact3: [
+        { h: 'Calcul guidé : trois appuis non symétriques',
+          body: `${guided}<p>Un plateau de poids 300 N repose sur trois appuis : A \\((0, 0)\\), B \\((4, 0)\\), C \\((0, 3)\\) (en m). Le centre de gravité est en \\((1, 1)\\).</p>
+            <ol><li>Moments autour de l'axe \\(\\vec y\\) passant par A (bras de levier = abscisse) : \\(4Y_B - 300\\times1 = 0\\).</li><li>Moments autour de l'axe \\(\\vec x\\) passant par A (bras = ordonnée) : \\(3Y_C - 300\\times1 = 0\\).</li><li>Résultante : \\(Y_A = 300 - Y_B - Y_C\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('Y_B', 75, 'N'), Nn('Y_C', 100, 'N'), Nn('Y_A', 125, 'N')], why: '\\(Y_B = 75\\) N, \\(Y_C = 100\\) N, \\(Y_A = 125\\) N : A, le plus proche du centre de gravité, porte le plus.' } }
+      ],
+      moteur: [
+        { h: 'Calcul guidé : le couple selon l\'angle du bras',
+          body: `${guided}<p>Bras de 400 N, centre de gravité à 0,5 m de l'axe du pivot. Le bras fait un angle \\(\\theta\\) avec l'horizontale.</p>
+            <ol><li>Bras de levier du poids : la distance horizontale \\(0{,}5\\cos\\theta\\).</li><li>\\(C = P\\times0{,}5\\cos\\theta\\).</li></ol>`,
+          ask: { q: 'Couple nécessaire :', items: [Nn('C\\ (\\theta = 0)', 200, 'N·m'), Nn('C\\ (\\theta = 60°)', 100, 'N·m')], why: 'Horizontal : \\(400\\times0{,}5 = 200\\) N·m ; à 60° : \\(\\cos60° = 0{,}5\\), donc 100 N·m. Le couple est maximal bras horizontal.' } }
+      ],
+      bielle: [
+        { h: 'Exercice guidé : l\'ordre des isolements',
+          body: `${guided}<p>Une pince : deux bras 1 et 2 articulés en O, et une biellette 3 (poids négligé) articulée en C sur 1 et en D sur 2. On connaît l'effort de serrage et on cherche l'effort dans la biellette.</p>
+            <ol><li>Isoler 3 d'abord : deux forces, donc dirigées selon CD. Une seule inconnue : son intensité.</li><li>Isoler ensuite un bras (par exemple 2) : effort connu, effort de 3 de direction connue, pivot en O (2 inconnues) : 3 inconnues en tout.</li><li>Moments en O : seule l'intensité de l'effort de 3 reste dans l'équation.</li></ol>`,
+          ask: { q: 'Pourquoi écrire les moments en O pour le bras 2 ?', items: [Ch('réponse', [['o', 'les inconnues du pivot en O disparaissent'], ['f', 'c\'est le point le plus facile à dessiner'], ['r', 'la résultante y est nulle']], 'o')], why: 'Les efforts du pivot passent par O : leur moment y est nul. Il ne reste que l\'inconnue cherchée.' } }
+      ]
+    };
+    Object.entries(MORE).forEach(([k, st]) => { if (L[k]) L[k].steps.push(...st); });
+    return L;
   };
 })();

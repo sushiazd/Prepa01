@@ -10,7 +10,7 @@
   window.SITE_LEARN = function (H) {
     const { Ch, Nn } = H;
     const num = (lab, val) => Object.assign(Nn(lab, val), { tol: 0.02 });   // réponse décimale arrondie acceptée (2 %)
-    return {
+    const L = {
       /* =================== Complexes =================== */
       cform: { title: 'Calculer avec le nombre i', meth: 'on calcule comme avec des polynômes en remplaçant \\(i^2\\) par \\(-1\\) ; pour diviser, on multiplie en haut et en bas par le conjugué du dénominateur ; Moivre : \\((\\cos\\theta + i\\sin\\theta)^n = \\cos n\\theta + i\\sin n\\theta\\).', steps: [
         { h: 'Un nombre, c\'est un point du plan',
@@ -131,5 +131,82 @@
           ask: { q: '\\(u_{n+1} = \\dfrac{u_n}{2} + 1\\) converge. Sa limite \\(\\ell\\) = ?', items: [Nn('\\ell', 2)], why: '\\(\\ell = \\dfrac\\ell2 + 1\\), donc \\(\\dfrac\\ell2 = 1\\), \\(\\ell = 2\\).' } }
       ] }
     };
+    /* ---------- Étapes ajoutées : calculs guidés au format du CC (sans calculatrice) ---------- */
+    const guided = '<p class="fine">Calcul guidé : fais-le sur ta feuille, étape par étape, puis tape les résultats.</p>';
+    const MORE = {
+      cform: [
+        { h: 'Calcul guidé : Moivre pour trouver cos 3θ',
+          body: `${guided}<p>\\((\\cos\\theta + i\\sin\\theta)^3 = \\cos3\\theta + i\\sin3\\theta\\). On développe la gauche avec \\(c = \\cos\\theta\\), \\(s = \\sin\\theta\\) :</p>
+            <ol><li>\\((c + is)^3 = c^3 + 3c^2(is) + 3c(is)^2 + (is)^3 = c^3 + 3ic^2s - 3cs^2 - is^3\\).</li><li>Partie réelle : \\(c^3 - 3cs^2\\) ; on remplace \\(s^2 = 1 - c^2\\).</li><li>On identifie avec \\(\\cos3\\theta\\).</li></ol>`,
+          ask: { q: '\\(\\cos3\\theta = a\\cos^3\\theta + b\\cos\\theta\\) avec :', items: [Nn('a', 4), Nn('b', -3)], why: '\\(c^3 - 3c(1 - c^2) = 4c^3 - 3c\\) : \\(\\cos3\\theta = 4\\cos^3\\theta - 3\\cos\\theta\\).' } }
+      ],
+      cexp: [
+        { h: 'Calcul guidé : une puissance grâce à l\'exponentielle',
+          body: `${guided}<p>Calculer \\((1 + i)^8\\).</p><ol><li>Module de \\(1 + i\\) : \\(\\sqrt2\\) ; argument : \\(\\pi/4\\). Donc \\(1 + i = \\sqrt2\\,e^{i\\pi/4}\\).</li><li>Puissance 8 : module puissance 8, argument fois 8.</li><li>\\(e^{2i\\pi} = 1\\).</li></ol>`,
+          ask: { q: '\\((1 + i)^8\\) = ?', items: [Nn('(1 + i)^8', 16)], why: '\\((\\sqrt2)^8 = 2^4 = 16\\) et \\(8\\times\\pi/4 = 2\\pi\\) : \\(16\\,e^{2i\\pi} = 16\\). Développer à la main aurait été bien plus long.' } }
+      ],
+      cracines: [
+        { h: 'Calcul guidé : une équation de degré 2 dans ℂ',
+          body: `${guided}<p>\\(z^2 - 2z + 5 = 0\\).</p><ol><li>\\(\\Delta = b^2 - 4ac\\).</li><li>\\(\\Delta < 0\\) : \\(\\sqrt{-\\Delta}\\) pour la partie imaginaire.</li><li>\\(z = \\dfrac{-b \\pm i\\sqrt{-\\Delta}}{2a}\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('\\Delta', -16), Nn('\\mathrm{Im}(z_1) > 0', 2)], why: '\\(\\Delta = 4 - 20 = -16\\), \\(\\sqrt{16} = 4\\) : \\(z = \\dfrac{2 \\pm 4i}{2} = 1 \\pm 2i\\).' } }
+      ],
+      deriv: [
+        { h: 'Calcul guidé : un quotient',
+          body: `${guided}<p>\\(f(x) = \\dfrac{\\ln x}{x}\\) sur \\(]0, +\\infty[\\).</p><ol><li>\\(u = \\ln x\\), \\(u' = 1/x\\) ; \\(v = x\\), \\(v' = 1\\).</li><li>\\(f' = \\dfrac{u'v - uv'}{v^2} = \\dfrac{1 - \\ln x}{x^2}\\).</li><li>\\(f'\\) s'annule quand \\(\\ln x = 1\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn("f'(1)", 1), Ch('\\(f\'\\) s\'annule en', [['e', '\\(x = e\\)'], ['1', '\\(x = 1\\)'], ['0', '\\(x = 0\\)']], 'e')], why: '\\(f\'(1) = \\dfrac{1 - 0}{1} = 1\\) ; \\(f\' = 0\\) pour \\(x = e\\), où \\(f\\) atteint son maximum \\(1/e\\).' } }
+      ],
+      etude: [
+        { h: 'Calcul guidé : tableau de variations complet',
+          body: `${guided}<p>\\(f(x) = xe^{-x}\\) sur \\(\\mathbb R\\).</p><ol><li>\\(f'(x) = e^{-x} - xe^{-x} = (1 - x)e^{-x}\\) : le signe est celui de \\(1 - x\\).</li><li>Maximum en \\(x = 1\\) : \\(f(1) = e^{-1}\\).</li><li>Limites : en \\(+\\infty\\), croissances comparées ; en \\(-\\infty\\), \\(x\\to-\\infty\\) et \\(e^{-x}\\to+\\infty\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('\\lim_{+\\infty} f', 0), Ch('\\(\\lim_{-\\infty} f\\)', [['m', '\\(-\\infty\\)'], ['0', '0'], ['p', '\\(+\\infty\\)']], 'm')], why: 'En \\(+\\infty\\), \\(x/e^x \\to 0\\) (l\'exponentielle gagne). En \\(-\\infty\\), produit d\'un très négatif par un très grand : \\(-\\infty\\).' } }
+      ],
+      limites: [
+        { h: 'Calcul guidé : factoriser par le terme dominant',
+          body: `${guided}<p>\\(\\displaystyle\\lim_{x\\to+\\infty}\\frac{3x^2 - x + 1}{x^2 + 5}\\).</p><ol><li>Forme \\(\\infty/\\infty\\). On factorise haut et bas par \\(x^2\\).</li><li>\\(\\dfrac{x^2(3 - 1/x + 1/x^2)}{x^2(1 + 5/x^2)}\\).</li><li>Les termes en \\(1/x\\) tendent vers 0.</li></ol>`,
+          ask: { q: 'Limite :', items: [Nn('\\ell', 3)], why: 'Il reste \\(3/1 = 3\\) : pour une fraction rationnelle, c\'est le rapport des termes de plus haut degré.' } }
+      ],
+      dlusuels: [
+        { h: 'Calcul guidé : composer un DL',
+          body: `${guided}<p>DL de \\(e^{\\sin x}\\) à l'ordre 2 en 0.</p><ol><li>\\(\\sin x = x + o(x^2)\\) (le terme suivant est en \\(x^3\\)).</li><li>\\(e^u = 1 + u + \\dfrac{u^2}{2} + o(u^2)\\) avec \\(u = \\sin x\\), qui tend vers 0.</li><li>Remplace et garde jusqu'à \\(x^2\\).</li></ol>`,
+          ask: { q: '\\(e^{\\sin x} = 1 + a\\,x + b\\,x^2 + o(x^2)\\) :', items: [Nn('a', 1), num('b', 0.5)], why: '\\(1 + x + \\dfrac{x^2}{2} + o(x^2)\\) : à l\'ordre 2, \\(\\sin x\\) se comporte comme \\(x\\).' } }
+      ],
+      dltaylor: [
+        { h: 'Calcul guidé : Taylor pour √(1 + x)',
+          body: `${guided}<p>\\(f(x) = \\sqrt{1 + x} = (1 + x)^{1/2}\\).</p><ol><li>\\(f(0) = 1\\).</li><li>\\(f'(x) = \\tfrac12(1 + x)^{-1/2}\\), donc \\(f'(0) = \\tfrac12\\).</li><li>\\(f''(x) = -\\tfrac14(1 + x)^{-3/2}\\), donc \\(f''(0) = -\\tfrac14\\), coefficient \\(\\dfrac{f''(0)}{2}\\).</li></ol>`,
+          ask: { q: 'Coefficients du DL à l\'ordre 2 :', items: [num('a_1', 0.5), num('a_2', -0.125)], why: '\\(\\sqrt{1 + x} = 1 + \\dfrac x2 - \\dfrac{x^2}{8} + o(x^2)\\) : on retrouve la formule de \\((1 + x)^\\alpha\\) avec \\(\\alpha = \\tfrac12\\).' } }
+      ],
+      dllim: [
+        { h: 'Calcul guidé : une limite en 0 avec cosinus',
+          body: `${guided}<p>\\(\\displaystyle\\lim_{x\\to0}\\frac{1 - \\cos x}{x^2}\\).</p><ol><li>\\(\\cos x = 1 - \\dfrac{x^2}{2} + o(x^2)\\).</li><li>Numérateur : \\(\\dfrac{x^2}{2} + o(x^2)\\).</li><li>Divise par \\(x^2\\).</li></ol>`,
+          ask: { q: 'Limite :', items: [num('\\ell', 0.5)], why: '\\(\\dfrac{x^2/2 + o(x^2)}{x^2} \\to \\dfrac12\\).' } }
+      ],
+      riemann: [
+        { h: 'Calcul guidé : reconnaître une somme de Riemann',
+          body: `${guided}<p>\\(S_n = \\displaystyle\\sum_{k=1}^{n}\\frac{1}{n + k}\\).</p><ol><li>Fais apparaître \\(\\dfrac1n\\) : \\(\\dfrac{1}{n + k} = \\dfrac1n\\cdot\\dfrac{1}{1 + k/n}\\).</li><li>C'est \\(\\dfrac1n\\sum f(k/n)\\) avec \\(f(x) = \\dfrac{1}{1 + x}\\) sur \\([0, 1]\\).</li><li>Limite : \\(\\int_0^1 \\dfrac{dx}{1 + x}\\).</li></ol>`,
+          ask: { q: 'Limite de \\(S_n\\) :', items: [num('\\ell', Math.LN2)], why: '\\([\\ln(1 + x)]_0^1 = \\ln 2 \\approx 0{,}693\\).' } }
+      ],
+      prim: [
+        { h: 'Calcul guidé : une IPP avec ln',
+          body: `${guided}<p>\\(\\displaystyle\\int_1^e \\ln x\\,dx\\).</p><ol><li>On écrit \\(\\ln x = 1\\times\\ln x\\) : \\(u = \\ln x\\) (se simplifie en dérivant), \\(v' = 1\\).</li><li>\\(u' = 1/x\\), \\(v = x\\) : \\([x\\ln x]_1^e - \\int_1^e 1\\,dx\\).</li><li>Calcule chaque morceau.</li></ol>`,
+          ask: { q: 'Résultat :', items: [Nn('I', 1)], why: '\\([x\\ln x]_1^e = e\\) et \\(\\int_1^e dx = e - 1\\) : \\(I = e - (e - 1) = 1\\).' } }
+      ],
+      integ: [
+        { h: 'Calcul guidé : un changement de variable',
+          body: `${guided}<p>\\(\\displaystyle\\int_0^1 x\\,e^{x^2}\\,dx\\) avec \\(t = x^2\\).</p><ol><li>\\(dt = 2x\\,dx\\), donc \\(x\\,dx = \\dfrac{dt}{2}\\).</li><li>Bornes : \\(x = 0 \\to t = 0\\), \\(x = 1 \\to t = 1\\).</li><li>\\(\\dfrac12\\int_0^1 e^t\\,dt\\).</li></ol>`,
+          ask: { q: 'Résultat :', items: [num('I', (Math.E - 1) / 2)], why: '\\(\\dfrac12(e - 1) \\approx 0{,}859\\). (On pouvait aussi reconnaître \\(\\tfrac12 u\'e^u\\).)' } }
+      ],
+      elts: [
+        { h: 'Calcul guidé : décomposer puis intégrer',
+          body: `${guided}<p>\\(\\displaystyle\\int_2^3 \\frac{dx}{x^2 - 1}\\).</p><ol><li>\\(x^2 - 1 = (x - 1)(x + 1)\\) ; \\(\\dfrac{1}{(x - 1)(x + 1)} = \\dfrac{A}{x - 1} + \\dfrac{B}{x + 1}\\).</li><li>\\(A\\) : multiplier par \\(x - 1\\), faire \\(x = 1\\). \\(B\\) : multiplier par \\(x + 1\\), faire \\(x = -1\\).</li><li>Intégrer : \\(\\dfrac12\\left[\\ln\\dfrac{x - 1}{x + 1}\\right]_2^3\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [num('A', 0.5), num('B', -0.5), num('I', 0.5 * Math.log(1.5))], why: '\\(A = \\tfrac12\\), \\(B = -\\tfrac12\\). \\(I = \\tfrac12(\\ln\\tfrac24 - \\ln\\tfrac13) = \\tfrac12\\ln\\tfrac32 \\approx 0{,}203\\).' } }
+      ],
+      suites: [
+        { h: 'Calcul guidé : une suite récurrente',
+          body: `${guided}<p>\\(u_0 = 0\\) et \\(u_{n+1} = \\sqrt{u_n + 2}\\).</p><ol><li>Premiers termes : \\(u_1 = \\sqrt2\\), \\(u_2 = \\sqrt{2 + \\sqrt2}\\)… elle semble croître vers 2.</li><li>Par récurrence, \\(0 \\leq u_n \\leq 2\\) et \\(u_{n+1} \\geq u_n\\) : croissante majorée, donc elle converge.</li><li>La limite vérifie \\(\\ell = \\sqrt{\\ell + 2}\\), avec \\(\\ell \\geq 0\\).</li></ol>`,
+          ask: { q: 'Limite :', items: [Nn('\\ell', 2)], why: '\\(\\ell^2 = \\ell + 2\\), soit \\((\\ell - 2)(\\ell + 1) = 0\\) ; \\(\\ell \\geq 0\\) donne \\(\\ell = 2\\).' } }
+      ]
+    };
+    Object.entries(MORE).forEach(([k, st]) => { if (L[k]) L[k].steps.push(...st); });
+    return L;
   };
 })();

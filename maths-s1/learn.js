@@ -10,7 +10,7 @@
   window.SITE_LEARN = function (H) {
     const { Ch, Nn } = H;
     const VF = (lab, ans) => Ch(lab, [['1', 'vraie (1)'], ['0', 'fausse (0)']], ans);
-    return {
+    const L = {
       /* =================== Logique =================== */
       conn: { title: 'Les connecteurs : le cas de l\'implication', meth: 'une colonne par sous-formule, de l\'intérieur vers l\'extérieur ; \\(2^n\\) lignes pour \\(n\\) variables ; \\(P\\Rightarrow Q\\) n\'est fausse que sur la ligne \\(P = 1,\\ Q = 0\\).', steps: [
         { h: 'Une implication, c\'est une promesse',
@@ -170,5 +170,118 @@
           ask: { q: '\\(\\binom40 + \\binom41 + \\binom42 + \\binom43 + \\binom44\\) = ?', items: [Nn('\\text{somme}', 16)], why: 'C\'est le nombre de parties d\'un ensemble à 4 éléments : \\(2^4 = 16\\) (1 + 4 + 6 + 4 + 1).' } }
       ] }
     };
+    /* ---------- Étapes ajoutées : le raisonnement pas à pas, puis un exercice guidé au format du CC ---------- */
+    const guided = '<p class="fine">Exercice guidé : fais-le sur ta feuille en suivant les étapes, puis tape les résultats.</p>';
+    const TT = rows => `<table class="t"><tr>${rows[0].map(c => `<th>${c}</th>`).join('')}</tr>${rows.slice(1).map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table>`;
+    const MORE = {
+      conn: [
+        { h: 'Exercice guidé : une table à trois colonnes',
+          body: `${guided}<p>Table de vérité de \\(F = (P\\Rightarrow Q)\\wedge\\neg Q\\). On ajoute une colonne par sous-formule, de l'intérieur vers l'extérieur :</p>
+            ${TT([['\\(P\\)', '\\(Q\\)', '\\(P\\Rightarrow Q\\)', '\\(\\neg Q\\)', '\\(F\\)'], ['0', '0', '1', '1', '?'], ['0', '1', '1', '0', '?'], ['1', '0', '0', '1', '?'], ['1', '1', '1', '0', '?']])}
+            <p>La dernière colonne est le « et » des deux précédentes.</p>`,
+          ask: { q: 'Colonne \\(F\\), lue de haut en bas, et nature de \\(F\\) :', items: [Ch('colonne \\(F\\)', [['a', '1 0 0 0'], ['b', '1 1 0 0'], ['c', '0 0 0 0']], 'a'), Ch('\\(F\\) est', [['t', 'une tautologie'], ['a', 'une antilogie'], ['n', 'neutre']], 'n')],
+            why: '\\(1\\wedge1 = 1\\), \\(1\\wedge0 = 0\\), \\(0\\wedge1 = 0\\), \\(1\\wedge0 = 0\\) : colonne 1 0 0 0. Elle contient des 0 et des 1 : neutre. Remarque : \\(F\\) n\'est vraie que si \\(P\\) est fausse, c\'est le raisonnement « modus tollens ».' } }
+      ],
+      equiv: [
+        { h: 'Montrer une équivalence sans table',
+          body: `<p>Au lieu d'une table, on transforme pas à pas avec les lois connues. Montrons \\(P\\Rightarrow(Q\\Rightarrow R) \\equiv (P\\wedge Q)\\Rightarrow R\\) :</p>
+            <ol><li>\\(Q\\Rightarrow R \\equiv \\neg Q\\vee R\\), donc la gauche vaut \\(\\neg P\\vee(\\neg Q\\vee R)\\).</li><li>Le « ou » est associatif : \\((\\neg P\\vee\\neg Q)\\vee R\\).</li><li>De Morgan : \\(\\neg P\\vee\\neg Q \\equiv \\neg(P\\wedge Q)\\), donc on a \\(\\neg(P\\wedge Q)\\vee R \\equiv (P\\wedge Q)\\Rightarrow R\\).</li></ol>
+            <p>Chaque ligne cite une loi : c'est ce qui est noté au CC.</p>`,
+          ask: { q: 'La négation de \\((P\\wedge Q)\\Rightarrow R\\) est :', items: [Ch('réponse', [['a', '\\(P\\wedge Q\\wedge\\neg R\\)'], ['b', '\\((P\\wedge Q)\\Rightarrow\\neg R\\)'], ['c', '\\(\\neg P\\vee\\neg Q\\vee R\\)']], 'a')], why: '\\(\\neg(A\\Rightarrow B) \\equiv A\\wedge\\neg B\\) avec \\(A = P\\wedge Q\\) : \\(P\\wedge Q\\wedge\\neg R\\).' } }
+      ],
+      quant: [
+        { h: 'Exercice guidé : traduire puis nier',
+          body: `${guided}<p>Phrase : « la suite \\((u_n)\\) est croissante ».</p>
+            <ol><li>Traduction : \\(\\forall n\\in\\mathbb N,\\ u_{n+1}\\geq u_n\\).</li><li>Négation : on change le quantificateur et on nie la fin.</li><li>Dis en français ce que ça veut dire.</li></ol>`,
+          ask: { q: 'La négation est :', items: [Ch('réponse', [['a', '\\(\\exists n\\in\\mathbb N,\\ u_{n+1} < u_n\\)'], ['b', '\\(\\forall n\\in\\mathbb N,\\ u_{n+1} < u_n\\)'], ['c', '\\(\\exists n\\in\\mathbb N,\\ u_{n+1} \\leq u_n\\)']], 'a')],
+            why: '« Pas croissante » veut dire qu\'il y a au moins une descente, pas qu\'elle est décroissante : \\(\\exists n,\\ u_{n+1} < u_n\\).' } },
+        { h: 'Deux quantificateurs : nier dans l\'ordre',
+          body: `<p>On nie de gauche à droite, chaque quantificateur change, l'ordre reste le même : \\(\\neg(\\forall x,\\ \\exists y,\\ P(x, y)) \\equiv \\exists x,\\ \\forall y,\\ \\neg P(x, y)\\).</p>
+            <p>Exemple : « tout réel a un réel plus grand » \\(\\forall x,\\ \\exists y,\\ y > x\\). Sa négation : \\(\\exists x,\\ \\forall y,\\ y \\leq x\\) (« il existe un réel plus grand que tous »), qui est fausse. Une phrase et sa négation n'ont jamais la même valeur de vérité : c'est un bon moyen de vérifier.</p>`,
+          ask: { q: 'Négation de \\(\\exists M\\in\\mathbb R,\\ \\forall x\\in\\mathbb R,\\ f(x)\\leq M\\) :', items: [Ch('réponse', [['a', '\\(\\forall M\\in\\mathbb R,\\ \\exists x\\in\\mathbb R,\\ f(x) > M\\)'], ['b', '\\(\\exists M\\in\\mathbb R,\\ \\forall x\\in\\mathbb R,\\ f(x) > M\\)'], ['c', '\\(\\forall x\\in\\mathbb R,\\ \\exists M\\in\\mathbb R,\\ f(x) > M\\)']], 'a')], why: 'Chaque quantificateur change, l\'ordre reste : « \\(f\\) n\'est pas majorée ».' } }
+      ],
+      raison: [
+        { h: 'Exercice guidé : une récurrence',
+          body: `${guided}<p>Montrer que pour tout \\(n\\geq0\\), \\(2^n\\geq n + 1\\).</p>
+            <ol><li><b>Initialisation</b> : \\(n = 0\\), \\(2^0 = 1 \\geq 1\\). Vrai.</li><li><b>Hérédité</b> : on suppose \\(2^n\\geq n + 1\\) pour un \\(n\\) fixé. Alors \\(2^{n+1} = 2\\times2^n \\geq 2(n + 1) = 2n + 2\\).</li><li>Et \\(2n + 2 \\geq n + 2\\) car \\(n\\geq0\\). Donc \\(2^{n+1}\\geq (n + 1) + 1\\) : c'est la propriété au rang \\(n + 1\\).</li><li><b>Conclusion</b> : vraie pour tout \\(n\\geq0\\).</li></ol>`,
+          ask: { q: 'Dans l\'hérédité, ce qu\'on doit démontrer est :', items: [Ch('réponse', [['a', '\\(2^{n+1}\\geq n + 2\\)'], ['b', '\\(2^{n}\\geq n + 1\\)'], ['c', '\\(2^{n+1}\\geq 2n + 2\\)']], 'a')], why: 'La propriété au rang \\(n + 1\\) : \\(2^{n+1}\\geq(n + 1) + 1 = n + 2\\). L\'hypothèse est celle du rang \\(n\\) ; on ne la « démontre » pas.' } }
+      ],
+      ops: [
+        { h: 'Exercice guidé : lire un diagramme de Venn',
+          body: `${guided}<p>\\(E = \\{1, \\dots, 10\\}\\), \\(A\\) = les pairs, \\(B\\) = les multiples de 3.</p>
+            <ol><li>Écris \\(A\\) et \\(B\\) en extension.</li><li>\\(A\\cap B\\) : pairs <b>et</b> multiples de 3.</li><li>\\(\\overline{A\\cup B}\\) : ni pair, ni multiple de 3 (De Morgan : \\(\\overline A\\cap\\overline B\\)).</li></ol>`,
+          ask: { q: 'Cardinaux :', items: [Nn('|A\\cap B|', 1), Nn('|\\overline{A\\cup B}|', 3)], why: '\\(A = \\{2, 4, 6, 8, 10\\}\\), \\(B = \\{3, 6, 9\\}\\). \\(A\\cap B = \\{6\\}\\). \\(A\\cup B\\) a 7 éléments, il en reste 3 : \\(\\{1, 5, 7\\}\\).' } }
+      ],
+      crible: [
+        { h: 'Exercice guidé : remplir le diagramme depuis le centre',
+          body: `${guided}<p>Sur 40 étudiants : 22 font du sport (S), 18 de la musique (M), 15 du dessin (D) ; 8 font S et M, 6 S et D, 5 M et D, 3 les trois.</p>
+            <ol><li>Centre : 3 (les trois).</li><li>« S et M seulement » : \\(8 - 3 = 5\\) ; de même S et D seulement, M et D seulement.</li><li>« S seulement » : \\(22 - 5 - 3 - 3\\)…</li><li>Combien ne font rien ?</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('|S\\cup M\\cup D|', 39), Nn('\\text{aucune activité}', 1)], why: 'Crible : \\(22 + 18 + 15 - 8 - 6 - 5 + 3 = 39\\). Donc \\(40 - 39 = 1\\) étudiant ne fait rien. Le diagramme rempli depuis le centre donne le même total.' } }
+      ],
+      parties: [
+        { h: 'Exercice guidé : produit cartésien et parties',
+          body: `${guided}<p>\\(E = \\{a, b\\}\\), \\(F = \\{1, 2, 3\\}\\).</p><ol><li>Écris \\(E\\times F\\) : tous les couples \\((x, y)\\), \\(x\\) dans \\(E\\), \\(y\\) dans \\(F\\).</li><li>Combien de parties a \\(E\\times F\\) ?</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('|E\\times F|', 6), Nn('|\\mathcal P(E\\times F)|', 64)], why: '\\(2\\times3 = 6\\) couples, et \\(2^6 = 64\\) parties.' } }
+      ],
+      image: [
+        { h: 'Exercice guidé : sur la courbe',
+          body: `${guided}<p>\\(f : \\mathbb R\\to\\mathbb R,\\ x\\mapsto x^2 - 2x\\). Mets-la sous forme canonique : \\(f(x) = (x - 1)^2 - 1\\). Son minimum vaut \\(-1\\), atteint en 1.</p>
+            <ol><li>\\(f([0, 3])\\) : de 0 à 3, la courbe descend jusqu'à \\(-1\\) (en 1), puis monte jusqu'à \\(f(3) = 3\\).</li><li>\\(f^{-1}(\\{3\\})\\) : résoudre \\(x^2 - 2x = 3\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Ch('\\(f([0, 3])\\)', [['a', '\\([0, 3]\\)'], ['b', '\\([-1, 3]\\)'], ['c', '\\([-1, 0]\\)']], 'b'), Ch('\\(f^{-1}(\\{3\\})\\)', [['a', '\\(\\{3\\}\\)'], ['b', '\\(\\{-1, 3\\}\\)'], ['c', '\\(\\varnothing\\)']], 'b')],
+            why: 'Le minimum \\(-1\\) est atteint dans \\([0, 3]\\), et le maximum est \\(f(3) = 3\\) (car \\(f(0) = 0\\)) : \\([-1, 3]\\). Et \\(x^2 - 2x - 3 = (x - 3)(x + 1)\\) : \\(\\{-1, 3\\}\\).' } }
+      ],
+      inj: [
+        { h: 'Exercice guidé : prouver ou réfuter',
+          body: `${guided}<p>\\(f : \\mathbb R\\to\\mathbb R,\\ x\\mapsto x^2 + 1\\).</p>
+            <ol><li><b>Injective ?</b> Cherche deux antécédents différents d'une même valeur : \\(f(1)\\) et \\(f(-1)\\).</li><li><b>Surjective ?</b> Une valeur de l'arrivée sans antécédent : \\(x^2 + 1 = 0\\) a-t-elle une solution ?</li><li>Pour une bijection, restreindre : de \\(\\mathbb R_+\\) dans \\([1, +\\infty[\\).</li></ol>
+            <p>Pour <b>montrer</b> une injectivité, on part de \\(f(x) = f(x')\\) et on arrive à \\(x = x'\\) ; pour la <b>réfuter</b>, un contre-exemple suffit.</p>`,
+          ask: { q: 'Sur \\(\\mathbb R\\to\\mathbb R\\), \\(f\\) est :', items: [Ch('réponse', [['n', 'ni injective ni surjective'], ['i', 'injective'], ['s', 'surjective']], 'n')], why: '\\(f(1) = f(-1) = 2\\) : pas injective. 0 n\'a pas d\'antécédent : pas surjective.' } }
+      ],
+      compo: [
+        { h: 'Exercice guidé : trouver une réciproque',
+          body: `${guided}<p>\\(f : \\mathbb R\\setminus\\{1\\}\\to\\mathbb R\\setminus\\{2\\},\\ x\\mapsto\\dfrac{2x}{x - 1}\\).</p>
+            <ol><li>Pose \\(y = \\dfrac{2x}{x - 1}\\), donc \\(y(x - 1) = 2x\\).</li><li>Regroupe les \\(x\\) : \\(yx - 2x = y\\), \\(x(y - 2) = y\\).</li><li>\\(x = \\dfrac{y}{y - 2}\\) (possible car \\(y \\neq 2\\)) : c'est \\(f^{-1}(y)\\).</li></ol>`,
+          ask: { q: 'Valeur de \\(f^{-1}(4)\\) ?', items: [Nn('f^{-1}(4)', 2)], why: '\\(f^{-1}(4) = \\dfrac{4}{2} = 2\\), et en effet \\(f(2) = \\dfrac{4}{1} = 4\\).' } }
+      ],
+      rel: [
+        { h: 'Exercice guidé : tester les quatre propriétés',
+          body: `${guided}<p>Sur \\(\\mathbb Z\\) : \\(x\\mathcal Ry \\iff x - y\\) est pair.</p>
+            <ol><li>Réflexive : \\(x - x = 0\\), pair.</li><li>Symétrique : si \\(x - y = 2k\\), alors \\(y - x = 2(-k)\\).</li><li>Transitive : \\(x - z = (x - y) + (y - z)\\), somme de deux pairs.</li><li>Antisymétrique ? \\(0\\mathcal R2\\) et \\(2\\mathcal R0\\) mais \\(0\\neq2\\).</li></ol>`,
+          ask: { q: 'Cette relation est :', items: [Ch('réponse', [['e', 'une relation d\'équivalence'], ['o', 'une relation d\'ordre'], ['r', 'ni l\'un ni l\'autre']], 'e')], why: 'Réflexive, symétrique, transitive : équivalence (c\'est la congruence modulo 2, avec deux classes : pairs et impairs).' } }
+      ],
+      classes: [
+        { h: 'Exercice guidé : relation « même image »',
+          body: `${guided}<p>Sur \\(\\mathbb R\\) : \\(x\\mathcal Ry \\iff x^2 = y^2\\). C'est une équivalence (« avoir la même image par \\(x\\mapsto x^2\\) »).</p>
+            <ol><li>Classe de 3 : tous les \\(y\\) avec \\(y^2 = 9\\).</li><li>Classe de 0 : \\(y^2 = 0\\).</li></ol>`,
+          ask: { q: 'Nombre d\'éléments :', items: [Nn('|C(3)|', 2), Nn('|C(0)|', 1)], why: '\\(C(3) = \\{-3, 3\\}\\) et \\(C(0) = \\{0\\}\\). Toute relation « \\(f(x) = f(y)\\) » est une équivalence : ses classes sont les ensembles d\'antécédents.' } }
+      ],
+      ordre: [
+        { h: 'Exercice guidé : ordre partiel',
+          body: `${guided}<p>Sur \\(\\{1, 2, 3, 4, 6, 12\\}\\) ordonné par « divise ».</p>
+            <ol><li>C'est un ordre partiel : 4 et 6 ne sont pas comparables (aucun ne divise l'autre).</li><li>Majorants de \\(\\{4, 6\\}\\) dans cet ensemble : les multiples communs, ici 12.</li><li>Minorants de \\(\\{4, 6\\}\\) : les diviseurs communs, 1 et 2. La borne inférieure est le plus grand d'entre eux (pour « divise »).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('\\sup\\{4, 6\\}', 12), Nn('\\inf\\{4, 6\\}', 2)], why: 'sup = PPCM = 12, inf = PGCD = 2. Ni 4 ni 6 n\'est un maximum de \\(\\{4, 6\\}\\) : ils ne sont pas comparables.' } }
+      ],
+      perm: [
+        { h: 'Exercice guidé : anagrammes avec contrainte',
+          body: `${guided}<p>Anagrammes du mot PRIME (5 lettres toutes différentes).</p>
+            <ol><li>Total : \\(5! = 120\\).</li><li>Celles qui commencent par P : on fixe P, il reste 4 lettres à ranger.</li><li>Celles où I et M sont côte à côte : on colle « IM » en un seul bloc (4 objets à ranger), et le bloc peut s'écrire IM ou MI.</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('\\text{commencent par P}', 24), Nn('\\text{I et M côte à côte}', 48)], why: '\\(4! = 24\\) ; avec le bloc : \\(4!\\times2 = 48\\).' } }
+      ],
+      arr: [
+        { h: 'Exercice guidé : exactement j',
+          body: `${guided}<p>Dans une classe de 12 garçons et 8 filles, on choisit 5 délégués (rôles identiques).</p>
+            <ol><li>Exactement 2 filles : choisir les 2 filles parmi 8, <b>et</b> les 3 garçons parmi 12 : on multiplie.</li><li>Au moins une fille : tout moins « aucune fille ».</li></ol>
+            <p>Laisse les résultats en \\(\\binom nk\\) si le calcul est long (pas de calculatrice au CC), mais calcule ici pour t'entraîner.</p>`,
+          ask: { q: 'Résultats :', items: [Nn('\\text{exactement 2 filles}', 6160), Nn('\\text{au moins une fille}', 14712)], why: '\\(\\binom82\\binom{12}3 = 28\\times220 = 6160\\). Total \\(\\binom{20}5 = 15504\\), sans fille \\(\\binom{12}5 = 792\\) : \\(15504 - 792 = 14712\\).' } }
+      ],
+      binom: [
+        { h: 'Exercice guidé : le triangle de Pascal',
+          body: `${guided}<p>Chaque nombre est la somme des deux au-dessus (formule de Pascal) :</p>
+            ${TT([['n', 'k = 0', '1', '2', '3', '4'], ['3', '1', '3', '3', '1', ''], ['4', '1', '4', '6', '4', '1'], ['5', '1', '5', '?', '?', '5']])}`,
+          ask: { q: 'Complète :', items: [Nn('\\binom52', 10), Nn('\\binom53', 10)], why: '\\(\\binom52 = \\binom41 + \\binom42 = 4 + 6 = 10\\), et par symétrie \\(\\binom53 = \\binom52 = 10\\).' } }
+      ]
+    };
+    Object.entries(MORE).forEach(([k, st]) => { if (L[k]) L[k].steps.push(...st); });
+    return L;
   };
 })();

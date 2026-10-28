@@ -13,6 +13,68 @@
 (function () {
   'use strict';
   /* =====================================================================
+     Maîtrise d'une compétence, avec l'oubli. Utilisé par SiteCore (7 matières) et par la page d'élec.
+     - niveau s.m (0 à 100) : monte avec les exercices réussis, baisse avec les ratés. Un sans-faute rapporte
+       +25 (+35 si le précédent était aussi parfait), un exercice à moitié juste +10, un raté −15 ; en révision
+       +20 / +5 / −20 ; une erreur de calcul annotée ne change rien.
+     - mémoire s.S (en jours) : combien de temps la compétence tient. 1 jour au départ. Un sans-faute après une
+       pause la multiplie (d'autant plus que la pause était longue) ; refaire juste après, le même jour, ne
+       l'allonge presque pas ; un raté la divise par 2.
+     - maîtrise affichée = niveau × rétention, avec rétention = 1 / (1 + jours sans pratique / (9 S)) : elle baisse
+       chaque jour sans pratique (courbe d'oubli, comme dans les logiciels de répétition espacée). Un exercice
+       repart de cette maîtrise baissée, pas du niveau d'origine.
+     - compétence validée (la suivante se débloque) quand le niveau atteint 75, soit 3 sans-faute ; elle reste
+       validée, mais revient en révision dès que sa maîtrise passe sous 60 %.
+     ===================================================================== */
+  window.SiteMastery = (function () {
+    const VAL = 75, REV = 60, DAY = 864e5;
+    const S0 = s => s.S || (s.ever ? 3 : 1);   // anciennes données : pas encore de mémoire enregistrée
+    const ret = (s, now = Date.now()) => s.last ? 1 / (1 + Math.max(0, now - s.last) / DAY / (9 * S0(s))) : 1;
+    const eff = (s, now) => Math.min(100, s.m || 0) * ret(s, now);
+    const isVal = s => !!s.ever || (s.m || 0) >= VAL;
+    const due = (s, now) => isVal(s) && eff(s, now) < REV;
+    // jours avant que la maîtrise ne passe sous 80 % du niveau : rétention 0,8 au bout de 2,25 S jours
+    const holds = s => 2.25 * S0(s);
+    // plafond du niveau selon la mémoire : 80 % tant que la compétence n'a tenu qu'un jour, 100 % seulement quand
+    // elle tient une semaine (révisions réussies espacées) ; on ne « maîtrise » pas à 100 % ce qu'on a vu aujourd'hui
+    const cap = S => Math.min(100, 80 + 20 * Math.max(0, Math.log2(S)) / 3);
+    function gain(F) {
+      const r = F.r;
+      if (F.why === 'calc' && r < 1) return 0;
+      return F.review ? (r === 1 ? 20 : r >= .5 ? 5 : -20) : r === 1 ? (F.st0 >= 1 ? 35 : 25) : r >= .5 ? 10 : -15;
+    }
+    // état avant l'exercice, pour pouvoir recalculer si l'élève annote ensuite l'origine de son erreur
+    const before = (s, r, review, now = Date.now()) => ({ r, review, m0: Math.min(100, s.m || 0), base: eff(s, now), S: S0(s), last: s.last || 0, ko0: s.ko || 0, st0: s.st || 0, was: isVal(s), why: null, now });
+    function apply(s, F) {
+      const gap = F.last ? (F.now - F.last) / DAY : 0, calc = F.why === 'calc' && F.r < 1;
+      let S = F.S;
+      if (calc || !F.last) S = F.S;
+      else if (F.r === 1) S = F.S * (gap < 0.5 ? 1.1 : 1.6 + 1.2 * Math.min(gap / F.S, 1.5));
+      else if (F.r >= .5) S = F.S * (gap < 0.5 ? 1 : 1.2);
+      else S = Math.max(0.5, F.S * 0.5);
+      s.S = Math.round(S * 100) / 100;
+      s.m = Math.max(0, Math.min(cap(s.S), F.base + gain(F)));
+      s.last = F.now;
+      if (s.m >= VAL) s.ever = true;
+    }
+    // texte court : quand revoir
+    function when(s, now = Date.now()) {
+      if (!s.last) return '';
+      if (due(s, now)) return 'à revoir';
+      const left = s.last + holds(s) * DAY - now;
+      return left <= DAY ? 'baisse, à revoir bientôt' : `tient encore ~${Math.round(left / DAY)} j`;
+    }
+    // ligne sous le résultat d'un exercice : maîtrise avant → après, oubli depuis la dernière séance, durée de mémoire
+    function memText(s, F) {
+      const pct = x => Math.round(x) + ' %', days = F.last ? (F.now - F.last) / DAY : 0, h = holds(s);
+      const lost = F.m0 - F.base >= 2 ? ` (elle était à ${pct(F.m0)} il y a ${days < 1.5 ? '1 jour' : Math.round(days) + ' jours'} : l'oubli l'avait fait baisser)` : '';
+      const top = s.m >= cap(S0(s)) - 0.5 && cap(S0(s)) < 100 ? ` Plafond actuel ${pct(cap(S0(s)))} : pour aller plus haut, réussis-la à nouveau dans quelques jours.` : '';
+      return `Maîtrise : ${pct(F.base)} → <b>${pct(s.m)}</b>${lost} · tient environ ${h < 1.5 ? '1 jour' : Math.round(h) + ' jours'} sans pratique, puis baisse.${top}`;
+    }
+    return { VAL, REV, DAY, ret, eff, isVal, due, holds, cap, gain, before, apply, when, memText, S0 };
+  })();
+
+  /* =====================================================================
      Leçons « Comprendre » : moteur autonome, utilisé par SiteCore (7 matières) et par la page d'élec.
      Avant les exercices d'une compétence : l'idée (le pourquoi, une image concrète ou physique), étape par étape.
      Une étape peut s'ouvrir par « Devine d'abord » (guess : une prédiction sur ce qui va être expliqué, non notée,
@@ -154,18 +216,23 @@
     const PILL = { ok: '<span class="pill ok">Juste</span>', bad: '<span class="pill bad">Faux</span>', err: '<span class="pill bad">Illisible</span>', empty: '<span class="pill part">Vide</span>' };
 
     /* ---------- Compétences et progression (mêmes règles que le parcours d'élec) ---------- */
-    const id = cfg.id, PK = id + '.path.v1', HK = id + '.hist.v1', EK = id + '.exam.v1', VAL = 100, MMAX = 130;
+    // maîtrise avec l'oubli : voir SiteMastery ci-dessus
+    const M = window.SiteMastery;
+    const id = cfg.id, PK = id + '.path.v1', HK = id + '.hist.v1', EK = id + '.exam.v1', VAL = M.VAL, MMAX = 100;
     const skById = k => cfg.SK.find(x => x.id === k);
     function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
-    function skS(P, k) { return P.sk[k] || (P.sk[k] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false }); }
-    const isVal = s => s.m >= VAL, levelOf = s => s.m < 40 ? 0 : s.m < 80 ? 1 : 2;
+    function skS(P, k) { return P.sk[k] || (P.sk[k] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false, S: 1 }); }
+    const isVal = M.isVal, eff = s => M.eff(s), levelOf = s => eff(s) < 40 ? 0 : eff(s) < 75 ? 1 : 2;
     const frontier = P => cfg.SK.find(k => !isVal(skS(P, k.id))) || null;
+    // révision : une compétence validée dont la maîtrise est passée sous 60 % revient en priorité ; sinon, de temps
+    // en temps, celle qui a le plus baissé
     function pickNext(P) {
-      const f = frontier(P), pool = cfg.SK.filter(k => k !== f && skS(P, k.id).ever);
-      const rev = pool.length >= 2 && (P.since >= 6 || (P.since >= 3 && Math.random() < 0.35));
+      const f = frontier(P), pool = cfg.SK.filter(k => k !== f && isVal(skS(P, k.id)));
+      const due = pool.filter(k => M.due(skS(P, k.id)));
+      const rev = pool.length && (due.length && P.since >= 1 || P.since >= 6 || (pool.length >= 2 && P.since >= 3 && Math.random() < 0.35));
       if (f && !rev) return { k: f, review: false };
       if (!pool.length) return f ? { k: f, review: false } : null;
-      const now = Date.now(), W = pool.map(k => { const s = skS(P, k.id); return [k, (MMAX + 20 - s.m) * (1 + Math.min(3, (now - s.last) / 864e5))]; });
+      const W = (due.length ? due : pool).map(k => [k, 105 - eff(skS(P, k.id))]);
       let r = Math.random() * W.reduce((a, w) => a + w[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) return { k, review: true }; }
       return { k: W[0][0], review: true };
     }
@@ -196,22 +263,16 @@
       const host = $('#exHost');
       $('details.corr', host).open = true;
       if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); if (cfg.typeset) cfg.typeset(host); return; }
-      const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s), m0 = s.m;
-      CUR.fin = { r, m0, ko0: s.ko || 0, st0: s.st || 0, review: CUR.review, was, why: null };
+      const P = pst(), k = CUR.k, s = skS(P, k.id);
+      CUR.fin = M.before(s, r, CUR.review);
       s.n++; if (r === 1) s.ok++;
       if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
-      s.m = Math.max(0, Math.min(MMAX, s.m + gainOf(CUR.fin))); s.last = Date.now(); if (isVal(s)) s.ever = true;
+      M.apply(s, CUR.fin);
       P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
       ls.set(PK, P);
       host.insertAdjacentHTML('beforeend', resCard());
-      if (!was && isVal(s) && !CUR.review) toast('Compétence validée : ' + k.name);
+      if (!CUR.fin.was && isVal(s) && !CUR.review) toast('Compétence validée : ' + k.name);
       renderPathTop(); renderMap();
-    }
-    // gain de maîtrise d'un exercice ; une erreur de calcul annotée ne fait rien perdre (la méthode est sue)
-    function gainOf(F) {
-      const r = F.r;
-      if (F.why === 'calc' && r < 1) return 0;
-      return F.review ? (r === 1 ? 15 : r >= .5 ? 0 : -30) : r === 1 ? (F.st0 >= 1 ? 60 : 40) : r >= .5 ? 15 : -20;
     }
     /* Origine d'une erreur dans un exercice du parcours : calc (erreur de calcul : rien de perdu), meth (méthode pas
        trouvée), mix (deux méthodes confondues), idee (idée fausse : la leçon « Comprendre » repasse avant l'exercice suivant). */
@@ -219,7 +280,8 @@
     function resCard() {
       const CUR = cfg.CUR, F = CUR.fin, r = F.r, k = CUR.k, P = pst(), s = skS(P, k.id), now = isVal(s), f = frontier(P), L = LEARN()[k.id];
       const title = CUR.review ? (r === 1 ? 'Toujours acquis' : F.was && !now ? 'Un peu oublié' : 'À surveiller') : !F.was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
-      const msg = !F.was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (s.m + 60 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+      const msg = !F.was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (!now && s.m + 35 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+      const mem = M.memText(s, F);
       const tip = F.why === 'calc' ? 'Erreur de calcul : ta maîtrise ne baisse pas. Refais le calcul de la correction ligne à ligne pour voir où ça a dérapé.'
         : F.why === 'meth' ? 'Méthode pas trouvée.' + (L && L.meth ? ` Ce qu'il fallait reconnaître : ${L.meth}` : ' Relis la fiche du cours.')
         : F.why === 'mix' ? 'Deux méthodes confondues : relis la fiche du cours. Quel indice de l\'énoncé dit laquelle utiliser ?'
@@ -227,7 +289,7 @@
       const whyRow = r < 1 && CUR.mode === 'path' ? `<div class="pwhy"><span class="fine">D'où vient l'erreur ? (facultatif)</span>${Object.keys(PWHY).map(v => `<button type="button" class="btn btn-ghost${F.why === v ? ' on' : ''}" data-pwhy="${v}" aria-pressed="${F.why === v}">${PWHY[v]}</button>`).join('')}${tip ? `<p class="sub">${tip}</p>` : ''}${L && (F.why === 'meth' || F.why === 'idee') ? `<button type="button" class="btn" data-learn="${k.id}">Revoir la leçon « Comprendre »</button>` : ''}</div>` : '';
       return `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste du premier coup</span>${CUR.hint ? `<span class="fine">${CUR.hint} indice${CUR.hint > 1 ? 's' : ''} utilisé${CUR.hint > 1 ? 's' : ''}</span>` : ''}</div><h3 style="font:600 21px/1.3 var(--serif);margin-top:10px">${esc(title)}</h3><p class="sub">${esc(msg)}</p>
         ${whyRow}
-        <div class="row" style="margin-top:10px"><span class="fine">Maîtrise : ${Math.min(100, Math.round(F.m0))} % → <b>${Math.min(100, Math.round(s.m))} %</b></span></div>
+        <div class="row" style="margin-top:10px"><span class="fine">${mem}</span></div>
         <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="next">Continuer</button></div></div>`;
     }
     function pathWhy(v) {
@@ -235,7 +297,7 @@
       if (!F || !PWHY[v]) return;
       F.why = F.why === v ? null : v;
       const P = pst(), s = skS(P, CUR.k.id);
-      s.m = Math.max(0, Math.min(MMAX, F.m0 + gainOf(F))); s.ko = F.ko0 + (F.r < .5 && F.why !== 'calc' ? 1 : 0); if (isVal(s)) s.ever = true;
+      M.apply(s, F); s.ever = F.was || s.m >= VAL; s.ko = F.ko0 + (F.r < .5 && F.why !== 'calc' ? 1 : 0);
       s.why = F.why || undefined;
       if (F.why === 'idee' && LEARN()[CUR.k.id]) P.relearn = CUR.k.id; else if (P.relearn === CUR.k.id) delete P.relearn;
       ls.set(PK, P);
@@ -335,14 +397,18 @@
       el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${done}/${SK.length}</b><span>compétences validées</span></div><span class="sp"></span>
         ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
-        <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'} · Deux sans-faute d'affilée valident une compétence ; en cas d'erreurs, les exercices se simplifient et les compétences validées reviennent en révision.</p></section>`;
+        <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'}${(() => { const d = SK.filter(k => M.due(skS(P, k.id))).length; return d ? ` · <b>${d} compétence${d > 1 ? 's' : ''} à revoir</b> : ta maîtrise y a baissé depuis ta dernière séance.` : ''; })()}</p>
+        <details style="margin-top:8px"><summary class="fine" style="cursor:pointer">Comment marche la maîtrise ?</summary><ul class="fine" style="margin:8px 0 0;padding-left:18px;display:grid;gap:4px">
+          <li>Un sans-faute fait monter le niveau de 25 (35 si le précédent était aussi parfait), un exercice à moitié juste de 10, un raté le fait baisser de 15. La compétence est validée à 75 % : 3 sans-faute, et la suivante se débloque.</li>
+          <li><b>La maîtrise baisse chaque jour sans pratique</b>, comme la mémoire. Au début, elle tient environ 2 jours ; chaque révision réussie après une pause la fait tenir plus longtemps (une semaine, puis un mois…). Refaire le même exercice dix fois le même jour ne l'allonge presque pas.</li>
+          <li>Dès qu'une compétence validée passe sous 60 %, elle revient en révision dans le parcours, en priorité celle qui a le plus baissé.</li></ul></details></section>`;
     }
     function renderMap() {
       const el = $('#pathMap'); if (!el) return;
       const CUR = cfg.CUR, P = pst(), f = frontier(P);
       el.innerHTML = cfg.CH.map((c, ci) => `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${cfg.SK.filter(k => k.ch === ci).map(k => {
-        const s = skS(P, k.id), val = isVal(s), open = val || k === f || s.n > 0, pct = Math.min(100, Math.round(s.m));
-        return `<div class="psk ${val ? 'val' : k === f ? 'cur' : s.ever ? 'rev' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : k === f ? '▶' : s.ever ? '!' : ''}</span><span class="nm">${esc(k.name)}${s.ever && !val ? '<small>à revoir</small>' : ''}</span>
+        const s = skS(P, k.id), due = M.due(s), val = isVal(s) && !due, open = isVal(s) || k === f || s.n > 0, pct = Math.min(100, Math.round(eff(s)));
+        return `<div class="psk ${val ? 'val' : due ? 'rev' : k === f ? 'cur' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : due ? '!' : k === f ? '▶' : ''}</span><span class="nm">${esc(k.name)}${s.last ? `<small>${pct} %${isVal(s) ? ' · ' + M.when(s) : ''}</small>` : ''}</span>
           <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
       }).join('')}</div>`).join('');
     }
@@ -414,7 +480,7 @@
       return pool.map(k => {
         const i = cfg.SK.indexOf(k);
         const s = skS(P, k.id), r = rate[k.id];
-        const score = (isVal(s) ? 0 : 2) + (1 - Math.min(s.m, VAL) / VAL) + (r && r[1] ? 2 * (1 - r[0] / r[1]) : 0);
+        const score = (isVal(s) ? 0 : 2) + (1 - eff(s) / 100) + (r && r[1] ? 2 * (1 - r[0] / r[1]) : 0);
         return { k, s, score, i };
       }).sort((a, b) => b.score - a.score || a.i - b.i).slice(0, n);
     }
@@ -589,7 +655,8 @@
       H.push(Object.assign({ id: String(E.seed), ts: now, note: c.note, dur: Math.min(cfg.DUR, Math.round((now - E.t0) / 1000)), sk, ai: { general: c.general, parts: c.parts } }, E.target ? { cible: true } : {}));
       ls.set(HK, H);
       const P = pst();
-      Object.keys(rr).forEach(k => { if (!skById(k)) return; const s = skS(P, k), r = rr[k], gain = r >= 0.99 ? 30 : r >= 0.75 ? 15 : r >= 0.5 ? 0 : -20; s.m = Math.max(0, Math.min(MMAX, s.m + gain)); s.last = now; if (isVal(s)) s.ever = true; });
+      // la copie compte comme une révision de chaque compétence du sujet (sans-faute si au moins 99 %)
+      Object.keys(rr).forEach(k => { if (!skById(k)) return; const s = skS(P, k), r = rr[k] >= 0.99 ? 1 : rr[k]; M.apply(s, M.before(s, r, true, now)); });
       ls.set(PK, P);
       const { exs: _x, ...rest } = E; ls.set(EK, rest);
       const m = $('#aiModal'); if (m) m.remove();

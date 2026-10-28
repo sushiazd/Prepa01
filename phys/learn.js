@@ -8,7 +8,7 @@
   'use strict';
   window.SITE_LEARN = function (H) {
     const { Ch, Nn } = H;
-    return {
+    const L = {
       /* =================== Cinématique =================== */
       polar: { title: 'Coordonnées polaires : la base qui tourne', meth: '\\(\\vec{OM} = r\\vec u_r\\) et les vecteurs de base tournent : \\(\\dot{\\vec u}_r = \\dot\\theta\\,\\vec u_\\theta\\), \\(\\dot{\\vec u}_\\theta = -\\dot\\theta\\,\\vec u_r\\) ; on dérive deux fois avec la règle du produit, sans oublier ces termes.', steps: [
         { h: 'Pourquoi dériver r u_r donne deux termes',
@@ -150,5 +150,124 @@
           ask: { q: 'On multiplie le rayon de l\'orbite par 4. La période est multipliée par :', items: [Nn('\\text{facteur}', 8)], why: '\\(T \\propto r^{3/2}\\) : \\(4^{3/2} = 8\\).' } }
       ] }
     };
+    /* ---------- Étapes ajoutées : schéma et calculs guidés au format du CC ---------- */
+    const guided = '<p class="fine">Calcul guidé : fais-le sur ta feuille en suivant la méthode (schéma, bilan, projection), puis tape les résultats.</p>';
+    const INK = 'fill:var(--ink-2);font:15px var(--sans)', LN = 'stroke:var(--ink-2);stroke-width:2;fill:none';
+    const arrow = (x1, y1, x2, y2, c) => { const a = Math.atan2(y2 - y1, x2 - x1), h = 9; return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:${c};stroke-width:2.5"/><path d="M${x2} ${y2} L${x2 - h * Math.cos(a - 0.4)} ${y2 - h * Math.sin(a - 0.4)} L${x2 - h * Math.cos(a + 0.4)} ${y2 - h * Math.sin(a + 0.4)}Z" style="fill:${c}"/>`; };
+    // plan incliné de 30° : poids, réaction normale, frottement, axes x (le long de la pente) et y
+    const PLAN = (() => {
+      const A = 30 * Math.PI / 180, x0 = 40, y0 = 190, L = 340, x1 = x0 + L * Math.cos(A), y1 = y0 - L * Math.sin(A);
+      const cx = x0 + 0.55 * L * Math.cos(A), cy = y0 - 0.55 * L * Math.sin(A), ux = Math.cos(A), uy = -Math.sin(A), nx = -Math.sin(A), ny = Math.cos(A);   // u le long de la pente (vers le haut), n normale sortante
+      const blk = `<polygon points="${cx - 22 * ux},${cy - 22 * uy} ${cx + 22 * ux},${cy + 22 * uy} ${cx + 22 * ux + 36 * nx},${cy + 22 * uy - 36 * ny} ${cx - 22 * ux + 36 * nx},${cy - 22 * uy - 36 * ny}" style="fill:var(--sheet-2);stroke:var(--ink-2);stroke-width:1.5"/>`;
+      const gx = cx + 18 * nx, gy = cy - 18 * ny;
+      return `<svg class="lfig" viewBox="0 0 420 220" role="img" aria-label="Bloc sur un plan incliné de 30 degrés avec le poids, la réaction normale et le frottement">
+        <polygon points="${x0},${y0} ${x1},${y0} ${x1},${y1}" style="fill:none;stroke:var(--rule-strong);stroke-width:1.5"/>
+        <path d="M${x0 + 40} ${y0} A40 40 0 0 0 ${x0 + 40 * Math.cos(A)} ${y0 - 40 * Math.sin(A)}" style="${LN};stroke-width:1.2"/><text x="${x0 + 48}" y="${y0 - 8}" style="${INK}">α</text>
+        ${blk}
+        ${arrow(gx, gy, gx, gy + 70, '#dc2626')}<text x="${gx + 6}" y="${gy + 78}" style="${INK};fill:#dc2626">P = mg</text>
+        ${arrow(gx, gy, gx + 60 * nx, gy - 60 * ny, '#2563eb')}<text x="${gx + 64 * nx - 6}" y="${gy - 64 * ny - 4}" style="${INK};fill:#2563eb">N</text>
+        ${arrow(gx, gy, gx + 55 * ux, gy + 55 * uy, '#16a34a')}<text x="${gx + 60 * ux + 4}" y="${gy + 60 * uy}" style="${INK};fill:#16a34a">T</text>
+        <text x="250" y="212" style="${INK};font-size:13px">bloc qui descend : T remonte la pente</text></svg>`;
+    })();
+    const MORE = {
+      polar: [
+        { h: 'Calcul guidé : un point sur une spirale',
+          body: `${guided}<p>\\(r(t) = 2t\\) (en m) et \\(\\theta(t) = 3t\\) (en rad). Vitesse à \\(t = 1\\) s ?</p>
+            <ol><li>\\(\\dot r = 2\\), \\(r(1) = 2\\), \\(\\dot\\theta = 3\\).</li><li>\\(\\vec v = \\dot r\\,\\vec u_r + r\\dot\\theta\\,\\vec u_\\theta\\) : deux composantes.</li><li>Norme : \\(\\sqrt{v_r^2 + v_\\theta^2}\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('v_\\theta', 6, 'm/s'), Nn('\\|\\vec v\\|', Math.sqrt(40), 'm/s')], why: '\\(v_r = 2\\), \\(v_\\theta = r\\dot\\theta = 2\\times3 = 6\\) m/s ; \\(\\|\\vec v\\| = \\sqrt{4 + 36} = \\sqrt{40} \\approx 6{,}3\\) m/s.' } }
+      ],
+      chute: [
+        { h: 'Calcul guidé : hauteur maximale et durée du vol',
+          body: `${guided}<p>\\(v_0 = 20\\) m/s, \\(\\alpha = 30°\\), \\(g = 10\\) m/s².</p>
+            <ol><li>Vitesse verticale initiale : \\(v_0\\sin\\alpha\\).</li><li>Au sommet, la vitesse verticale s'annule : \\(t_s = \\dfrac{v_0\\sin\\alpha}{g}\\).</li><li>Hauteur : \\(h = \\dfrac{(v_0\\sin\\alpha)^2}{2g}\\). Le vol dure \\(2t_s\\) (sol horizontal).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('t_s', 1, 's'), Nn('h_{max}', 5, 'm'), Nn('P', 20 * Math.sqrt(3), 'm')], why: '\\(v_0\\sin30° = 10\\) m/s ; \\(t_s = 1\\) s ; \\(h = 100/20 = 5\\) m ; portée \\(v_0\\cos\\alpha\\times2t_s = 17{,}3\\times2 \\approx 34{,}6\\) m.' } }
+      ],
+      plan: [
+        { h: 'Calcul guidé : le bloc qui glisse',
+          body: `${PLAN}${guided}<p>\\(m = 2\\) kg, \\(\\alpha = 30°\\), \\(\\mu_d = 0{,}2\\), \\(g = 10\\) m/s², le bloc descend.</p>
+            <ol><li>Axe \\(y\\) (perpendiculaire) : \\(N = mg\\cos\\alpha\\).</li><li>Frottement de glissement : \\(T = \\mu_d N\\), vers le haut de la pente.</li><li>Axe \\(x\\) (vers le bas de la pente) : \\(ma = mg\\sin\\alpha - T\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('N', 17.3, 'N'), Nn('T', 3.46, 'N'), Nn('a', 3.27, 'm/s²')], why: '\\(N = 20\\cos30° \\approx 17{,}3\\) N ; \\(T = 0{,}2\\times17{,}3 \\approx 3{,}46\\) N ; \\(a = (10 - 3{,}46)/2 \\approx 3{,}27\\) m/s² (soit \\(g(\\sin\\alpha - \\mu_d\\cos\\alpha)\\), indépendant de la masse).' } }
+      ],
+      visq: [
+        { h: 'Calcul guidé : la bille dans l\'huile',
+          body: `${guided}<p>\\(m = 0{,}05\\) kg, \\(\\alpha = 0{,}25\\) kg/s, \\(g = 10\\) m/s², lâchée sans vitesse.</p>
+            <ol><li>Vitesse limite : \\(v_{lim} = mg/\\alpha\\).</li><li>Temps caractéristique : \\(\\tau = m/\\alpha\\).</li><li>À \\(t = \\tau\\) : \\(v = v_{lim}(1 - e^{-1}) \\approx 0{,}63\\,v_{lim}\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('v_{lim}', 2, 'm/s'), Nn('\\tau', 0.2, 's'), Nn('v(\\tau)', 1.26, 'm/s')], why: '\\(v_{lim} = 0{,}5/0{,}25 = 2\\) m/s ; \\(\\tau = 0{,}2\\) s ; \\(v(\\tau) \\approx 1{,}26\\) m/s.' } }
+      ],
+      inert: [
+        { h: 'Calcul guidé : le pendule dans le wagon',
+          body: `${guided}<p>Un wagon accélère à \\(a = 2\\) m/s² ; une masse pend à un fil. Dans le wagon (non galiléen), à l'équilibre : poids, tension, force d'inertie \\(-m\\vec a\\) (vers l'arrière).</p>
+            <ol><li>Le fil s'aligne sur la somme poids + force d'inertie : vertical \\(mg\\), horizontal \\(ma\\).</li><li>Angle avec la verticale : \\(\\tan\\theta = a/g\\).</li><li>Tension : \\(T = m\\sqrt{g^2 + a^2}\\).</li></ol>`,
+          ask: { q: 'Avec \\(g = 10\\) m/s² et \\(m = 1\\) kg :', items: [Ch('\\(\\tan\\theta\\)', [['a', '0,2'], ['b', '5'], ['c', '0,5']], 'a'), Nn('T', Math.sqrt(104), 'N')], why: '\\(\\tan\\theta = 2/10 = 0{,}2\\) (environ 11°), le pendule penche vers l\'arrière. \\(T = \\sqrt{100 + 4} \\approx 10{,}2\\) N.' } }
+      ],
+      choc: [
+        { h: 'Calcul guidé : l\'énergie perdue dans un choc mou',
+          body: `${guided}<p>Wagon de 2 t à 3 m/s qui percute un wagon de 1 t immobile ; ils s'accrochent.</p>
+            <ol><li>Conservation de \\(p\\) : \\(m_1v_1 = (m_1 + m_2)v\\).</li><li>\\(E_c\\) avant et après.</li><li>Différence : énergie dissipée.</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('v', 2, 'm/s'), Nn('E_c\\ \\text{avant (kJ)}', 9), Nn('E_c\\ \\text{perdue (kJ)}', 3)], why: '\\(v = 6000/3000 = 2\\) m/s ; avant : \\(\\tfrac12\\times2000\\times9 = 9\\) kJ ; après : \\(\\tfrac12\\times3000\\times4 = 6\\) kJ : 3 kJ perdus.' } }
+      ],
+      travail: [
+        { h: 'Calcul guidé : les travaux sur une pente',
+          body: `${guided}<p>Un bloc de 2 kg descend de \\(L = 4\\) m le long d'une pente à 30°, frottement \\(T = 3\\) N, \\(g = 10\\).</p>
+            <ol><li>Poids : il descend de \\(h = L\\sin\\alpha\\), donc \\(W_P = +mgh\\).</li><li>Réaction normale : perpendiculaire au déplacement.</li><li>Frottement : opposé au déplacement, \\(W_T = -T\\,L\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('W_P', 40, 'J'), Nn('W_N', 0, 'J'), Nn('W_T', -12, 'J')], why: '\\(h = 2\\) m, \\(W_P = 2\\times10\\times2 = 40\\) J ; \\(W_N = 0\\) ; \\(W_T = -3\\times4 = -12\\) J.' } }
+      ],
+      tec: [
+        { h: 'Calcul guidé : la vitesse en bas de la pente',
+          body: `${guided}<p>Même bloc (2 kg, 4 m de pente à 30°, \\(T = 3\\) N), parti du repos.</p>
+            <ol><li>Somme des travaux : \\(40 + 0 - 12\\).</li><li>TEC : \\(\\tfrac12mv^2 - 0 = \\sum W\\).</li><li>Isole \\(v\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('\\sum W', 28, 'J'), Nn('v', Math.sqrt(28), 'm/s')], why: '\\(\\sum W = 28\\) J, donc \\(v^2 = 28\\), \\(v \\approx 5{,}3\\) m/s. Sans frottement : \\(\\sqrt{40} \\approx 6{,}3\\) m/s.' } }
+      ],
+      loop: [
+        { h: 'Calcul guidé : de quelle hauteur partir ?',
+          body: `${guided}<p>Looping de rayon \\(r = 2\\) m (sommet à \\(2r = 4\\) m du bas), sans frottement, \\(g = 10\\). Il faut \\(v_{haut}^2 \\geq gr\\).</p>
+            <ol><li>TEC entre le départ (hauteur \\(H\\), vitesse nulle) et le sommet : \\(\\tfrac12mv_{haut}^2 = mg(H - 2r)\\).</li><li>Condition : \\(2g(H - 2r) \\geq gr\\).</li><li>Donc \\(H \\geq \\dfrac{5r}{2}\\).</li></ol>`,
+          ask: { q: 'Résultat :', items: [Nn('H_{min}', 5, 'm')], why: '\\(H_{min} = 2{,}5\\times2 = 5\\) m : il faut partir plus haut que le sommet du looping (4 m), à cause de la vitesse nécessaire là-haut.' } }
+      ],
+      qcmE: [
+        { h: 'Exercice guidé : le pendule et l\'énergie',
+          body: `${guided}<p>Pendule de longueur 0,8 m lâché sans vitesse à 60° de la verticale, sans frottement, \\(g = 10\\).</p>
+            <ol><li>Hauteur au départ, par rapport au point le plus bas : \\(h = \\ell(1 - \\cos\\theta_0)\\).</li><li>Conservation de \\(E_m\\) : \\(\\tfrac12mv^2 = mgh\\) en bas.</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('h', 0.4, 'm'), Nn('v_{bas}', Math.sqrt(8), 'm/s')], why: '\\(h = 0{,}8\\times(1 - 0{,}5) = 0{,}4\\) m ; \\(v = \\sqrt{2gh} = \\sqrt8 \\approx 2{,}8\\) m/s. La tension du fil ne travaille pas (perpendiculaire au mouvement).' } }
+      ],
+      pot: [
+        { h: 'Exercice guidé : étudier un potentiel',
+          body: `${guided}<p>\\(E_p(x) = x^3 - 3x\\) (unités SI).</p>
+            <ol><li>\\(E_p'(x) = 3x^2 - 3\\) : équilibres en \\(x = \\pm1\\).</li><li>\\(E_p''(x) = 6x\\) : signe en chaque équilibre.</li><li>Stable si \\(E_p'' > 0\\).</li></ol>`,
+          ask: { q: 'L\'équilibre stable est en :', items: [Nn('x_{stable}', 1, 'm'), Ch('\\(x = -1\\) est', [['s', 'stable'], ['i', 'instable']], 'i')], why: '\\(E_p\'\'(1) = 6 > 0\\) : stable (un creux) ; \\(E_p\'\'(-1) = -6 < 0\\) : instable (une bosse).' } }
+      ],
+      oh: [
+        { h: 'Calcul guidé : le ressort vertical',
+          body: `${guided}<p>Masse \\(m = 0{,}5\\) kg au bout d'un ressort vertical \\(k = 50\\) N/m, \\(g = 10\\).</p>
+            <ol><li>Équilibre : \\(k\\,\\Delta\\ell = mg\\), l'allongement à l'équilibre.</li><li>Autour de l'équilibre, le poids est compensé : on retrouve \\(\\ddot x + \\dfrac km x = 0\\).</li><li>\\(\\omega_0 = \\sqrt{k/m}\\), puis \\(T_0\\).</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('\\Delta\\ell', 0.1, 'm'), Nn('\\omega_0', 10, 'rad/s'), Nn('T_0', 2 * Math.PI / 10, 's')], why: '\\(\\Delta\\ell = 5/50 = 0{,}1\\) m ; \\(\\omega_0 = \\sqrt{100} = 10\\) rad/s ; \\(T_0 \\approx 0{,}63\\) s. Le poids déplace l\'équilibre mais ne change pas la période.' } }
+      ],
+      amorti: [
+        { h: 'Calcul guidé : reconnaître le régime',
+          body: `${guided}<p>\\(m = 1\\) kg, \\(k = 100\\) N/m, frottement \\(\\alpha = 4\\) kg/s.</p>
+            <ol><li>\\(\\omega_0 = \\sqrt{k/m}\\).</li><li>\\(\\lambda = \\dfrac{\\alpha}{2m}\\) (attention au 2).</li><li>Compare, puis pseudo-pulsation \\(\\omega = \\sqrt{\\omega_0^2 - \\lambda^2}\\) si besoin.</li></ol>`,
+          ask: { q: 'Résultats :', items: [Nn('\\lambda', 2, 's⁻¹'), Nn('\\omega', Math.sqrt(96), 'rad/s'), Nn('Q', 2.5)], why: '\\(\\omega_0 = 10\\), \\(\\lambda = 2\\) : pseudo-périodique ; \\(\\omega = \\sqrt{96} \\approx 9{,}8\\) rad/s ; \\(Q = \\omega_0/(2\\lambda) = 2{,}5\\).' } }
+      ],
+      force: [
+        { h: 'Calcul guidé : amplitude à la résonance',
+          body: `${guided}<p>\\(\\omega_0 = 10\\) rad/s, \\(\\lambda = 1\\) s⁻¹, \\(F_0/m = 20\\) m/s².</p>
+            <ol><li>Loin de la résonance, en très basse fréquence (\\(\\omega \\to 0\\)) : \\(A = \\dfrac{F_0/m}{\\omega_0^2}\\).</li><li>À \\(\\omega = \\omega_0\\) : \\(A = \\dfrac{F_0/m}{2\\lambda\\omega_0}\\).</li></ol>`,
+          ask: { q: 'Amplitudes :', items: [Nn('A(0)', 0.2, 'm'), Nn('A(\\omega_0)', 1, 'm')], why: '\\(20/100 = 0{,}2\\) m ; \\(20/(2\\times1\\times10) = 1\\) m : cinq fois plus, c\'est le facteur de qualité \\(Q = 5\\).' } }
+      ],
+      moment: [
+        { h: 'Calcul guidé : le pendule par le moment cinétique',
+          body: `${guided}<p>Pendule de longueur \\(\\ell\\), masse \\(m\\), angle \\(\\theta\\).</p>
+            <ol><li>\\(L_O = m\\ell^2\\dot\\theta\\) (vitesse \\(\\ell\\dot\\theta\\), perpendiculaire au fil).</li><li>Moment du poids en O : \\(-mg\\ell\\sin\\theta\\) (la tension passe par O : moment nul).</li><li>TMC : \\(m\\ell^2\\ddot\\theta = -mg\\ell\\sin\\theta\\).</li></ol>`,
+          ask: { q: 'On obtient :', items: [Ch('équation', [['a', '\\(\\ddot\\theta + \\dfrac g\\ell\\sin\\theta = 0\\)'], ['b', '\\(\\ddot\\theta + \\dfrac\\ell g\\sin\\theta = 0\\)'], ['c', '\\(\\ddot\\theta + g\\ell\\theta = 0\\)']], 'a')], why: 'On divise par \\(m\\ell^2\\) : \\(\\ddot\\theta + \\dfrac g\\ell\\sin\\theta = 0\\), la même équation que par le PFD. Petits angles : \\(\\omega_0 = \\sqrt{g/\\ell}\\).' } }
+      ],
+      kepler: [
+        { h: 'Calcul guidé : le satellite géostationnaire',
+          body: `${guided}<p>Un satellite géostationnaire tourne en 1 jour. La Lune met environ 27 jours, à environ 384 000 km du centre de la Terre.</p>
+            <ol><li>Kepler : \\(\\dfrac{T^2}{r^3}\\) est le même pour les deux.</li><li>Donc \\(r_{geo} = r_{Lune}\\left(\\dfrac{T_{geo}}{T_{Lune}}\\right)^{2/3}\\).</li><li>\\((1/27)^{2/3} = 1/9\\).</li></ol>`,
+          ask: { q: 'Rayon de l\'orbite géostationnaire (en km) ≈', items: [Nn('r_{geo}\\ (\\mathrm{km})', 384000 / 9)], why: '\\(384\\,000 / 9 \\approx 42\\,700\\) km depuis le centre de la Terre, soit environ 36 000 km d\'altitude (le rayon terrestre fait 6 400 km).' } }
+      ]
+    };
+    Object.entries(MORE).forEach(([k, st]) => { if (L[k]) L[k].steps.push(...st); });
+    return L;
   };
 })();

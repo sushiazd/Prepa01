@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
-<script src="../subjects.js?v=2026101504"></script>
+<script src="../subjects.js?v=2026102801"></script>
 <script src="../core.js?v=2026101601"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026101601">
@@ -628,7 +628,7 @@ function vHome() {
   const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(ds.ts);
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Informatique · Algorithmique · P. Rannou</p><h1>Réussir le DS d'algorithmique</h1>
-    <p class="lede">Le DS de mi-semestre du vendredi 23/10 dure 1 h 30. D'après l'avancement du cours (3 CM), il porte sur les chapitres 1 à 4 : <b>bases de Python</b> (types, conditions, boucles), <b>fonctions</b>, <b>complexité</b>, <b>tableaux et dictionnaires</b>. Le 2<sup>e</sup> DS (7/12) ajoutera récursivité, graphes, piles et files ; l'oral (6-7/01) se passe sur machine.</p></div>
+    <p class="lede">Le DS de mi-semestre, reporté du vendredi 23/10 au jeudi 5/11 (16h45), dure 1 h 30. Il était annoncé sur les chapitres 1 à 4 : <b>bases de Python</b> (types, conditions, boucles), <b>fonctions</b>, <b>complexité</b>, <b>tableaux et dictionnaires</b>. Le 2<sup>e</sup> DS (7/12) ajoutera récursivité, graphes, piles et files ; l'oral (6-7/01) se passe sur machine.</p></div>
     <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>${ds.oral ? 'Oral' : 'DS'} d'algorithmique : ${esc(when)}</span></div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Des types de base jusqu'à l'écriture de fonctions sur les tableaux et les dictionnaires, avec une progression qui s'adapte à tes résultats.</p>
@@ -708,9 +708,9 @@ for c in d:              # parcourt les CLÉS
     <div class="box warn"><h5>Pièges de complexité</h5>Un <code>x in t</code> caché dans une boucle fait O(n²), pas O(n) · deux boucles l'une après l'autre : O(n) + O(n) = O(n) · une boucle de 10 tours fixes : O(1).</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS du 23/10</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 9 fiches : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS du 5/11</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 9 fiches : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
     ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}
-    <section class="card"><h2>Après le DS du 23/10</h2><p class="sub">Récursivité (cas de base + appel sur un problème plus petit), graphes (matrice et listes d'adjacence), piles et files, parcours en profondeur et en largeur, graphes pondérés, preuves de programmes : ce sera pour le DS du 7/12 et l'oral de janvier.</p></section>`;
+    <section class="card"><h2>Après le DS du 5/11</h2><p class="sub">Récursivité (cas de base + appel sur un problème plus petit), graphes (matrice et listes d'adjacence), piles et files, parcours en profondeur et en largeur, graphes pondérés, preuves de programmes : ce sera pour le DS du 7/12 et l'oral de janvier.</p></section>`;
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
 }
 

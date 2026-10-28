@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026101504"></script>
+<script src="../subjects.js?v=2026102801"></script>
 <script src="../core.js?v=2026101601"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026101601">
@@ -530,14 +530,15 @@ function checkCur() {
 let VIEW = 'home';
 // date du CC : subjects.js (emploi du temps, sinon date de secours ; null si à confirmer)
 function nextCC() { return SiteSubjects.cc('el2'); }
+const sharedCC = () => { const n = SiteSubjects.next('el2'); return !!(n && n.shared); };   // un seul CC d'élec dans l'emploi du temps
 function vHome() {
   const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
   const days = Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
   const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Électronique analogique · CC2</p><h1>Réussir le CC2 d'électronique</h1>
-    <p class="lede">Le CC2 (lundi 2/11) a eu exactement la même forme ces trois dernières années : 1 h, sans document ni calculatrice. <b>Exercice 1</b> (4 pts) : une démonstration de cours. <b>Exercice 2</b> (6 à 8 pts) : un générateur de Thévenin avec deux sources. <b>Exercice 3</b> (8 à 10 pts) : un circuit RC ou RL (basse et haute fréquence, équation différentielle, constante de temps, solution).</p></div>
-    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC2 d'électronique : ${esc(when)}</span></div></section>
+    <p class="lede">Le créneau du CC2 (lundi 2/11) a disparu de l'emploi du temps : il ne reste qu'un CC d'élec, le vendredi 6/11 à 8h, à préparer sur les deux programmes. Le CC2 a eu exactement la même forme ces trois dernières années : 1 h, sans document ni calculatrice. <b>Exercice 1</b> (4 pts) : une démonstration de cours. <b>Exercice 2</b> (6 à 8 pts) : un générateur de Thévenin avec deux sources. <b>Exercice 3</b> (8 à 10 pts) : un circuit RC ou RL (basse et haute fréquence, équation différentielle, constante de temps, solution).</p></div>
+    <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>${sharedCC() ? "CC d'électronique (le seul dans l'emploi du temps : programme du CC1 et du CC2)" : "CC2 d'électronique"} : ${esc(when)}</span></div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées, dans l'ordre des exercices du CC2, avec un schéma par exercice.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
@@ -578,7 +579,7 @@ const FICHES = [
     <ol><li>Apprends par cœur les trois démos (fiche 1) : 4 points sûrs.</li><li>Thévenin : refais le circuit des annales jusqu'à le faire en 10 minutes.</li><li>RC/RL : BF/HF, filtre, relation de l'élément, équation, \\(\\tau\\), solution : toujours dans cet ordre.</li></ol>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Électronique analogique · CC2 du 2/11</p><h1>Le cours utile</h1><p class="lede">Ce qu'il faut savoir pour le CC2, dans l'ordre des exercices des annales : démonstrations, Thévenin, condensateur et bobine, circuits du premier ordre.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Électronique analogique · CC2</p><h1>Le cours utile</h1><p class="lede">Ce qu'il faut savoir pour le CC2, dans l'ordre des exercices des annales : démonstrations, Thévenin, condensateur et bobine, circuits du premier ordre.</p></div>
     ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
   mathIn(app);
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }

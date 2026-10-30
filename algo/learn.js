@@ -259,6 +259,50 @@
       ]
     };
     Object.entries(MORE).forEach(([k, st]) => { if (L[k]) L[k].steps.push(...st); });
+
+    // les exercices du DS de l'an dernier (souvenir d'un étudiant) : suites, min/max, fusion, QCM à points négatifs
+    Object.assign(L, {
+      suite: { title: 'Programmer une suite', meth: 'une variable v = u₀, puis une boucle de n tours qui applique la relation (<code>v = 3 * v - 1</code>) ; <code>range(n)</code> fait n tours, donc u(0) renvoie u₀ ; si la relation contient n, c\'est la variable de boucle ; deux termes → deux variables.', steps: [
+        { h: 'Une variable qui avance d\'un rang par tour',
+          guess: { q: 'Pour passer de u<sub>0</sub> à u<sub>3</sub>, combien de fois applique-t-on la relation de récurrence ?', items: [I('tours', 3)] },
+          body: `<p>Une suite définie par u<sub>0</sub> et u<sub>n+1</sub> = f(u<sub>n</sub>) se programme avec <b>une seule variable</b> qu'on fait avancer : au départ elle vaut u<sub>0</sub>, après un tour u<sub>1</sub>, après k tours u<sub>k</sub>. Pour u<sub>n</sub>, il faut donc <b>n tours</b> : <code>range(n)</code>.</p>${pre('def u(n):          # u0 = 2, u(n+1) = 3 u(n) - 1\n    v = 2\n    for k in range(n):\n        v = 3 * v - 1\n    return v')}<p>Pas besoin de liste : on ne garde que le terme courant. Complexité O(n).</p>`,
+          ask: { q: 'Avec cette fonction, que renvoie <code>u(3)</code> ?', items: [I('valeur', 41)], why: '2 → 3 × 2 − 1 = 5 → 14 → 41 : trois tours.' } },
+        { h: 'Quand la relation dépend du rang',
+          body: `<p>Si u<sub>n+1</sub> = u<sub>n</sub> + 2n + 1, le terme ajouté change à chaque rang : c'est la <b>variable de boucle</b> qui joue le rôle de n. Au tour k, on passe de u<sub>k</sub> à u<sub>k+1</sub> en ajoutant 2k + 1.</p>${pre('def u(n):          # u0 = 0, u(n+1) = u(n) + 2n + 1\n    v = 0\n    for k in range(n):\n        v = v + 2 * k + 1\n    return v')}`,
+          ask: { q: 'Que renvoie <code>u(3)</code> ?', items: [I('valeur', 9)], why: 'On ajoute 1 (k = 0), puis 3 (k = 1), puis 5 (k = 2) : 0 + 1 + 3 + 5 = 9.' } },
+        { h: 'Deux termes : ne pas écraser trop tôt',
+          guess: { q: `${pre('x = 0\ny = 1\nfor i in range(4):\n    x = y\n    y = x + y')}Ce code veut calculer Fibonacci (0, 1, 1, 2, 3…). Que vaut x à la fin ?`, items: [I('x', 8)] },
+          body: `<p>Pour u<sub>n+2</sub> = u<sub>n+1</sub> + u<sub>n</sub>, on garde deux variables (x = u<sub>i</sub>, y = u<sub>i+1</sub>). Mais après <code>x = y</code>, l'ancien x est perdu : <code>y = x + y</code> calcule y + y. On obtient les puissances de 2 (1, 2, 4, 8), pas Fibonacci.</p>${pre('z = x + y     # avec une variable auxiliaire\nx = y\ny = z\n\nx, y = y, x + y    # ou en une ligne')}`,
+          ask: { q: 'Avec la version corrigée, que vaut x après 4 tours (F<sub>4</sub>) ?', items: [I('x', 3)], why: '(x, y) : (0, 1) → (1, 1) → (1, 2) → (2, 3) → (3, 5) : x = 3.' } }
+      ] },
+      minmax: { title: 'Minimum et maximum : l\'exo bateau', meth: 'on part du premier élément (<code>m = t[0]</code>, pas 0), on parcourt, on remplace dès qu\'on trouve mieux ; pour un indice on garde l\'indice ; <code>&gt;</code> garde le premier en cas d\'égalité, <code>&gt;=</code> le dernier.', steps: [
+        { h: 'Le schéma, et son piège',
+          guess: { q: `${pre('def maximum(t):\n    m = 0\n    for x in t:\n        if x > m:\n            m = x\n    return m')}Que renvoie <code>maximum([-3, -1, -7])</code> ?`, items: [C('valeur', [['0', '0'], ['m1', '-1'], ['m7', '-7'], ['e', 'une erreur']], '0')] },
+          body: `<p>Avec <code>m = 0</code>, aucun élément négatif n'est « plus grand » : la fonction renvoie 0, qui n'est même pas dans la liste. On part donc du <b>premier élément</b> : <code>m = t[0]</code> (la liste est non vide, l'énoncé le précise toujours).</p>${pre('def maximum(t):\n    m = t[0]\n    for x in t:\n        if x > m:\n            m = x\n    return m')}<p>Un seul parcours : O(n). Au DS, <code>max</code>, <code>min</code> et <code>sorted</code> sont interdits dans ce genre d'exercice.</p>`,
+          ask: { q: 'Pour avoir le minimum ET le maximum en un seul parcours, on garde :', items: [C('réponse', [['2', 'deux variables, mini et maxi, initialisées à t[0]'], ['tri', 'on trie puis on prend t[0] et t[-1]'], ['2b', 'deux boucles, une pour chacun']], '2')], why: 'Deux variables mises à jour dans la même boucle : un seul parcours. Deux boucles marchent aussi (toujours O(n)) mais ne répondent pas à « un seul parcours » ; trier est plus coûteux et interdit.' } },
+        { h: 'Indice : le premier ou le dernier ?',
+          body: `<p>Pour renvoyer une <b>position</b>, on garde l'indice <code>im</code> du meilleur vu jusqu'ici et on compare <code>t[i]</code> à <code>t[im]</code>. Avec <code>t[i] &lt; t[im]</code>, une égalité ne remplace pas : on garde le <b>premier</b>. Avec <code>t[i] &lt;= t[im]</code>, une égalité remplace : on garde le <b>dernier</b>. Lis l'énoncé.</p>${pre('def indice_minimum(t):\n    im = 0\n    for i in range(len(t)):\n        if t[i] < t[im]:\n            im = i\n    return im')}`,
+          ask: { q: 'Que renvoie cette fonction pour <code>[4, 1, 7, 1]</code> ?', items: [I('valeur', 1)], why: 'Le minimum 1 est aux indices 1 et 3 ; avec &lt; l\'égalité ne remplace pas : 1. Avec &lt;= on aurait 3.' } }
+      ] },
+      fusion: { title: 'Fusionner deux tableaux triés', meth: 'deux indices i et j ; tant que les deux tableaux ont des éléments, on ajoute le plus petit de t1[i] et t2[j] et on avance SON indice ; à la fin on recopie le reste de celui qui n\'est pas fini. O(n + m).', steps: [
+        { h: 'Deux doigts sur deux listes',
+          guess: { q: 'On fusionne [1, 5, 9] et [2, 3]. Quand la liste [2, 3] est épuisée, qu\'a-t-on déjà mis dans le résultat ?', items: [V('res', [1, 2, 3])] },
+          body: `<p>Comme pour fusionner deux paquets de copies déjà classés : on regarde le haut de chaque paquet, on prend le plus petit, et on recommence. Un indice par tableau : <code>i</code> pour t1, <code>j</code> pour t2. Seul l'indice du tableau dont on a pris l'élément avance.</p>${pre('while i < len(t1) and j < len(t2):\n    if t1[i] <= t2[j]:\n        res.append(t1[i])\n        i = i + 1\n    else:\n        res.append(t2[j])\n        j = j + 1')}<p>Quand un tableau est épuisé, l'autre a encore des éléments (ici 5 et 9), déjà triés et plus grands que tout le reste : on les recopie avec deux petites boucles <code>while i &lt; len(t1)</code> et <code>while j &lt; len(t2)</code>. Les oublier est l'erreur classique.</p>`,
+          ask: { q: 'Que renverrait la fusion de [1, 5, 9] et [2, 3] SANS les deux boucles de fin ?', items: [V('valeur', [1, 2, 3])], why: 'La boucle principale s\'arrête quand j = 2 (t2 épuisé) : res = [1, 2, 3], il manque 5 et 9.' } },
+        { h: 'Pourquoi c\'est O(n + m)',
+          body: `<p>À chaque tour, de n'importe laquelle des trois boucles, on ajoute exactement un élément à <code>res</code>. Le résultat a n + m éléments : il y a donc n + m tours, chacun en temps constant. C'est <b>O(n + m)</b>, ce qu'on écrit pour « la complexité de ton programme ».</p><p>À comparer : chercher chaque élément de t1 dans t2 avec <code>in</code> coûte n × m ; trier <code>t1 + t2</code> est plus lent et interdit dans l'exercice.</p>`,
+          ask: { q: 'Pour l\'intersection de deux listes triées (éléments communs), avec la même idée des deux indices, la complexité est :', items: [C('réponse', [['nm', 'O(n + m)'], ['x', 'O(n × m)'], ['1', 'O(1)']], 'nm')], why: 'À chaque tour i ou j avance (ou les deux) : au plus n + m tours. Avec « x in t2 » pour chaque x de t1, ce serait O(n × m).' } }
+      ] },
+      qcm: { title: 'QCM à points négatifs : quand répondre', meth: 'lis le code de l\'intérieur vers l\'extérieur (t2[i] avant t1[…]), cherche l\'erreur cachée (chaîne + entier, indice ou clé qui n\'existe pas, fonction sans return) ; coche seulement si tu es sûr ou si tu hésites entre deux propositions.', steps: [
+        { h: 'Le calcul qui décide s\'il faut répondre',
+          body: `<p>Barème supposé : +1 si juste, −0,5 si faux, 0 sans réponse. Avec 4 propositions :</p><ul><li>au hasard : ¼ × 1 − ¾ × 0,5 = <b>−0,125</b> en moyenne, on perd ;</li><li>si tu as éliminé deux propositions (hésitation entre deux) : ½ × 1 − ½ × 0,5 = <b>+0,25</b>, on gagne ;</li><li>si tu es sûr : +1.</li></ul><p>Donc : pas de réponse au hasard, mais répondre dès que tu as éliminé deux propositions. Sur la page, le choix « Je ne réponds pas » vaut 0.</p>`,
+          ask: { q: 'Tu as éliminé UNE proposition sur quatre. Répondre au hasard parmi les trois restantes rapporte en moyenne :', items: [C('réponse', [['p', '+0,25'], ['0', '0'], ['m', '−0,125']], '0')], why: '⅓ × 1 − ⅔ × 0,5 = ⅓ − ⅓ = 0 : ni gain ni perte.' } },
+        { h: 'Les pièges classiques',
+          guess: { q: `${pre("t1 = [10, 20, 30, 40]\nt2 = [3, 0, 2]\nprint(t1[t2[0]])")}Qu'affiche ce programme ?`, items: [C('affichage', [['40', '40'], ['10', '10'], ['3', '3'], ['e', 'Erreur (IndexError)']], '40')] },
+          body: `<p><code>t2[0]</code> vaut 3, donc <code>t1[t2[0]]</code> = <code>t1[3]</code> = 40. Toujours de l'intérieur vers l'extérieur.</p><ul><li><code>'3' + 4</code> → TypeError ; <code>'3' * 4</code> → <code>'3333'</code> ; <code>'3' == 3</code> → False (sans erreur).</li><li><code>t[len(t)]</code> → IndexError ; <code>d['absente']</code> → KeyError ; <code>x in d</code> teste les clés.</li><li>Fonction sans <code>return</code> → None ; <code>t = t.append(x)</code> → None.</li><li><code>-7 // 2</code> = −4 (arrondi vers le bas) ; <code>int('3.5')</code> → ValueError mais <code>int(3.5)</code> = 3.</li></ul>`,
+          ask: { q: "Qu'affiche <code>print('5' + str(2))</code> ?", items: [C('affichage', [['52', '52'], ['7', '7'], ['e', 'Erreur (TypeError)']], '52')], why: 'str(2) = \'2\' : deux chaînes, + les colle, \'52\' (affiché sans guillemets).' } }
+      ] }
+    });
     return L;
   };
 })();

@@ -48,6 +48,11 @@ pre.code{margin:12px 0 0;padding:12px 14px;border-radius:10px;background:var(--c
 .it-in input[type=text]{flex:1;min-width:0;width:100%;font:15px/1.3 var(--mono);color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:42px}
 .it.full{grid-template-columns:minmax(0,1fr)}
 .it.full .fb{grid-column:1}
+.it.qcm{padding-top:14px;border-top:1px solid var(--rule)}
+.it.qcm:first-child{padding-top:0;border-top:0}
+.it-q{font:16px/1.55 var(--serif)}
+.it-q pre.code{margin-top:8px}
+.ch.skip{font-family:var(--sans);color:var(--ink-2);border-style:dashed}
 textarea.codein{width:100%;min-height:190px;resize:vertical;font:14px/1.55 var(--mono);color:var(--ink);background:var(--code-bg);border:1px solid var(--rule-strong);border-radius:10px;padding:12px 14px;tab-size:4;white-space:pre;overflow-wrap:normal;overflow-x:auto}
 textarea.out{min-height:70px}
 .fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto}
@@ -373,14 +378,14 @@ const CODE = [
   [2, 'code1', 'somme_k', 'somme_k(n)', 'renvoie la somme des entiers naturels k tels que k² + 3k < n, avec une boucle while (exercice 14 du poly). Exemple : somme_k(20) = 0 + 1 + 2 + 3 = 6.', [['somme_k(20)', '6'], ['somme_k(1)', '0'], ['somme_k(0)', '0'], ['somme_k(100)', '36']], 'def somme_k(n):\n    s = 0\n    k = 0\n    while k * k + 3 * k < n:\n        s = s + k\n        k = k + 1\n    return s'],
   [2, 'code1', 'fibo', 'fibo(n)', 'renvoie F(n), avec F(0) = 0, F(1) = 1 et F(n+2) = F(n+1) + F(n).', [['fibo(0)', '0'], ['fibo(1)', '1'], ['fibo(2)', '1'], ['fibo(10)', '55'], ['fibo(20)', '6765']], 'def fibo(n):\n    a = 0\n    b = 1\n    for i in range(n):\n        a, b = b, a + b\n    return a'],
   [0, 'code2', 'somme_tab', 'somme_tab(t)', 'renvoie la somme des éléments du tableau t (0 s\'il est vide), sans utiliser sum.', [['somme_tab([3, 1, 4])', '8'], ['somme_tab([])', '0'], ['somme_tab([-2, 2, 5])', '5']], 'def somme_tab(t):\n    s = 0\n    for x in t:\n        s = s + x\n    return s'],
-  [0, 'code2', 'maximum', 'maximum(t)', 'renvoie le plus grand élément du tableau non vide t, sans utiliser max (exercice 21.3).', [['maximum([5, 6, 8, 3])', '8'], ['maximum([-4, -2, -9])', '-2'], ['maximum([7])', '7']], 'def maximum(t):\n    m = t[0]\n    for x in t:\n        if x > m:\n            m = x\n    return m'],
+  [0, 'minmax', 'maximum', 'maximum(t)', 'renvoie le plus grand élément du tableau non vide t, sans utiliser max (exercice 21.3).', [['maximum([5, 6, 8, 3])', '8'], ['maximum([-4, -2, -9])', '-2'], ['maximum([7])', '7']], 'def maximum(t):\n    m = t[0]\n    for x in t:\n        if x > m:\n            m = x\n    return m'],
   [0, 'code2', 'compte_elements', 'compte_elements(t, x)', 'renvoie le nombre de fois que x apparaît dans t (exercice 21.7), sans utiliser count.', [['compte_elements([2, 3, 2, 1, 3, 5, 2, 2], 2)', '4'], ['compte_elements([1, 2], 7)', '0'], ['compte_elements([], 1)', '0']], 'def compte_elements(t, x):\n    c = 0\n    for e in t:\n        if e == x:\n            c = c + 1\n    return c'],
-  [1, 'code2', 'indice_maximum', 'indice_maximum(t)', 'renvoie l\'indice du maximum du tableau non vide t (le premier s\'il y en a plusieurs). Exemple : indice_maximum([5, 6, 8, 3, 17, 1, 2]) = 4.', [['indice_maximum([5, 6, 8, 3, 17, 1, 2])', '4'], ['indice_maximum([9, 1])', '0'], ['indice_maximum([1, 2, 3])', '2'], ['indice_maximum([4, 7, 7])', '1']], 'def indice_maximum(t):\n    im = 0\n    for i in range(len(t)):\n        if t[i] > t[im]:\n            im = i\n    return im'],
+  [1, 'minmax', 'indice_maximum', 'indice_maximum(t)', 'renvoie l\'indice du maximum du tableau non vide t (le premier s\'il y en a plusieurs). Exemple : indice_maximum([5, 6, 8, 3, 17, 1, 2]) = 4.', [['indice_maximum([5, 6, 8, 3, 17, 1, 2])', '4'], ['indice_maximum([9, 1])', '0'], ['indice_maximum([1, 2, 3])', '2'], ['indice_maximum([4, 7, 7])', '1']], 'def indice_maximum(t):\n    im = 0\n    for i in range(len(t)):\n        if t[i] > t[im]:\n            im = i\n    return im'],
   [1, 'code2', 'miroir', 'miroir(t)', 'renvoie un NOUVEAU tableau contenant les éléments de t dans l\'ordre inverse (exercice 21.5).', [['miroir([3, 1, 4, 6])', '[6, 4, 1, 3]'], ['miroir([])', '[]'], ['miroir([8])', '[8]']], 'def miroir(t):\n    res = []\n    for i in range(len(t) - 1, -1, -1):\n        res.append(t[i])\n    return res'],
   [1, 'code2', 'elim_occur', 'elim_occur(l, x)', 'renvoie la liste l sans les occurrences de x (exercice 25). Exemple : elim_occur([2, 6, 2, 2, 4], 2) = [6, 4].', [['elim_occur([2, 6, 2, 2, 4, 5, 2, 3], 2)', '[6, 4, 5, 3]'], ['elim_occur([1, 2], 9)', '[1, 2]'], ['elim_occur([3, 3], 3)', '[]']], 'def elim_occur(l, x):\n    res = []\n    for e in l:\n        if e != x:\n            res.append(e)\n    return res'],
   [1, 'code2', 'maximum_tab', 'maximum_tab(t1, t2)', 'reçoit deux tableaux de même taille et renvoie le tableau dont la case i contient le maximum de t1[i] et t2[i] (exercice 21.6).', [['maximum_tab([1, 4, 5, 6], [7, 1, 2, 8])', '[7, 4, 5, 8]'], ['maximum_tab([], [])', '[]'], ['maximum_tab([3], [3])', '[3]']], 'def maximum_tab(t1, t2):\n    res = []\n    for i in range(len(t1)):\n        if t1[i] > t2[i]:\n            res.append(t1[i])\n        else:\n            res.append(t2[i])\n    return res'],
   [2, 'code2', 'est_palindrome', 'est_palindrome(l)', 'renvoie True si la liste se lit pareil dans les deux sens (exercice 27).', [['est_palindrome([3, 4, 4, 3])', 'True'], ['est_palindrome([4, 7, 4])', 'True'], ['est_palindrome([1, 2])', 'False'], ['est_palindrome([])', 'True']], 'def est_palindrome(l):\n    n = len(l)\n    for i in range(n // 2):\n        if l[i] != l[n - 1 - i]:\n            return False\n    return True'],
-  [2, 'code2', 'second_min', 'second_min(l)', 'reçoit une liste d\'au moins deux entiers distincts et renvoie le second plus petit élément (exercice 28), sans trier.', [['second_min([5, 1, 4, 2])', '2'], ['second_min([9, 3])', '9'], ['second_min([1, 2, 3])', '2'], ['second_min([7, 8, 6, 5])', '6']], 'def second_min(l):\n    a, b = min(l[0], l[1]), max(l[0], l[1])\n    for x in l[2:]:\n        if x < a:\n            a, b = x, a\n        elif x < b:\n            b = x\n    return b'],
+  [2, 'minmax', 'second_min', 'second_min(l)', 'reçoit une liste d\'au moins deux entiers distincts et renvoie le second plus petit élément (exercice 28), sans trier.', [['second_min([5, 1, 4, 2])', '2'], ['second_min([9, 3])', '9'], ['second_min([1, 2, 3])', '2'], ['second_min([7, 8, 6, 5])', '6']], 'def second_min(l):\n    a, b = min(l[0], l[1]), max(l[0], l[1])\n    for x in l[2:]:\n        if x < a:\n            a, b = x, a\n        elif x < b:\n            b = x\n    return b'],
   [2, 'code2', 'sommes_colonnes', 'sommes_colonnes(m)', 'reçoit une matrice (liste de lignes, toutes de même longueur, au moins une ligne) et renvoie la liste des sommes de chaque colonne (exercice 32.4).', [['sommes_colonnes([[2, 3, 7], [1, 2, 0]])', '[3, 5, 7]'], ['sommes_colonnes([[1, 2]])', '[1, 2]'], ['sommes_colonnes([[1], [2], [3]])', '[6]']], 'def sommes_colonnes(m):\n    res = []\n    for j in range(len(m[0])):\n        s = 0\n        for i in range(len(m)):\n            s = s + m[i][j]\n        res.append(s)\n    return res'],
   [0, 'code3', 'ajoute_produit', 'ajoute_produit(d, nom, quantite)', 'ajoute une quantité d\'un produit au dictionnaire de stock d : si le produit existe déjà, on ajoute à la quantité existante (exercice 37). La fonction modifie d et ne renvoie rien.', [["(lambda d: (ajoute_produit(d, 'Laptop', 5), d)[1])({'Laptop': 10})", "{'Laptop': 15}"], ["(lambda d: (ajoute_produit(d, 'Casque', 3), d)[1])({'Laptop': 10})", "{'Laptop': 10, 'Casque': 3}"]], 'def ajoute_produit(d, nom, quantite):\n    if nom in d:\n        d[nom] = d[nom] + quantite\n    else:\n        d[nom] = quantite'],
   [0, 'code3', 'total_stock', 'total_stock(d)', 'renvoie la somme de toutes les quantités du dictionnaire d (0 s\'il est vide).', [["total_stock({'a': 3, 'b': 4})", '7'], ['total_stock({})', '0']], 'def total_stock(d):\n    s = 0\n    for c in d:\n        s = s + d[c]\n    return s'],
@@ -392,18 +397,77 @@ const CODE = [
   [2, 'mat', 'est_symetrique', 'est_symetrique(t)', 'reçoit une matrice carrée t (n lignes, n colonnes) et renvoie True si t[i][j] == t[j][i] pour tous i et j, False sinon (exercice 33).', [['est_symetrique([[1, 2], [2, 5]])', 'True'], ['est_symetrique([[1, 2], [3, 1]])', 'False'], ['est_symetrique([[4]])', 'True'], ['est_symetrique([[1, 7, 3], [7, 4, 5], [3, 5, 6]])', 'True'], ['est_symetrique([[1, 7, 3], [7, 4, 5], [3, 0, 6]])', 'False']], 'def est_symetrique(t):\n    n = len(t)\n    for i in range(n):\n        for j in range(n):\n            if t[i][j] != t[j][i]:\n                return False\n    return True'],
   [2, 'mat', 'somme_diagonale', 'somme_diagonale(m)', 'reçoit une matrice carrée m et renvoie la somme des éléments de sa diagonale m[0][0], m[1][1], …', [['somme_diagonale([[1, 2], [3, 4]])', '5'], ['somme_diagonale([[5]])', '5'], ['somme_diagonale([[1, 0, 0], [0, 2, 0], [0, 0, 3]])', '6']], 'def somme_diagonale(m):\n    s = 0\n    for i in range(len(m)):\n        s = s + m[i][i]\n    return s'],
   [2, 'mat', 'transposee', 'transposee(m)', 'renvoie une NOUVELLE matrice dont les lignes sont les colonnes de m.', [['transposee([[1, 2, 3], [4, 5, 6]])', '[[1, 4], [2, 5], [3, 6]]'], ['transposee([[7]])', '[[7]]']], 'def transposee(m):\n    t = []\n    for j in range(len(m[0])):\n        col = []\n        for i in range(len(m)):\n            col.append(m[i][j])\n        t.append(col)\n    return t'],
-  [2, 'dicho', 'appartient_trie', 'appartient_trie(t, x)', 'renvoie True si x est dans la liste t, triée par ordre croissant, par recherche dichotomique (sans in) : on compare x à l\'élément du milieu et on ne garde que la bonne moitié.', [['appartient_trie([1, 3, 5, 8, 13], 8)', 'True'], ['appartient_trie([1, 3, 5, 8, 13], 4)', 'False'], ['appartient_trie([], 3)', 'False'], ['appartient_trie([2], 2)', 'True'], ['appartient_trie(list(range(0, 1000, 3)), 999)', 'True'], ['appartient_trie(list(range(0, 1000, 3)), 998)', 'False']], 'def appartient_trie(t, x):\n    g = 0\n    d = len(t) - 1\n    while g <= d:\n        m = (g + d) // 2\n        if t[m] == x:\n            return True\n        elif t[m] < x:\n            g = m + 1\n        else:\n            d = m - 1\n    return False']
+  [2, 'dicho', 'appartient_trie', 'appartient_trie(t, x)', 'renvoie True si x est dans la liste t, triée par ordre croissant, par recherche dichotomique (sans in) : on compare x à l\'élément du milieu et on ne garde que la bonne moitié.', [['appartient_trie([1, 3, 5, 8, 13], 8)', 'True'], ['appartient_trie([1, 3, 5, 8, 13], 4)', 'False'], ['appartient_trie([], 3)', 'False'], ['appartient_trie([2], 2)', 'True'], ['appartient_trie(list(range(0, 1000, 3)), 999)', 'True'], ['appartient_trie(list(range(0, 1000, 3)), 998)', 'False']], 'def appartient_trie(t, x):\n    g = 0\n    d = len(t) - 1\n    while g <= d:\n        m = (g + d) // 2\n        if t[m] == x:\n            return True\n        elif t[m] < x:\n            g = m + 1\n        else:\n            d = m - 1\n    return False'],
+  // minimum / maximum (l'exercice « bateau » du DS de l'an dernier)
+  [0, 'minmax', 'minimum', 'minimum(t)', 'renvoie le plus petit élément du tableau non vide t, sans utiliser min.', [['minimum([3, 1, 4])', '1'], ['minimum([-2, -8, -5])', '-8'], ['minimum([6])', '6']], 'def minimum(t):\n    m = t[0]\n    for x in t:\n        if x < m:\n            m = x\n    return m'],
+  [1, 'minmax', 'indice_minimum', 'indice_minimum(t)', 'renvoie l\'indice du plus petit élément du tableau non vide t, le DERNIER s\'il y en a plusieurs. Exemple : indice_minimum([4, 1, 7, 1]) = 3.', [['indice_minimum([4, 1, 7, 1])', '3'], ['indice_minimum([2])', '0'], ['indice_minimum([5, 3, 9])', '1'], ['indice_minimum([1, 1, 1])', '2']], 'def indice_minimum(t):\n    im = 0\n    for i in range(len(t)):\n        if t[i] <= t[im]:\n            im = i\n    return im'],
+  [1, 'minmax', 'max_min', 'max_min(t)', 'renvoie le couple (minimum, maximum) du tableau non vide t, en un seul parcours, sans min ni max. Exemple : max_min([3, 9, 1, 4]) = (1, 9).', [['max_min([3, 9, 1, 4])', '(1, 9)'], ['max_min([5])', '(5, 5)'], ['max_min([-1, -7])', '(-7, -1)']], 'def max_min(t):\n    mini = t[0]\n    maxi = t[0]\n    for x in t:\n        if x < mini:\n            mini = x\n        if x > maxi:\n            maxi = x\n    return (mini, maxi)'],
+  [2, 'minmax', 'nb_max', 'nb_max(t)', 'renvoie le nombre de fois où le maximum du tableau non vide t apparaît, en UN SEUL parcours, sans max ni count. Exemple : nb_max([3, 7, 2, 7, 7]) = 3.', [['nb_max([3, 7, 2, 7, 7])', '3'], ['nb_max([1])', '1'], ['nb_max([5, 4, 3])', '1'], ['nb_max([2, 2, 9])', '1'], ['nb_max([4, 4])', '2']], 'def nb_max(t):\n    m = t[0]\n    c = 0\n    for x in t:\n        if x > m:\n            m = x\n            c = 1\n        elif x == m:\n            c = c + 1\n    return c'],
+  // fusion de tableaux triés
+  [1, 'fusion', 'fusion', 'fusion(t1, t2)', 'reçoit deux tableaux triés par ordre croissant et renvoie un NOUVEAU tableau trié contenant tous leurs éléments (doublons compris), en avançant dans les deux tableaux à la fois, sans sort ni sorted. Exemple : fusion([1, 4, 9], [2, 3, 10]) = [1, 2, 3, 4, 9, 10].', [['fusion([1, 4, 9], [2, 3, 10])', '[1, 2, 3, 4, 9, 10]'], ['fusion([], [1, 2])', '[1, 2]'], ['fusion([5], [])', '[5]'], ['fusion([1, 1, 3], [1, 2])', '[1, 1, 1, 2, 3]'], ['fusion([1, 2, 3], [4, 5, 6])', '[1, 2, 3, 4, 5, 6]'], ['fusion([7, 8], [1, 2, 3])', '[1, 2, 3, 7, 8]']], 'def fusion(t1, t2):\n    res = []\n    i = 0\n    j = 0\n    while i < len(t1) and j < len(t2):\n        if t1[i] <= t2[j]:\n            res.append(t1[i])\n            i = i + 1\n        else:\n            res.append(t2[j])\n            j = j + 1\n    while i < len(t1):\n        res.append(t1[i])\n        i = i + 1\n    while j < len(t2):\n        res.append(t2[j])\n        j = j + 1\n    return res'],
+  [1, 'fusion', 'insere_trie', 'insere_trie(t, x)', 'reçoit un tableau t trié par ordre croissant et renvoie un NOUVEAU tableau trié contenant les éléments de t et x, sans sort, sorted ni insert. Exemple : insere_trie([1, 4, 6], 5) = [1, 4, 5, 6].', [['insere_trie([1, 4, 6], 5)', '[1, 4, 5, 6]'], ['insere_trie([], 3)', '[3]'], ['insere_trie([2, 3], 1)', '[1, 2, 3]'], ['insere_trie([2, 3], 9)', '[2, 3, 9]'], ['insere_trie([2, 2], 2)', '[2, 2, 2]']], 'def insere_trie(t, x):\n    res = []\n    place = False\n    for e in t:\n        if not place and x <= e:\n            res.append(x)\n            place = True\n        res.append(e)\n    if not place:\n        res.append(x)\n    return res'],
+  [2, 'fusion', 'union_triee', 'union_triee(t1, t2)', 'reçoit deux tableaux triés par ordre STRICTEMENT croissant et renvoie le tableau trié de leurs éléments, sans doublon (un élément présent dans les deux n\'apparaît qu\'une fois), en avançant dans les deux à la fois, sans sort, sorted ni set. Exemple : union_triee([1, 3, 5], [2, 3, 6]) = [1, 2, 3, 5, 6].', [['union_triee([1, 3, 5], [2, 3, 6])', '[1, 2, 3, 5, 6]'], ['union_triee([], [4])', '[4]'], ['union_triee([1, 2], [1, 2])', '[1, 2]'], ['union_triee([7], [1, 2])', '[1, 2, 7]'], ['union_triee([], [])', '[]']], 'def union_triee(t1, t2):\n    res = []\n    i = 0\n    j = 0\n    while i < len(t1) and j < len(t2):\n        if t1[i] < t2[j]:\n            res.append(t1[i])\n            i = i + 1\n        elif t1[i] > t2[j]:\n            res.append(t2[j])\n            j = j + 1\n        else:\n            res.append(t1[i])\n            i = i + 1\n            j = j + 1\n    while i < len(t1):\n        res.append(t1[i])\n        i = i + 1\n    while j < len(t2):\n        res.append(t2[j])\n        j = j + 1\n    return res'],
+  [2, 'fusion', 'intersection_triee', 'intersection_triee(t1, t2)', 'reçoit deux tableaux triés par ordre STRICTEMENT croissant et renvoie le tableau trié de leurs éléments communs, en avançant dans les deux tableaux à la fois (pas de « x in t2 » dans une boucle), sans set. Exemple : intersection_triee([1, 3, 5, 8], [2, 3, 8, 9]) = [3, 8].', [['intersection_triee([1, 3, 5, 8], [2, 3, 8, 9])', '[3, 8]'], ['intersection_triee([1, 2], [3, 4])', '[]'], ['intersection_triee([], [1])', '[]'], ['intersection_triee([4, 5], [4, 5])', '[4, 5]'], ['intersection_triee([1, 9], [0, 1, 2, 3, 9])', '[1, 9]']], 'def intersection_triee(t1, t2):\n    res = []\n    i = 0\n    j = 0\n    while i < len(t1) and j < len(t2):\n        if t1[i] < t2[j]:\n            i = i + 1\n        elif t1[i] > t2[j]:\n            j = j + 1\n        else:\n            res.append(t1[i])\n            i = i + 1\n            j = j + 1\n    return res'],
+  // dictionnaires, un cran plus dur (l'exercice « un peu plus dur » de l'an dernier)
+  [2, 'code3', 'regroupe', 'regroupe(mots)', 'reçoit une liste de mots et renvoie un dictionnaire qui associe à chaque longueur la liste des mots de cette longueur, dans l\'ordre de la liste. Exemple : regroupe([\'le\', \'chat\', \'de\']) = {2: [\'le\', \'de\'], 4: [\'chat\']}.', [["regroupe(['le', 'chat', 'de', 'la', 'pomme'])", "{2: ['le', 'de', 'la'], 4: ['chat'], 5: ['pomme']}"], ['regroupe([])', '{}'], ["regroupe(['a', 'b'])", "{1: ['a', 'b']}"]], 'def regroupe(mots):\n    d = {}\n    for m in mots:\n        n = len(m)\n        if n in d:\n            d[n].append(m)\n        else:\n            d[n] = [m]\n    return d'],
+  [2, 'code3', 'moyennes', 'moyennes(notes)', 'reçoit une liste de couples (nom, note), un même nom pouvant revenir plusieurs fois, et renvoie le dictionnaire qui associe à chaque nom la moyenne de ses notes. Exemple : moyennes([(\'Ana\', 12), (\'Bo\', 9), (\'Ana\', 15)]) = {\'Ana\': 13.5, \'Bo\': 9.0}.', [["moyennes([('Ana', 12), ('Bo', 9), ('Ana', 15)])", "{'Ana': 13.5, 'Bo': 9.0}"], ['moyennes([])', '{}'], ["moyennes([('Cy', 10), ('Cy', 11), ('Cy', 15)])", "{'Cy': 12.0}"]], 'def moyennes(notes):\n    somme = {}\n    nb = {}\n    for (nom, note) in notes:\n        if nom in somme:\n            somme[nom] = somme[nom] + note\n            nb[nom] = nb[nom] + 1\n        else:\n            somme[nom] = note\n            nb[nom] = 1\n    res = {}\n    for nom in somme:\n        res[nom] = somme[nom] / nb[nom]\n    return res'],
+  [2, 'code3', 'plus_frequent', 'plus_frequent(t)', 'reçoit une liste non vide et renvoie l\'élément qui y apparaît le plus souvent ; en cas d\'égalité, celui qui apparaît en premier dans t. Utiliser un dictionnaire (pas de count). Exemple : plus_frequent([\'b\', \'a\', \'b\', \'a\']) = \'b\'.', [["plus_frequent(['b', 'a', 'b', 'c', 'a'])", "'b'"], ['plus_frequent([3])', '3'], ['plus_frequent([1, 2, 2])', '2'], ["plus_frequent(['x', 'y', 'y', 'x', 'y'])", "'y'"]], 'def plus_frequent(t):\n    d = {}\n    for x in t:\n        if x in d:\n            d[x] = d[x] + 1\n        else:\n            d[x] = 1\n    best = t[0]\n    for x in t:\n        if d[x] > d[best]:\n            best = x\n    return best'],
+  [2, 'code3', 'fusion_stocks', 'fusion_stocks(d1, d2)', 'reçoit deux dictionnaires de stock produit → quantité et renvoie un NOUVEAU dictionnaire qui contient tous les produits, avec la somme des quantités quand un produit est dans les deux. d1 et d2 ne doivent pas être modifiés.', [["fusion_stocks({'a': 2, 'b': 1}, {'b': 4, 'c': 3})", "{'a': 2, 'b': 5, 'c': 3}"], ['fusion_stocks({}, {})', '{}'], ["(lambda d: (fusion_stocks(d, {'a': 1}), d)[1])({'a': 2})", "{'a': 2}"]], 'def fusion_stocks(d1, d2):\n    res = {}\n    for c in d1:\n        res[c] = d1[c]\n    for c in d2:\n        if c in res:\n            res[c] = res[c] + d2[c]\n        else:\n            res[c] = d2[c]\n    return res'],
+  [2, 'code3', 'sont_anagrammes', 'sont_anagrammes(m1, m2)', 'renvoie True si les deux mots ont exactement les mêmes lettres, chacune le même nombre de fois (« chien » et « niche »), False sinon. Utiliser des dictionnaires de comptage (pas de sorted).', [["sont_anagrammes('chien', 'niche')", 'True'], ["sont_anagrammes('aab', 'abb')", 'False'], ["sont_anagrammes('', '')", 'True'], ["sont_anagrammes('abc', 'ab')", 'False']], 'def sont_anagrammes(m1, m2):\n    d1 = {}\n    for c in m1:\n        if c in d1:\n            d1[c] = d1[c] + 1\n        else:\n            d1[c] = 1\n    d2 = {}\n    for c in m2:\n        if c in d2:\n            d2[c] = d2[c] + 1\n        else:\n            d2[c] = 1\n    return d1 == d2'],
+  [2, 'code3', 'premier_unique', 'premier_unique(s)', 'renvoie le premier caractère de la chaîne s qui n\'y apparaît qu\'une seule fois, ou None s\'il n\'y en a pas. Exemple : premier_unique(\'abacabad\') = \'c\'.', [["premier_unique('abacabad')", "'c'"], ["premier_unique('aabb')", 'None'], ["premier_unique('x')", "'x'"], ["premier_unique('')", 'None']], 'def premier_unique(s):\n    d = {}\n    for c in s:\n        if c in d:\n            d[c] = d[c] + 1\n        else:\n            d[c] = 1\n    for c in s:\n        if d[c] == 1:\n            return c\n    return None'],
+  [2, 'code3', 'par_valeur', 'par_valeur(d)', 'reçoit un dictionnaire nom → note (deux noms peuvent avoir la même note) et renvoie le dictionnaire note → liste des noms qui ont cette note. Exemple : par_valeur({\'Ali\': 12, \'Bea\': 15, \'Cyr\': 12}) = {12: [\'Ali\', \'Cyr\'], 15: [\'Bea\']}.', [["par_valeur({'Ali': 12, 'Bea': 15, 'Cyr': 12})", "{12: ['Ali', 'Cyr'], 15: ['Bea']}"], ['par_valeur({})', '{}'], ["par_valeur({'Zoe': 8})", "{8: ['Zoe']}"]], 'def par_valeur(d):\n    res = {}\n    for nom in d:\n        n = d[nom]\n        if n in res:\n            res[n].append(nom)\n        else:\n            res[n] = [nom]\n    return res']
 ];
+// complexité demandée après la fonction (« donner la complexité de ton programme ») : a = réponse, n = ce que
+// désigne n, why = justification, x = question bonus [libellé, réponse, justification]
+const N_T = 'n = len(t)', N_NM = 'n = len(t1), m = len(t2)', N_D = 'n = nombre d\'éléments';
+const CX = {
+  maximum: { a: 'O(n)', n: N_T, why: 'une boucle de n tours, chaque tour en O(1)' }, minimum: { a: 'O(n)', n: N_T, why: 'une boucle de n tours, chaque tour en O(1)' },
+  indice_maximum: { a: 'O(n)', n: N_T, why: 'un parcours des n indices' }, indice_minimum: { a: 'O(n)', n: N_T, why: 'un parcours des n indices' },
+  max_min: { a: 'O(n)', n: N_T, why: 'un seul parcours, deux comparaisons par tour : 2n opérations' },
+  second_min: { a: 'O(n)', n: 'n = len(l)', why: 'un seul parcours ; trier d\'abord coûterait plus' },
+  nb_max: { a: 'O(n)', n: N_T, why: 'un seul parcours', x: ['si on calculait le maximum puis on comptait (deux boucles l\'une après l\'autre)', 'O(n)', 'n + n = 2n : toujours O(n), deux boucles successives s\'additionnent'] },
+  somme_tab: { a: 'O(n)', n: N_T, why: 'une boucle de n tours' }, miroir: { a: 'O(n)', n: N_T, why: 'n tours, append en O(1)' }, est_palindrome: { a: 'O(n)', n: 'n = len(l)', why: 'au plus n/2 comparaisons' },
+  fusion: { a: 'O(n + m)', n: N_NM, why: 'chaque tour de chaque boucle ajoute un élément à res : n + m tours en tout' },
+  insere_trie: { a: 'O(n)', n: N_T, why: 'un parcours de t, chaque élément recopié une fois' },
+  union_triee: { a: 'O(n + m)', n: N_NM, why: 'à chaque tour i ou j (ou les deux) avance : au plus n + m tours' },
+  intersection_triee: { a: 'O(n + m)', n: N_NM, why: 'à chaque tour i ou j avance : au plus n + m tours', x: ['si on testait « x in t2 » pour chaque x de t1', 'O(n × m)', '« x in t2 » parcourt t2 (m opérations), répété pour les n éléments de t1'] },
+  compte: { a: 'O(n)', n: N_T, why: 'n tours, et « x in d », d[x] = … sont en O(1) pour un dictionnaire' },
+  regroupe: { a: 'O(n)', n: 'n = len(mots)', why: 'un tour par mot, et chaque accès au dictionnaire est en O(1)' },
+  moyennes: { a: 'O(n)', n: 'n = len(notes)', why: 'une boucle sur les n couples, puis une sur les noms (au plus n) : 2n' },
+  plus_frequent: { a: 'O(n)', n: N_T, why: 'deux parcours successifs de t avec des accès au dictionnaire en O(1)', x: ['si on utilisait t.count(x) pour chaque x de t', 'O(n²)', 't.count(x) parcourt toute la liste : n × n'] },
+  fusion_stocks: { a: 'O(n + m)', n: 'n = len(d1), m = len(d2)', why: 'on parcourt d1 puis d2, chaque accès en O(1)' },
+  sont_anagrammes: { a: 'O(n)', n: 'n = longueur des mots', why: 'deux comptages en O(n) puis la comparaison de deux dictionnaires d\'au plus n clés' },
+  premier_unique: { a: 'O(n)', n: 'n = len(s)', why: 'deux parcours successifs de s', x: ['si on utilisait s.count(c) pour chaque caractère c', 'O(n²)', 's.count(c) parcourt toute la chaîne : n × n'] },
+  par_valeur: { a: 'O(n)', n: N_D, why: 'un tour par clé, accès en O(1)' }, frequences: { a: 'O(n)', n: 'n = len(texte)', why: 'un tour par caractère' },
+  appartient_trie: { a: 'O(log n)', n: N_T, why: 'la zone de recherche est divisée par 2 à chaque tour' }
+};
+// fonctions Python interdites par l'énoncé (refusées avant les tests)
+const BAN = { valeur_absolue: ['abs'], minimum3: ['min'], somme_tab: ['sum'], maximum: ['max', 'sorted', 'sort'], minimum: ['min', 'sorted', 'sort'], max_min: ['min', 'max', 'sorted', 'sort'],
+  indice_maximum: ['max', 'index'], indice_minimum: ['min', 'index'], nb_max: ['max', 'count', 'sorted', 'sort'], compte_elements: ['count'], second_min: ['sorted', 'sort'], miroir: ['reversed', 'reverse'],
+  fusion: ['sorted', 'sort'], insere_trie: ['sorted', 'sort', 'insert'], union_triee: ['sorted', 'sort', 'set'], intersection_triee: ['sorted', 'sort', 'set'], plus_frequent: ['count', 'max'], sont_anagrammes: ['sorted', 'sort', 'count'], premier_unique: ['count'] };
+const CX_OPTS2 = ['O(1)', 'O(log n)', 'O(n)', 'O(n + m)', 'O(n × m)', 'O(n²)'].map(x => ({ v: x, t: x }));
+function cxItems(c) {
+  if (!c) return [];
+  const opts = /m/.test(c.a + (c.x ? c.x[1] : '') + c.n) ? CX_OPTS2 : CPLX_OPTS;
+  const its = [{ type: 'choice', label: `complexité de ta fonction (${c.n})`, opts, ans: c.a, wide: true, w: 1 }];
+  if (c.x) its.push({ type: 'choice', label: c.x[0], opts, ans: c.x[1], wide: true, w: 1 });
+  return its;
+}
+// un exercice « écrire une fonction » : la fonction (testée, 3 parts du barème) puis sa complexité (1 part par question)
+function codeEx(name, sig, txt, tests, sol, o = {}) {
+  const c = 'cx' in o ? o.cx : CX[name], cx = cxItems(c);
+  return { title: o.title || `Écrire la fonction ${name}`, q: `${o.intro || ''}Écrire une fonction ${ic(sig)} qui ${txt}${cx.length ? ' Donner ensuite sa complexité.' : ''}<p class="fine" style="margin-top:8px">Ta fonction est testée sur ${tests.length} cas. Au DS, ce sera sur papier : entraîne-toi aussi à l'écrire sans l'ordinateur.</p>`,
+    items: [{ type: 'code', label: name, sig, tests, sol, ban: BAN[name], w: 3 }, ...cx],
+    corr: `<p>Une solution possible :</p>${pre(sol)}${o.after || ''}${c ? `<p>Complexité : <b>${c.a}</b> (${esc(c.n)}) : ${c.why}.${c.x ? ` Et ${esc(c.x[0])} : <b>${c.x[1]}</b>, ${c.x[2]}.` : ''}</p><p class="fine">Au DS, justifie en une phrase : combien de tours de boucle, et le coût d'un tour.</p>` : ''}<p class="fine">Pense aux cas limites (tableau vide, 0, un seul élément) et utilise <code>return</code>, pas <code>print</code>.</p>` };
+}
 function codeGen(skill) {
   return (d, g) => {
     let pool = CODE.filter(c => c[1] === skill && c[0] === d); if (!pool.length) pool = CODE.filter(c => c[1] === skill);
     const [, , name, sig, txt, tests, sol] = g.pick(pool);
-    return { title: `Écrire la fonction ${name}`, q: `Écrire une fonction ${ic(sig)} qui ${esc(txt).replace(/\b(sum|max|min|abs|count|str)\b/g, '<code>$1</code>')}<p class="fine" style="margin-top:8px">Ta fonction est testée sur ${tests.length} cas. Au DS, ce sera sur papier : entraîne-toi aussi à l'écrire sans l'ordinateur.</p>`,
-      items: [{ type: 'code', label: name, sig, tests, sol }],
-      corr: `<p>Une solution possible :</p>${pre(sol)}<p class="fine">Pense aux cas limites (tableau vide, 0, un seul élément) et utilise <code>return</code>, pas <code>print</code>.</p>` };
+    return codeEx(name, sig, esc(txt).replace(/\b(sum|max|min|abs|count|str|sort|sorted|set|insert)\b/g, '<code>$1</code>'), tests, sol);
   };
 }
-GEN.code1 = codeGen('code1'); GEN.code2 = codeGen('code2'); GEN.code3 = codeGen('code3');
+GEN.code1 = codeGen('code1'); GEN.code2 = codeGen('code2'); GEN.code3 = codeGen('code3'); GEN.minmax = codeGen('minmax');
 
 /* ---------- Matrices : listes de lignes (exercices 32 à 35 du poly) ---------- */
 GEN.mat = (d, g) => {
@@ -454,6 +518,185 @@ GEN.dicho = (d, g) => {
   return { title: 'Recherche dichotomique', q: `La liste <code>t</code> est triée. Donner les valeurs successives de <code>m</code> pendant l'appel <code>recherche(t, ${x})</code>, puis la valeur renvoyée${d === 2 ? ', le nombre maximal de tours pour une liste triée plus grande et la complexité' : ''}.` + pre('t = ' + pyRepr(t) + '\n\n' + DICHO),
     items, corr: `<table class="t"><tr><th>g</th><th>d</th><th>m = (g + d) // 2</th><th>t[m]</th></tr>${steps.map(s => `<tr><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td><td>${s[3]}</td></tr>`).join('')}</table>
       <p>${r >= 0 ? `t[${r}] = ${x} : la fonction renvoie <b>${r}</b>.` : `g dépasse d : ${x} n'est pas dans t, la fonction renvoie <b>-1</b>.`}</p>${extra}<p class="fine">Si t[m] &lt; x, x ne peut être qu'à droite : g = m + 1. Sinon d = m − 1. Le tableau doit être <b>trié</b>.</p>` };
+};
+
+/* ---------- Fusionner deux tableaux triés (exercice du DS de l'an dernier) ---------- */
+const FUSION = 'def fusion(t1, t2):\n    res = []\n    i = 0\n    j = 0\n    while i < len(t1) and j < len(t2):\n        if t1[i] <= t2[j]:\n            res.append(t1[i])\n            i = i + 1\n        else:\n            res.append(t2[j])\n            j = j + 1\n    while i < len(t1):\n        res.append(t1[i])\n        i = i + 1\n    while j < len(t2):\n        res.append(t2[j])\n        j = j + 1\n    return res';
+function fusionRun(t1, t2) {   // tours de la première boucle : [i, j, valeur prise] ; res avant les deux dernières boucles
+  let i = 0, j = 0; const res = [], steps = [];
+  while (i < t1.length && j < t2.length) { const a = t1[i] <= t2[j]; steps.push([i, j, a ? t1[i] : t2[j]]); res.push(a ? t1[i++] : t2[j++]); }
+  return { res: res.concat(t1.slice(i), t2.slice(j)), cut: res, steps };
+}
+GEN.fusion = (d, g) => {
+  if (d > 0) return codeGen('fusion')(d, g);
+  const mk = n => { const t = [g.int(0, 4)]; while (t.length < n) t.push(t[t.length - 1] + g.int(1, 6)); return t; };
+  const t1 = mk(g.int(3, 4)), t2 = mk(g.int(3, 4)), R = fusionRun(t1, t2);
+  return { title: 'Fusionner deux tableaux triés', q: 'Les deux tableaux sont triés. Que renvoie <code>fusion(t1, t2)</code> ? Combien de tours fait la première boucle <code>while</code> ? Que renverrait la fonction si on oubliait les deux dernières boucles ? Quelle est sa complexité ?' + pre(`t1 = ${pyRepr(t1)}\nt2 = ${pyRepr(t2)}\n\n${FUSION}`),
+    items: [{ type: 'val', label: 'fusion(t1, t2)', exp: R.res }, { type: 'int', label: 'tours de la 1re boucle while', val: R.steps.length }, { type: 'val', label: 'sans les deux dernières boucles', exp: R.cut },
+      { type: 'choice', label: `complexité (${N_NM})`, opts: CX_OPTS2, ans: 'O(n + m)', wide: true }],
+    corr: `<table class="t"><tr><th>i</th><th>j</th><th>on prend</th></tr>${R.steps.map(s => `<tr><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td></tr>`).join('')}</table>
+      <p>À chaque tour on compare <code>t1[i]</code> et <code>t2[j]</code>, on ajoute le plus petit et on avance <b>son</b> indice : ${R.steps.length} tours, jusqu'à ce qu'un tableau soit épuisé. Les deux dernières boucles recopient la fin de l'autre ; sans elles on renverrait ${ic(pyRepr(R.cut))} au lieu de ${ic(pyRepr(R.res))}.</p>
+      <p>Chaque tour de chaque boucle ajoute un élément à <code>res</code> : n + m tours en tout, <b>O(n + m)</b>.</p>` };
+};
+
+/* ---------- Suites : programmer uₙ (exercice du DS de l'an dernier) ---------- */
+const un = s => `u<sub>${s}</sub>`, sgn = c => c < 0 ? `− ${-c}` : `+ ${c}`, pys = c => c < 0 ? `- ${-c}` : `+ ${c}`;
+const N_N = 'n = le rang demandé';
+GEN.suite = (d, g) => {
+  const a = g.int(1, 5), b = g.int(2, 3), c = g.pick(d === 2 ? [1, 2, 3, 4] : [-1, 1, 2, 3, 4, 5]);
+  const U = n => { let v = a; for (let k = 0; k < n; k++) v = b * v + c; return v; };
+  const ag = `${un(0)} = ${a} et ${un('n+1')} = ${b}${un('n')} ${sgn(c)}`, step = `v = ${b} * v ${pys(c)}`;
+  const intro = def => `<p>On définit la suite (${un('n')}) par ${def} pour tout n ≥ 0.</p>`;
+  const naive = { a: 'O(n)', n: N_N, why: 'une boucle de n tours, chaque tour en O(1)', x: ['si on appelait u(k), qui fait k tours, pour chaque k de 0 à n − 1', 'O(n²)', '0 + 1 + … + (n − 1) = n(n − 1)/2 tours'] };
+  const V = d === 0 ? g.pick(['ag', 'sq']) : d === 1 ? g.pick(['liste', 'somme']) : g.pick(['rang', 'deux', 'deux', 'syr']);
+  const ex = (() => {
+    if (V === 'ag') return codeEx('u', 'u(n)', `renvoie ${un('n')}.`, [0, 1, 2, 3, 7].map(n => [`u(${n})`, String(U(n))]), `def u(n):\n    v = ${a}\n    for k in range(n):\n        ${step}\n    return v`,
+      { title: 'Programmer une suite', intro: intro(ag) + `<p>Calculer d'abord ${un(3)} à la main.</p>`, cx: { a: 'O(n)', n: N_N, why: 'une boucle de n tours' }, after: `<p class="fine"><code>range(n)</code> fait exactement n tours : pour n = 0, aucun tour, on renvoie bien ${un(0)} = ${a}.</p>` });
+    if (V === 'sq') { const W = n => a + n * n; return codeEx('u', 'u(n)', `renvoie ${un('n')}.`, [0, 1, 2, 3, 10].map(n => [`u(${n})`, String(W(n))]), `def u(n):\n    v = ${a}\n    for k in range(n):\n        v = v + 2 * k + 1\n    return v`,
+      { title: 'Programmer une suite', intro: intro(`${un(0)} = ${a} et ${un('n+1')} = ${un('n')} + 2n + 1`), cx: { a: 'O(n)', n: N_N, why: 'une boucle de n tours' }, after: `<p class="fine">Le terme ajouté dépend du rang : pour passer de ${un('k')} à ${un('k+1')}, on ajoute 2k + 1, où k est la variable de boucle. (On peut vérifier que ${un('n')} = ${a} + n².)</p>` }); }
+    if (V === 'liste') return codeEx('premiers_termes', 'premiers_termes(n)', `renvoie la liste [${un(0)}, ${un(1)}, …, ${un('n−1')}] des n premiers termes, en un seul parcours.`, [0, 1, 5].map(n => [`premiers_termes(${n})`, pyRepr(Array.from({ length: n }, (_, k) => U(k)))]),
+      `def premiers_termes(n):\n    res = []\n    v = ${a}\n    for k in range(n):\n        res.append(v)\n        ${step}\n    return res`, { title: 'Programmer une suite', intro: intro(ag), cx: naive });
+    if (V === 'somme') return codeEx('somme', 'somme(n)', `renvoie S<sub>n</sub> = ${un(0)} + ${un(1)} + … + ${un('n')}, en un seul parcours.`, [0, 1, 2, 5].map(n => { let s = 0; for (let k = 0; k <= n; k++) s += U(k); return [`somme(${n})`, String(s)]; }),
+      `def somme(n):\n    s = 0\n    v = ${a}\n    for k in range(n + 1):\n        s = s + v\n        ${step}\n    return s`, { title: 'Programmer une suite', intro: intro(ag), cx: naive, after: `<p class="fine">S<sub>n</sub> va jusqu'à ${un('n')} inclus : n + 1 termes, donc <code>range(n + 1)</code>.</p>` });
+    if (V === 'rang') { const R = s => { let n = 0, v = a; while (v <= s) { v = b * v + c; n++; } return n; };
+      return codeEx('rang', 'rang(s)', `renvoie le plus petit entier n tel que ${un('n')} &gt; s (la suite est croissante), avec une boucle <code>while</code>.`, [a - 1, 50, 1000, 1000000].map(s => [`rang(${s})`, String(R(s))]),
+        `def rang(s):\n    n = 0\n    v = ${a}\n    while v <= s:\n        ${step}\n        n = n + 1\n    return n`, { title: 'Premier terme qui dépasse un seuil', intro: intro(ag), cx: { a: 'O(log n)', n: 'n = s, le seuil', why: `${un('n')} est au moins multiplié par ${b} à chaque tour : il dépasse s après environ log(s) tours` } }); }
+    if (V === 'deux') { const p = g.int(0, 3), q = g.int(1, 4), k = g.int(1, 3), F = n => { let x = p, y = q; for (let i = 0; i < n; i++) [x, y] = [y, y + k * x]; return x; };
+      return codeEx('u', 'u(n)', `renvoie ${un('n')}.`, [0, 1, 2, 3, 10].map(n => [`u(${n})`, String(F(n))]), `def u(n):\n    x = ${p}\n    y = ${q}\n    for i in range(n):\n        z = y + ${k === 1 ? '' : k + ' * '}x\n        x = y\n        y = z\n    return x`,
+        { title: 'Suite à deux termes', intro: intro(`${un(0)} = ${p}, ${un(1)} = ${q} et ${un('n+2')} = ${un('n+1')} + ${k === 1 ? '' : k}${un('n')}`), cx: { a: 'O(n)', n: N_N, why: 'une boucle de n tours' }, after: `<p class="fine">On garde deux variables (x = ${un('i')}, y = ${un('i+1')}). Piège : écrire <code>x = y</code> puis <code>y = y + ${k === 1 ? '' : k + ' * '}x</code> utilise le NOUVEAU x ; il faut une variable auxiliaire z, ou <code>x, y = y, y + ${k === 1 ? '' : k + ' * '}x</code>.</p>` }); }
+    return codeEx('temps_de_vol', 'temps_de_vol(x)', 'renvoie le nombre d\'étapes pour arriver à 1 en partant de x ≥ 1, où une étape remplace x par x // 2 s\'il est pair, par 3x + 1 sinon (suite de Syracuse). Exemple : temps_de_vol(3) = 7 (3 → 10 → 5 → 16 → 8 → 4 → 2 → 1).',
+      [['temps_de_vol(1)', '0'], ['temps_de_vol(2)', '1'], ['temps_de_vol(3)', '7'], ['temps_de_vol(6)', '8'], ['temps_de_vol(27)', '111']], 'def temps_de_vol(x):\n    n = 0\n    while x != 1:\n        if x % 2 == 0:\n            x = x // 2\n        else:\n            x = 3 * x + 1\n        n = n + 1\n    return n',
+      { title: 'Suite de Syracuse', cx: null, after: '<p class="fine">On ne sait pas combien de tours il faudra : boucle <code>while</code>. Utiliser <code>//</code> (division entière), sinon x devient un float.</p>' });
+  })();
+  if (V === 'ag') ex.items.unshift({ type: 'int', label: 'u₃', val: U(3) });
+  return ex;
+};
+
+/* ---------- QCM du DS (points négatifs) ----------
+   QG : [niveau minimal, g => [énoncé HTML, bonne réponse, leurres, explication]] ; les deux premiers (chaîne + entier,
+   t1[t2[i]]) sont toujours posés, c'est ce dont se souvient l'étudiant de l'an dernier. */
+const SKIP = '∅', ERRN = n => `Erreur (${n})`, QP = 'Qu\'affiche ce programme ?';
+const QG = [
+  [0, g => {
+    const a = g.int(2, 9), b = g.int(2, 4), w = g.pick(['x + y', 'x + y', 'x + str(y)', 'int(x) + y', 'x * y']);
+    const R = { 'x + y': [ERRN('TypeError'), 'on n\'additionne pas une chaîne et un entier, le programme s\'arrête. Il faudrait <code>x + str(y)</code> ou <code>int(x) + y</code>'],
+      'x + str(y)': [`${a}${b}`, 'deux chaînes : <code>+</code> les colle, et print affiche une chaîne sans guillemets'],
+      'int(x) + y': [String(a + b), '<code>int(x)</code> convertit la chaîne en entier, puis on additionne'],
+      'x * y': [String(a).repeat(b), `une chaîne multipliée par un entier est répétée ${b} fois`] }[w];
+    return [QP + pre(`x = '${a}'\ny = ${b}\nprint(${w})`), R[0], [ERRN('TypeError'), `${a}${b}`, String(a + b), String(a).repeat(b), `'${a}${b}'`, String(a * b)], `<code>${w}</code> : ${R[1]}.`];
+  }],
+  [0, g => {
+    const f = g.pick(['ab', 'ab', 'neg', 'oob', 'self']);
+    if (f === 'self') {
+      const t = g.shuffle([0, 1, 2, 3, 4]), k = g.int(0, 4);
+      return [QP + pre(`t = ${pyRepr(t)}\nprint(t[t[${k}]])`), String(t[t[k]]), [String(t[k]), String(k), ERRN('IndexError'), String(t[t[t[k]]])], `<code>t[${k}]</code> vaut ${t[k]}, donc <code>t[t[${k}]]</code> = <code>t[${t[k]}]</code> = ${t[t[k]]}. On lit de l'intérieur vers l'extérieur.`];
+    }
+    const t1 = g.shuffle([12, 17, 23, 31, 38, 44, 52, 65, 79, 86]).slice(0, 5), t2 = Array.from({ length: 4 }, () => g.int(0, 4)), i = g.int(0, 3);
+    if (f === 'oob') t2[i] = 5;
+    const e = f === 'neg' ? 't1[t2[-1]]' : `t1[t2[${i}]]`, inner = f === 'neg' ? 't2[-1]' : `t2[${i}]`, idx = f === 'neg' ? t2[3] : t2[i];
+    const ans = idx < 5 ? String(t1[idx]) : ERRN('IndexError');
+    return [QP + pre(`t1 = ${pyRepr(t1)}\nt2 = ${pyRepr(t2)}\nprint(${e})`), ans, [String(t1[f === 'neg' ? 4 : i]), String(idx), ERRN('IndexError'), String(t1[(idx + 1) % 5]), String(t1[Math.max(0, idx - 1)])],
+      `<code>${inner}</code> vaut ${idx}, donc <code>${e}</code> = <code>t1[${idx}]</code>${idx < 5 ? ` = ${t1[idx]}` : ` : t1 n'a que 5 cases (indices 0 à 4), IndexError`}. On lit de l'intérieur vers l'extérieur.`];
+  }],
+  [0, g => {
+    const b = g.int(2, 5), k = g.int(2, 9), r = g.int(1, b - 1), a = b * k + r, f = g.pick(['/', '//', '%', 'neg']), dec = String(+(a / b).toFixed(2));
+    const S = { '/': [`${b * k} / ${b}`, `${k}.0`, [String(k), ERRN('TypeError'), `${k}.5`], '<code>/</code> donne toujours un float, même quand la division tombe juste'],
+      '//': [`${a} // ${b}`, String(k), [dec, String(k + 1), String(r)], `division entière : ${a} = ${b} × ${k} + ${r}, le quotient est ${k}`],
+      '%': [`${a} % ${b}`, String(r), [String(k), String(b - r), dec], `reste de la division : ${a} = ${b} × ${k} + ${r}`],
+      'neg': [`-${a} // ${b}`, String(-(k + 1)), [String(-k), String(k + 1), String(-r)], `<code>//</code> arrondit vers le bas (vers −∞) : −${a} / ${b} ≈ −${dec}, donc −${k + 1}, pas −${k}`] }[f];
+    return ['Que vaut l\'expression suivante ?' + pre(S[0]), S[1], S[2], S[3] + '.'];
+  }],
+  [0, g => {
+    const a = g.int(2, 9), f = g.pick(['eq', 'lt', 'chain', 'prio']);
+    const S = { eq: [`'${a}' == ${a}`, 'False', 'comparer une chaîne et un entier avec == ne plante pas : ce sont deux valeurs différentes, donc False'],
+      lt: [`'${a}' < ${a + 1}`, ERRN('TypeError'), 'on ne peut pas ORDONNER une chaîne et un entier (&lt;, &gt;) : TypeError (alors que == renvoie simplement False)'],
+      chain: [`${a} < ${a + 2} < ${a + 1}`, 'False', `Python lit <code>${a} &lt; ${a + 2} and ${a + 2} &lt; ${a + 1}</code> : la deuxième comparaison est fausse`],
+      prio: ['True or False and False', 'True', '<code>and</code> est prioritaire sur <code>or</code> : True or (False and False) = True or False = True'] }[f];
+    return ['Que vaut l\'expression suivante ?' + pre(S[0]), S[1], ['True', 'False', ERRN('TypeError'), ERRN('SyntaxError')], S[2] + '.'];
+  }],
+  [1, g => {
+    const x = g.int(1, 5), y = g.int(6, 9), z = g.int(10, 20), how = g.pick(['b = a', 'b = a', 'b = a[:]', 'b = list(a)']), sh = how === 'b = a';
+    return [QP + pre(`a = [${x}, ${y}]\n${how}\nb.append(${z})\nprint(a)`), pyRepr(sh ? [x, y, z] : [x, y]), [pyRepr([x, y, z]), pyRepr([x, y]), `[${x}, ${y}, [${z}]]`, ERRN('NameError')],
+      sh ? '<code>b = a</code> ne copie pas : a et b sont la MÊME liste, modifier b modifie a.' : `<code>${how}</code> crée une nouvelle liste : a n'est pas modifiée.`];
+  }],
+  [1, g => {
+    const a = g.int(0, 5), b = a + g.int(4, 12), s = g.pick([1, 2, 3]), n = Math.ceil((b - a) / s), vals = Array.from({ length: n }, (_, i) => a + i * s);
+    return [QP + pre(`c = 0\nfor i in range(${a}, ${b}${s > 1 ? ', ' + s : ''}):\n    c = c + 1\nprint(c)`), String(n), [String(n + 1), String(n - 1), String(b - a), String(b - a + 1)],
+      `i prend les valeurs ${vals.length <= 8 ? vals.join(', ') : vals.slice(0, 3).join(', ') + ', …, ' + vals[n - 1]} (${b} est exclu) : ${n} tours.`];
+  }],
+  [1, g => {
+    const p = g.int(1, 9), q = g.int(1, 9), f = g.pick(['key', 'in', 'len', 'sum']), dd = `d = {'a': ${p}, 'b': ${q}}\n`;
+    const S = { key: [`print(d['c'])`, ERRN('KeyError'), ['None', '0', "c"], 'la clé \'c\' n\'existe pas : KeyError (il faut tester <code>\'c\' in d</code> avant)'],
+      in: [`print(${p} in d)`, 'False', ['True', ERRN('KeyError'), "'a'"], `<code>in</code> teste les CLÉS ('a' et 'b'), pas les valeurs : ${p} n'est pas une clé`],
+      len: [`d['c'] = d['a'] + 1\nd['a'] = 0\nprint(len(d))`, '3', ['2', '4', ERRN('KeyError')], 'd[\'c\'] = … ajoute une clé, d[\'a\'] = 0 remplace une valeur : 3 clés'],
+      sum: [`print(d['a'] + d['b'])`, String(p + q), [`${p}${q}`, 'ab', ERRN('KeyError')], `d['a'] + d['b'] = ${p} + ${q}`] }[f];
+    return [QP + pre(dd + S[0]), S[1], S[2], S[3] + '.'];
+  }],
+  [1, g => {
+    const a = g.int(2, 9);
+    if (g.r() < 0.5) return [QP + pre(`def f(x):\n    y = x * 2\n\nprint(f(${a}))`), 'None', [String(2 * a), String(a), ERRN('NameError')], 'f n\'a pas de <code>return</code> : elle renvoie None, c\'est ce qu\'affiche print.'];
+    return [QP + pre(`def f(x):\n    print(x * 2)\n\nr = f(${a})\nprint(r)`), `${2 * a} puis None`, [`${2 * a} puis ${2 * a}`, String(2 * a), 'None'], `f AFFICHE ${2 * a} mais ne renvoie rien : r vaut None, et le second print affiche None.`];
+  }],
+  [1, g => {
+    const s = g.pick(['python', 'esir', 'rennes', 'tableau', 'chaine']), L = s.length, f = g.pick(['oob', 'last', 'slice']);
+    const S = { oob: [`s[len(s)]`, ERRN('IndexError'), [s[L - 1], s[0], 'None'], `les indices vont de 0 à len(s) − 1 = ${L - 1} : s[${L}] n'existe pas`],
+      last: [`s[-1]`, s[L - 1], [s[0], s[L - 2], ERRN('IndexError')], 's[-1] est le dernier caractère'],
+      slice: [`s[1:3]`, s.slice(1, 3), [s.slice(1, 4), s.slice(0, 3), s.slice(2, 4)], 's[1:3] va de l\'indice 1 à l\'indice 2 (3 exclu)'] }[f];
+    return [QP + pre(`s = '${s}'\nprint(${S[0]})`), S[1], S[2], S[3] + '.'];
+  }],
+  [1, g => {
+    const a = g.int(1, 4), b = g.int(5, 9), f = g.pick(['append', 'extend', 'plus']);
+    const line = { append: `t.append([${a}, ${b}])`, extend: `t.extend([${a}, ${b}])`, plus: `t = t + [${a}, ${b}]` }[f];
+    return [QP + pre(`t = [0, 0]\n${line}\nprint(len(t))`), f === 'append' ? '3' : '4', ['2', '3', '4', ERRN('TypeError')],
+      f === 'append' ? '<code>append</code> ajoute UN élément, ici la liste entière : t = [0, 0, [' + a + ', ' + b + ']], longueur 3.' : `<code>${line}</code> ajoute les deux éléments : longueur 4.`];
+  }],
+  [1, g => {
+    const N = g.pick([5, 6, 7, 9, 10, 12, 20, 33, 50, 100]); let p = 1; while (p < N) p *= 2;
+    return [QP + pre(`i = 1\nwhile i < ${N}:\n    i = i * 2\nprint(i)`), String(p), [String(p / 2), String(p * 2), String(N)], `i vaut 1, 2, 4, 8, … et la boucle s'arrête dès que i ≥ ${N} : ${p}.`];
+  }],
+  [1, g => {
+    const [code, a, why] = CPLX[g.int(0, CPLX.length - 1)];
+    return ['Quelle est la complexité de ce code, en fonction de n ?' + pre(code), a, CPLX_OPTS.map(o => o.v), why];
+  }],
+  [1, g => {
+    const m = [[g.int(1, 9), g.int(1, 9), g.int(1, 9)], [g.int(1, 9), g.int(1, 9), g.int(1, 9)]], i = 1, j = g.int(0, 2);
+    return [QP + pre(`m = ${pyRepr(m)}\nprint(m[${i}][${j}])`), String(m[i][j]), [String(m[0][j]), String(m[i][(j + 1) % 3]), ERRN('IndexError'), String(m[j] ? m[j][i] : m[0][0])],
+      `m[${i}] est la ligne ${i} : ${pyRepr(m[i])} ; sa case d'indice ${j} vaut ${m[i][j]}. Ligne d'abord, colonne ensuite.`];
+  }],
+  [2, g => {
+    const a = g.int(1, 5), b = g.int(6, 9);
+    return [QP + pre(`x = ${a}\ndef f():\n    x = ${b}\n    return x\n\ny = f()\nprint(x, y)`), `${a} ${b}`, [`${b} ${b}`, `${a} ${a}`, ERRN('NameError')], `le x de f est une variable LOCALE, différente du x global, qui vaut toujours ${a}.`];
+  }],
+  [2, g => {
+    const a = g.int(1, 4), b = g.int(5, 9), c = g.int(10, 20);
+    return [QP + pre(`t = [${a}, ${b}]\nt = t.append(${c})\nprint(t)`), 'None', [pyRepr([a, b, c]), pyRepr([a, b]), ERRN('TypeError')], '<code>t.append(…)</code> modifie t et renvoie None : <code>t = t.append(…)</code> remplace la liste par None. Il faut écrire <code>t.append(…)</code> tout seul.'];
+  }],
+  [2, g => {
+    const a = g.int(2, 9), f = g.pick(['vstr', 'trunc', 'float']);
+    const S = { vstr: [`int('${a}.5')`, ERRN('ValueError'), [String(a), String(a + 1), `${a}.5`], `int() sur une CHAÎNE n'accepte qu'un entier écrit en chiffres : '${a}.5' provoque ValueError (alors que int(${a}.5) vaut ${a})`],
+      trunc: [`int(${a}.9)`, String(a), [String(a + 1), `${a}.9`, ERRN('ValueError')], `int() sur un float tronque (enlève la partie décimale), il n'arrondit pas : ${a}`],
+      float: [`float('${a}')`, `${a}.0`, [String(a), `'${a}'`, ERRN('ValueError')], `float convertit la chaîne en réel : ${a}.0`] }[f];
+    return ['Que vaut l\'expression suivante ?' + pre(S[0]), S[1], S[2], S[3] + '.'];
+  }],
+  [2, g => {
+    const a = g.int(1, 9), bad = g.r() < 0.6;
+    return [QP + pre(`${bad ? 'm = [[0] * 2] * 2' : 'm = [[0] * 2 for i in range(2)]'}\nm[0][0] = ${a}\nprint(m)`), bad ? `[[${a}, 0], [${a}, 0]]` : `[[${a}, 0], [0, 0]]`, [`[[${a}, 0], [${a}, 0]]`, `[[${a}, 0], [0, 0]]`, `[[${a}, ${a}], [0, 0]]`, ERRN('IndexError')],
+      bad ? '<code>[[0] * 2] * 2</code> répète la MÊME ligne deux fois : modifier m[0] modifie aussi m[1]. Pour une vraie matrice : <code>[[0] * 2 for i in range(2)]</code>.' : 'la compréhension crée une nouvelle ligne à chaque tour : seule m[0] change.'];
+  }],
+  [2, g => {
+    const k = g.int(3, 6), t = [g.int(0, k), g.int(k + 1, 9), g.int(0, 9)];
+    return [QP + pre(`def f(t):\n    for x in t:\n        if x > ${k}:\n            return True\n        else:\n            return False\n\nprint(f(${pyRepr(t)}))`), 'False', ['True', 'None', ERRN('IndexError')],
+      `les deux branches font <code>return</code> : la fonction s'arrête au PREMIER élément (${t[0]} ≤ ${k}), sans regarder ${t[1]}. Le <code>return False</code> doit être après la boucle.`];
+  }]
+];
+GEN.qcm = (d, g) => {
+  const n = [4, 6, 8][d], qs = g.shuffle([QG[0], QG[1], ...g.shuffle(QG.slice(2).filter(q => q[0] <= d)).slice(0, n - 2)]).map(q => q[1](g));
+  const items = qs.map(([qh, ans, lures, why], i) => {
+    const opts = g.shuffle([ans, ...g.shuffle([...new Set(lures.map(String))].filter(x => x !== ans)).slice(0, 3)]);
+    return { type: 'choice', qh: `<b>Q${i + 1}.</b> ${qh}`, label: `Q${i + 1}`, opts: [...opts.map(t => ({ v: t, t })), { v: SKIP, t: 'Je ne réponds pas' }], ans, wide: true, neg: 0.5 };
+  });
+  return { title: 'QCM (points négatifs)', q: '<p>Une seule bonne réponse par question. « Erreur » veut dire que le programme s\'arrête sur cette erreur.</p><p class="fine">Barème supposé (l\'an dernier il y avait des points négatifs, le détail peut changer) : bonne réponse +1, mauvaise −0,5, « Je ne réponds pas » 0. Au hasard parmi quatre propositions, on perd en moyenne ; dès qu\'on hésite entre deux seulement, répondre rapporte.</p>',
+    items, corr: `<ol style="padding-left:22px">${qs.map(([, ans, , why], i) => `<li><b>${esc(ans)}</b> : ${why}</li>`).join('')}</ol><p class="fine">Méthode : lis de l'intérieur vers l'extérieur (<code>t2[i]</code> avant <code>t1[…]</code>), cherche l'erreur cachée (chaîne + entier, indice ou clé qui n'existe pas), et note les types.</p>` };
 };
 
 /* =====================================================================
@@ -515,7 +758,7 @@ function runPy(code, tests) {
    ===================================================================== */
 function checkSync(it, raw) {
   raw = raw == null ? '' : String(raw);
-  if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
+  if (it.type === 'choice') { if (raw === SKIP) return { st: 'bad', skip: true, msg: 'au DS : 0 point, alors qu\'une erreur en coûte ' + String(it.neg || 0.5).replace('.', ',') }; return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' }; }
   if (it.type === 'int') { const s = raw.trim().replace(/\s/g, '').replace('−', '-'); if (!s) return { st: 'empty' }; if (!/^[-+]?\d+$/.test(s)) return { st: 'err', msg: 'écris un nombre entier' }; return { st: +s === it.val ? 'ok' : 'bad' }; }
   if (it.type === 'out') {
     if (!raw.trim()) return { st: 'empty' };
@@ -537,6 +780,8 @@ async function check(it, raw) {
   if (it.type !== 'code') return checkSync(it, raw);
   if (!/def[^\n]*:[ \t]*\n[ \t]*\S/.test(String(raw || ''))) return { st: 'empty' };
   if (!new RegExp('def\\s+' + it.label + '\\s*\\(').test(raw)) return { st: 'err', msg: `écris une fonction qui commence par def ${it.label}(…):` };
+  const banned = (it.ban || []).find(w => new RegExp('\\b' + w + '\\s*\\(').test(String(raw).replace(/#.*$/gm, '')));
+  if (banned) return { st: 'bad', msg: `l'énoncé interdit ${banned}(…) : écris le parcours toi-même.` };
   const r = await runPy(raw, it.tests);
   if (!r.ok) return r.err === 'LONG' ? { st: 'bad', msg: 'trop long : ta fonction tourne sans fin (boucle infinie ?).' } : { st: 'err', msg: 'Python n\'a pas pu se charger (connexion ?). Réessaie.', retry: true };
   if (r.res.err) return { st: 'bad', msg: 'ton code ne s\'exécute pas : ' + r.res.err, tests: [] };
@@ -544,14 +789,15 @@ async function check(it, raw) {
   return { st: n === it.tests.length ? 'ok' : 'bad', tests: r.res.tests, frac: n / it.tests.length };
 }
 function fbHTML(r) {
-  let h = PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '');
+  let h = (r.skip ? '<span class="pill part">Sans réponse</span>' : PILL[r.st]) + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '');
   if (r.tests && r.tests.length) h += ` <span class="fine">${r.tests.filter(t => t[1]).length}/${r.tests.length} tests réussis</span><ul class="tests">${r.tests.map(t => `<li class="${t[1] ? 'ok' : 'ko'}">${t[1] ? '✓' : '✗'} ${esc(t[0])}${t[1] ? '' : `\n   attendu : ${esc(t[3])}\n   obtenu  : ${esc(t[2])}`}</li>`).join('')}</ul>`;
   return h;
 }
 
 function itemHTML(it, id, val) {
-  const word = it.type === 'choice' && !/[()[\]'.=]/.test(it.label) && !/^type de/.test(it.label) || /^(valeur|affichage|en général|pour une vraie)/.test(it.label);
+  const word = it.type === 'choice' && !/[()[\]'.=]/.test(it.label) && !/^type de/.test(it.label) || /^(valeur|affichage|en général|pour une vraie|complexité|si |sans les|tours|au plus)/.test(it.label);
   const lab = `<span class="it-lab${word ? ' w' : ''}">${esc(it.label)}</span>`;
+  if (it.qh) return `<div class="it full qcm" data-id="${id}"><div class="it-q">${it.qh}</div><div class="it-in">${it.opts.map(o => `<label class="ch${o.v === SKIP ? ' skip' : ''}"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${esc(o.t)}</span></label>`).join('')}</div><div class="fb"></div></div>`;
   if (it.type === 'choice') return `<div class="it${it.wide ? ' full' : ''}" data-id="${id}">${it.wide ? lab.replace('class="it-lab', 'style="text-align:left" class="it-lab') : lab}<div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${esc(o.t)}</span></label>`).join('')}</div><div class="fb"></div></div>`;
   if (it.type === 'code') return `<div class="it full" data-id="${id}"><textarea class="codein" data-id="${id}" spellcheck="false" autocapitalize="off" autocomplete="off">${esc(val || `def ${it.sig}:\n    `)}</textarea><div class="fb"></div></div>`;
   if (it.type === 'out') return `<div class="it" data-id="${id}">${lab}<div class="it-in"><textarea class="codein out" data-id="${id}" spellcheck="false" placeholder="une ligne par print">${esc(val || '')}</textarea></div><div class="fb"></div></div>`;
@@ -562,7 +808,7 @@ const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); 
 /* =====================================================================
    COMPÉTENCES ET PROGRESSION (mêmes règles que l'élec et l'atomistique)
    ===================================================================== */
-const CH = ['Bases de Python', 'Fonctions', 'Complexité', 'Tableaux et chaînes', 'Dictionnaires'];
+const CH = ['Bases de Python', 'Fonctions', 'Complexité', 'Tableaux et chaînes', 'Dictionnaires', 'Le DS de l\'an dernier'];
 const LEARN = window.SITE_LEARN ? window.SITE_LEARN({ esc }) : {};
 const SK = [
   { id: 'types', ch: 0, name: 'Types et valeurs d\'expressions', fiche: 0 },
@@ -570,15 +816,19 @@ const SK = [
   { id: 'boucles', ch: 0, name: 'Boucles : que renvoie la fonction ?', fiche: 1 },
   { id: 'fonc', ch: 1, name: 'Fonctions et portée des variables', fiche: 2 },
   { id: 'code1', ch: 1, name: 'Écrire une fonction (conditions, boucles)', fiche: 7 },
+  { id: 'suite', ch: 1, name: 'Programmer une suite', fiche: 9 },
   { id: 'cplx', ch: 2, name: 'Complexité d\'un algorithme', fiche: 3 },
   { id: 'dicho', ch: 2, name: 'Recherche dichotomique', fiche: 8 },
   { id: 'list', ch: 3, name: 'Opérations sur les listes', fiche: 4 },
   { id: 'alias', ch: 3, name: 'Copies et références', fiche: 4 },
   { id: 'str', ch: 3, name: 'Chaînes de caractères', fiche: 5 },
   { id: 'mat', ch: 3, name: 'Matrices (listes de listes)', fiche: 4 },
+  { id: 'minmax', ch: 3, name: 'Minimum et maximum d\'un tableau', fiche: 9 },
   { id: 'code2', ch: 3, name: 'Écrire une fonction sur des tableaux', fiche: 7 },
+  { id: 'fusion', ch: 3, name: 'Fusionner deux tableaux triés', fiche: 9 },
   { id: 'dict', ch: 4, name: 'Dictionnaires', fiche: 6 },
-  { id: 'code3', ch: 4, name: 'Écrire une fonction avec un dictionnaire', fiche: 7 }
+  { id: 'code3', ch: 4, name: 'Écrire une fonction avec un dictionnaire', fiche: 7 },
+  { id: 'qcm', ch: 5, name: 'QCM à points négatifs', fiche: 9 }
 ];
 
 let CUR = null, busy = false;
@@ -633,15 +883,18 @@ function vHome() {
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Informatique · Algorithmique · P. Rannou</p><h1>Réussir le DS d'algorithmique</h1>
     <p class="lede">Le DS de mi-semestre, reporté du vendredi 23/10 au jeudi 5/11 (16h45), dure 1 h 30. Il était annoncé sur les chapitres 1 à 4 : <b>bases de Python</b> (types, conditions, boucles), <b>fonctions</b>, <b>complexité</b>, <b>tableaux et dictionnaires</b>. Le 2<sup>e</sup> DS (7/12) ajoutera récursivité, graphes, piles et files ; l'oral (6-7/01) se passe sur machine.</p></div>
+    <section class="card"><h2>Le DS de l'an dernier</h2><p class="sub">D'après un étudiant qui l'a passé, de mémoire (rien n'empêche le prof de changer le sujet) :</p>
+      <ul class="sub" style="margin:8px 0 0 20px"><li>un <b>QCM</b> de quelques questions, <b>avec points négatifs</b> : chaîne + entier, <code>tab1[tab2[i]]</code>…</li><li>une fonction <b>minimum ou maximum</b> (l'exo bateau)</li><li>un programme qui <b>fusionne deux tableaux triés</b> dans le bon ordre</li><li>une <b>suite</b> à programmer</li><li>un exercice <b>un peu plus dur sur les dictionnaires</b></li><li>une ou deux questions : <b>donner la complexité de ton programme</b></li></ul>
+      <p class="sub" style="margin-top:8px">« Simple si tu sais faire les exos du poly : lis bien les consignes et fais gaffe au QCM. » Le sujet blanc suit maintenant ce format.</p></section>
     <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>${ds.oral ? 'Oral' : 'DS'} d'algorithmique : ${esc(when)}</span></div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Des types de base jusqu'à l'écriture de fonctions sur les tableaux et les dictionnaires, avec une progression qui s'adapte à tes résultats.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
-      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">5 exercices au format des TD du poly, notés sur 20, dont deux fonctions à écrire, testées automatiquement. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">Au format de l'an dernier, noté sur 20 : QCM à points négatifs, minimum/maximum, fusion, suite, dictionnaires, avec la complexité de tes fonctions, testées automatiquement. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
         <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
     </div>
-    <section class="card"><h2>Pas d'annales sur Moodle</h2><p class="sub">Le prof n'a pas mis de DS des années précédentes. Les exercices reprennent les trois formes du poly de TD (TD 1 à 3) : « donner le type et la valeur », « que calcule / qu'affiche ce programme », « écrire une fonction qui… ». Les fonctions à écrire sont testées ici avec du vrai Python, mais le DS est sur papier : entraîne-toi aussi à les écrire à la main, sans ordinateur.</p></section>`;
+    <section class="card"><h2>Pas d'annales sur Moodle</h2><p class="sub">Le prof n'a pas mis de DS des années précédentes : seul le souvenir ci-dessus. Les autres exercices reprennent les trois formes du poly de TD (TD 1 à 3) : « donner le type et la valeur », « que calcule / qu'affiche ce programme », « écrire une fonction qui… ». Les fonctions à écrire sont testées ici avec du vrai Python, mais le DS est sur papier : entraîne-toi aussi à les écrire à la main, sans ordinateur.</p></section>`;
 }
 let FREE = { id: 'types', d: 0 };
 function vExos() {
@@ -709,10 +962,44 @@ for c in d:              # parcourt les CLÉS
     <h4>Petits pièges qui coûtent des points</h4><ul><li><code>=</code> affecte, <code>==</code> compare · <code>/</code> donne un float, <code>//</code> un entier · <code>print</code> n'est pas <code>return</code>.</li><li>Accumulateur initialisé <b>avant</b> la boucle (<code>s = 0</code>), sinon il repart de 0 à chaque tour.</li><li>Maximum : partir de <code>t[0]</code>, pas de 0 (les valeurs peuvent être négatives).</li></ul>
     <h4>Complexités à connaître</h4><table class="t"><tr><th>Opération</th><th>Coût</th></tr><tr><td><code>t[i]</code>, <code>t[i] = x</code>, <code>len(t)</code>, <code>t.append(x)</code>, <code>d[c]</code>, <code>c in d</code></td><td>O(1)</td></tr><tr><td>recherche dichotomique dans une liste <b>triée</b> ; diviser n par 2 jusqu'à 1</td><td>O(log n)</td></tr><tr><td><code>x in t</code>, <code>t.count(x)</code>, <code>max(t)</code>, <code>t + u</code>, <code>t[a:b]</code>, une boucle sur t</td><td>O(n)</td></tr><tr><td>deux boucles imbriquées, parcours d'une matrice n × n, comparer tous les couples</td><td>O(n²)</td></tr></table>
     <div class="box key"><h5>Recherche dichotomique</h5>Dans une liste triée : <code>m = (g + d) // 2</code> ; si <code>t[m] == x</code> trouvé ; si <code>t[m] &lt; x</code> alors <code>g = m + 1</code>, sinon <code>d = m − 1</code> ; on s'arrête quand <code>g &gt; d</code>. La zone est divisée par 2 à chaque tour : au plus ⌊log₂ n⌋ + 1 tours (10 pour 1 000 éléments, 20 pour un million).</div>
-    <div class="box warn"><h5>Pièges de complexité</h5>Un <code>x in t</code> caché dans une boucle fait O(n²), pas O(n) · deux boucles l'une après l'autre : O(n) + O(n) = O(n) · une boucle de 10 tours fixes : O(1).</div>`]
+    <div class="box warn"><h5>Pièges de complexité</h5>Un <code>x in t</code> caché dans une boucle fait O(n²), pas O(n) · deux boucles l'une après l'autre : O(n) + O(n) = O(n) · une boucle de 10 tours fixes : O(1).</div>`],
+  ['10. Les exercices du DS de l\'an dernier', 'QCM, min/max, fusion, suites', `<p class="fine">D'après un étudiant, de mémoire : pas garanti, le sujet peut changer.</p>
+    <h4>QCM à points négatifs</h4><p>Barème supposé : +1 juste, −0,5 faux, 0 sans réponse. Au hasard parmi 4 : ¼ × 1 − ¾ × 0,5 = −0,125, on <b>perd</b>. Si tu as éliminé 2 propositions : ½ − ½ × 0,5 = +0,25, on <b>gagne</b>. Donc : ne coche que si tu es sûr ou si tu hésites entre deux.</p>
+    <ul><li><code>'3' + 4</code> → TypeError ; <code>'3' * 4</code> → <code>'3333'</code> ; <code>'3' == 3</code> → False (pas d'erreur) ; <code>'3' &lt; 4</code> → TypeError.</li><li><code>t1[t2[i]]</code> : calculer <code>t2[i]</code> d'abord, puis l'utiliser comme indice dans t1 (IndexError s'il dépasse).</li><li>Fonction sans <code>return</code> → None ; <code>t = t.append(x)</code> → None ; <code>-7 // 2</code> = −4 ; <code>in</code> sur un dictionnaire teste les clés.</li></ul>
+    <h4>Minimum / maximum</h4><pre class="code"><code>def maximum(t):
+    m = t[0]              # pas 0 : les valeurs peuvent être négatives
+    for x in t:
+        if x &gt; m:
+            m = x
+    return m</code></pre><p>Pour un indice, garder l'indice <code>im</code> et comparer <code>t[i] &gt; t[im]</code>. <code>&gt;</code> garde le premier en cas d'égalité, <code>&gt;=</code> le dernier. Complexité O(n).</p>
+    <h4>Fusionner deux tableaux triés</h4><pre class="code"><code>def fusion(t1, t2):
+    res = []
+    i = 0
+    j = 0
+    while i &lt; len(t1) and j &lt; len(t2):
+        if t1[i] &lt;= t2[j]:
+            res.append(t1[i])
+            i = i + 1
+        else:
+            res.append(t2[j])
+            j = j + 1
+    while i &lt; len(t1):        # ne pas oublier la fin de t1
+        res.append(t1[i])
+        i = i + 1
+    while j &lt; len(t2):        # ni celle de t2
+        res.append(t2[j])
+        j = j + 1
+    return res</code></pre><p>Complexité <b>O(n + m)</b> : chaque tour ajoute un élément. Pas de <code>sorted(t1 + t2)</code>.</p>
+    <h4>Suites</h4><pre class="code"><code>def u(n):                 # u0 = 2, u(n+1) = 3 u(n) - 1
+    v = 2
+    for k in range(n):        # n tours : u(0) renvoie bien u0
+        v = 3 * v - 1
+    return v</code></pre><p>Si la relation dépend du rang (<code>u(n+1) = u(n) + 2n + 1</code>), c'est la variable de boucle k. Deux termes (Fibonacci) : deux variables et un échange avec variable auxiliaire. « Premier n tel que u(n) &gt; s » : boucle <code>while</code>. Complexité O(n) ; appeler u(k) pour chaque k fait O(n²).</p>
+    <h4>Dictionnaires, un cran plus dur</h4><p>Le schéma de comptage (<code>if x in d: d[x] = d[x] + 1</code> sinon <code>d[x] = 1</code>), puis un deuxième parcours pour exploiter le dictionnaire (le plus fréquent, le premier unique…). Regrouper : valeur = liste, <code>d[c].append(x)</code> sinon <code>d[c] = [x]</code>. Moyennes : deux dictionnaires (somme et nombre).</p>
+    <div class="box key"><h5>« Donner la complexité de ton programme »</h5>Une phrase suffit : « une boucle de n tours, chaque tour en temps constant (accès à une case, append, accès au dictionnaire), donc O(n) ». Boucles imbriquées : on multiplie ; successives : on additionne ; <code>x in liste</code>, <code>count</code>, <code>max</code> cachés dans une boucle coûtent n chacun.</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS du 5/11</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 9 fiches : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS du 5/11</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 9 fiches, plus une sur les exercices du DS de l'an dernier : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
     ${E.lessonList()}<div id="learnHost" style="display:grid;gap:16px"></div>
     ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}
     <section class="card"><h2>Après le DS du 5/11</h2><p class="sub">Récursivité (cas de base + appel sur un problème plus petit), graphes (matrice et listes d'adjacence), piles et files, parcours en profondeur et en largeur, graphes pondérés, preuves de programmes : ce sera pour le DS du 7/12 et l'oral de janvier.</p></section>`;
@@ -722,20 +1009,22 @@ function vCours(open) {
 /* ---------- Sujet blanc ---------- */
 let EXAM = null;
 const DUR = 5400;
-const EXAM_PLAN = [['Exercice 1 · Types et valeurs', [['types', 1]], 4], ['Exercice 2 · Que calcule ce programme ?', [['boucles', 2], ['trace', 2]], 4], ['Exercice 3 · Fonctions, listes, copies et matrices', [['fonc', 1], ['alias', 2], ['list', 1], ['mat', 1]], 4], ['Exercice 4 · Complexité et recherche dichotomique', [['cplx', 1], ['dicho', 0]], 2], ['Exercice 5 · Écrire des fonctions', [['code2', 1], ['code3', 1]], 6]];
-function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+// format du DS de l'an dernier (souvenir d'un étudiant) ; EXAM_POLY = l'ancien sujet blanc au format des TD
+const EXAM_PLAN = [['Exercice 1 · QCM (points négatifs)', [['qcm', 2]], 6], ['Exercice 2 · Minimum / maximum', [['minmax', 1]], 3], ['Exercice 3 · Fusionner deux tableaux triés', [['fusion', 1]], 4], ['Exercice 4 · Suites', [['suite', 1]], 3], ['Exercice 5 · Dictionnaires', [['code3', 2]], 4]];
+const EXAM_POLY = [['Exercice 1 · Types et valeurs', [['types', 1]], 4], ['Exercice 2 · Que calcule ce programme ?', [['boucles', 2], ['trace', 2]], 4], ['Exercice 3 · Fonctions, listes, copies et matrices', [['fonc', 1], ['alias', 2], ['list', 1], ['mat', 1]], 4], ['Exercice 4 · Complexité et recherche dichotomique', [['cplx', 1], ['dicho', 0]], 2], ['Exercice 5 · Écrire des fonctions', [['code2', 1], ['code3', 1]], 6]];
+function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM && EXAM.fmt === 'poly' ? EXAM_POLY : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">5 exercices dans le style des TD : types et valeurs (4 pts), programme à suivre (4 pts), fonctions, listes, copies et matrices (4 pts), complexité et recherche dichotomique (2 pts), deux fonctions à écrire (6 pts, notées sur les tests réussis).</p></div>
-    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button>${weakButton()}<span class="fine">Pour être au plus près du DS, écris d'abord tes fonctions sur papier, puis recopie-les.</span></div></section>
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Au format du DS de l'an dernier : QCM à points négatifs (6 pts, 8 questions, +1 / −0,5 / 0), minimum ou maximum (3 pts), fusion de tableaux triés (4 pts), suite (3 pts), dictionnaires un peu plus durs (4 pts). Chaque fonction compte pour ¾ de son exercice (au prorata des tests réussis), sa complexité pour le reste.</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button>${weakButton()}<button type="button" class="btn" data-act="examPoly">Format des TD (ancien sujet blanc)</button><span class="fine">Pour être au plus près du DS, écris d'abord tes fonctions sur papier, puis recopie-les.</span></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
   const exs = examExos(EXAM.seed);
-  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'algorithmique</p><h1>DS · 1 h 30</h1></div>`
+  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : EXAM.fmt === 'poly' ? 'Format des TD · ' : 'Format de l’an dernier · '}Sujet blanc d'algorithmique</p><h1>DS · 1 h 30</h1></div>`
     + exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
       : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button><span class="fine pyload" id="pyNote"></span></div>`);
@@ -750,9 +1039,15 @@ async function submitExam(auto) {
   const note0 = $('#pyNote'); if (note0) note0.textContent = 'Correction en cours (les fonctions sont exécutées en Python, la première fois peut prendre 30 s)…';
   const exs = examExos(EXAM.seed); let note = 0; const fb = {};
   for (const ex of exs) {
-    const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
-    for (const it of its) { const r = await check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += tally(it, r.st === 'ok' ? 1 : (r.frac || 0)); }
-    note += ex.pts * got / its.length;
+    // poids : fonction 3, question de complexité 1 ; QCM : une erreur retire it.neg, une absence de réponse 0 ; exercice ≥ 0
+    const its = [].concat(...ex.parts.map(p => p.items)); let got = 0, tot = 0;
+    for (const it of its) {
+      const r = await check(it, EXAM.ans[it.id] || ''), w = it.w || 1; let sc = r.st === 'ok' ? 1 : (r.frac || 0);
+      fb[it.id] = fbHTML(r);
+      if (it.neg && r.st === 'bad' && !r.skip) { sc = -it.neg; fb[it.id] += ` <span class="fine">−${String(it.neg).replace('.', ',')} point</span>`; }
+      tally(it, Math.max(0, sc)); got += w * sc; tot += w;
+    }
+    note += ex.pts * Math.max(0, got) / tot;
   }
   busy = false;
   EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
@@ -779,7 +1074,7 @@ document.addEventListener('click', e => {
   else if (act === 'next') nextPath();
   else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
   else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
-  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; ls.set(EK, EXAM); renderExam(); }
+  else if (act === 'exam' || act === 'examPoly') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; if (act === 'examPoly') EXAM.fmt = 'poly'; ls.set(EK, EXAM); renderExam(); }
   else if (act === 'submit') submitExam(false);
   else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
 });
@@ -799,7 +1094,7 @@ document.addEventListener('keydown', e => {
   } else if (e.key === 'Enter' && t.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); }
 });
 
-window.__ALGO = { GEN, build, checkSync, check, pyParse, pyRepr, same, SK, CODE, runPy };   // tests
+window.__ALGO = { GEN, build, checkSync, check, pyParse, pyRepr, same, SK, CODE, CX, BAN, QG, runPy, examExos };   // tests
 E.start();
 })();
 </script>

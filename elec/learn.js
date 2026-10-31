@@ -1,6 +1,7 @@
 /* =====================================================================
    Leçons « Comprendre » de l'électronique (CC1 : séquence 1 du CM). Une leçon par compétence du parcours
-   (clé = id de SK dans index.html), sauf les démonstrations (elles ont leur onglet). Elle passe avant les
+   (clé = id de SK dans index.html), sauf les démonstrations (elles ont leur onglet), à part celle de Millman
+   (la plus probable à l'Ex 1 : comprise, elle se réécrit sans l'apprendre par cœur). Elle passe avant les
    exercices : l'image physique (potentiel = altitude, courant = débit), une prédiction « Devine d'abord »,
    l'explication, puis une question sans enjeu. meth = ce qu'il faut reconnaître et la méthode (sert d'indice).
    Moteur : SiteLessons (core.js). Notations du cours (S. Avrillon, O. Lafond) : convention récepteur,
@@ -225,6 +226,30 @@
         { h: 'Vérifier l\'homogénéité',
           body: `<p>Un potentiel s'écrit toujours (combinaison de \\(E\\)) / (nombre) ; un courant, (combinaison de \\(E\\)) / (nombre \\(\\times R\\)). Si ton \\(V_A\\) contient un \\(R\\) qui traîne, il y a une erreur : vérifie avant l'AN.</p>`,
           ask: { q: 'Tu trouves \\(V_A = \\dfrac{E_1 + E_2}{3R}\\). C\'est :', items: [C('réponse', [['ok', 'possible'], ['ko', 'forcément faux : ce n\'est pas une tension']], 'ko')], why: 'Des volts divisés par des ohms donnent des ampères, pas des volts : il manque une simplification par \\(R\\).' } }
+      ] },
+
+      // la démo la plus probable à l'Ex 1 (2022, 2023, 2025) : la comprendre pour la réécrire sans l'apprendre par cœur
+      'd-mi': { title: 'La démo de Millman, reconstruite', meth: 'quatre lignes : N branches \\(R_k\\) relient A à des points de potentiel \\(V_k\\), courants \\(I_k\\) tous orientés <b>vers</b> A ; loi des nœuds \\(\\sum I_k = 0\\) ; Ohm \\(I_k = \\dfrac{V_k - V_A}{R_k}\\) ; on sépare les deux morceaux et on isole \\(V_A\\).', steps: [
+        { h: 'Deux lois suffisent',
+          guess: { q: 'Pour démontrer le théorème de Millman (le potentiel \\(V_A\\) d\'un nœud), il faut :', items: [C('réponse', [['m', 'la loi des mailles'], ['n', 'la loi des nœuds en A et la loi d\'Ohm'], ['p', 'le pont diviseur de tension']], 'n')] },
+          body: `<p>Millman n'est pas une loi nouvelle : c'est la <b>loi des nœuds en A</b> où chaque courant est remplacé par son expression avec la <b>loi d'Ohm</b>. Toute la démo tient là-dedans, et c'est pour ça qu'on peut la reconstruire au lieu de la réciter.</p>
+            <p>Le décor à poser en première ligne : \\(N\\) branches, la branche \\(k\\) est une résistance \\(R_k\\) entre le nœud A et un point de potentiel \\(V_k\\). Fais le schéma : A au milieu, \\(N\\) résistances en étoile autour.</p>`,
+          ask: { q: 'Dans la démo, les \\(V_k\\) sont :', items: [C('réponse', [['c', 'connus (les potentiels au bout des branches)'], ['i', 'les inconnues'], ['z', 'tous nuls']], 'c')], why: 'Les \\(V_k\\) et les \\(R_k\\) sont donnés, la seule inconnue est \\(V_A\\). C\'est ce qui permet de l\'isoler à la fin.' } },
+        { h: 'Le choix qui simplifie tout : tous les courants vers A',
+          guess: { q: 'On oriente le courant \\(I_k\\) de la branche \\(k\\) <b>vers</b> A. La loi d\'Ohm dans \\(R_k\\) donne :', items: [C('\\(I_k\\)', [['a', '\\(\\dfrac{V_k - V_A}{R_k}\\)'], ['b', '\\(\\dfrac{V_A - V_k}{R_k}\\)'], ['c', '\\(\\dfrac{V_k}{R_k}\\)']], 'a')] },
+          body: `<p>Le courant va du potentiel le plus haut vers le plus bas, comme une bille qui descend. Fléché de \\(V_k\\) vers A, il vaut \\(\\dfrac{V_k - V_A}{R_k}\\) : (départ − arrivée) / résistance.</p>
+            <p>Et comme <b>tous</b> les courants sont fléchés vers A, aucun ne sort : la loi des nœuds s'écrit simplement \\(\\sum_{k=1}^{N} I_k = 0\\). Un courant réel qui sort de A sera juste négatif, la démo reste vraie.</p>`,
+          ask: { q: 'Avec tous les courants fléchés vers A, la loi des nœuds en A s\'écrit :', items: [C('réponse', [['z', '\\(\\sum I_k = 0\\)'], ['i', '\\(\\sum I_k = I\\)'], ['s', '\\(I_1 = I_2 + \\dots + I_N\\)']], 'z')], why: 'Ce qui entre = ce qui sort, et rien n\'est fléché sortant : la somme des courants entrants est nulle.' } },
+        { h: 'Séparer, puis isoler \\(V_A\\)',
+          body: `<p>On remplace : \\(\\displaystyle\\sum_{k=1}^{N} \\frac{V_k - V_A}{R_k} = 0\\). On coupe chaque fraction en deux : \\(\\displaystyle\\sum \\frac{V_k}{R_k} - \\sum \\frac{V_A}{R_k} = 0\\).</p>
+            <p>\\(V_A\\) est le même dans toutes les branches (il ne dépend pas de \\(k\\)) : il sort de la somme, \\(\\displaystyle\\sum \\frac{V_k}{R_k} = V_A \\sum \\frac{1}{R_k}\\). On divise :</p>
+            \\[V_A = \\frac{\\sum_{k=1}^{N} V_k / R_k}{\\sum_{k=1}^{N} 1/R_k}\\]`,
+          ask: { q: 'Pourquoi a-t-on le droit de sortir \\(V_A\\) de la somme ?', items: [C('réponse', [['k', 'il ne dépend pas de \\(k\\) : c\'est le même nœud pour toutes les branches'], ['n', 'parce qu\'il est nul'], ['r', 'parce que les \\(R_k\\) sont égales']], 'k')], why: 'Toutes les branches arrivent au même nœud A : \\(V_A\\) est une constante dans la somme, comme un facteur commun.' } },
+        { h: 'Vérifier sa formule en 10 secondes',
+          guess: { q: 'Deux branches : \\(R_1\\) vers \\(V_1\\), \\(R_2\\) vers 0 V. Millman donne :', items: [C('\\(V_A\\)', [['p', '\\(\\dfrac{R_2}{R_1 + R_2}\\,V_1\\)'], ['q', '\\(\\dfrac{R_1}{R_1 + R_2}\\,V_1\\)'], ['r', '\\(\\dfrac{V_1}{2}\\)']], 'p')] },
+          body: `<p>\\(V_A = \\dfrac{V_1/R_1 + 0}{1/R_1 + 1/R_2}\\) ; on multiplie haut et bas par \\(R_1 R_2\\) : \\(V_A = \\dfrac{R_2}{R_1 + R_2}V_1\\). C'est le <b>pont diviseur de tension</b> : la formule est cohérente.</p>
+            <p>Au CC, l'Ex 1 vaut 4 points : schéma + orientation des courants (1), loi des nœuds (1), Ohm (1), isolement de \\(V_A\\) (1). Écris chaque ligne en citant la loi utilisée. Si le sujet dit « pour 4 branches », c'est la même démo avec \\(I_1 + I_2 + I_3 + I_4 = 0\\).</p>`,
+          ask: { q: 'Branches : \\(R\\) vers 10 V, \\(R\\) vers 0 V, \\(R\\) vers 5 V. \\(V_A\\) = ?', items: [N('\\(V_A\\)', 5, 'V')], why: 'Résistances égales : la moyenne, \\((10 + 0 + 5)/3 = 5\\) V.' } }
       ] },
 
       /* =================== Exercices complets =================== */

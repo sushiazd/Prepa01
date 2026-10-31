@@ -223,13 +223,29 @@
     function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
     function skS(P, k) { return P.sk[k] || (P.sk[k] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false, S: 1 }); }
     const isVal = M.isVal, eff = s => M.eff(s), levelOf = s => eff(s) < 40 ? 0 : eff(s) < 75 ? 1 : 2;
-    const frontier = P => cfg.SK.find(k => !isVal(skS(P, k.id))) || null;
+    /* Sprint avant le CC (SiteSubjects.sprint : les 10 derniers jours). Le premier essai d'une compétence jamais
+       travaillée est un test d'entrée au niveau 2 : sans faute et sans indice, elle est validée d'office (pas besoin
+       de 3 exercices pour ce qu'on sait déjà) ; raté, la leçon « Comprendre » passe avant l'exercice suivant. Les
+       révisions s'espacent (une toutes les 3 nouvelles compétences au lieu d'une sur 2). Avec cfg.spread (chapitres
+       indépendants), le parcours avance en largeur, chapitre le moins avancé d'abord : tout le programme est vu avant le CC. */
+    const sprint = () => window.SiteSubjects && SiteSubjects.sprint ? SiteSubjects.sprint(id) : null;
+    const frontier = P => {
+      if (cfg.spread && sprint() != null) {
+        let best = null, bv = 2;
+        cfg.CH.forEach((c, ci) => {
+          const l = cfg.SK.filter(k => k.ch === ci), f = l.find(k => !isVal(skS(P, k.id))); if (!f) return;
+          const v = l.filter(k => isVal(skS(P, k.id))).length / l.length; if (v < bv) { bv = v; best = f; }
+        });
+        return best;
+      }
+      return cfg.SK.find(k => !isVal(skS(P, k.id))) || null;
+    };
     // révision : une compétence validée dont la maîtrise est passée sous 60 % revient en priorité ; sinon, de temps
     // en temps, celle qui a le plus baissé
     function pickNext(P) {
-      const f = frontier(P), pool = cfg.SK.filter(k => k !== f && isVal(skS(P, k.id)));
+      const f = frontier(P), pool = cfg.SK.filter(k => k !== f && isVal(skS(P, k.id))), sp = sprint() != null && f;
       const due = pool.filter(k => M.due(skS(P, k.id)));
-      const rev = pool.length && (due.length && P.since >= 1 || P.since >= 6 || (pool.length >= 2 && P.since >= 3 && Math.random() < 0.35));
+      const rev = pool.length && (due.length && P.since >= (sp ? 2 : 1) || P.since >= 6 || (!sp && pool.length >= 2 && P.since >= 3 && Math.random() < 0.35));
       if (f && !rev) return { k: f, review: false };
       if (!pool.length) return f ? { k: f, review: false } : null;
       const W = (due.length ? due : pool).map(k => [k, 105 - eff(skS(P, k.id))]);
@@ -242,8 +258,10 @@
     // cfg.CUR : { mode: 'path'|'free', k, d, seed, review, ex, ans, first: {}, done }
     function startEx(k, o = {}) {
       const P = pst(), s = skS(P, k.id), R = o.resume || null;
-      const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : levelOf(s), seed = R ? R.seed : newSeed();
-      cfg.CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), hint: R ? R.hint || 0 : 0, done: false };
+      // test d'entrée du sprint : compétence jamais travaillée, tirée par le parcours
+      const probe = R ? !!R.probe : (o.mode || 'path') === 'path' && !o.review && o.d == null && !s.n && !isVal(s) && sprint() != null;
+      const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : probe ? 1 : levelOf(s), seed = R ? R.seed : newSeed();
+      cfg.CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, probe, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), hint: R ? R.hint || 0 : 0, done: false };
       cfg.CUR.ex = build(k.id, d, seed);
       if (cfg.CUR.mode === 'path' && !R) saveCur(!!o.user);
       cfg.renderEx();
@@ -252,7 +270,7 @@
       const CUR = cfg.CUR;
       if (!CUR || CUR.mode !== 'path') return;
       const P = pst();
-      P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, ans: CUR.ans, first: CUR.first, peek: CUR.peek, hint: CUR.hint || 0 };
+      P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, probe: CUR.probe || undefined, ans: CUR.ans, first: CUR.first, peek: CUR.peek, hint: CUR.hint || 0 };
       if (bump) P.curT = Date.now();
       ls.set(PK, P);
     }
@@ -267,7 +285,9 @@
       CUR.fin = M.before(s, r, CUR.review);
       s.n++; if (r === 1) s.ok++;
       if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
-      M.apply(s, CUR.fin);
+      // test d'entrée réussi : validée d'office, avec une mémoire neuve (elle revient en révision dans 2 jours environ)
+      if (CUR.probe && r === 1) { s.m = Math.max(s.m || 0, VAL); s.ever = true; s.S = 1; s.last = CUR.fin.now; }
+      else M.apply(s, CUR.fin);
       P.n++; P.since = CUR.review ? 0 : P.since + 1; P.cur = null; P.curT = Date.now();
       ls.set(PK, P);
       host.insertAdjacentHTML('beforeend', resCard());
@@ -279,8 +299,11 @@
     const PWHY = { calc: '✎ Erreur de calcul', meth: 'Pas trouvé la méthode', mix: 'Confondu avec une autre méthode', idee: 'Je croyais que c\'était juste' };
     function resCard() {
       const CUR = cfg.CUR, F = CUR.fin, r = F.r, k = CUR.k, P = pst(), s = skS(P, k.id), now = isVal(s), f = frontier(P), L = LEARN()[k.id];
-      const title = CUR.review ? (r === 1 ? 'Toujours acquis' : F.was && !now ? 'Un peu oublié' : 'À surveiller') : !F.was && now ? 'Compétence validée !' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
-      const msg = !F.was && now ? (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.') : r === 1 ? (!now && s.m + 35 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+      const title = CUR.review ? (r === 1 ? 'Toujours acquis' : F.was && !now ? 'Un peu oublié' : 'À surveiller') : CUR.probe && r === 1 ? 'Validée d\'office' : !F.was && now ? 'Compétence validée !' : CUR.probe ? 'Test d\'entrée raté' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
+      const next = f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.';
+      const msg = CUR.probe && r === 1 ? 'Sans faute du premier coup au niveau 2 : pas besoin des 3 exercices habituels. ' + next
+        : !F.was && now ? next : CUR.probe ? 'Normal, c\'est fait pour ça : lis la correction (ouverte ci-dessus). La leçon « Comprendre » passe avant le prochain exercice, puis tu reprends au niveau 1.'
+        : r === 1 ? (!now && s.m + 35 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
       const mem = M.memText(s, F);
       const tip = F.why === 'calc' ? 'Erreur de calcul : ta maîtrise ne baisse pas. Refais le calcul de la correction ligne à ligne pour voir où ça a dérapé.'
         : F.why === 'meth' ? 'Méthode pas trouvée.' + (L && L.meth ? ` Ce qu'il fallait reconnaître : ${L.meth}` : ' Relis la fiche du cours.')
@@ -340,7 +363,7 @@
       const CUR = cfg.CUR, card = $('.ex', host), act = card && $('.actions', card);
       if (!CUR || !act || $('.hints', card)) return;
       const H = hintList(), n = Math.min(CUR.hint || 0, H.length);
-      act.insertAdjacentHTML('beforebegin', `<div class="hints">${H.slice(0, n).map((h, i) => `<div class="hint"><span class="hint-n">Indice ${i + 1}</span>${h}</div>`).join('')}</div>`);
+      act.insertAdjacentHTML('beforebegin', `<div class="hints">${CUR.probe && !CUR.done ? '<p class="fine"><b>Test d\'entrée (sprint avant le CC).</b> Sans faute et sans indice, la compétence est validée d\'office. Tu bloques ? Le bouton « Comprendre » ouvre la leçon.</p>' : ''}${H.slice(0, n).map((h, i) => `<div class="hint"><span class="hint-n">Indice ${i + 1}</span>${h}</div>`).join('')}</div>`);
       if (!CUR.done && !CUR.peek && n < H.length) act.insertAdjacentHTML('beforeend', `<button type="button" class="btn btn-ghost" data-act="hint" title="Un indice à la fois. Une réponse juste après un indice compte un peu moins, mais bien plus qu'après avoir lu la correction.">💡 ${n ? 'Un autre indice' : 'Un indice'} (${n + 1}/${H.length})</button>`);
       if (cfg.typeset) cfg.typeset($('.hints', card));
     }
@@ -369,7 +392,7 @@
     function lessonGate(host) {
       const CUR = cfg.CUR; if (!CUR || !LS.has(CUR.k.id)) return false;
       const k = CUR.k, P = pst(), s = skS(P, k.id), fresh = !Object.keys(CUR.first).length && !CUR.done;
-      if (CUR.lesson || (CUR.mode === 'path' && !CUR.review && fresh && (P.relearn === k.id || (!isVal(s) && !LS.learned(k.id))))) {
+      if (CUR.lesson || (CUR.mode === 'path' && !CUR.review && !CUR.probe && fresh && (P.relearn === k.id || (!isVal(s) && !LS.learned(k.id))))) {
         // leçon rouverte depuis un exercice fini (« Revoir la leçon ») : on enchaîne sur l'exercice suivant
         LS.open(host, k.id, () => { const C = cfg.CUR; if (C) C.lesson = false; if (C && C.done && C.mode === 'path') nextPath({ fresh: true, user: true }); else cfg.renderEx(); });
         host.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -398,10 +421,19 @@
         ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'}${(() => { const d = SK.filter(k => M.due(skS(P, k.id))).length; return d ? ` · <b>${d} compétence${d > 1 ? 's' : ''} à revoir</b> : ta maîtrise y a baissé depuis ta dernière séance.` : ''; })()}</p>
+        ${sprintHTML(SK.length - done)}
         <details style="margin-top:8px"><summary class="fine" style="cursor:pointer">Comment marche la maîtrise ?</summary><ul class="fine" style="margin:8px 0 0;padding-left:18px;display:grid;gap:4px">
           <li>Un sans-faute fait monter le niveau de 25 (35 si le précédent était aussi parfait), un exercice à moitié juste de 10, un raté le fait baisser de 15. La compétence est validée à 75 % : 3 sans-faute, et la suivante se débloque.</li>
           <li><b>La maîtrise baisse chaque jour sans pratique</b>, comme la mémoire. Au début, elle tient environ 2 jours ; chaque révision réussie après une pause la fait tenir plus longtemps (une semaine, puis un mois…). Refaire le même exercice dix fois le même jour ne l'allonge presque pas.</li>
-          <li>Dès qu'une compétence validée passe sous 60 %, elle revient en révision dans le parcours, en priorité celle qui a le plus baissé.</li></ul></details></section>`;
+          <li>Dès qu'une compétence validée passe sous 60 %, elle revient en révision dans le parcours, en priorité celle qui a le plus baissé.</li>
+          <li>Dans les 10 jours avant le CC (sprint), le premier exercice d'une compétence est un test d'entrée au niveau 2 : sans faute et sans indice, elle est validée d'office.</li></ul></details></section>`;
+    }
+    // bandeau du sprint : jours restants, rythme pour finir la veille, sujet blanc à J−2 (left : compétences à valider)
+    function sprintHTML(left) {
+      const d = sprint(); if (d == null) return '';
+      const per = Math.ceil(left / Math.max(1, d - 1));
+      return `<div style="margin-top:10px;padding:12px 16px;border-radius:12px;background:var(--warn-soft)"><p class="sub" style="margin:0"><b>Sprint avant le CC · ${d ? 'J−' + d : 'jour J'}.</b> ${left ? `${left} compétence${left > 1 ? 's' : ''} à valider : environ <b>${per} par jour</b> pour finir la veille.` : 'Tout est validé.'} Premier exercice de chaque compétence = test d'entrée : sans faute, elle est validée d'office.${cfg.spread ? ' Le parcours passe d\'un chapitre à l\'autre : tout le programme est vu avant le CC.' : ''} ${d <= 2 || !left ? '<b>C\'est le moment du sujet blanc.</b>' : 'Sujet blanc en conditions réelles à J−2.'}</p>
+        ${d <= 2 || !left ? '<div class="row" style="margin-top:10px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div>' : ''}</div>`;
     }
     function renderMap() {
       const el = $('#pathMap'); if (!el) return;

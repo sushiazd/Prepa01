@@ -6,7 +6,8 @@
      n'est pas chargé sur l'appareil (vide = « date à confirmer »)
    - nth : quand plusieurs pages se partagent une matière (CC1 / CC2), la page prend le n-ième CC de l'année
      (0 = le premier) : le CC1 tombe toujours avant le CC2, même si un CC est déplacé ou annulé.
-     S'il y a moins de CC que de pages, les dernières pages partagent le dernier CC (shared: true)
+     S'il y a moins de CC que de pages, les dernières pages partagent le dernier CC (shared: true), sauf avec
+     later: true (CC pas encore placé, qui tombera après : date à confirmer, tbc: true)
    - count : nombre de CC de l'année quand certains ne sont pas encore dans ADE ; ceux qui manquent sont
      comptés AVANT ceux qui y sont (CC1 sans date, CC2 déjà placé) et rendus avec tbc: true
    - ignore : ancien créneau d'un CC déplacé, ignoré tant qu'ADE ne le retire pas
@@ -18,7 +19,7 @@
   'use strict';
   const word = w => new RegExp(`(^|[^A-Za-z])${w}([^A-Za-z]|$)`);
   const MATH = word('MATHS?');
-  // ADE au 28/10 : un seul CC d'élec analogique (6/11) depuis l'annulation du 16/10 et la disparition du 2/11
+  // ADE au 28/10 : un seul CC d'élec analogique, le CC1 du 6/11 (décalé du 2/11) ; date du CC2 pas encore fixée (mail du 24/10)
   const ELEC_CC = ['2026-11-06T07:00:00Z'], MATH_CC = ['2026-11-06T08:45:00Z', '2027-01-06T07:00:00Z'];
   const LIST = [
     { id: 'maths', name: 'QCM maths', page: 'maths/', ade: /QCM/i, qcm: true,
@@ -28,7 +29,7 @@
     // CC1 « L'atome » prévu le 20/10, pas encore passé et sans nouvelle date ; CC2 (tout le cours) le 16/12
     { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-12-16T08:45:00Z'], skills: 17 },
     { id: 'elec', name: 'Élec CC1', page: 'elec/', ade: /ELECa/i, nth: 0, dates: ELEC_CC, skills: 21, bonus: ['thv'] },
-    { id: 'el2', name: 'Élec CC2', page: 'elec2/', ade: /ELECa/i, nth: 1, dates: ELEC_CC, skills: 9 },
+    { id: 'el2', name: 'Élec CC2', page: 'elec2/', ade: /ELECa/i, nth: 1, later: true, dates: ELEC_CC, skills: 9 },
     // DS du 23/10 reporté au 5/11, puis DS 2 le 7/12 (et l'oral sur machine en janvier, avec { oral: true })
     { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), dates: ['2026-11-05T15:45:00Z', '2026-12-07T12:15:00Z'], skills: 18 },
     // CC1 de physique le 28/09 (avant le site) : la page prépare le CC2
@@ -68,11 +69,19 @@
       const after = x.ts == null ? list.find(y => y.n > x.n && y.ts != null) : null;
       return Object.assign({ past: past(x), shared, tbc: x.ts == null, before: after ? after.ts : null }, x);
     };
+    if (s.nth != null && s.later && s.nth >= list.length) return { ts: null, ev: null, n: s.nth + 1, past: false, shared: false, tbc: true, before: null };
     if (s.nth != null) return out(list[Math.min(s.nth, list.length - 1)], s.nth >= list.length);
     const n = list.find(x => !past(x));
     return out(n || list[list.length - 1], false);
   }
   const cc = (id, o) => { const n = next(id, o); return n ? n.ts : null; };
+  // Sprint avant le CC : nombre de jours (0 = jour J) quand le CC de la page tombe dans les SPRINT jours, sinon null
+  const SPRINT = 10;
+  function sprint(id) {
+    const n = next(id); if (!n || n.ts == null || n.past) return null;
+    const d = Math.round((new Date(new Date(n.ts).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+    return d >= 0 && d <= SPRINT ? d : null;
+  }
   // Page de révision d'un créneau ADE (CC ou cours) : parmi les pages de la matière, celle dont le CC est le
   // premier à partir de ce créneau, sinon la dernière
   function pageOf(ev) {
@@ -82,5 +91,5 @@
     const ahead = m.map(s => ({ s, ts: cc(s.id) })).filter(x => x.ts != null && x.ts >= ev.s).sort((a, b) => a.ts - b.ts);
     return (ahead.length ? ahead[0].s : m[m.length - 1]).page;
   }
-  window.SiteSubjects = { list: LIST, get: id => byId[id] || null, events, next, cc, pageOf, ignored };
+  window.SiteSubjects = { list: LIST, get: id => byId[id] || null, events, next, cc, sprint, pageOf, ignored };
 })();

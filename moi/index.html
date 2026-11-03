@@ -234,9 +234,14 @@ tr:last-child td{border-bottom:0}
   function accountsHTML(members) {
     const last = m => Math.max(0, ...m.attempts.map(a => a.at), ...m.controls.map(c => c.at));
     const L = members.slice().sort((a, b) => last(b) - last(a) || a.pseudo.localeCompare(b.pseudo));
-    return `<section class="card"><h2>Comptes</h2><p class="sub">Tous les comptes${gid === 'all' ? ' du site' : ' du groupe'}, du plus récemment actif au moins actif. 🙈 = profil masqué aux autres membres (visible ici seulement).</p>
-      <div style="overflow-x:auto"><table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Groupes</th><th>Épreuves</th><th>Copies du prof</th><th>Dernière activité</th></tr></thead><tbody>
-      ${L.map(m => { const t = last(m); return `<tr><td><b>${esc(m.pseudo)}</b>${m.hidden ? ' 🙈' : ''}${m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td>${m.created ? fmtD(m.created) : '—'}</td><td>${m.groups.length ? esc(m.groups.join(', ')) : '<span class="fine">aucun</span>'}</td><td>${m.attempts.length}</td><td>${m.controls.length}</td><td>${t ? fmtD(t) : '<span class="fine">jamais</span>'}</td></tr>`; }).join('')}
+    // temps actif sur le site (secondes, mesuré par account.js à partir de la mise en place) ; en dessous, le temps
+    // passé en épreuves de maths (chrono des copies), connu depuis le début
+    const T = {}; (Array.isArray(SITE.time) ? SITE.time : []).forEach(r => { T[r.user_id] = +r.s || 0; });
+    const fmtT = s => { if (!(s > 0)) return '—'; if (s < 60) return '< 1 min'; const mn = Math.round(s / 60); return mn < 60 ? mn + ' min' : Math.floor(mn / 60) + ' h ' + String(mn % 60).padStart(2, '0'); };
+    const timeCell = m => { const ex = m.attempts.reduce((t, a) => t + (a.used || 0), 0); return `<td><b>${fmtT(T[m.id])}</b>${ex > 0 ? `<br><span class="fine">dont épreuves de maths : ${fmtT(ex)}</span>` : ''}</td>`; };
+    return `<section class="card"><h2>Comptes</h2><p class="sub">Tous les comptes${gid === 'all' ? ' du site' : ' du groupe'}, du plus récemment actif au moins actif. 🙈 = profil masqué aux autres membres (visible ici seulement). Temps sur le site : temps réellement actif (onglet ouvert et utilisé), compté depuis la mise en place de la mesure ; le temps d'avant n'est pas connu, sauf pour les épreuves de maths.</p>
+      <div style="overflow-x:auto"><table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Groupes</th><th>Épreuves</th><th>Copies du prof</th><th>Dernière activité</th><th>Temps sur le site</th></tr></thead><tbody>
+      ${L.map(m => { const t = last(m); return `<tr><td><b>${esc(m.pseudo)}</b>${m.hidden ? ' 🙈' : ''}${m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td>${m.created ? fmtD(m.created) : '—'}</td><td>${m.groups.length ? esc(m.groups.join(', ')) : '<span class="fine">aucun</span>'}</td><td>${m.attempts.length}</td><td>${m.controls.length}</td><td>${t ? fmtD(t) : '<span class="fine">jamais</span>'}</td>${timeCell(m)}</tr>`; }).join('')}
       </tbody></table></div></section>`;
   }
 

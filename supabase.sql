@@ -336,18 +336,23 @@ begin
     'group_tests', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'group_id', group_id, 'title', title, 'created_at', created_at)), '[]'::jsonb) from public.group_tests),
     'groups', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'name', name)), '[]'::jsonb) from public.groups),
     'memberships', (select coalesce(jsonb_agg(jsonb_build_object('group_id', group_id, 'user_id', user_id)), '[]'::jsonb) from public.memberships),
-    -- autres matières (user_data) : par compte et par clé, compétences validées (maîtrise ≥ 100) du parcours
+    -- autres matières (user_data) : par compte et par clé, compétences validées du parcours (même règle que core.js :
+    -- « ever » ou maîtrise ≥ 75, et non ≥ 100, sinon les compétences tout juste validées comptent 0)
     -- « x.path.v1 » (nombre et identifiants : la page moi/ écarte les compétences bonus), nombre de copies
     -- et notes (dans l'ordre) des sujets blancs « x.hist.v1 »
     'subjects', (select coalesce(jsonb_agg(jsonb_build_object('user_id', u.user_id, 'key', u.key, 'updated_at', u.updated_at,
         'valid', case when u.key like '%.path.v1' and jsonb_typeof(u.value->'sk') = 'object'
-          then (select count(*) from jsonb_each(u.value->'sk') s where jsonb_typeof(s.value->'m') = 'number' and (s.value->>'m')::numeric >= 100) end,
+          then (select count(*) from jsonb_each(u.value->'sk') s where (s.value->'ever') = 'true'::jsonb or (jsonb_typeof(s.value->'m') = 'number' and (s.value->>'m')::numeric >= 75)) end,
         'ids', case when u.key like '%.path.v1' and jsonb_typeof(u.value->'sk') = 'object'
-          then (select coalesce(jsonb_agg(s.key), '[]'::jsonb) from jsonb_each(u.value->'sk') s where jsonb_typeof(s.value->'m') = 'number' and (s.value->>'m')::numeric >= 100) end,
+          then (select coalesce(jsonb_agg(s.key), '[]'::jsonb) from jsonb_each(u.value->'sk') s where (s.value->'ever') = 'true'::jsonb or (jsonb_typeof(s.value->'m') = 'number' and (s.value->>'m')::numeric >= 75)) end,
         'n', case when u.key like '%.hist.v1' and jsonb_typeof(u.value) = 'array' then jsonb_array_length(u.value) end,
         'notes', case when u.key like '%.hist.v1' and jsonb_typeof(u.value) = 'array'
           then (select coalesce(jsonb_agg(h.e->'note' order by h.i), '[]'::jsonb) from jsonb_array_elements(u.value) with ordinality h(e, i)) end)), '[]'::jsonb)
-      from public.user_data u where u.key like '%.path.v1' or u.key like '%.hist.v1')
+      from public.user_data u where u.key like '%.path.v1' or u.key like '%.hist.v1'),
+    -- temps passé sur le site (account.js, clé « site.time.v1 ») : somme des totaux par appareil, en secondes
+    'time', (select coalesce(jsonb_agg(jsonb_build_object('user_id', u.user_id, 'updated_at', u.updated_at,
+        's', (select coalesce(sum((v.value)::numeric), 0) from jsonb_each(u.value->'dv') v where jsonb_typeof(v.value) = 'number'))), '[]'::jsonb)
+      from public.user_data u where u.key = 'site.time.v1' and jsonb_typeof(u.value->'dv') = 'object')
   );
 end
 $$;

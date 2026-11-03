@@ -83,6 +83,14 @@
   SYNC['el2.path.v1'] = SYNC['elec.path.v1'];
   SYNC['el2.hist.v1'] = SYNC['elec.hist.v1'];
   ['elec', 'algo', 'phys', 'meca', 'ms1', 'ma2', 'el2'].forEach(p => { SYNC[p + '.learn.v1'] = SYNC['ato.learn.v1']; });
+  // temps passé sur le site : un total par appareil (dv), on garde le plus grand de chaque appareil
+  // (additionner compterait deux fois les mêmes secondes) ; le total du compte = somme des appareils
+  const TIME = 'site.time.v1', DEV = 'site.dev.v1';
+  SYNC[TIME] = (L, R) => {
+    const dv = {};
+    [L, R].forEach(x => Object.entries((x && x.dv) || {}).forEach(([d, s]) => { if (typeof s === 'number' && s > (dv[d] || 0)) dv[d] = s; }));
+    return { dv };
+  };
   const KEYS = Object.keys(SYNC);
 
   /* ---------- Outils ---------- */
@@ -231,8 +239,28 @@
     return booting;
   }
 
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (pushT) { clearTimeout(pushT); push(); } } else pull(false); });
+  /* ---------- Temps passé sur le site ----------
+     Compté seulement pour un compte connecté, onglet visible et action de l'utilisateur dans les 2 dernières
+     minutes (lire une leçon sans toucher l'écran plus longtemps ne compte pas). Envoyé au plus toutes les 2 min,
+     et au départ de la page. Le temps d'avant cette mesure n'est pas connu. */
+  const TICK = 5000, IDLE = 120000;
+  let lastAct = Date.now(), lastTick = Date.now(), lastFlush = 0, unsent = false;
+  ['pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel', 'mousemove'].forEach(ev => window.addEventListener(ev, () => { lastAct = Date.now(); }, { passive: true, capture: true }));
+  function devId() { let d = get(DEV, null); if (!d) { d = Math.random().toString(36).slice(2, 10); put(DEV, d); } return d; }
+  function flushTime(force) {
+    if (!user || !unsent || (!force && Date.now() - lastFlush < 120000)) return;
+    lastFlush = Date.now(); unsent = false; A.touch(TIME);
+  }
+  setInterval(() => {
+    const now = Date.now(), dt = Math.min(now - lastTick, 2 * TICK); lastTick = now;
+    if (!user || document.hidden || now - lastAct > IDLE) return;
+    const t = get(TIME, null) || {}, dv = t.dv || (t.dv = {}), id = devId();
+    dv[id] = Math.round(((dv[id] || 0) + dt / 1000) * 10) / 10;
+    put(TIME, t); unsent = true; flushTime(false);
+  }, TICK);
+
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { flushTime(true); if (pushT) { clearTimeout(pushT); push(); } } else { lastTick = Date.now(); pull(false); } });
   window.addEventListener('online', () => pull(true));
-  window.addEventListener('pagehide', () => { if (pushT) { clearTimeout(pushT); push(); } });
+  window.addEventListener('pagehide', () => { flushTime(true); if (pushT) { clearTimeout(pushT); push(); } });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => boot(false)); else boot(false);
 })();

@@ -874,15 +874,19 @@ async function checkCur() {
 let VIEW = 'home';
 function nextDS() {   // date du DS : subjects.js (emploi du temps, sinon date de secours)
   const n = SiteSubjects.next('algo', { oral: true });
+  // DS 1 annulé le 5/11 (campus fermé) : « semaine du 9/11, pas le lundi » (Rannou, 4/11), date exacte à venir.
+  // Tant qu'ADE n'a pas de créneau du 10 au 13/11, on compte jusqu'au mardi 10/11 (au plus tôt).
+  const W0 = Date.parse('2026-11-10T00:00:00+01:00'), W1 = Date.parse('2026-11-14T00:00:00+01:00');
+  if (Date.now() < W1 && !(n && n.ev && n.ts >= W0 && n.ts < W1)) return { ts: W0, oral: false, tbd: true };
   return { ts: n.ts, oral: !!(n.ev && /oraux/i.test(n.ev.t)) };
 }
 function vHome() {
   const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, ds = nextDS();
   const days = Math.round((new Date(new Date(ds.ts).toDateString()) - new Date(new Date().toDateString())) / 864e5);
-  const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(ds.ts);
+  const when = ds.tbd ? 'semaine du 9/11, sauf le lundi (date exacte à venir)' : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(ds.ts);
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Informatique · Algorithmique · P. Rannou</p><h1>Réussir le DS d'algorithmique</h1>
-    <p class="lede">Le DS de mi-semestre, reporté du vendredi 23/10 au jeudi 5/11 (16h45), dure 1 h 30. Il était annoncé sur les chapitres 1 à 4 : <b>bases de Python</b> (types, conditions, boucles), <b>fonctions</b>, <b>complexité</b>, <b>tableaux et dictionnaires</b>. Le 2<sup>e</sup> DS (7/12) ajoutera récursivité, graphes, piles et files ; l'oral (6-7/01) se passe sur machine.</p></div>
+    <p class="lede">Le DS de mi-semestre (1 h 30), prévu le 23/10 puis le 5/11, est encore reporté à cause de la fermeture du campus : ce sera a priori la <b>semaine du 9/11, mais pas le lundi</b> (date exacte à venir). Il était annoncé sur les chapitres 1 à 4 : <b>bases de Python</b> (types, conditions, boucles), <b>fonctions</b>, <b>complexité</b>, <b>tableaux et dictionnaires</b>. Le 2<sup>e</sup> DS (7/12) ajoutera récursivité, graphes, piles et files ; l'oral (6-7/01) se passe sur machine.</p></div>
     <section class="card"><h2>Le DS de l'an dernier</h2><p class="sub">D'après un étudiant qui l'a passé, de mémoire (rien n'empêche le prof de changer le sujet) :</p>
       <ul class="sub" style="margin:8px 0 0 20px"><li>un <b>QCM</b> de quelques questions, <b>avec points négatifs</b> : chaîne + entier, <code>tab1[tab2[i]]</code>…</li><li>une fonction <b>minimum ou maximum</b> (l'exo bateau)</li><li>un programme qui <b>fusionne deux tableaux triés</b> dans le bon ordre</li><li>une <b>suite</b> à programmer</li><li>un exercice <b>un peu plus dur sur les dictionnaires</b></li><li>une ou deux questions : <b>donner la complexité de ton programme</b></li></ul>
       <p class="sub" style="margin-top:8px">« Simple si tu sais faire les exos du poly : lis bien les consignes et fais gaffe au QCM. » Le sujet blanc suit maintenant ce format.</p></section>
@@ -999,10 +1003,10 @@ for c in d:              # parcourt les CLÉS
     <div class="box key"><h5>« Donner la complexité de ton programme »</h5>Une phrase suffit : « une boucle de n tours, chaque tour en temps constant (accès à une case, append, accès au dictionnaire), donc O(n) ». Boucles imbriquées : on multiplie ; successives : on additionne ; <code>x in liste</code>, <code>count</code>, <code>max</code> cachés dans une boucle coûtent n chacun.</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS du 5/11</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 9 fiches, plus une sur les exercices du DS de l'an dernier : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS de la semaine du 9/11</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 9 fiches, plus une sur les exercices du DS de l'an dernier : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
     ${E.lessonList()}<div id="learnHost" style="display:grid;gap:16px"></div>
     ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}
-    <section class="card"><h2>Après le DS du 5/11</h2><p class="sub">Récursivité (cas de base + appel sur un problème plus petit), graphes (matrice et listes d'adjacence), piles et files, parcours en profondeur et en largeur, graphes pondérés, preuves de programmes : ce sera pour le DS du 7/12 et l'oral de janvier.</p></section>`;
+    <section class="card"><h2>Après le DS 1</h2><p class="sub">Récursivité (cas de base + appel sur un problème plus petit), graphes (matrice et listes d'adjacence), piles et files, parcours en profondeur et en largeur, graphes pondérés, preuves de programmes : ce sera pour le DS du 7/12 et l'oral de janvier.</p></section>`;
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
 }
 

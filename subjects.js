@@ -30,8 +30,9 @@
     { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-12-16T08:45:00Z'], skills: 17 },
     { id: 'elec', name: 'Élec CC1', page: 'elec/', ade: /ELECa/i, nth: 0, dates: ELEC_CC, skills: 21, bonus: ['thv'] },
     { id: 'el2', name: 'Élec CC2', page: 'elec2/', ade: /ELECa/i, nth: 1, later: true, dates: ELEC_CC, skills: 9 },
-    // DS du 23/10 reporté au 5/11, puis DS 2 le 7/12 (et l'oral sur machine en janvier, avec { oral: true })
-    { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), dates: ['2026-11-05T15:45:00Z', '2026-12-07T12:15:00Z'], skills: 18 },
+    // DS du 23/10 reporté au 5/11, puis annulé (campus fermé) : « semaine du 9/11, pas le lundi » (Rannou, 4/11),
+    // d'où le mardi 10/11 provisoire ; DS 2 le 7/12 (et l'oral sur machine en janvier, avec { oral: true })
+    { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), dates: ['2026-11-10T15:45:00Z', '2026-12-07T12:15:00Z'], skills: 18 },
     // CC1 de physique le 28/09 (avant le site) : la page prépare le CC2
     { id: 'phys', name: 'Méca du point', page: 'phys/', ade: word('PHYS'), nth: 1, dates: ['2026-09-28T11:15:00Z', '2026-12-02T08:45:00Z'], skills: 16 },
     { id: 'meca', name: 'Ingé méca', page: 'meca/', ade: word('MECA'), dates: ['2026-12-09T12:15:00Z'], skills: 11 }

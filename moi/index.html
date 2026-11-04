@@ -106,6 +106,21 @@ tr:last-child td{border-bottom:0}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13.5px}
 .legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
 .gate{max-width:560px}
+.lnk{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;text-align:inherit;text-decoration:underline dotted var(--muted);text-underline-offset:3px}
+.lnk:hover{color:var(--pen);text-decoration-color:var(--pen)}
+dialog#fiche{width:min(860px,calc(100vw - 24px));max-height:calc(100vh - 32px);padding:0;border:1px solid var(--rule);border-radius:18px;background:var(--sheet);color:var(--ink);box-shadow:var(--shadow)}
+dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
+.fiche{padding:22px 24px 26px;display:grid;gap:18px}
+.fiche h2{font:600 26px/1.15 var(--serif)}
+.fiche h3{font:600 13px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.fiche .top{display:flex;align-items:flex-start;gap:12px}
+.fiche .x{margin-left:auto;flex:none}
+.fiche section{display:block}
+.fiche .scroll{overflow-x:auto}
+.fiche .chips{display:flex;flex-wrap:wrap;gap:6px}
+.fiche .chip{display:inline-flex;gap:6px;align-items:center;padding:4px 9px;border-radius:999px;background:var(--sheet-2);border:1px solid var(--rule);font-size:13px}
+.fiche .chip.good{border-color:var(--good);color:var(--good)} .fiche .chip.bad{border-color:var(--red);color:var(--red)}
+@media (max-width:640px){ .fiche{padding:18px 14px 22px} }
 .badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--pen);color:var(--pen-ink);font:700 12px/1 var(--sans);margin-left:8px;vertical-align:middle}
 @media (max-width:640px){ main{padding:0 16px;margin-top:28px} .card{padding:18px 16px} .topbar{padding:0 16px} td,th{padding:8px 6px} }
 </style>
@@ -126,7 +141,9 @@ tr:last-child td{border-bottom:0}
   const fmt = (x, d = 0) => (Math.round(x * 10 ** d) / 10 ** d).toLocaleString('fr-FR');
   const fmtT = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`; };
   const fmtD = t => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  let sb = null, me = null, groups = [], gid = null, booted = false, SITE = null;
+  let sb = null, me = null, groups = [], gid = null, booted = false, SITE = null, ALL = null;
+  // pseudo cliquable : ouvre la fiche détaillée du compte (tous les comptes, le tien compris)
+  const nm = m => `<button type="button" class="lnk" data-who="${esc(m.id)}" title="Voir la fiche détaillée">${esc(m.pseudo)}</button>`;
 
   function gate(html) { app.innerHTML = `<section class="card gate">${html}</section>`; }
 
@@ -191,13 +208,19 @@ tr:last-child td{border-bottom:0}
   const eloRank = members => QcmElo.rank(members);
 
   /* ---------- Chargement d'un groupe ---------- */
+  function buildMembers(ids) {
+    const D = SITE;
+    const inGroups = uid => (D.memberships || []).filter(m => m.user_id === uid).map(m => (groups.find(g => g.id === m.group_id) || {}).name).filter(Boolean);
+    const mail = {}; (D.emails || []).forEach(r => { mail[r.user_id] = r; });
+    return (D.profiles || []).filter(p => !ids || ids.has(p.id)).map(p => ({ id: p.id, pseudo: p.pseudo, me: p.id === me.id, hidden: p.visible === false, created: Date.parse(p.created_at), groups: inGroups(p.id),
+      email: mail[p.id] ? mail[p.id].email : null, lastSignIn: mail[p.id] && mail[p.id].last_sign_in_at ? Date.parse(mail[p.id].last_sign_in_at) : null,
+      attempts: (D.attempts || []).filter(a => a.user_id === p.id).map(a => ({ at: Date.parse(a.created_at), kind: a.kind, defId: a.def_id, title: a.title, note: +a.note, used: a.used_s || 0, pauses: a.pauses || 0, n: a.n, results: a.results || [] })),
+      controls: (D.controls || []).filter(c => c.user_id === p.id).map(c => ({ at: Date.parse(c.created_at), name: c.name, items: c.items || [] })) }));
+  }
   function loadScope() {
     const box = document.getElementById('gstats'), D = SITE;
     const ids = gid === 'all' ? null : new Set((D.memberships || []).filter(m => m.group_id === gid).map(m => m.user_id));
-    const inGroups = uid => (D.memberships || []).filter(m => m.user_id === uid).map(m => (groups.find(g => g.id === m.group_id) || {}).name).filter(Boolean);
-    const members = (D.profiles || []).filter(p => !ids || ids.has(p.id)).map(p => ({ id: p.id, pseudo: p.pseudo, me: p.id === me.id, hidden: p.visible === false, created: Date.parse(p.created_at), groups: inGroups(p.id),
-      attempts: (D.attempts || []).filter(a => a.user_id === p.id).map(a => ({ at: Date.parse(a.created_at), kind: a.kind, defId: a.def_id, title: a.title, note: +a.note, used: a.used_s || 0, results: a.results || [] })),
-      controls: (D.controls || []).filter(c => c.user_id === p.id).map(c => ({ at: Date.parse(c.created_at), name: c.name, items: c.items || [] })) }));
+    const members = buildMembers(ids);
     const tests = (D.group_tests || []).filter(t => gid === 'all' || t.group_id === gid);
     const active = members.filter(m => m.attempts.length || m.controls.length).length;
     document.getElementById('scopeInfo').textContent = `${members.length} compte${members.length > 1 ? 's' : ''}${gid === 'all' ? ' sur le site' : ' dans ce groupe'}, dont ${active} avec au moins une copie.`;
@@ -227,7 +250,7 @@ tr:last-child td{border-bottom:0}
     const tot = subs.filter(s => s.skills).reduce((t, s) => t + s.skills, 0);
     return `<section class="card"><h2>Autres matières</h2><p class="sub">Compétences validées dans le parcours de chaque matière, nombre de sujets blancs rendus, dernière et meilleure note (sur 20). Données synchronisées par les comptes connectés ; une copie d'élec CC1 a sa note dès que son auteur rouvre la page d'élec.</p>
       ${rows.length ? `<div style="overflow-x:auto"><table><thead><tr><th>Joueur</th>${subs.map(s => `<th><a href="../${s.page}">${esc(s.name)}</a></th>`).join('')}<th>Total</th></tr></thead><tbody>
-      ${rows.map(m => `<tr><td><b>${esc(m.pseudo)}</b>${m.me ? ' <span class="fine">(toi)</span>' : ''}</td>${subs.map(s => cell(m, s)).join('')}<td><b>${subs.filter(s => s.skills).reduce((t, s) => t + valid(m, s), 0)}/${tot}</b></td></tr>`).join('')}
+      ${rows.map(m => `<tr><td><b>${nm(m)}</b>${m.me ? ' <span class="fine">(toi)</span>' : ''}</td>${subs.map(s => cell(m, s)).join('')}<td><b>${subs.filter(s => s.skills).reduce((t, s) => t + valid(m, s), 0)}/${tot}</b></td></tr>`).join('')}
       </tbody></table></div>` : '<p class="sub">Personne n\'a encore de progression enregistrée dans les autres matières.</p>'}</section>`;
   }
   // Tous les comptes (y compris ceux sans activité)
@@ -241,7 +264,7 @@ tr:last-child td{border-bottom:0}
     const timeCell = m => { const ex = m.attempts.reduce((t, a) => t + (a.used || 0), 0); return `<td><b>${fmtT(T[m.id])}</b>${ex > 0 ? `<br><span class="fine">dont épreuves de maths : ${fmtT(ex)}</span>` : ''}</td>`; };
     return `<section class="card"><h2>Comptes</h2><p class="sub">Tous les comptes${gid === 'all' ? ' du site' : ' du groupe'}, du plus récemment actif au moins actif. 🙈 = profil masqué aux autres membres (visible ici seulement). Temps sur le site : temps réellement actif (onglet ouvert et utilisé), compté depuis la mise en place de la mesure ; le temps d'avant n'est pas connu, sauf pour les épreuves de maths.</p>
       <div style="overflow-x:auto"><table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Groupes</th><th>Épreuves</th><th>Copies du prof</th><th>Dernière activité</th><th>Temps sur le site</th></tr></thead><tbody>
-      ${L.map(m => { const t = last(m); return `<tr><td><b>${esc(m.pseudo)}</b>${m.hidden ? ' 🙈' : ''}${m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td>${m.created ? fmtD(m.created) : '—'}</td><td>${m.groups.length ? esc(m.groups.join(', ')) : '<span class="fine">aucun</span>'}</td><td>${m.attempts.length}</td><td>${m.controls.length}</td><td>${t ? fmtD(t) : '<span class="fine">jamais</span>'}</td>${timeCell(m)}</tr>`; }).join('')}
+      ${L.map(m => { const t = last(m); return `<tr><td><b>${nm(m)}</b>${m.hidden ? ' 🙈' : ''}${m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td>${m.created ? fmtD(m.created) : '—'}</td><td>${m.groups.length ? esc(m.groups.join(', ')) : '<span class="fine">aucun</span>'}</td><td>${m.attempts.length}</td><td>${m.controls.length}</td><td>${t ? fmtD(t) : '<span class="fine">jamais</span>'}</td>${timeCell(m)}</tr>`; }).join('')}
       </tbody></table></div></section>`;
   }
 
@@ -260,7 +283,7 @@ tr:last-child td{border-bottom:0}
     const best = m.attempts.filter(a => a.results.length >= 5).sort((a, b) => b.note - a.note)[0];
     const kinds = {}; m.attempts.forEach(a => { kinds[a.kind] = (kinds[a.kind] || 0) + 1; });
     return { n, ok, bad, blank, avgT, timedN: timed.length, used: m.attempts.reduce((s, a) => s + a.used, 0), copies: m.attempts.length + m.controls.length,
-      strong: thL[0], weak: thL.length > 1 ? thL[thL.length - 1] : null, favH: favH ? +favH[0] : null, night, best, kinds,
+      strong: thL[0], weak: thL.length > 1 ? thL[thL.length - 1] : null, th, favH: favH ? +favH[0] : null, night, best, kinds,
       avgNote: m.attempts.length ? m.attempts.reduce((s, a) => s + a.note, 0) / m.attempts.length : null };
   }
   // Duels : pour chaque contrôle de groupe, chaque paire de participants (meilleure note de chacun)
@@ -307,7 +330,7 @@ tr:last-child td{border-bottom:0}
     const act = members.filter(m => E[m.id]);
     const pick = (score, ok = () => true, dir = -1) => { const L = act.filter(ok).map(m => [m, score(m)]).filter(([, v]) => v != null && isFinite(v)); if (!L.length) return null; L.sort((a, b) => dir * (a[1] - b[1])); return L[0]; };
     const A = [];
-    const add = (ic, title, r, why) => { if (r) A.push(`<div class="award"><span class="ic">${ic}</span><b>${title}</b><span class="who">${esc(r[0].pseudo)}</span><span class="why">${why(r[1], r[0])}</span></div>`); };
+    const add = (ic, title, r, why) => { if (r) A.push(`<div class="award"><span class="ic">${ic}</span><b>${title}</b><span class="who">${nm(r[0])}</span><span class="why">${why(r[1], r[0])}</span></div>`); };
     add('🐐', 'Le GOAT', pick(m => E[m.id].elo), v => `Elo ${fmt(v)} : numéro 1 ${gid === 'all' ? 'du site' : 'du groupe'}.`);
     add('🎯', 'Le sniper', pick(m => st[m.id].ok / st[m.id].n, m => st[m.id].n >= 30), v => `${fmt(100 * v)} % de bonnes réponses.`);
     add('⚡', 'L\'éclair', pick(m => st[m.id].avgT, m => st[m.id].timedN >= 15, 1), v => `${fmt(v)} s en moyenne par question.`);
@@ -330,7 +353,7 @@ tr:last-child td{border-bottom:0}
     box.innerHTML = `
       <section class="card"><h2>Classement Elo</h2><p class="sub">${fmt(totQ)} questions répondues au total, ${fmtT(totT)} d'entraînement chronométré. Elo absolu de 0 à 2500 : moyenne des 21 thèmes de 2000 × maîtrise du thème (fiabilité des réponses récentes × couverture des types de questions, la même que les pastilles du QCM) + bonus Hardcore. 2000 = tout le programme maîtrisé, 2500 = GM (Hardcore compris). Un thème jamais travaillé compte 0.</p>
         <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Pseudo</th><th>Elo</th><th>7 jours</th><th>Questions</th><th>Justes</th><th>Fausses</th><th>Vides</th></tr></thead><tbody>
-        ${rank.map((x, i) => { const s = st[x.m.id]; return `<tr><td>${i === 0 ? '🐐' : i + 1}</td><td><b>${esc(x.m.pseudo)}</b>${x.m.hidden ? ' 🙈' : ''}${x.m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td><b>${fmt(x.elo)}</b> <span class="fine" title="${esc(x.title.name)}">${esc(x.title.abbr)}</span>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'up' : x.d7 < -0.5 ? 'down' : ''}">${x.d7 > 0.5 ? '+' : ''}${fmt(x.d7)}</td><td>${s.n}</td><td>${fmt(100 * s.ok / s.n)} %</td><td>${fmt(100 * s.bad / s.n)} %</td><td>${fmt(100 * s.blank / s.n)} %</td></tr>`; }).join('')}
+        ${rank.map((x, i) => { const s = st[x.m.id]; return `<tr><td>${i === 0 ? '🐐' : i + 1}</td><td><b>${nm(x.m)}</b>${x.m.hidden ? ' 🙈' : ''}${x.m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td><b>${fmt(x.elo)}</b> <span class="fine" title="${esc(x.title.name)}">${esc(x.title.abbr)}</span>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'up' : x.d7 < -0.5 ? 'down' : ''}">${x.d7 > 0.5 ? '+' : ''}${fmt(x.d7)}</td><td>${s.n}</td><td>${fmt(100 * s.ok / s.n)} %</td><td>${fmt(100 * s.bad / s.n)} %</td><td>${fmt(100 * s.blank / s.n)} %</td></tr>`; }).join('')}
         </tbody></table></div>
         ${eloChart(rank)}</section>
 
@@ -344,14 +367,14 @@ tr:last-child td{border-bottom:0}
       </div></section>
 
       ${(() => { const act = members.filter(m => m.attempts.some(a => a.kind === 'group')); return act.length >= 2 && tests.length ? `<section class="card"><h2>Duels en contrôle de groupe</h2><p class="sub">Nombre de fois où la ligne a battu la colonne (meilleure note de chacun sur un même contrôle de groupe).</p>
-        <div style="overflow-x:auto"><table><thead><tr><th></th>${act.map(m => `<th>${esc(m.pseudo)}</th>`).join('')}</tr></thead><tbody>
-        ${act.map(a => `<tr><td><b>${esc(a.pseudo)}</b></td>${act.map(b => `<td>${a.id === b.id ? '—' : D[a.id][b.id] > D[b.id][a.id] ? `<b class="up">${D[a.id][b.id]}</b>` : D[a.id][b.id]}</td>`).join('')}</tr>`).join('')}
+        <div style="overflow-x:auto"><table><thead><tr><th></th>${act.map(m => `<th>${nm(m)}</th>`).join('')}</tr></thead><tbody>
+        ${act.map(a => `<tr><td><b>${nm(a)}</b></td>${act.map(b => `<td>${a.id === b.id ? '—' : D[a.id][b.id] > D[b.id][a.id] ? `<b class="up">${D[a.id][b.id]}</b>` : D[a.id][b.id]}</td>`).join('')}</tr>`).join('')}
         </tbody></table></div></section>` : ''; })()}
 
       <section class="card"><h2>Fiches</h2><div class="people">
         ${rank.map(x => { const s = st[x.m.id], m = x.m;
           const nem = act.filter(o => o.id !== m.id && D[o.id][m.id] > D[m.id][o.id]).sort((a, b) => (D[b.id][m.id] - D[m.id][b.id]) - (D[a.id][m.id] - D[m.id][a.id]))[0];
-          return `<article class="person"><h3>${E[m.id].pos === 1 ? '🐐 ' : ''}${esc(m.pseudo)}<span class="elo">${fmt(x.elo)} ${esc(x.title.abbr)} · ${E[m.id].pos}<sup>${E[m.id].pos === 1 ? 'er' : 'e'}</sup></span></h3>
+          return `<article class="person"><h3>${E[m.id].pos === 1 ? '🐐 ' : ''}${nm(m)}<span class="elo">${fmt(x.elo)} ${esc(x.title.abbr)} · ${E[m.id].pos}<sup>${E[m.id].pos === 1 ? 'er' : 'e'}</sup></span></h3>
             <div class="bars" title="Justes · vides · fausses"><span style="background:var(--good);width:${(100 * s.ok / s.n).toFixed(1)}%"></span><span style="background:var(--muted);width:${(100 * s.blank / s.n).toFixed(1)}%"></span><span style="background:var(--red);width:${(100 * s.bad / s.n).toFixed(1)}%"></span></div>
             <dl class="kv">
               <dt>Questions</dt><dd>${s.n} · ${fmt(100 * s.ok / s.n)} % justes · ${fmt(100 * s.bad / s.n)} % fausses</dd>
@@ -366,6 +389,89 @@ tr:last-child td{border-bottom:0}
             </dl></article>`; }).join('')}
       </div></section>`;
   }
+
+  /* ---------- Fiche détaillée d'un compte (clic sur un pseudo, n'importe où dans la page) ---------- */
+  const fmtDT = t => new Date(t).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const fmtSec = s => { s = Math.round(s); if (!(s > 0)) return '—'; if (s < 60) return s + ' s'; const mn = Math.round(s / 60); return mn < 60 ? mn + ' min' : Math.floor(mn / 60) + ' h ' + String(mn % 60).padStart(2, '0'); };
+  const STAT = { juste: ['juste', 'justes'], partiel: ['partielle', 'partielles'], faux: ['fausse', 'fausses'], passe: ['passée', 'passées'] };
+  function ficheHTML(m) {
+    const s = personStats(m), rank = ALL.rank, ix = rank.findIndex(x => x.m.id === m.id), x = ix >= 0 ? rank[ix] : null;
+    const tr = (SITE.time || []).find(r => r.user_id === m.id), pj = (SITE.pdj || []).find(r => r.user_id === m.id);
+    const pct = v => s.n ? fmt(100 * v / s.n) + ' %' : '—';
+    const last = Math.max(0, ...m.attempts.map(a => a.at), ...m.controls.map(c => c.at));
+    const row = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;
+
+    // contrôles importés (copies du prof corrigées)
+    const ctl = m.controls.slice().sort((a, b) => a.at - b.at).map(c => {
+      const it = c.items, mx1 = i => +i.max || 1, pts = it.reduce((t, i) => t + (+i.pts || 0), 0), mx = it.reduce((t, i) => t + mx1(i), 0);
+      const ok = it.filter(i => +i.pts >= mx1(i)).length, ko = it.filter(i => +i.pts < 0).length, zero = it.filter(i => +i.pts === 0).length;
+      return `<tr><td>${esc(c.name)}</td><td>${fmtDT(c.at)}</td><td>${it.length}</td><td><b>${fmt(pts, 2)} / ${fmt(mx)}</b></td><td>≈ ${mx ? fmt(20 * pts / mx, 1) : '—'} / 20</td><td>${ok} · ${ko} · ${zero}</td></tr>`;
+    });
+    const cth = {}; m.controls.forEach(c => c.items.forEach(i => { if (!i.theme) return; const o = cth[i.theme] = cth[i.theme] || { n: 0, s: 0 }; o.n++; o.s += (+i.pts || 0) / (+i.max || 1); }));
+    const cthL = Object.entries(cth).map(([k, o]) => [k, o.s / o.n, o.n]).sort((a, b) => a[1] - b[1]);
+    const chip = ([k, r, n]) => `<span class="chip ${r >= 0.8 ? 'good' : r < 0.4 ? 'bad' : ''}">${esc(TH[k] || k)} <b>${fmt(100 * r)} %</b> <span class="fine">(${n})</span></span>`;
+
+    // épreuves faites sur le site
+    const att = m.attempts.slice().sort((a, b) => a.at - b.at).map(a => {
+      const R = a.results || [], cnt = {}, conf = { s: 0, h: 0 };
+      R.forEach(r => { if (r.status) cnt[r.status] = (cnt[r.status] || 0) + 1; if (r.conf === 's' || r.conf === 'h') conf[r.conf]++; });
+      const det = Object.keys(STAT).filter(k => cnt[k]).map(k => `${cnt[k]} ${STAT[k][cnt[k] > 1 ? 1 : 0]}`).join(' · ');
+      return `<tr><td>${fmtDT(a.at)}</td><td>${esc(a.title || '')}<br><span class="fine">${esc(KIND1[a.kind] || a.kind || '')}</span></td><td><b>${isFinite(a.note) ? fmt(a.note, 2) + ' / 20' : '—'}</b></td><td>${R.length || a.n || '—'}</td><td>${det || '—'}${conf.s + conf.h ? `<br><span class="fine">sûr ${conf.s} · j'hésite ${conf.h}</span>` : ''}</td><td>${fmtSec(a.used)}${a.pauses ? `<br><span class="fine">${a.pauses} pause${a.pauses > 1 ? 's' : ''}</span>` : ''}</td></tr>`;
+    });
+
+    // autres matières
+    const subs = (window.SiteSubjects ? SiteSubjects.list : []).filter(z => z.id !== 'maths');
+    const subj = subs.map(z => {
+      const p = (SITE.subjects || []).find(r => r.user_id === m.id && r.key === z.id + '.path.v1'), h = (SITE.subjects || []).find(r => r.user_id === m.id && r.key === z.id + '.hist.v1');
+      if (!p && !(h && h.n)) return '';
+      const ids = p && Array.isArray(p.ids) ? p.ids.filter(k => !(z.bonus || []).includes(k)) : [], notes = h && Array.isArray(h.notes) ? h.notes.filter(v => typeof v === 'number') : [];
+      return `<tr><td><b>${esc(z.name)}</b></td><td>${ids.length}${z.skills ? ' / ' + z.skills : ''}${ids.length ? `<br><span class="fine">${ids.map(esc).join(', ')}</span>` : ''}</td><td>${h && h.n ? `${h.n} blanc${h.n > 1 ? 's' : ''}${notes.length ? `<br><span class="fine">${notes.map(v => fmt(v, 1)).join(' · ')}</span>` : ''}` : '—'}</td></tr>`;
+    }).filter(Boolean);
+
+    const th = Object.entries(s.th || {}).filter(([k, o]) => TH[k] && o.n >= 2).map(([k, o]) => [k, o.s / o.n, o.n]).sort((a, b) => a[1] - b[1]);
+
+    return `<div class="top"><div><h2>${esc(m.pseudo)}${m.me ? ' <span class="fine">(toi)</span>' : ''}${m.hidden ? ' 🙈' : ''}</h2>
+        <p class="sub">${m.email ? `<b>${esc(m.email)}</b>` : '<span class="fine">e-mail inconnu</span>'}</p>
+        <p class="fine">Inscrit le ${m.created ? fmtDT(m.created) : '—'} · dernière connexion ${m.lastSignIn ? fmtDT(m.lastSignIn) : '—'} · dernière copie ${last ? fmtDT(last) : 'jamais'} · ${m.groups.length ? esc(m.groups.join(', ')) : 'aucun groupe'}</p></div>
+        <button type="button" class="btn x" data-close>Fermer</button></div>
+      <section><h3>En chiffres</h3><dl class="kv">
+        ${row('Elo', x ? `<b>${fmt(x.elo)}</b> ${esc(x.title.abbr)} · ${ix + 1}<sup>${ix ? 'e' : 'er'}</sup> sur ${rank.length}${Math.abs(x.d7) > 0.5 ? ` · ${x.d7 > 0 ? '+' : ''}${fmt(x.d7)} en 7 jours` : ''}` : 'pas encore classé')}
+        ${row('Questions', s.n ? `${s.n} · ${pct(s.ok)} justes · ${pct(s.bad)} fausses · ${pct(s.blank)} vides` : 'aucune')}
+        ${row('Copies', `${m.attempts.length} épreuve${m.attempts.length > 1 ? 's' : ''} · ${m.controls.length} copie${m.controls.length > 1 ? 's' : ''} du prof importée${m.controls.length > 1 ? 's' : ''}`)}
+        ${row('Moyenne', s.avgNote != null ? fmt(s.avgNote, 2) + ' / 20 sur le site' : '—')}
+        ${row('Meilleure', s.best ? `${fmt(s.best.note, 2)} / 20 · ${esc(s.best.title)}` : '—')}
+        ${row('Rythme', s.avgT != null ? fmt(s.avgT) + ' s par question' : '—')}
+        ${row('Temps sur le site', tr ? `<b>${fmtSec(tr.s)}</b> <span class="fine">(mesuré depuis la mise en place)</span>` : '<span class="fine">pas encore mesuré</span>')}
+        ${row('Temps en épreuves', fmtSec(s.used))}
+        ${row('Point fort', s.strong ? esc(TH[s.strong[0]]) : '—')}
+        ${row('Point faible', s.weak ? esc(TH[s.weak[0]]) : '—')}
+        ${row('Heure favorite', s.favH != null ? s.favH + ' h' + (s.night ? ` · 🦉 ${s.night} copie${s.night > 1 ? 's' : ''} de nuit` : '') : '—')}
+        ${row('Problème du jour', pj ? `${pj.n} fait${pj.n > 1 ? 's' : ''}${pj.last ? ` · dernier le ${fmtDT(pj.last)}` : ''}` : 'aucun')}
+      </dl></section>
+      <section><h3>Contrôles importés (copies du prof)</h3>${ctl.length ? `<div class="scroll"><table><thead><tr><th>Contrôle</th><th>Importé le</th><th>Questions</th><th>Points</th><th>Sur 20</th><th title="justes · fausses · vides">J · F · V</th></tr></thead><tbody>${ctl.join('')}</tbody></table></div>
+        <p class="fine">« Sur 20 » = points ramenés à 20 par simple proportion. J · F · V = justes, fausses (−0,5), vides.</p>
+        <div class="chips">${cthL.map(chip).join('')}</div>` : '<p class="sub">Aucune copie du prof importée.</p>'}</section>
+      <section><h3>Épreuves faites sur le site</h3>${att.length ? `<div class="scroll"><table><thead><tr><th>Date</th><th>Épreuve</th><th>Note</th><th>Questions</th><th>Détail</th><th>Durée</th></tr></thead><tbody>${att.join('')}</tbody></table></div>` : '<p class="sub">Aucune épreuve.</p>'}</section>
+      ${th.length ? `<section><h3>Par thème (épreuves et copies du prof)</h3><div class="chips">${th.map(chip).join('')}</div></section>` : ''}
+      <section><h3>Autres matières</h3>${subj.length ? `<div class="scroll"><table><thead><tr><th>Matière</th><th>Compétences validées</th><th>Sujets blancs</th></tr></thead><tbody>${subj.join('')}</tbody></table></div>` : '<p class="sub">Rien dans les autres matières.</p>'}</section>`;
+  }
+  function openFiche(id) {
+    if (!SITE) return;
+    if (!ALL) { const mem = buildMembers(null); ALL = { mem, rank: eloRank(mem).rank }; }
+    const m = ALL.mem.find(z => z.id === id); if (!m) return;
+    let dlg = document.getElementById('fiche');
+    if (!dlg) {
+      dlg = document.createElement('dialog'); dlg.id = 'fiche'; document.body.appendChild(dlg);
+      dlg.addEventListener('click', ev => { if (ev.target === dlg) dlg.close(); });   // clic en dehors de la fiche
+    }
+    dlg.innerHTML = `<div class="fiche">${ficheHTML(m)}</div>`;
+    if (!dlg.open) dlg.showModal();
+    dlg.scrollTop = 0;
+  }
+  document.addEventListener('click', e => {
+    const w = e.target.closest('[data-who]'); if (w) { openFiche(w.dataset.who); return; }
+    if (e.target.closest('[data-close]')) { const d = document.getElementById('fiche'); if (d) d.close(); }
+  });
 
   boot();
 })();

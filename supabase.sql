@@ -331,7 +331,7 @@ begin
   end if;
   return jsonb_build_object(
     'profiles', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'pseudo', pseudo, 'visible', visible, 'created_at', created_at)), '[]'::jsonb) from public.profiles),
-    'attempts', (select coalesce(jsonb_agg(jsonb_build_object('user_id', user_id, 'def_id', def_id, 'kind', kind, 'title', title, 'note', note, 'used_s', used_s, 'results', results, 'created_at', created_at)), '[]'::jsonb) from public.attempts),
+    'attempts', (select coalesce(jsonb_agg(jsonb_build_object('user_id', user_id, 'def_id', def_id, 'kind', kind, 'title', title, 'note', note, 'used_s', used_s, 'pauses', pauses, 'n', n, 'raw', raw, 'results', results, 'created_at', created_at)), '[]'::jsonb) from public.attempts),
     'controls', (select coalesce(jsonb_agg(jsonb_build_object('user_id', user_id, 'name', name, 'items', items, 'created_at', created_at)), '[]'::jsonb) from public.controls),
     'group_tests', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'group_id', group_id, 'title', title, 'created_at', created_at)), '[]'::jsonb) from public.group_tests),
     'groups', (select coalesce(jsonb_agg(jsonb_build_object('id', id, 'name', name)), '[]'::jsonb) from public.groups),
@@ -352,7 +352,13 @@ begin
     -- temps passé sur le site (account.js, clé « site.time.v1 ») : somme des totaux par appareil, en secondes
     'time', (select coalesce(jsonb_agg(jsonb_build_object('user_id', u.user_id, 'updated_at', u.updated_at,
         's', (select coalesce(sum((v.value)::numeric), 0) from jsonb_each(u.value->'dv') v where jsonb_typeof(v.value) = 'number'))), '[]'::jsonb)
-      from public.user_data u where u.key = 'site.time.v1' and jsonb_typeof(u.value->'dv') = 'object')
+      from public.user_data u where u.key = 'site.time.v1' and jsonb_typeof(u.value->'dv') = 'object'),
+    -- fiche détaillée d'un compte (page moi/) : e-mail (administrateur seulement) et problèmes du jour faits
+    'emails', (select coalesce(jsonb_agg(jsonb_build_object('user_id', id, 'email', email, 'last_sign_in_at', last_sign_in_at)), '[]'::jsonb) from auth.users),
+    'pdj', (select coalesce(jsonb_agg(jsonb_build_object('user_id', u.user_id,
+        'n', (select count(*) from jsonb_object_keys(u.value->'p')),
+        'last', (select max((x.value->>'at')::numeric) from jsonb_each(u.value->'p') x where jsonb_typeof(x.value) = 'object' and jsonb_typeof(x.value->'at') = 'number'))), '[]'::jsonb)
+      from public.user_data u where u.key = 'qcm.pdj' and jsonb_typeof(u.value->'p') = 'object')
   );
 end
 $$;

@@ -1,113 +1,74 @@
-# Révisions CC · mise en ligne
+# Prepa01
 
-Le site regroupe plusieurs outils de révision :
+**Free, open-source exam practice for first-year engineering students.**
+Unlimited generated exercises, automatic grading of real math answers (formulas, complex numbers, sets, Python code), and a mastery score that tells you what to revise next.
 
-| Fichier | Rôle |
+🔗 **Live site:** https://sushiazd.github.io/Prepa01/
+
+Built for students at ESIR (Université de Rennes), but the engine is subject-agnostic. The interface is in French.
+
+---
+
+## Why
+
+Our courses come with few practice problems and even fewer worked solutions. Past exams run out after one pass. Prepa01 generates new variants of each exercise type, so you can keep practising until you have actually mastered the method, not just memorised the answer.
+
+## Features
+
+- **Generated exercises.** Parameterised templates produce new values and new questions on every attempt, with step-by-step corrections.
+- **Real answer checking.** It doesn't just compare strings:
+  - literal formulas are checked by evaluating them on random values;
+  - antiderivatives are checked by differentiating them;
+  - it understands complex numbers, intervals, sets, truth tables and Taylor expansions;
+  - Python functions run in the browser against test cases (Pyodide in a Web Worker).
+- **Mastery and Elo.** Each skill gets a mastery score (a Wilson interval on recent answers, weighted by coverage of the exercise types). An overall Elo from 0 to 2500 drives spaced review and the "what next" guidance.
+- **Guided learning path.** A skill tree per subject, with "Understand" lessons and hints, plus an explanation of where a wrong answer came from.
+- **Timed mock exams.** Built on the format of past exams. A mock exam in progress syncs across devices, so you can start it on a tablet and finish it on a PC.
+- **Group mode.** Live group tests with a shared timer and a waiting room. For electronics, students photograph their paper copies and correct each other's.
+- **Exam calendar.** Reads the university timetable (ADE export) and puts each subject's next test on the home page.
+- **Works without an account.** Progress stays in the browser; signing in syncs it through Supabase.
+
+### Subjects
+
+| Page | Topic |
 |---|---|
-| `index.html` | la page d'accueil : connexion au compte et lien vers chaque outil |
-| `account.js` | le compte du site (connexion unique) et la synchronisation de la progression entre appareils |
-| `maths/index.html` | le QCM de maths (QCM, import de PDF, catalogue, comptes, groupes, onglet Hardcore : questions difficiles sans calculatrice, 10 q / 30 min, 10 q / 1 h ou 20 q / 1 h) |
-| `elec/index.html` | l'entraînement au CC1 d'électronique (cours, démos, exos générés, annales, sujets blancs) |
-| `ato/index.html` | l'entraînement au CC d'atomistique (partie 1 « L'atome ») : parcours guidé, cours résumé, exercices générés corrigés, sujet blanc d'1 h |
-| `algo/index.html` | l'entraînement au DS d'algorithmique (chapitres 1 à 4 : bases de Python, fonctions, complexité, tableaux, dictionnaires) : parcours guidé, fonctions à écrire testées en Python dans le navigateur (Pyodide, dans un Worker), cours résumé, sujet blanc d'1 h 30 |
-| `maths-s1/index.html` | l'entraînement au 1er CC de MATH-S1 (logique, ensembles, applications, relations, dénombrement) : parcours guidé, réponses de type table de vérité / ensemble / intervalle corrigées automatiquement, cours résumé, sujet blanc d'1 h 30 |
-| `maths-s1-analyse/index.html` | l'entraînement au 2e CC de MATH-S1 (analyse : complexes, dérivées, limites et DL, intégrales, suites) d'après le programme de révision et les annales 2025-26 : réponses en nombres complexes, primitives (vérifiées en dérivant) et DL corrigées automatiquement |
-| `elec2/index.html` | l'entraînement au CC2 d'électronique analogique (démonstrations, Thévenin à deux sources, circuits RC/RL du premier ordre) d'après les 4 annales : schémas SVG générés, formules corrigées automatiquement, sujet blanc d'1 h |
-| `meca/index.html` | l'entraînement au CC d'ingénierie mécanique (statique : vecteurs, moments, torseurs, liaisons, PFS) : parcours guidé avec schémas SVG générés, exercices du DS 2023-24, cours résumé, sujet blanc d'1 h 30 |
-| `phys/index.html` | l'entraînement au CC de mécanique du point (chapitres II à V : PFD, énergie, oscillateurs, moment cinétique) : parcours guidé, formules littérales vérifiées par tirage de valeurs, cours résumé + démos à savoir refaire, sujet blanc d'1 h 30 |
-| `subjects.js` | la liste des matières : page, intitulé dans l'emploi du temps, dates de secours, ancien créneau d'un CC déplacé, nombre de compétences. **Un CC qui change de date se règle ici**, pour l'accueil, le planning et la page de la matière |
-| `core.js` + `core.css` | le moteur et les styles communs des 7 pages à parcours (ato, algo, elec2, phys, meca, maths-s1, maths-s1-analyse) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc, palette de couleurs. Une nouveauté ajoutée ici arrive dans les 7 matières. Après une modification, change le `?v=` des balises qui les chargent pour que les téléphones ne gardent pas l'ancienne version |
-| `planning.js` | l'onglet Planning de l'accueil : emploi du temps ADE (lien d'export `.shu` enregistré dans le compte), prochaines évaluations repérées automatiquement |
-| `supabase/functions/planning/` | la fonction Supabase qui relaie l'emploi du temps (le serveur de l'université bloque la lecture directe depuis le site) ; déjà déployée sous le nom `planning` |
-| `config.js` | l'adresse de ta base Supabase (à remplir, étape 4), utilisée par tout le site |
-| `supabase.sql` | la base de données et ses règles de sécurité (étape 2) |
-| `README.md` | ce guide |
+| `maths/` | math MCQ (calculus, algebra), Hardcore mode, problem of the day |
+| `maths-s1/`, `maths-s1-analyse/` | logic, sets, relations; complex numbers, limits, Taylor expansions, integrals |
+| `elec/`, `elec2/` | DC circuits, Thévenin/Norton, Millman, first-order RC/RL circuits |
+| `phys/` | point mechanics: Newton's laws, energy, oscillators, angular momentum |
+| `meca/` | statics: moments, wrenches, joints, equilibrium |
+| `ato/` | atomistics: the atom |
+| `algo/` | Python: functions, complexity, lists, dictionaries |
 
-Adresses en ligne : https://sushiazd.github.io/Prepa01/ (accueil, choix de la matière), `…/Prepa01/maths/`, `…/Prepa01/elec/`, etc.
+## Tech
 
-On se connecte une seule fois, sur la page d'accueil : la session vaut pour toutes les pages. Une fois connecté, la progression de chaque matière (parcours, copies des sujets blancs, sujet blanc en cours ; pour l'élec aussi les stats et la date du CC) et le lien de l'emploi du temps sont enregistrés dans la table `user_data` et fusionnés à chaque ouverture de page, donc on les retrouve sur tous ses appareils. Le QCM de maths garde ses contrôles et épreuves dans ses propres tables (`controls`, `attempts`) et son épreuve en cours dans `user_data`. Sans compte, tout reste dans le navigateur.
+Plain HTML, CSS and JavaScript with **no build step**. Every page is a static file served by GitHub Pages.
 
-### Activer la synchronisation
+- `core.js` / `core.css`: the shared engine (learning path, mastery, mock exams, sync) used by every subject page.
+- `account.js`: single sign-on and progress sync ([Supabase](https://supabase.com), with row-level security in `supabase.sql`).
+- `supabase/functions/planning/`: an edge function that relays the university timetable.
+- [Pyodide](https://pyodide.org) for running Python in the browser.
 
-Supabase → **SQL Editor** : relance tout `supabase.sql` (il ajoute la table `user_data`). Tant que ce n'est pas fait, l'accueil affiche « Base pas encore prête pour la synchro ».
+## Running it locally
 
-Compte environ 30 minutes la première fois. Tout est gratuit.
+```bash
+git clone https://github.com/sushiazd/Prepa01.git
+cd Prepa01
+python -m http.server 8000
+```
 
----
+Then open http://localhost:8000. Without changes to `config.js`, the site uses the project's public Supabase instance (the key in it is the public *anon* key; access is restricted by the database rules).
 
-## 1. Créer la base de données (Supabase)
+To deploy your own copy with your own database, follow [DEPLOIEMENT.md](DEPLOIEMENT.md) (in French).
 
-1. Va sur **supabase.com** → *Start your project* → connecte-toi avec GitHub.
-2. *New project* : donne un nom (`qcm-maths`), choisis un mot de passe de base de données (garde-le quelque part), région **Europe (Paris ou Francfort)**, puis *Create new project*.
-3. Attends 1 à 2 minutes que le projet soit prêt.
+## Adding a subject
 
-## 2. Installer les tables et les règles d'accès
+Each subject page loads the shared engine and declares its own skills, exercise generators and lessons (`learn.js`). The easiest starting point is to copy an existing page such as `ato/` and replace its content. Exam dates go in `subjects.js`.
 
-1. Menu de gauche → **SQL Editor** → *New query*.
-2. Ouvre `supabase.sql`, copie **tout** le contenu, colle-le, clique **Run**.
-3. Tu dois voir *Success. No rows returned*. (Tu peux relancer le script sans risque si besoin.)
+## Contributing
 
-## 3. Simplifier l'inscription
+Issues and pull requests are welcome, whether they add exercises, fix a wrong correction or improve accessibility. If you spot a mistake in an exercise, please open an issue with the subject, the question and the expected answer.
 
-Le service d'e-mails gratuit de Supabase n'envoie que quelques e-mails par heure : avec la confirmation d'adresse activée, l'inscription de tes potes bloquerait vite.
+## License
 
-**Authentication → Sign In / Providers → Email** → désactive **Confirm email** → *Save*.
-
-(Les noms de menus peuvent légèrement changer selon les versions de Supabase.)
-
-## 4. Relier le site à la base
-
-1. **Project Settings → API** (ou *API Keys*).
-2. Copie **Project URL** et la clé **anon public** (parfois appelée *publishable key*).
-3. Colle-les dans `config.js` entre les guillemets :
-   ```js
-   supabaseUrl: 'https://abcdefghijkl.supabase.co',
-   supabaseAnonKey: 'eyJhbGciOi…'
-   ```
-   ⚠ Jamais la clé **service_role / secret** : elle donnerait tous les droits sur la base.
-
-## 5. Mettre le site en ligne (GitHub Pages)
-
-1. Sur **github.com** → *New repository* → nom `qcm-maths`, **Public**, *Create repository*.
-2. *uploading an existing file* → glisse `index.html`, `config.js`, `supabase.sql`, `README.md` **et les dossiers `maths` et `elec`** → *Commit changes*.
-3. **Settings → Pages** → *Source* : *Deploy from a branch* → branche `main`, dossier `/ (root)` → *Save*.
-4. Après 1 à 2 minutes, le site est à l'adresse **`https://TON-PSEUDO.github.io/qcm-maths/`** (affichée en haut de la page *Pages*).
-
-## 6. Dernier réglage
-
-Supabase → **Authentication → URL Configuration** → *Site URL* = l'adresse GitHub Pages ci-dessus → *Save*.
-
-## 7. Tester
-
-1. Ouvre le site → onglet **Groupe** → *Créer un compte* (pseudo, e-mail, mot de passe).
-2. *Créer un groupe* → un code de 6 caractères apparaît → bouton *Copier* pour l'envoyer à tes potes.
-3. Tes potes ouvrent le lien, créent leur compte et entrent le code dans *Rejoindre avec un code*.
-
----
-
-## Qui voit quoi
-
-- Ton **e-mail** n'est visible par personne (seulement ton pseudo).
-- Les membres de tes groupes voient tes épreuves, tes contrôles importés (notes, thèmes, début de l'énoncé) et ton temps d'entraînement.
-- Décocher **« Mes stats sont visibles par mes groupes »** te rend invisible : tes stats ne comptent plus non plus dans les vues de groupe.
-- Les personnes hors de tes groupes ne voient rien. Les PDF eux-mêmes ne sont jamais envoyés : seuls les scores et un court extrait de chaque question sont enregistrés.
-- *Supprimer mon compte* efface tout (profil, épreuves, contrôles, adhésions).
-
-## Mettre à jour le site
-
-Dans le dépôt GitHub (*Add file → Upload files*), glisse le ou les fichiers modifiés en gardant leur dossier : `maths/index.html` pour le QCM, `elec/index.html` pour l'élec, `index.html` pour l'accueil. Ne touche pas à `config.js`. Les données des comptes ne sont pas affectées.
-
-### Passage à la version « plusieurs outils »
-
-Le QCM était à la racine du dépôt ; il est maintenant dans `maths/`. Pour migrer :
-
-1. Envoie le nouveau `index.html` (l'accueil), puis les dossiers `maths` et `elec` entiers. GitHub crée les dossiers automatiquement.
-2. Supabase → **Authentication → URL Configuration** → *Site URL* : ajoute `maths/` à la fin de l'adresse (ex. `https://sushiazd.github.io/Prepa01/maths/`).
-3. Les comptes, groupes et la progression enregistrée dans le navigateur sont conservés, car le site reste sur le même domaine. Le dépôt s'appelle maintenant `Prepa01` : l'ancien lien `…/MathPrac/` ne fonctionne plus (GitHub ne redirige pas les sites Pages après un renommage), il faut partager `…/Prepa01/`.
-
-## Limites connues
-
-- Pas encore de « mot de passe oublié » : en cas d'oubli, le compte peut être supprimé depuis Supabase (*Authentication → Users*) et recréé.
-- Le « temps d'entraînement » ne compte que les épreuves faites sur le site (pauses exclues).
-- Une épreuve de maths ou un sujet blanc en cours se reprend sur un autre appareil connecté au même compte. L'autre appareil le récupère à l'ouverture de la page ou en revenant sur l'onglet, pas en direct pendant qu'on écrit.
-- Les projets Supabase gratuits peuvent être mis en pause après une période d'inactivité : il suffit de les relancer depuis le tableau de bord Supabase.
+The code is under the [MIT License](LICENSE). Exercises adapted from past ESIR / Université de Rennes exams and course material remain the property of their authors.

@@ -57,7 +57,7 @@
       return Object.assign({}, nw, { ans: Object.assign({}, old.ans, nw.ans) });   // réponses des deux appareils
     },
   };
-  ['ato', 'algo', 'phys', 'meca', 'ms1', 'ma2', 'el2'].forEach(p => { SYNC[p + '.exam.v1'] = SYNC['elec.exam.v1']; });
+  ['ato', 'algo', 'phys', 'meca', 'ms1', 'ma2', 'el2', 'eln'].forEach(p => { SYNC[p + '.exam.v1'] = SYNC['elec.exam.v1']; });
   // atomistique : mêmes règles que l'élec (parcours compétence par compétence, copies réunies)
   SYNC['ato.path.v1'] = SYNC['elec.path.v1'];
   SYNC['ato.hist.v1'] = SYNC['elec.hist.v1'];
@@ -82,7 +82,9 @@
   SYNC['ma2.hist.v1'] = SYNC['elec.hist.v1'];
   SYNC['el2.path.v1'] = SYNC['elec.path.v1'];
   SYNC['el2.hist.v1'] = SYNC['elec.hist.v1'];
-  ['elec', 'algo', 'phys', 'meca', 'ms1', 'ma2', 'el2'].forEach(p => { SYNC[p + '.learn.v1'] = SYNC['ato.learn.v1']; });
+  SYNC['eln.path.v1'] = SYNC['elec.path.v1'];
+  SYNC['eln.hist.v1'] = SYNC['elec.hist.v1'];
+  ['elec', 'algo', 'phys', 'meca', 'ms1', 'ma2', 'el2', 'eln'].forEach(p => { SYNC[p + '.learn.v1'] = SYNC['ato.learn.v1']; });
   // temps passé sur le site : un total par appareil (dv), on garde le plus grand de chaque appareil
   // (additionner compterait deux fois les mêmes secondes) ; le total du compte = somme des appareils
   const TIME = 'site.time.v1', DEV = 'site.dev.v1';

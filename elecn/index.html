@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Électronique numérique · Entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="../subjects.js?v=2026111001"></script>
+<script src="../core.js?v=2026103101"></script>
+<script src="learn.js?v=2026111001"></script>
+<script defer src="../account.js" data-lazy></script>
+<link rel="stylesheet" href="../core.css?v=2026102803">
+<style>
+:root{
+  --accent:var(--dig); --accent-soft:var(--dig-soft);
+  --dig:#0284c7; --dig-soft:#e0f2fe;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --dig:#38bdf8; --dig-soft:#0c2d48;
+  }
+}
+:root[data-theme="dark"]{
+  --dig:#38bdf8; --dig-soft:#0c2d48;
+}
+code{font-family:var(--mono);font-size:.9em;background:var(--sheet-2);padding:1px 5px;border-radius:5px;border:1px solid var(--rule)}
+.katex{font-size:1.05em}
+.katex-display{margin:.6em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.brand-mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--dig);color:#fff;display:grid;place-items:center;font:700 15px/1 var(--mono)}
+.lede{font:italic 18px/1.5 var(--serif);color:var(--ink-2);margin-top:10px;max-width:740px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:24px;min-width:0}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.part{background:var(--warn-soft);color:var(--warn)}
+.bar.mid>i{background:var(--warn)} .bar.low>i{background:var(--bad)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600}
+.count span{color:var(--ink-2)}
+/* exercices */
+.ex .q{font:17px/1.6 var(--serif);margin-top:8px}
+.ex .q p+p{margin-top:8px}
+.it{display:grid;grid-template-columns:fit-content(42%) minmax(0,1fr);gap:4px 12px;align-items:center}
+.it-lab{text-align:right;font:16px/1.3 var(--serif);overflow-wrap:anywhere}
+.it-lab.w{font:15px/1.4 var(--sans);text-align:left}
+.it.full{grid-template-columns:minmax(0,1fr)}
+.it.full .fb{grid-column:1}
+.it-in input[type=text]{flex:1;min-width:0;width:100%;max-width:340px;font:15px/1.3 var(--mono);font-variant-ligatures:none;color:var(--ink);background:var(--sheet);border:1px solid var(--rule-strong);border-radius:9px;padding:9px 12px;min-height:42px}
+.unit{font:15px/1 var(--sans);color:var(--ink-2);white-space:nowrap}
+.fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto;overflow-y:hidden}
+.fb:empty{display:none}
+.ch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);cursor:pointer;font-size:14.5px}
+.ch:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
+.expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.6 var(--serif);overflow-x:auto}
+.expl p+p,.expl ul,.expl ol{margin-top:8px}
+.expl ul,.expl ol{padding-left:20px}
+.lvl i{width:8px;height:8px;border-radius:50%;background:var(--rule-strong)} .lvl i.on{background:var(--dig)}
+.res{border-color:color-mix(in srgb,var(--pen) 40%,transparent)}
+/* cours */
+.fiche{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.fiche>summary{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:16px 22px;cursor:pointer;list-style:none;font:600 18px/1.3 var(--serif)}
+.fiche>summary::-webkit-details-marker{display:none}
+.fiche>summary .tag{margin-left:auto;font:600 11.5px/1 var(--sans);padding:5px 9px;border-radius:999px;background:var(--dig-soft);color:var(--dig)}
+.fiche .body{padding:4px 24px 22px;border-top:1px solid var(--rule);font:16.5px/1.65 var(--serif);overflow-x:auto}
+.fiche .body p,.fiche .body ul,.fiche .body ol{margin-top:10px}
+.fiche .body ul,.fiche .body ol{padding-left:22px}
+table.t{border-collapse:collapse;margin-top:10px;font:14.5px/1.4 var(--sans)}
+table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:center}
+table.t td.l,table.t th.l{text-align:left}
+table.kmap{border-collapse:collapse;margin:12px auto;font:600 15px/1.3 var(--mono)}
+table.kmap th{padding:6px 10px;color:var(--ink-2);font-weight:600;border:0}
+table.kmap td{width:42px;height:38px;border:1.5px solid var(--rule-strong);text-align:center;background:var(--sheet)}
+table.kmap td.one{background:var(--dig-soft);color:var(--dig);font-weight:700}
+table.kmap td.dc{color:var(--muted)}
+.hist td,.hist th{padding:8px;border-bottom:1px solid var(--rule);text-align:left}
+.fig{display:block;width:100%;max-width:480px;height:auto;margin:14px auto 0}
+.fig .wr{stroke:var(--ink);stroke-width:2;fill:none}
+.fig .cp{fill:var(--sheet);stroke:var(--ink);stroke-width:2}
+.fig .hi{fill:var(--dig-soft);stroke:var(--dig);stroke-width:2}
+.fig text{fill:var(--ink);font:600 13.5px/1 var(--sans)}
+.fig text.m{font-family:var(--mono)}
+.fig text.mut{fill:var(--muted);font-weight:500;font-size:12px}
+@media (max-width:760px){
+  .card{padding:18px}
+  .it{grid-template-columns:1fr}
+  .it-lab{text-align:left}
+  .fb{grid-column:1}
+  .psk{grid-template-columns:24px minmax(0,1fr) auto} .psk .bar{display:none}
+  .fiche .body{padding:4px 16px 18px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../" title="Retour à l'accueil des révisions"><span class="brand-mark" aria-hidden="true">01</span><div><strong>Électronique numérique</strong><small>Séquences A, B et C</small></div></a>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button type="button" class="tab" data-tab="home">Accueil</button>
+    <button type="button" class="tab" data-tab="path">Parcours</button>
+    <button type="button" class="tab" data-tab="cours">Cours</button>
+    <button type="button" class="tab" data-tab="exos">Exos</button>
+    <button type="button" class="tab" data-tab="blanc">Sujet blanc</button>
+  </nav>
+  <span class="clock" id="clock" hidden></span>
+  <button type="button" class="icon-btn" id="themeBtn" aria-label="Thème"></button>
+</header>
+<main id="app"></main>
+
+<script>
+(function () {
+'use strict';
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const E = SiteCore({ id: 'eln', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check, valOf, fbHTML, answer: it => it.type === 'bw' ? it.ans : null }; },
+  typeset: el => mathIn(el), get DUR() { return DUR; },
+  get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
+  get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
+  views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
+  renderEx: () => renderEx(), renderExam: () => renderExam(), submitExam: auto => submitExam(auto),
+  exam: () => examExos(EXAM.seed, EXAM.plan), answerText: it => it.type === 'bw' ? it.ans : null,
+  examItems: () => [].concat(...examExos(EXAM.seed, EXAM.plan).map(x => [].concat(...x.parts.map(q => q.items)))), check: (it, raw) => check(it, raw), valOf: (r, id) => valOf(r, id), fbHTML: r => fbHTML(r) });
+const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, skById, pst, skS, isVal, build,
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, startTick, stopTick, tally, examRecord, examPlan, weakButton, hideCorr, copyTag } = E;
+function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
+function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
+
+/* ---------- nombres, unités et mots binaires/oct/hexa ---------- */
+function nfmt(x, s = 4) {
+  if (!isFinite(x)) return '?';
+  if (Math.abs(x) < 1e-12) return '0';
+  return String(+x.toPrecision(s)).replace('.', ',');
+}
+const UN = {
+  'V': { V: 1, mV: 1e-3, kV: 1e3 },
+  'mV': { mV: 1, V: 1e3, 'µV': 1e-3, uV: 1e-3 },
+  'mA': { mA: 1, A: 1e3, 'µA': 1e-3, uA: 1e-3 },
+  'Hz': { Hz: 1, kHz: 1e3, MHz: 1e6 },
+  'kHz': { kHz: 1, Hz: 1e-3, MHz: 1e3 },
+  'MHz': { MHz: 1, kHz: 1e-3, Hz: 1e-6 },
+  's': { s: 1, ms: 1e-3, 'µs': 1e-6, 'μs': 1e-6, us: 1e-6, ns: 1e-9 },
+  'ms': { ms: 1, s: 1e3, 'µs': 1e-3, 'μs': 1e-3, us: 1e-3, ns: 1e-6 },
+  'µs': { 'µs': 1, 'μs': 1, us: 1, ms: 1e3, s: 1e6, ns: 1e-3 },
+  'ns': { ns: 1, 'µs': 1e3, 'μs': 1e3, us: 1e3, ms: 1e6, s: 1e9 },
+  '%': { '%': 1 },
+  '': {}
+};
+function parseNum(raw, unit) {
+  const s = String(raw).trim().replace(/[−–]/g, '-').replace(/,/g, '.').replace(/\s+/g, ' ');
+  if (!s) return { err: '' };
+  const m = /^([-+]?(?:\d+\.?\d*|\.\d+))\s*(?:[eE]\s*([-+]?\d+)|(?:\*|x|×|·)\s*10\s*\^?\s*\(?\s*([-+]?\d+)\s*\)?)?\s*(.*)$/.exec(s);
+  if (!m) return { err: 'écris un nombre (ex : 12,5 ou 256)' };
+  const v = parseFloat(m[1]) * Math.pow(10, +(m[2] || m[3] || 0));
+  const u = m[4].replace(/\s+/g, '');
+  if (!u) return { v };
+  const f = (UN[unit || ''] || {})[u];
+  if (f === undefined) return { err: unit ? 'unité attendue : ' + unit : 'pas d\'unité attendue ici' };
+  return { v: v * f };
+}
+function normWord(s, fixed) {
+  let w = String(s || '').trim().toUpperCase().replace(/\s+/g, '').replace(/\./g, ',');
+  w = w.replace(/\((?:2|8|10|16)\)$/, '');
+  if (!w) return '';
+  if (fixed) return w;
+  if (w.includes(',')) {
+    const [a, b] = w.split(',');
+    return (a.replace(/^0+(?=[0-9A-F])/, '') || '0') + ',' + b.replace(/0+$/, '');
+  }
+  return w.replace(/^0+(?=[0-9A-F])/, '') || '0';
+}
+
+/* ---------- constructeurs d'items et schémas ---------- */
+const Ch = (lab, opts, ans) => ({ type: 'choice', lab, opts: opts.map(([v, t]) => ({ v, t })), ans });
+const Nn = (lab, val, unit = '', tol = 0.015) => ({ type: 'num', lab, val, unit, tol });
+const Bw = (lab, ans, fixed = false, ph = 'ex : 10110 ou 2B,8') => ({ type: 'bw', lab, ans: String(ans), fixed, ph });
+
+const GRAY2 = ['00', '01', '11', '10'];
+function kmapHTML(vars, cells) {
+  if (vars === 3) {
+    const rLab = ['0', '1'], cLab = GRAY2;
+    return `<table class="kmap" aria-label="Tableau de Karnaugh à 3 variables"><tr><th>\\(a \\backslash bc\\)</th>${cLab.map(c => `<th>${c}</th>`).join('')}</tr>`
+      + rLab.map((r, ri) => `<tr><th>${r}</th>${cLab.map((c, ci) => { const idx = parseInt(r + c, 2), v = cells[idx]; return `<td class="${v === 1 ? 'one' : v === 'X' ? 'dc' : ''}">${v}</td>`; }).join('')}</tr>`).join('') + '</table>';
+  }
+  return `<table class="kmap" aria-label="Tableau de Karnaugh à 4 variables"><tr><th>\\(ab \\backslash cd\\)</th>${GRAY2.map(c => `<th>${c}</th>`).join('')}</tr>`
+    + GRAY2.map(r => `<tr><th>${r}</th>${GRAY2.map(c => { const idx = parseInt(r + c, 2), v = cells[idx]; return `<td class="${v === 1 ? 'one' : v === 'X' ? 'dc' : ''}">${v}</td>`; }).join('')}</tr>`).join('') + '</table>';
+}
+function mux4Fig(aLab, bLab, eLabs, outLab = 'S') {
+  return `<svg class="fig" viewBox="0 0 360 190" role="img" aria-label="Multiplexeur 4 vers 1">
+    <rect class="cp" x="130" y="20" width="100" height="120" rx="6"/>
+    <text x="180" y="42" text-anchor="middle">MUX 4→1</text>
+    ${[0, 1, 2, 3].map(i => { const y = 55 + i * 22; return `<line class="wr" x1="75" y1="${y}" x2="130" y2="${y}"/><text class="m" x="142" y="${y + 4}">E${i}</text><text class="m" x="68" y="${y + 4}" text-anchor="end">${eLabs[i]}</text>`; }).join('')}
+    <line class="wr" x1="230" y1="80" x2="290" y2="80"/><text class="m" x="298" y="84">${outLab}</text>
+    <line class="wr" x1="162" y1="140" x2="162" y2="168"/><line class="wr" x1="198" y1="140" x2="198" y2="168"/>
+    <text class="mut" x="162" y="134" text-anchor="middle">B</text><text class="mut" x="198" y="134" text-anchor="middle">A</text>
+    <text class="m" x="162" y="182" text-anchor="middle">${bLab}</text><text class="m" x="198" y="182" text-anchor="middle">${aLab}</text>
+  </svg>`;
+}
+function addFig(n) {
+  return `<svg class="fig" viewBox="0 0 340 165" role="img" aria-label="Opérateur ADD sur ${n} bits">
+    <polygon class="cp" points="95,45 245,45 215,105 125,105"/>
+    <text x="170" y="80" text-anchor="middle">ADD (${n} bits)</text>
+    <line class="wr" x1="135" y1="12" x2="135" y2="45"/><text class="m" x="135" y="10" text-anchor="middle">X</text>
+    <line class="wr" x1="205" y1="12" x2="205" y2="45"/><text class="m" x="205" y="10" text-anchor="middle">Y</text>
+    <line class="wr" x1="170" y1="105" x2="170" y2="142"/><text class="m" x="170" y="156" text-anchor="middle">SOM</text>
+    <polyline class="wr" points="110,75 65,75 65,132"/><text class="m" x="65" y="148" text-anchor="middle">rep</text>
+  </svg>`;
+}
+
+/* =====================================================================
+   GÉNÉRATEURS D'EXERCICES (12 compétences × 3 niveaux)
+   ===================================================================== */
+const GEN = {};
+const bin = (n, w = 0) => (n >>> 0).toString(2).padStart(w, '0');
+const oct = n => (n >>> 0).toString(8);
+const hex = n => (n >>> 0).toString(16).toUpperCase();
+
+/* ---------- 1. num : Bases 2, 8, 10, 16 et conversions ---------- */
+GEN.num = (d, g) => {
+  if (d === 0) {
+    const n = g.int(19, 62), b = bin(n), o = oct(n), h = hex(n);
+    const bits = g.pick([6, 7, 8, 9, 10]);
+    return {
+      title: 'Conversions entre bases 2, 8, 10 et 16',
+      q: `<p>1) Convertir le nombre binaire \\(N = ${b}_2\\) en base 10, en base 8 (octal) et en base 16 (hexadécimal).</p><p>2) Combien de valeurs différentes peut-on coder sur ${bits} bits ?</p>`,
+      items: [Nn('N_{10}', n), Bw('N_8', o), Bw('N_{16}', h), Nn('\\text{valeurs sur }' + bits + '\\text{ bits}', 1 << bits)],
+      corr: `<p>1) En décimal : \\(${b}_2 = ${b.split('').map((c, i) => c === '1' ? (1 << (b.length - 1 - i)) : '').filter(Boolean).join(' + ')} = ${n}_{10}\\).</p>
+        <p>En octal (blocs de 3 bits à partir de la droite) : \\(${b.padStart(Math.ceil(b.length / 3) * 3, '0')} \\to ${o}_8\\). En hexadécimal (blocs de 4 bits) : \\(${b.padStart(Math.ceil(b.length / 4) * 4, '0')} \\to \\mathrm{${h}}_{16}\\).</p>
+        <p>2) Sur ${bits} bits, on code \\(2^{${bits}} = ${1 << bits}\\) valeurs distinctes (de \\(0\\) à \\(${(1 << bits) - 1}\\)).</p>`
+    };
+  }
+  if (d === 1) {
+    const n = g.int(140, 420), b = bin(n), o = oct(n), h = hex(n);
+    const maxV = g.pick([300, 500, 750, 1000, 2000]), minB = Math.ceil(Math.log2(maxV + 1));
+    return {
+      title: 'Divisions successives et dimensionnement en bits',
+      q: `<p>1) Convertir l'entier décimal \\(N = ${n}_{10}\\) en binaire, en octal et en hexadécimal (par divisions successives ou regroupement de bits).</p><p>2) Combien de bits faut-il au minimum pour coder tous les entiers de \\(0\\) à \\(${maxV}\\) ?</p>`,
+      items: [Bw('N_2', b), Bw('N_8', o), Bw('N_{16}', h), Nn('n_{\\min}\\text{ (bits)}', minB)],
+      corr: `<p>1) Par divisions successives par 2 (ou par 16 : \\(${n} = ${Math.floor(n / 16)}\\times 16 + ${n % 16}\\)) : \\(${n}_{10} = ${b}_2 = ${o}_8 = \\mathrm{${h}}_{16}\\).</p>
+        <p>2) \\(2^{${minB - 1}} = ${1 << (minB - 1)} \\le ${maxV} < 2^{${minB}} = ${1 << minB}\\), donc il faut au minimum <b>${minB} bits</b>.</p>`
+    };
+  }
+  const intP = g.int(9, 29), fracIdx = g.pick([1, 2, 3, 5, 6, 7]); // en huitièmes : 0,125 à 0,875
+  const decVal = intP + fracIdx / 8;
+  const fBin = bin(fracIdx, 3).replace(/0+$/, '');
+  const bStr = `${bin(intP)},${fBin}`;
+  const oStr = `${oct(intP)},${fracIdx}`;
+  const hFrac = hex(fracIdx * 2);
+  const hStr = `${hex(intP)},${hFrac}`;
+  return {
+    title: 'Nombres fractionnaires (à virgule)',
+    q: `<p>Convertir le nombre décimal à virgule \\(N = ${String(decVal).replace('.', ',')}_{10}\\) en binaire, en octal et en hexadécimal (écris une virgule, par ex. <code>1101,101</code>).</p>`,
+    items: [Bw('N_2', bStr), Bw('N_8', oStr), Bw('N_{16}', hStr)],
+    corr: `<p>Partie entière : \\(${intP}_{10} = ${bin(intP)}_2\\). Partie fractionnaire : \\(${String(fracIdx / 8).replace('.', ',')} = ${fracIdx}/8 = 0{,}${bin(fracIdx, 3)}_2 = 0{,}${fBin}_2\\), donc \\(N_2 = ${bStr}_2\\).</p>
+      <p>En regroupant par <b>3 bits de part et d'autre de la virgule</b> : \\(${bin(intP, 6)},${bin(fracIdx, 3)}_2 = ${oStr}_8\\).</p>
+      <p>En regroupant par <b>4 bits de part et d'autre de la virgule</b> : \\(${bin(intP, 8)},${bin(fracIdx, 3)}0_2 = \\mathrm{${hStr}}_{16}\\).</p>`
+  };
+};
+
+/* ---------- 2. addb : Addition binaire, opérateur ADD et complément à 2 ---------- */
+GEN.addb = (d, g) => {
+  if (d === 0) {
+    const x = g.int(5, 14), y = g.int(3, 14), s = x + y, som = bin(s & 15, 4), rep = s > 15 ? 1 : 0;
+    return {
+      title: 'Opérateur ADD sur 4 bits',
+      fig: addFig(4),
+      q: `<p>On applique \\(X = ${bin(x, 4)}_2\\) et \\(Y = ${bin(y, 4)}_2\\) à un opérateur <code>ADD</code> sur 4 bits. Donner le mot de sortie \\(\\text{SOM}\\) (sur 4 bits), la retenue sortante \\(\\text{rep}\\) et la somme totale en décimal.</p>`,
+      items: [Bw('\\text{SOM (4 bits)}', som, true, '4 bits'), Nn('\\text{rep}', rep), Nn('X + Y\\text{ (décimal)}', s)],
+      corr: `<p>En décimal : \\(X = ${x}\\), \\(Y = ${y}\\), \\(X + Y = ${s} = ${bin(s, 5)}_2\\).</p>
+        <p>Sur 4 bits : les 4 bits de poids faible forment \\(\\text{SOM} = ${som}_2\\) et la retenue sortante du 4<sup>e</sup> rang vaut \\(\\text{rep} = ${rep}\\).</p>`
+    };
+  }
+  if (d === 1) {
+    const pos = g.int(2, 7), neg = -g.int(1, 7), c2Neg = bin((16 + neg) & 15, 4);
+    const x = g.int(35, 110), y = g.int(25, 110);
+    return {
+      title: 'Addition sur 8 bits et codage en complément à 2 (4 bits)',
+      q: `<p>1) Poser l'addition binaire non signée \\(${bin(x, 8)}_2 + ${bin(y, 8)}_2\\).</p><p>2) Coder en <b>complément à 2 sur 4 bits</b> les entiers signés \\(+${pos}\\) et \\(${neg}\\) (écris bien les 4 bits).</p>`,
+      items: [Bw('\\text{Somme binaire}', bin(x + y, 8)), Bw(`+${pos}\\text{ (4 bits C2)}`, bin(pos, 4), true, '4 bits'), Bw(`${neg}\\text{ (4 bits C2)}`, c2Neg, true, '4 bits')],
+      corr: `<p>1) \\(${x} + ${y} = ${x + y} = ${bin(x + y, 8)}_2\\).</p>
+        <p>2) \\(+${pos} = ${bin(pos, 4)}_2\\). Pour \\(${neg}\\) : on part de \\(+${-neg} = ${bin(-neg, 4)}_2\\), on inverse tous les bits (\\(${bin((~(-neg)) & 15, 4)}\\)) et on ajoute 1 : <b>\\(${c2Neg}\\)</b>.</p>`
+    };
+  }
+  const absV = g.int(18, 115), code8 = bin((256 - absV) & 255, 8);
+  const subA = g.int(18, 29), subB = g.int(6, 15);
+  return {
+    title: 'Décodage en complément à 2 sur 8 bits (TD Chap A1 Ex 3)',
+    q: `<p>1) L'octet <code>${code8}</code> représente un entier signé en <b>complément à 2 sur 8 bits</b>. Quelle est sa valeur décimale (avec son signe) ?</p><p>2) Calculer la soustraction binaire \\(${bin(subA, 5)}_2 - ${bin(subB, 5)}_2\\) et donner le résultat en binaire.</p>`,
+    items: [Nn('\\text{Valeur décimale}', -absV), Bw('\\text{Différence binaire}', bin(subA - subB))],
+    corr: `<p>1) Le bit de poids fort de <code>${code8}</code> vaut <code>1</code> : le nombre est <b>négatif</b>. On inverse tous les bits (<code>${bin((~(256 - absV)) & 255, 8)}</code>) et on ajoute 1 : <code>${bin(absV, 8)}</code> \\(= ${absV}_{10}\\), donc la valeur codée est <b>\\(-${absV}\\)</b>.</p>
+      <p>2) \\(${subA} - ${subB} = ${subA - subB} = ${bin(subA - subB)}_2\\).</p>`
+  };
+};
+
+/* ---------- 3. boole : Portes logiques, algèbre de Boole et De Morgan ---------- */
+const BOOLE_SIMP = [
+  { expr: 'a + \\bar{a}\\cdot b', ans: 'a + b', bad: ['a\\cdot b', 'a', '\\bar{a} + b'], why: 'Règle d\'absorption fondamentale du cours : \\(a + \\bar{a}b = (a + \\bar{a})(a + b) = a + b\\).' },
+  { expr: 'a + a\\cdot b + b\\cdot c', ans: 'a + b\\cdot c', bad: ['a + b + c', 'a\\cdot b\\cdot c', 'a + b'], why: 'Par absorption \\(a + ab = a(1+b) = a\\), il reste \\(a + bc\\).' },
+  { expr: '\\overline{a + b}\\cdot\\overline{\\bar{a} + \\bar{b}}', ans: '0', bad: ['1', 'a\\oplus b', '\\overline{a\\oplus b}'], why: 'Par De Morgan : \\((\\bar{a}\\cdot\\bar{b})\\cdot(a\\cdot b) = (a\\bar{a})(b\\bar{b}) = 0\\) (Quizz Boole Q1).' },
+  { expr: '(a + b)\\cdot(a + \\bar{b})', ans: 'a', bad: ['b', 'a + b', '1'], why: 'En distribuant : \\(a + (b\\cdot\\bar{b}) = a + 0 = a\\).' },
+  { expr: 'a\\cdot b + a\\cdot\\bar{b} + \\bar{a}\\cdot b', ans: 'a + b', bad: ['a\\oplus b', 'a\\cdot b', '1'], why: '\\(ab + a\\bar{b} = a(b+\\bar{b}) = a\\), puis \\(a + \\bar{a}b = a + b\\).' },
+  { expr: '\\overline{\\bar{a}\\cdot b + a\\cdot\\bar{b}}', ans: '\\bar{a}\\cdot\\bar{b} + a\\cdot b', bad: ['a + b', '\\bar{a} + \\bar{b}', 'a\\oplus b'], why: 'Le complément du OU exclusif \\(\\overline{a\\oplus b}\\) est la fonction <b>coïncidence</b> (XNOR) : \\(\\bar{a}\\bar{b} + ab\\).' }
+];
+GEN.boole = (d, g) => {
+  const S = g.pick(BOOLE_SIMP);
+  const opts = g.shuffle([['ok', `\\(${S.ans}\\)`], ...S.bad.map((b, i) => ['x' + i, `\\(${b}\\)`])]);
+  if (d === 0) {
+    const gate = g.pick([
+      ['&', 'porte ET (AND)', ['porte OU (OR)', 'porte XOR (OU exclusif)', 'inverseur (NON)']],
+      ['>=1', 'porte OU (OR)', ['porte ET (AND)', 'porte XOR (OU exclusif)', 'porte NAND']],
+      ['=1', 'porte OU exclusif (XOR)', ['porte OU (OR)', 'porte ET (AND)', 'porte NOR']]
+    ]);
+    return {
+      title: 'Symboles européens et simplification de Boole',
+      q: `<p>1) En représentation rectangulaire (norme européenne/IEEE du cours), quelle porte est désignée par le symbole <code>${gate[0]}</code> (sans bulle en sortie) ?</p><p>2) Simplifier l'expression booléenne \\(F = ${S.expr}\\).</p>`,
+      items: [
+        Ch('Symbole <code>' + gate[0] + '</code>', g.shuffle([['ok', gate[1]], ...gate[2].map((t, i) => ['b' + i, t])]), 'ok'),
+        Ch('Expression simplifiée de \\(F\\)', opts, 'ok')
+      ],
+      corr: `<p>1) Symbole <code>&amp;</code> = ET ; <code>&gt;=1</code> = OU ; <code>=1</code> = OU exclusif (XOR) ; <code>=1</code> avec sortie inversée = Coïncidence (XNOR).</p><p>2) \\(F = ${S.expr} = ${S.ans}\\). ${S.why}</p>`
+    };
+  }
+  if (d === 1) {
+    const dm = g.pick([
+      { q: '\\overline{a\\cdot\\bar{b} + c}', ok: '(\\bar{a} + b)\\cdot\\bar{c}', bad: ['\\bar{a}\\cdot b + \\bar{c}', '(\\bar{a}\\cdot b)\\cdot\\bar{c}', 'a + \\bar{b} + \\bar{c}'] },
+      { q: '\\overline{(a + \\bar{b})\\cdot\\bar{c}}', ok: '\\bar{a}\\cdot b + c', bad: ['(\\bar{a} + b) + c', '\\bar{a} + b + c', 'a\\cdot\\bar{b}\\cdot c'] }
+    ]);
+    return {
+      title: 'Théorèmes de De Morgan et absorption',
+      q: `<p>1) Appliquer les théorèmes de De Morgan à \\(G = ${dm.q}\\).</p><p>2) Simplifier \\(F = ${S.expr}\\).</p>`,
+      items: [
+        Ch('\\(G =\\)', g.shuffle([['ok', `\\(${dm.ok}\\)`], ...dm.bad.map((b, i) => ['b' + i, `\\(${b}\\)`])]), 'ok'),
+        Ch('\\(F =\\)', opts, 'ok')
+      ],
+      corr: `<p>1) De Morgan : on coupe la barre principale en changeant \\(+\\) en \\(\\cdot\\) (et \\(\\cdot\\) en \\(+\\)), puis \\(\\overline{\\bar{x}} = x\\) : \\(G = ${dm.ok}\\).</p><p>2) \\(F = ${S.ans}\\). ${S.why}</p>`
+    };
+  }
+  const nandQ = g.pick([
+    { f: 'a\\cdot b + c', ok: '\\overline{\\overline{a\\cdot b}\\cdot\\bar{c}}', bad: ['\\overline{a\\cdot b} + \\bar{c}', '\\overline{\\overline{a+b}\\cdot\\bar{c}}', '\\overline{a\\cdot b\\cdot c}'] },
+    { f: '(a + b)\\cdot c', ok: '\\overline{\\overline{\\overline{\\bar{a}\\cdot\\bar{b}}\\cdot c}}', bad: ['\\overline{(a+b)\\cdot c}', '\\overline{\\bar{a}\\cdot\\bar{b}\\cdot c}', '\\overline{a\\cdot c} + \\overline{b\\cdot c}'] }
+  ]);
+  return {
+    title: 'Universalité des portes NAND et NOR (Quizz Boole)',
+    q: `<p>1) Par double négation \\(F = \\overline{\\overline{F}}\\) et théorème de De Morgan, quelle écriture permet de réaliser \\(F = ${nandQ.f}\\) uniquement avec des portes <b>NAND</b> ?</p><p>2) Simplifier \\(H = ${S.expr}\\).</p>`,
+    items: [
+      Ch('Écriture tout-NAND', g.shuffle([['ok', `\\(${nandQ.ok}\\)`], ...nandQ.bad.map((b, i) => ['b' + i, `\\(${b}\\)`])]), 'ok'),
+      Ch('\\(H =\\)', opts, 'ok')
+    ],
+    corr: `<p>1) On écrit \\(F = \\overline{\\overline{F}}\\) et on transforme chaque somme \\(X + Y\\) en \\(\\overline{\\bar{X}\\cdot\\bar{Y}}\\) pour n'avoir que des barres sur des produits (opérations NAND) : \\(F = ${nandQ.ok}\\).</p><p>2) \\(H = ${S.ans}\\). ${S.why}</p>`
+  };
+};
+
+/* ---------- 4. canon : Formes canoniques (SDP, PDS) et liste de poids ---------- */
+const sdpTerm3 = i => ((i & 4) ? 'a' : '\\bar{a}') + ((i & 2) ? 'b' : '\\bar{b}') + ((i & 1) ? 'c' : '\\bar{c}');
+const pdsTerm3 = i => '(' + ((i & 4) ? '\\bar{a}' : 'a') + ' + ' + ((i & 2) ? '\\bar{b}' : 'b') + ' + ' + ((i & 1) ? '\\bar{c}' : 'c') + ')';
+GEN.canon = (d, g) => {
+  if (d === 0) {
+    const ones = g.shuffle([0, 1, 2, 3, 4, 5, 6, 7]).slice(0, 3).sort((a, b) => a - b);
+    const goodSDP = ones.map(sdpTerm3).join(' + ');
+    const bad1 = ones.map(i => sdpTerm3(7 - i)).join(' + ');
+    const bad2 = ones.map(pdsTerm3).join('\\cdot ');
+    return {
+      title: 'Forme canonique Somme de Produits (SDP) et liste de poids',
+      q: `<p>Une fonction \\(F(a,b,c)\\) (avec \\(a\\) bit de poids fort et \\(c\\) bit de poids faible) vaut <code>1</code> uniquement pour les combinaisons décimales \\((${ones.join(', ')})\\). Quelle est sa forme canonique Somme de Produits (SDP), et combien de lignes de la table de vérité valent <code>0</code> ?</p>`,
+      items: [
+        Ch('Forme canonique SDP', g.shuffle([['ok', `\\(${goodSDP}\\)`], ['b1', `\\(${bad1}\\)`], ['b2', `\\(${bad2}\\)`]]), 'ok'),
+        Nn('\\text{Nombre de lignes où } F = 0', 8 - ones.length)
+      ],
+      corr: `<p>Dans la forme canonique SDP, on écrit un produit de toutes les variables pour chaque ligne où \\(F = 1\\) (variable directe si le bit vaut 1, complémentée s'il vaut 0) : \\(${ones.map(i => `${i} = ${bin(i, 3)}_2 \\to ${sdpTerm3(i)}`).join('\\), \\(')}\\), soit \\(F = ${goodSDP}\\).</p><p>Sur \\(2^3 = 8\\) lignes, \\(8 - 3 = 5\\) lignes valent 0.</p>`
+    };
+  }
+  if (d === 1) {
+    const zeros = g.shuffle([0, 1, 2, 3, 4, 5, 6, 7]).slice(0, 2).sort((a, b) => a - b);
+    const goodPDS = zeros.map(pdsTerm3).join('\\cdot ');
+    const bad1 = zeros.map(i => pdsTerm3(7 - i)).join('\\cdot ');
+    const bad2 = zeros.map(sdpTerm3).join(' + ');
+    return {
+      title: 'Forme canonique Produit de Sommes (PDS)',
+      q: `<p>Une fonction \\(F(a,b,c)\\) vaut <code>0</code> uniquement pour les lignes décimales \\(${zeros[0]}\\) (\\(${bin(zeros[0], 3)}_2\\)) et \\(${zeros[1]}\\) (\\(${bin(zeros[1], 3)}_2\\)), et vaut <code>1</code> partout ailleurs. Donner sa forme canonique <b>Produit de Sommes (PDS)</b>.</p>`,
+      items: [
+        Ch('Forme canonique PDS', g.shuffle([['ok', `\\(${goodPDS}\\)`], ['b1', `\\(${bad1}\\)`], ['b2', `\\(${bad2}\\)`]]), 'ok'),
+        Nn('\\text{Nombre de termes de la SDP}', 6)
+      ],
+      corr: `<p>Pour la forme canonique PDS, on retient les lignes où <b>\\(F = 0\\)</b> et on écrit une somme qui s'annule sur la ligne (variable directe si son bit vaut <code>0</code>, barrée si son bit vaut <code>1</code>) : \\(${zeros[0]} = ${bin(zeros[0], 3)}_2 \\to ${pdsTerm3(zeros[0])}\\) et \\(${zeros[1]} = ${bin(zeros[1], 3)}_2 \\to ${pdsTerm3(zeros[1])}\\), d'où \\(F = ${goodPDS}\\).</p>`
+    };
+  }
+  const cases = [
+    { expr: 'a\\bar{b} + abc', list: [4, 5, 7], sdp: 'a\\bar{b}\\bar{c} + a\\bar{b}c + abc', step: '\\(a\\bar{b} = a\\bar{b}(c + \\bar{c}) = a\\bar{b}c + a\\bar{b}\\bar{c}\\) (poids 5 et 4), plus \\(abc\\) (poids 7).' },
+    { expr: '\\bar{a}c + ab\\bar{c}', list: [1, 3, 6], sdp: '\\bar{a}\\bar{b}c + \\bar{a}bc + ab\\bar{c}', step: '\\(\\bar{a}c = \\bar{a}(b + \\bar{b})c = \\bar{a}bc + \\bar{a}\\bar{b}c\\) (poids 3 et 1), plus \\(ab\\bar{c}\\) (poids 6).' },
+    { expr: 'bc + \\bar{a}\\bar{b}c', list: [1, 3, 7], sdp: '\\bar{a}\\bar{b}c + \\bar{a}bc + abc', step: '\\(bc = (a + \\bar{a})bc = abc + \\bar{a}bc\\) (poids 7 et 3), plus \\(\\bar{a}\\bar{b}c\\) (poids 1).' }
+  ];
+  const C = g.pick(cases);
+  return {
+    title: 'Mise sous forme canonique et liste de nombres (Quizz Chap A3)',
+    q: `<p>On considère \\(F(a,b,c) = ${C.expr}\\) (avec \\(a\\) poids 4, \\(b\\) poids 2, \\(c\\) poids 1). Compléter les termes incomplets pour obtenir la forme canonique SDP et donner les 3 nombres de la liste de poids par ordre croissant.</p>`,
+    items: [Nn('\\text{1er poids}', C.list[0]), Nn('\\text{2e poids}', C.list[1]), Nn('\\text{3e poids}', C.list[2])],
+    corr: `<p>On complète chaque terme où il manque une variable \\(x\\) en le multipliant par \\((x + \\bar{x}) = 1\\) : ${C.step}</p><p>Forme canonique SDP : \\(F = ${C.sdp}\\), soit la liste de nombres \\((${C.list.join(', ')})\\).</p>`
+  };
+};
+
+/* ---------- 5. karn : Tableaux de Karnaugh (3 et 4 variables, états X) ---------- */
+const KARN_BANK = [
+  { vars: 3, d: 0, list: [0, 1, 4, 5], x: [], ans: '\\bar{b}', bad: ['\\bar{a}', '\\bar{c}', '\\bar{a}\\bar{b} + a\\bar{b}'], why: 'Quartet des colonnes 00 et 01 sur les deux lignes \\(a=0\\) et \\(a=1\\) : \\(a\\) et \\(c\\) changent, seul \\(b = 0\\) reste fixe, donc \\(F = \\bar{b}\\).' },
+  { vars: 3, d: 0, list: [0, 2, 4, 6], x: [], ans: '\\bar{c}', bad: ['\\bar{b}', 'c', '\\bar{a} + \\bar{c}'], why: 'Quartet des colonnes 00 et 10 (bords gauche et droit) sur les deux lignes : \\(a\\) et \\(b\\) changent, seul \\(c = 0\\) est commun, donc \\(F = \\bar{c}\\).' },
+  { vars: 3, d: 0, list: [2, 3, 6, 7], x: [], ans: 'b', bad: ['c', 'a + b', 'b\\cdot c'], why: 'Quartet des colonnes 01 et 11 sur les deux lignes : \\(b = 1\\) partout, donc \\(F = b\\).' },
+  { vars: 4, d: 1, list: [0, 2, 8, 10], x: [], ans: '\\bar{b}\\cdot\\bar{d}', bad: ['\\bar{a}\\cdot\\bar{c}', '\\bar{b} + \\bar{d}', 'b\\cdot d'], why: 'Quartet des <b>4 coins</b> (lignes 00 et 10, colonnes 00 et 10) : \\(b=0\\) et \\(d=0\\) restent constants, donc \\(F = \\bar{b}\\bar{d}\\).' },
+  { vars: 4, d: 1, list: [0, 2, 5, 7, 8, 10, 13, 15], x: [], ans: '\\bar{b}\\cdot\\bar{d} + b\\cdot d', bad: ['\\bar{b}\\cdot d + b\\cdot\\bar{d}', '\\bar{a}\\cdot\\bar{c} + a\\cdot c', 'b + d'], why: 'Quizz Chap A3 Q4 : un quartet aux 4 coins donne \\(\\bar{b}\\bar{d}\\), et un quartet au centre (lignes 01 et 11, colonnes 01 et 11) donne \\(bd\\), soit \\(F = \\bar{b}\\bar{d} + bd = \\overline{b\\oplus d}\\).' },
+  { vars: 4, d: 1, list: [4, 5, 6, 7, 12, 13, 14, 15], x: [], ans: 'b', bad: ['a\\cdot b', 'a + b', 'c + d'], why: 'Octet couvrant entièrement les lignes 01 et 11 : \\(a, c, d\\) changent, seul \\(b = 1\\) reste fixe, donc \\(F = b\\).' },
+  { vars: 4, d: 2, list: [0, 1, 2, 8, 9], x: [3, 10, 11], ans: '\\bar{b}', bad: ['\\bar{b}\\cdot\\bar{c} + \\bar{a}\\cdot\\bar{b}', '\\bar{a} + \\bar{b}', '\\bar{b}\\cdot\\bar{d}'], why: 'En prenant les trois états indifférents \\(X\\) (cases 3, 10, 11) à <code>1</code>, on forme un <b>octet</b> couvrant toutes les lignes 00 et 10 : \\(F = \\bar{b}\\).' },
+  { vars: 4, d: 2, list: [5, 7, 13], x: [15], ans: 'b\\cdot d', bad: ['b\\cdot d + \\bar{a}\\cdot b\\cdot d', 'a\\cdot b\\cdot d', 'b + d'], why: 'En prenant \\(X\\) en case 15 (<code>1111</code>) à <code>1</code>, les cases 5, 7, 13, 15 forment le quartet central : \\(F = b\\cdot d\\).' }
+];
+GEN.karn = (d, g) => {
+  const K = g.pick(KARN_BANK.filter(x => x.d === d));
+  const N = 1 << K.vars, cells = Array.from({ length: N }, (_, i) => K.list.includes(i) ? 1 : K.x.includes(i) ? 'X' : 0);
+  const opts = g.shuffle([['ok', `\\(${K.ans}\\)`], ...K.bad.map((b, i) => ['b' + i, `\\(${b}\\)`])]);
+  return {
+    title: K.vars === 3 ? 'Tableau de Karnaugh à 3 variables' : d === 2 ? 'Tableau de Karnaugh à 4 variables avec états indifférents X' : 'Tableau de Karnaugh à 4 variables',
+    fig: kmapHTML(K.vars, cells),
+    q: `<p>On donne le tableau de Karnaugh de \\(F(${K.vars === 3 ? 'a,b,c' : 'a,b,c,d'})\\), défini par \\(F = 1\\) pour \\((${K.list.join(', ')})\\)${K.x.length ? ` et \\(F = X\\) pour \\((${K.x.join(', ')})\\)` : ''}. Déterminer l'expression minimale en Somme de Produits (SDP).</p>`,
+    items: [Ch('Expression simplifiée \\(F =\\)', opts, 'ok')],
+    corr: `<p>${K.why}</p><p class="fine">Rappel : regroupe toujours par paquets maximaux de \\(1, 2, 4, 8\\) cases en code Gray (<code>00 01 11 10</code>), en pensant aux bords opposés et aux 4 coins.</p>`
+  };
+};
+
+/* ---------- 6. mux : Multiplexeurs (MUX), décodeurs et additionneurs ---------- */
+GEN.mux = (d, g) => {
+  if (d === 0) {
+    const a = g.int(0, 1), b = g.int(0, 1), re = g.int(0, 1), tot = a + b + re;
+    return {
+      title: 'Additionneur complet 1 bit (CM & Quizz MuxAdd)',
+      q: `<p>Un additionneur complet 1 bit reçoit les entrées \\(A = ${a}\\), \\(B = ${b}\\) et la retenue entrante \\(R_e = ${re}\\). Donner les expressions logiques de \\(S\\) et \\(R_s\\), puis leurs valeurs numériques pour ces entrées.</p>`,
+      items: [
+        Ch('Équations de l\'additionneur complet', g.shuffle([
+          ['ok', '\\(S = A\\oplus B\\oplus R_e\\) et \\(R_s = AB + R_e(A\\oplus B)\\)'],
+          ['b1', '\\(S = A + B + R_e\\) et \\(R_s = A\\cdot B\\cdot R_e\\)'],
+          ['b2', '\\(S = A\\oplus B\\) et \\(R_s = A\\cdot B + R_e\\)']
+        ]), 'ok'),
+        Nn('S', tot & 1),
+        Nn('R_s', tot >> 1)
+      ],
+      corr: `<p>Un additionneur complet se réalise avec <b>2 demi-additionneurs et 1 porte OU</b> : \\(S = A\\oplus B\\oplus R_e\\) et \\(R_s = AB + R_e(A\\oplus B)\\).</p><p>Pour \\(A=${a}, B=${b}, R_e=${re}\\) : somme arithmétique \\(${a}+${b}+${re} = ${tot} = ${bin(tot, 2)}_2\\), soit \\(R_s = ${tot >> 1}\\) et \\(S = ${tot & 1}\\).</p>`
+    };
+  }
+  const eChoices = ['0', '1', 'z', '\\bar{z}'];
+  const pickE = () => [g.pick(eChoices), g.pick(eChoices), g.pick(eChoices), g.pick(eChoices)];
+  let E4 = pickE(); while (E4.every(x => x === '0')) E4 = pickE();
+  const list = [];
+  for (let xy = 0; xy < 4; xy++) {
+    const e = E4[xy];
+    if (e === '1') list.push(xy * 2, xy * 2 + 1);
+    else if (e === 'z') list.push(xy * 2 + 1);
+    else if (e === '\\bar{z}') list.push(xy * 2);
+  }
+  const eOpt = () => [['0', '\\(0\\)'], ['1', '\\(1\\)'], ['z', '\\(z\\)'], ['\\bar{z}', '\\(\\bar{z}\\)']];
+  if (d === 1) {
+    return {
+      title: 'Synthèse d\'une fonction de 3 variables avec un MUX 4 vers 1',
+      fig: mux4Fig('y', 'x', ['E₀', 'E₁', 'E₂', 'E₃'], 'F(x,y,z)'),
+      q: `<p>On souhaite réaliser la fonction \\(F(x,y,z) = 1\\) pour \\((${list.join(', ')})\\) (avec \\(x\\) poids 4, \\(y\\) poids 2, \\(z\\) poids 1) à l'aide d'un <b>multiplexeur 4 vers 1</b> dont les entrées d'adresse sont \\(B = x\\) et \\(A = y\\). Déterminer ce qu'il faut relier sur chacune des entrées \\(E_0, E_1, E_2, E_3\\).</p>`,
+      items: [0, 1, 2, 3].map(i => Ch(`Entrée \\(E_${i}\\) (\\(xy = ${bin(i, 2)}\\))`, eOpt(), E4[i])),
+      corr: `<p>Équation du MUX 4→1 : \\(S = \\bar{x}\\bar{y}E_0 + \\bar{x}yE_1 + x\\bar{y}E_2 + xyE_3\\). On regarde chaque couple \\(xy\\) :</p>
+        <ul>${[0, 1, 2, 3].map(i => `<li>\\(xy = ${bin(i, 2)}\\) (lignes ${2 * i} où \\(z=0\\) et ${2 * i + 1} où \\(z=1\\)) : \\(E_${i} = ${E4[i]}\\).</li>`).join('')}</ul>`
+    };
+  }
+  const wordA = g.int(40, 220), wordB = g.int(40, 220);
+  return {
+    title: 'Comparateur 4 bits en cascade (7485) et synthèse sur MUX',
+    fig: mux4Fig('y', 'x', E4.map(x => x === '\\bar{z}' ? '/z' : x), 'F'),
+    q: `<p>1) Sur le schéma ci-dessus, un MUX 4→1 reçoit \\(E_0 = ${E4[0]}\\), \\(E_1 = ${E4[1]}\\), \\(E_2 = ${E4[2]}\\), \\(E_3 = ${E4[3]}\\). Que vaut la sortie \\(F\\) lorsque \\(x = 1, y = 0, z = 1\\) ?</p><p>2) Pour comparer deux mots de 8 bits avec deux comparateurs 4 bits <b>7485</b> en cascade (TD Chap A3 Ex 11), sur quel boîtier lit-on le résultat final de la comparaison ?</p>`,
+    items: [
+      Nn('F(1,0,1)', E4[2] === '1' || E4[2] === 'z' ? 1 : 0),
+      Ch('Sortie finale des deux 7485 en cascade', [
+        ['msb', 'sur le comparateur des 4 bits de poids fort (qui reçoit en cascade les sorties du comparateur de poids faible)'],
+        ['lsb', 'sur le comparateur des 4 bits de poids faible'],
+        ['xor', 'en faisant un OU exclusif des deux boîtiers']
+      ], 'msb')
+    ],
+    corr: `<p>1) Pour \\(x = 1, y = 0\\), l'adresse vaut \\(BA = 10_2 = 2\\) : le MUX sélectionne \\(E_2 = ${E4[2]}\\). Avec \\(z = 1\\), on obtient \\(F = ${E4[2] === '1' || E4[2] === 'z' ? 1 : 0}\\).</p>
+      <p>2) Sur le 7485, le boîtier des bits de poids faible (\\(A_3..A_0\\)) a ses entrées d'expansion fixées à \\((A=B) = 1\\), et ses sorties sont envoyées vers les entrées d'expansion du boîtier des <b>bits de poids fort</b> (\\(A_7..A_4\\)), qui délivre le résultat final.</p>`
+  };
+};
+
+/* ---------- 7. basc : Bascules RS, D et JK, entrées RAU/RAZ ---------- */
+GEN.basc = (d, g) => {
+  if (d === 0) {
+    const fH = g.pick([8, 16, 24, 32, 40, 64]);
+    return {
+      title: 'Équations caractéristiques des bascules D et JK',
+      q: `<p>1) Quelle est l'équation caractéristique d'une bascule JK synchrone ?</p><p>2) On câble une bascule D en diviseur de fréquence par 2 (\\(D = \\bar{Q}\\)) avec une horloge \\(F_H = ${fH}\\ \\mathrm{kHz}\\). Quelle est la fréquence du signal \\(Q\\) ?</p>`,
+      items: [
+        Ch('Bascule JK : \\(Q_{n+1} =\\)', g.shuffle([
+          ['ok', '\\(J_n\\cdot\\overline{Q_n} + \\overline{K_n}\\cdot Q_n\\)'],
+          ['b1', '\\(J_n\\cdot Q_n + \\overline{K_n}\\cdot\\overline{Q_n}\\)'],
+          ['b2', '\\(\\overline{J_n}\\cdot\\overline{Q_n} + K_n\\cdot Q_n\\)'],
+          ['b3', '\\(J_n \\oplus K_n \\oplus Q_n\\)']
+        ]), 'ok'),
+        Nn('F_Q', fH / 2, 'kHz')
+      ],
+      corr: `<p>1) Équation caractéristique de la bascule JK (démontrée par Karnaugh en CM Chap B1) : \\(Q_{n+1} = J_n\\overline{Q_n} + \\overline{K_n}Q_n\\).</p><p>2) Avec \\(D = \\bar{Q}\\), la bascule change d'état à chaque front actif d'horloge : \\(F_Q = F_H / 2 = ${fH / 2}\\ \\mathrm{kHz}\\).</p>`
+    };
+  }
+  if (d === 1) {
+    const q0 = g.int(0, 1);
+    const seq = [[1, 0], [0, 0], [1, 1], [0, 1]];
+    let q = q0;
+    const states = seq.map(([j, k]) => { q = j === 0 && k === 0 ? q : j === 0 && k === 1 ? 0 : j === 1 && k === 0 ? 1 : 1 - q; return q; });
+    return {
+      title: 'Chronogramme d\'une bascule JK sur 4 fronts d\'horloge',
+      q: `<p>Une bascule JK déclenchée sur front montant part de l'état initial \\(Q_0 = ${q0}\\) (entrées asynchrones inactives). Aux 4 fronts montants successifs de \\(H\\), les entrées \\((J, K)\\) valent : front 1 : \\((1,0)\\) ; front 2 : \\((0,0)\\) ; front 3 : \\((1,1)\\) ; front 4 : \\((0,1)\\). Écrire la suite des 4 états pris par \\(Q\\) (sous forme d'un mot de 4 bits, ex : <code>1100</code>).</p>`,
+      items: [Bw('Q_1Q_2Q_3Q_4', states.join(''), true, '4 bits')],
+      corr: `<p>Front 1 \\((J=1, K=0)\\) : mise à 1 \\(\\to Q_1 = 1\\). Front 2 \\((J=0, K=0)\\) : mémoire \\(\\to Q_2 = 1\\). Front 3 \\((J=1, K=1)\\) : basculement \\(\\to Q_3 = 0\\). Front 4 \\((J=0, K=1)\\) : mise à 0 \\(\\to Q_4 = 0\\). Suite : <code>${states.join('')}</code>.</p>`
+    };
+  }
+  return {
+    title: 'Entrées asynchrones prioritaires RAU et RAZ (TD Chap B1 Ex 2)',
+    q: `<p>Une bascule JK possède deux entrées asynchrones actives au niveau <b>bas</b> : \\(\\overline{\\text{RAU}}\\) (Preset) et \\(\\overline{\\text{RAZ}}\\) (Clear).</p><p>1) Quel couple \\((\\overline{\\text{RAU}}, \\overline{\\text{RAZ}})\\) autorise le fonctionnement synchrone normal piloté par l'horloge \\(H\\) ?</p><p>2) Entre deux fronts d'horloge, \\(\\overline{\\text{RAU}}\\) passe à <code>0</code> (avec \\(\\overline{\\text{RAZ}} = 1\\)). Que fait la sortie \\(Q\\) ?</p>`,
+    items: [
+      Bw('\\overline{\\text{RAU}}\\,\\overline{\\text{RAZ}}\\text{ (mode normal)}', '11', true, '2 bits'),
+      Ch('Effet de \\(\\overline{\\text{RAU}} = 0\\)', [
+        ['imm', 'elle passe immédiatement à 1, sans attendre le prochain front d\'horloge'],
+        ['wait', 'elle attend le prochain front actif de H pour passer à 1'],
+        ['zero', 'elle passe immédiatement à 0']
+      ], 'imm')
+    ],
+    corr: `<p>1) Comme \\(\\overline{\\text{RAU}}\\) et \\(\\overline{\\text{RAZ}}\\) sont actives au niveau <b>bas (0)</b>, elles doivent toutes les deux valoir <b><code>1</code></b> (<code>11</code>) pour être inactives et laisser l'horloge \\(H\\) commander la bascule.</p><p>2) Les entrées asynchrones sont <b>prioritaires sur l'horloge</b> : dès que \\(\\overline{\\text{RAU}} = 0\\), \\(Q\\) est forcée à <code>1</code> instantanément.</p>`
+  };
+};
+
+/* ---------- 8. cpta : Compteurs asynchrones et modulo ---------- */
+GEN.cpta = (d, g) => {
+  if (d === 0) {
+    const edge = g.pick(['up', 'down']), wire = g.pick(['Q', 'nQ']);
+    const isUp = (edge === 'down' && wire === 'Q') || (edge === 'up' && wire === 'nQ');
+    const n = g.pick([3, 4]);
+    return {
+      title: 'Sens de comptage et modulo d\'un compteur asynchrone',
+      q: `<p>Un montage asynchrone est formé de \\(${n}\\) bascules JK (\\(J=K=1\\)) déclenchées sur <b>front ${edge === 'up' ? 'montant (\\(\\uparrow\\))' : 'descendant (\\(\\downarrow\\))'}</b>. L'entrée d'horloge de chaque bascule \\(B_{i+1}\\) est reliée à la sortie <b>\\(${wire === 'Q' ? 'Q_i' : '\\overline{Q_i}'}\\)</b> de la bascule précédente.</p>`,
+      items: [
+        Ch('Ce montage est un', [['up', 'compteur croissant'], ['down', 'décompteur (décroissant)']], isUp ? 'up' : 'down'),
+        Nn('\\text{Modulo du montage}', 1 << n)
+      ],
+      corr: `<p>Pour compter en croissant, \\(B_{i+1}\\) doit basculer quand \\(Q_i\\) passe de \\(1\\) à \\(0\\) (front descendant de \\(Q_i\\), qui correspond au front montant de \\(\\overline{Q_i}\\)). Ici (front ${edge === 'up' ? '\\(\\uparrow\\)' : '\\(\\downarrow\\)'} sur \\(${wire === 'Q' ? 'Q_i' : '\\overline{Q_i}'}\\)), c'est donc un <b>${isUp ? 'compteur croissant' : 'décompteur'}</b> de modulo \\(2^${n} = ${1 << n}\\).</p>`
+    };
+  }
+  if (d === 1) {
+    const mod = g.pick([5, 6, 10, 12]), nB = mod <= 8 ? 3 : 4, code = bin(mod, nB);
+    return {
+      title: 'Compteur asynchrone modulo N par remise à zéro (TD Chap B2 Ex 2)',
+      q: `<p>On veut concevoir un compteur asynchrone croissant <b>modulo ${mod}</b> (comptant de \\(0\\) à \\(${mod - 1}\\)).</p><p>1) Combien de bascules \\(n\\) faut-il au minimum ?</p><p>2) Quel état binaire transitoire \\(Q_{${nB - 1}}\\dots Q_0\\) (sur ${nB} bits) doit déclencher la remise à zéro asynchrone <code>RAZ</code> de toutes les bascules ?</p>`,
+      items: [Nn('n\\text{ (bascules)}', nB), Bw('\\text{État déclenchant RAZ}', code, true, nB + ' bits')],
+      corr: `<p>1) \\(2^{${nB - 1}} = ${1 << (nB - 1)} < ${mod} \\le 2^{${nB}} = ${1 << nB}\\), il faut <b>${nB} bascules</b>.</p>
+        <p>2) Le compteur parcourt les ${mod} états \\(0, 1, \\dots, ${mod - 1}\\). Dès qu'il passe à l'état transitoire <b>${mod} (\\(${code}_2\\))</b>, une porte logique détecte les bits à 1 de \\(${code}_2\\) et active immédiatement <code>RAZ</code> pour ramener le compteur à <code>${'0'.repeat(nB)}</code>.</p>`
+    };
+  }
+  const nB = g.pick([3, 4]), tp = g.pick([10, 20, 25, 50]), totTp = nB * tp, fMax = 1000 / totTp;
+  return {
+    title: 'Retard de propagation cumulé et fréquence maximale',
+    q: `<p>Un compteur asynchrone à \\(${nB}\\) bascules utilise des bascules dont le temps de propagation est \\(t_p = ${tp}\\ \\mathrm{ns}\\). Calculer le retard maximal d'établissement d'un état stable après le front de \\(H\\), et en déduire la fréquence maximale d'horloge \\(f_{max}\\).</p>`,
+    items: [Nn('\\text{Retard total}', totTp, 'ns'), Nn('f_{max}', fMax, 'MHz')],
+    corr: `<p>Dans un compteur asynchrone, les bascules commutent les unes après les autres : la \\(${nB}\\)<sup>e</sup> bascule commute après \\(${nB}\\times t_p = ${totTp}\\ \\mathrm{ns}\\).</p><p>Il faut que la période d'horloge vérifie \\(T_H \\ge ${totTp}\\ \\mathrm{ns}\\), soit \\(f_{max} = \\dfrac{1}{${totTp}\\cdot 10^{-9}} = ${nfmt(fMax)}\\ \\mathrm{MHz}\\).</p>`
+  };
+};
+
+/* ---------- 9. cpts : Synthèse de compteurs synchrones (D et JK) ---------- */
+const JK_ID_BANK = [
+  { eq: 'Q_1^+ = \\overline{Q_2}\\,Q_0\\,\\overline{Q_1} + \\overline{Q_0}\\,Q_1', q: 'Q_1', j: '\\overline{Q_2}\\cdot Q_0', k: 'Q_0', bad: [['Q_0', '\\overline{Q_2}\\cdot Q_0'], ['\\overline{Q_2}\\cdot Q_0', '\\overline{Q_0}'], ['\\overline{Q_2}', 'Q_0']], why: 'Devant \\(\\overline{Q_1}\\) on identifie \\(J_1 = \\overline{Q_2}Q_0\\) ; devant \\(Q_1\\) on identifie \\(\\overline{K_1} = \\overline{Q_0} \\iff K_1 = Q_0\\) (compteur modulo 6 du TD).' },
+  { eq: 'Q_2^+ = (Q_1\\cdot Q_0)\\,\\overline{Q_2} + (\\overline{Q_1} + \\overline{Q_0})\\,Q_2', q: 'Q_2', j: 'Q_1\\cdot Q_0', k: 'Q_1\\cdot Q_0', bad: [['Q_1\\cdot Q_0', '\\overline{Q_1} + \\overline{Q_0}'], ['Q_1 + Q_0', 'Q_1\\cdot Q_0'], ['1', 'Q_1\\cdot Q_0']], why: 'Devant \\(\\overline{Q_2}\\) : \\(J_2 = Q_1Q_0\\). Devant \\(Q_2\\) : \\(\\overline{K_2} = \\overline{Q_1} + \\overline{Q_0} = \\overline{Q_1Q_0}\\), donc par De Morgan \\(K_2 = Q_1Q_0\\) (compteur binaire 3 bits du CM).' },
+  { eq: 'Q_2^+ = Q_1\\,Q_0\\,\\overline{Q_2} + \\overline{Q_0}\\,Q_2', q: 'Q_2', j: 'Q_1\\cdot Q_0', k: 'Q_0', bad: [['Q_1\\cdot Q_0', '\\overline{Q_0}'], ['Q_0', 'Q_1\\cdot Q_0'], ['Q_1', 'Q_0']], why: 'Par identification avec \\(J_2\\overline{Q_2} + \\overline{K_2}Q_2\\) : \\(J_2 = Q_1Q_0\\) et \\(\\overline{K_2} = \\overline{Q_0} \\iff K_2 = Q_0\\).' },
+  { eq: 'Q_3^+ = (Q_2\\cdot Q_1\\cdot Q_0)\\,\\overline{Q_3} + \\overline{Q_0}\\,Q_3', q: 'Q_3', j: 'Q_2\\cdot Q_1\\cdot Q_0', k: 'Q_0', bad: [['Q_2\\cdot Q_1\\cdot Q_0', '\\overline{Q_0}'], ['Q_0', 'Q_2\\cdot Q_1\\cdot Q_0'], ['Q_2\\cdot Q_1', 'Q_0']], why: 'Compteur synchrone BCD modulo 10 (TD Chap B2 Ex 4) : \\(J_3 = Q_2Q_1Q_0\\) et \\(\\overline{K_3} = \\overline{Q_0} \\iff K_3 = Q_0\\).' }
+];
+GEN.cpts = (d, g) => {
+  if (d === 0) {
+    return {
+      title: 'Synthèse d\'un compteur synchrone 3 bits avec des bascules D (CM Chap B2)',
+      q: `<p>Dans un compteur synchrone binaire 3 bits \\((Q_2, Q_1, Q_0)\\) réalisé avec des bascules D (\\(D_i = Q_i^+\\)), on a \\(D_0 = \\overline{Q_0}\\) et \\(D_1 = Q_1 \\oplus Q_0\\). Quelle est l'expression de \\(D_2\\) obtenue après factorisation par un OU exclusif ?</p>`,
+      items: [
+        Ch('\\(D_2 = Q_2^+ =\\)', g.shuffle([
+          ['ok', '\\(Q_2 \\oplus (Q_1\\cdot Q_0)\\)'],
+          ['b1', '\\(Q_2 \\oplus Q_1 \\oplus Q_0\\)'],
+          ['b2', '\\(Q_2 \\cdot (Q_1 \\oplus Q_0)\\)'],
+          ['b3', '\\(\\overline{Q_2}\\cdot Q_1\\cdot Q_0\\)']
+        ]), 'ok')
+      ],
+      corr: `<p>Le bit \\(Q_2\\) ne s'inverse que lorsque \\(Q_1\\) et \\(Q_0\\) valent tous les deux 1 : \\(Q_2^+ = Q_2\\overline{(Q_1Q_0)} + \\overline{Q_2}(Q_1Q_0) = Q_2 \\oplus (Q_1\\cdot Q_0)\\).</p>`
+    };
+  }
+  const M = g.pick(JK_ID_BANK);
+  const opts = g.shuffle([
+    ['ok', `\\(J = ${M.j}\\) et \\(K = ${M.k}\\)`],
+    ...M.bad.map(([j, k], i) => ['b' + i, `\\(J = ${j}\\) et \\(K = ${k}\\)`])
+  ]);
+  if (d === 1) {
+    return {
+      title: 'Synthèse en bascules JK par identification algébrique',
+      q: `<p>Après simplification par tableau de Karnaugh, l'état suivant de la bascule \\(${M.q}\\) s'écrit :</p>\\[${M.eq}\\]<p>Par identification avec l'équation caractéristique \\(Q^+ = J\\,\\overline{Q} + \\overline{K}\\,Q\\), déterminer les entrées \\(J\\) et \\(K\\) de cette bascule.</p>`,
+      items: [Ch('Entrées \\(J\\) et \\(K\\)', opts, 'ok')],
+      corr: `<p>${M.why}</p>`
+    };
+  }
+  const stIn = g.pick([6, 7]);
+  const q2 = (stIn >> 2) & 1, q1 = (stIn >> 1) & 1, q0 = stIn & 1;
+  // Équations du compteur modulo 6 du TD Ex 3 : Q0+ = /Q0, Q1+ = /Q2 Q0 /Q1 + /Q0 Q1, Q2+ = Q1 Q0 /Q2 + /Q0 Q2
+  const nq0 = 1 - q0, nq1 = ((!q2 && q0 && !q1) || (!q0 && q1)) ? 1 : 0, nq2 = ((q1 && q0 && !q2) || (!q0 && q2)) ? 1 : 0;
+  const nextCode = `${nq2}${nq1}${nq0}`;
+  return {
+    title: 'États hors cycle et compteur intégré 74HC163',
+    q: `<p>1) Un compteur synchrone modulo 6 a pour équations : \\(Q_0^+ = \\overline{Q_0}\\), \\(Q_1^+ = \\overline{Q_2}Q_0\\overline{Q_1} + \\overline{Q_0}Q_1\\) et \\(Q_2^+ = Q_1Q_0\\overline{Q_2} + \\overline{Q_0}Q_2\\). S'il se trouve à la mise sous tension dans l'état hors cycle <b>${stIn} (<code>${bin(stIn, 3)}</code>)</b>, quel est son état suivant \\(Q_2^+Q_1^+Q_0^+\\) (en binaire sur 3 bits) ?</p><p>2) Sur le compteur synchrone 4 bits <b>74HC163</b>, pour quelle valeur décimale du compteur la sortie de retenue <code>RCO</code> passe-t-elle à <code>1</code> ?</p>`,
+    items: [Bw('Q_2^+Q_1^+Q_0^+', nextCode, true, '3 bits'), Nn('\\text{État où RCO} = 1', 15)],
+    corr: `<p>1) Pour \\(Q_2Q_1Q_0 = ${bin(stIn, 3)}\\) : \\(Q_0^+ = \\overline{${q0}} = ${nq0}\\), \\(Q_1^+ = ${nq1}\\), \\(Q_2^+ = ${nq2}\\), soit l'état <b><code>${nextCode}</code> (${parseInt(nextCode, 2)})</b>.</p><p>2) Sur le 74HC163, la sortie <code>RCO</code> (*Ripple Carry Output*) passe à 1 lorsque le compteur atteint sa valeur maximale sur 4 bits : <b>15 (<code>1111</code>)</b>.</p>`
+  };
+};
+
+/* ---------- 10. reg : Registres de stockage et à décalage ---------- */
+GEN.reg = (d, g) => {
+  if (d === 0) {
+    return {
+      title: 'Registre à chargement commandé par ch (CM Chap B3)',
+      q: `<p>Pour réaliser un registre dont chaque bascule D mémorise son état quand \\(ch = 0\\) et charge l'entrée \\(e_i\\) quand \\(ch = 1\\) (<code>Q := si ch alors e sinon Q</code>), quelle équation doit réaliser le MUX 2→1 placé devant l'entrée \\(D_i\\) ?</p>`,
+      items: [
+        Ch('\\(D_i =\\)', g.shuffle([
+          ['ok', '\\(\\overline{ch}\\cdot Q_i + ch\\cdot e_i\\)'],
+          ['b1', '\\(ch\\cdot Q_i + \\overline{ch}\\cdot e_i\\)'],
+          ['b2', '\\(ch \\oplus Q_i \\oplus e_i\\)'],
+          ['b3', '\\(ch\\cdot e_i\\)']
+        ]), 'ok')
+      ],
+      corr: `<p>Si \\(ch = 0\\), il faut \\(D_i = Q_i\\) (maintien de l'état présent) ; si \\(ch = 1\\), il faut \\(D_i = e_i\\) (chargement) : c'est un MUX 2 vers 1 d'équation \\(D_i = \\overline{ch}\\cdot Q_i + ch\\cdot e_i\\).</p>`
+    };
+  }
+  if (d === 1) {
+    const init = g.int(1, 14), b0 = bin(init, 4);
+    const dir = g.pick(['droite', 'gauche']), ser = g.int(0, 1);
+    const out = dir === 'droite' ? `${ser}${b0.slice(0, 3)}` : `${b0.slice(1)}${ser}`;
+    return {
+      title: 'Registre bidirectionnel universel (commande s₁s₀)',
+      q: `<p>Un registre 4 bits contient \\(q_3q_2q_1q_0 = ${b0}_2\\). Au prochain front d'horloge, il est commandé en <b>décalage à ${dir}</b> (\\(s_1s_0 = ${dir === 'droite' ? '01' : '10'}\\)) avec une entrée série égale à <code>${ser}</code>. Quel est le nouvel état \\(q_3q_2q_1q_0\\) après le front ?</p>`,
+      items: [Bw('q_3q_2q_1q_0', out, true, '4 bits')],
+      corr: `<p>En décalage à ${dir} (${dir === 'droite' ? '<code>q3q2q1q0 := R q3q2q1</code>' : '<code>q3q2q1q0 := q2q1q0 L</code>'}), le bit série <code>${ser}</code> entre du côté ${dir === 'droite' ? 'gauche (\\(q_3\\))' : 'droit (\\(q_0\\))'} et les autres bits se décalent d'un rang : <b><code>${out}</code></b>.</p>`
+    };
+  }
+  const nB = g.pick([3, 4, 5, 6]), fH = nB * g.pick([10, 20, 50]);
+  return {
+    title: 'Compteur en anneau à registre à décalage (TD Chap B3 Ex 1)',
+    q: `<p>On reboucle un registre à décalage de \\(${nB}\\) bascules D sur lui-même (\\(D_0 = Q_{${nB - 1}}\\)). L'impulsion d'initialisation met la première bascule à <code>1</code> (via <code>RAU</code>) et les \\(${nB - 1}\\) autres à <code>0</code> (via <code>RAZ</code>). L'horloge a pour fréquence \\(F_H = ${fH}\\ \\mathrm{kHz}\\). Donner le modulo de ce compteur en anneau et la fréquence du signal sur chaque sortie \\(Q_i\\).</p>`,
+    items: [Nn('\\text{Modulo}', nB), Nn('F_{Q_i}', fH / nB, 'kHz')],
+    corr: `<p>Un seul <code>1</code> circule en boucle à travers les \\(${nB}\\) bascules : le registre décrit exactement <b>\\(${nB}\\) états distincts</b> (modulo \\(${nB}\\)), et chaque sortie \\(Q_i\\) passe à 1 une fois tous les \\(${nB}\\) coups d'horloge, soit \\(F_{Q_i} = F_H / ${nB} = ${fH / nB}\\ \\mathrm{kHz}\\).</p>`
+  };
+};
+
+/* ---------- 11. ech : Chaîne d'acquisition, échantillonnage et quantification ---------- */
+GEN.ech = (d, g) => {
+  if (d === 0) {
+    const nB = g.pick([3, 4]), p = g.pick([0.2, 0.25, 0.5]), nMax = (1 << nB) - 1, vMax = nMax * p;
+    return {
+      title: 'Chaîne d\'acquisition et pas de quantification (TD Séquence C Ex 1)',
+      q: `<p>1) Dans la chaîne d'acquisition numérique, quel élément maintient la tension analogique constante pendant toute la durée de la conversion du CAN ?</p><p>2) Un CAN de \\(${nB}\\) bits a une tension maximale \\(V_{max} = ${nfmt(vMax)}\\ \\mathrm{V}\\). Calculer \\(N_{max} = 2^n - 1\\) et le pas de quantification \\(P = V_{max} / N_{max}\\).</p>`,
+      items: [
+        Ch('Maintien pendant la conversion', [
+          ['eb', 'l\'échantillonneur-bloqueur'],
+          ['tr', 'le transducteur'],
+          ['act', 'l\'actionneur']
+        ], 'eb'),
+        Nn('N_{max}', nMax),
+        Nn('P', p, 'V')
+      ],
+      corr: `<p>1) L'<b>échantillonneur-bloqueur</b> prélève la tension à chaque période \\(T_e = 1/F_e\\) et la bloque (signal en escalier) pendant que le CAN convertit.</p><p>2) Sur \\(${nB}\\) bits : \\(N_{max} = 2^{${nB}} - 1 = ${nMax}\\), et \\(P = \\dfrac{${nfmt(vMax)}}{${nMax}} = ${nfmt(p)}\\ \\mathrm{V}\\).</p>`
+    };
+  }
+  const nB = g.pick([3, 4]), p = g.pick([0.125, 0.25, 0.5]), nMax = (1 << nB) - 1, vMax = nMax * p;
+  const k = g.int(2, nMax - 1), ve = k * p + g.pick([0.3, 0.6]) * p, vd = k * p;
+  if (d === 1) {
+    return {
+      title: 'Quantification et codage par défaut (TD Chap C1 Ex 1)',
+      q: `<p>Un CAN de \\(${nB}\\) bits a une tension pleine échelle \\(V_{max} = ${nfmt(vMax)}\\ \\mathrm{V}\\) (pas \\(P = ${nfmt(p)}\\ \\mathrm{V}\\)) et fonctionne par <b>valeur par défaut</b> (arrondi à la valeur autorisée immédiatement inférieure). Pour un échantillon \\(V_e = ${nfmt(ve)}\\ \\mathrm{V}\\), donner la tension discrète retenue \\(V_d\\), le nombre de pas \\(N\\) et le mot binaire de sortie sur ${nB} bits.</p>`,
+      items: [Nn('V_d', vd, 'V'), Nn('N', k), Bw('\\text{Code binaire}', bin(k, nB), true, nB + ' bits')],
+      corr: `<p>\\(V_e / P = ${nfmt(ve)} / ${nfmt(p)} = ${nfmt(ve / p)}\\) : par défaut, on garde l'entier inférieur \\(N = ${k}\\), ce qui correspond à la tension autorisée \\(V_d = ${k}\\times ${nfmt(p)} = ${nfmt(vd)}\\ \\mathrm{V}\\) et au mot binaire <b><code>${bin(k, nB)}</code></b>.</p>`
+    };
+  }
+  const fMaxSig = g.pick([2, 4, 5, 10]);
+  return {
+    title: 'Résolution en bits et fréquence d\'échantillonnage',
+    q: `<p>1) Un CAN passe de 3 bits à 4 bits tout en gardant un pas deux fois plus petit (\\(P = 0{,}125\\ \\mathrm{V}\\)). Que vaut sa nouvelle tension maximale \\(V_{max} = (2^4 - 1)\\cdot P\\) ?</p><p>2) D'après la condition de Shannon vue en TD, quelle doit être au minimum la fréquence d'échantillonnage \\(F_e\\) pour échantillonner sans repliement un signal de fréquence maximale \\(f_{max} = ${fMaxSig}\\ \\mathrm{kHz}\\) ?</p>`,
+    items: [Nn('V_{max}', 15 * 0.125, 'V'), Nn('F_{e,\\min}', 2 * fMaxSig, 'kHz')],
+    corr: `<p>1) Sur 4 bits, \\(N_{max} = 2^4 - 1 = 15\\), d'où \\(V_{max} = 15 \\times 0{,}125 = 1{,}875\\ \\mathrm{V}\\) (TD Chap C1 Ex 1 Q5).</p><p>2) Critère de Shannon : \\(F_e > 2\\,f_{max} = ${2 * fMaxSig}\\ \\mathrm{kHz}\\).</p>`
+  };
+};
+
+/* ---------- 12. cnacan : Convertisseurs CNA et CAN ---------- */
+GEN.cnacan = (d, g) => {
+  if (d === 0) {
+    const nB = g.pick([5, 6, 8]), nMax = (1 << nB) - 1, K = g.pick([0.1, 0.2, 0.5]);
+    const n1 = g.int(8, nMax - 5), n2 = g.int(n1 + 2, nMax);
+    return {
+      title: 'CNA : facteur de proportionnalité K et pleine échelle (TD Chap C2 Ex 1–3)',
+      q: `<p>Un CNA de \\(${nB}\\) bits fournit une tension de sortie \\(V_S = ${nfmt(K * n1)}\\ \\mathrm{V}\\) lorsque l'entrée numérique est <code>${bin(n1, nB)}</code>.</p><p>1) Calculer le facteur de proportionnalité (pas de progression) \\(K\\).</p><p>2) Calculer \\(V_S\\) pour l'entrée <code>${bin(n2, nB)}</code>, puis la tension maximale (pleine échelle) \\(V_{max}\\) du CNA.</p>`,
+      items: [Nn('K', K, 'V'), Nn('V_S', K * n2, 'V'), Nn('V_{max}', K * nMax, 'V')],
+      corr: `<p>1) \\(${bin(n1, nB)}_2 = ${n1}_{10}\\), donc \\(K = \\dfrac{V_S}{N} = \\dfrac{${nfmt(K * n1)}}{${n1}} = ${nfmt(K)}\\ \\mathrm{V}\\).</p>
+        <p>2) Pour \\(${bin(n2, nB)}_2 = ${n2}_{10}\\), \\(V_S = K\\times ${n2} = ${nfmt(K * n2)}\\ \\mathrm{V}\\). La tension maximale est atteinte quand tous les bits valent 1 (\\(N_{max} = 2^{${nB}} - 1 = ${nMax}\\)) : \\(V_{max} = ${nMax}\\times ${nfmt(K)} = ${nfmt(K * nMax)}\\ \\mathrm{V}\\).</p>`
+    };
+  }
+  if (d === 1) {
+    const vref = g.pick([4, 8, 10]), ratio = g.pick([1, 2]), b4 = g.int(3, 15);
+    // CNA 4 bits pondéré : Vs = -(Rs * Vref / (8R)) * N ; avec Rs/R = ratio / 2 => pas = -(ratio * vref / 16)
+    const step = (ratio * vref) / 8, vs = -step * b4;
+    return {
+      title: 'CNA 4 bits à résistances pondérées et réseau R–2R (TD Chap C2 Ex 5)',
+      q: `<p>1) Un CNA 4 bits à résistances pondérées (\\(R, 2R, 4R, 8R\\)) utilise un AOP idéal (contre-réaction \\(R_S = ${ratio === 1 ? 'R' : '2R'}\\)) et une tension \\(V_{ref} = ${vref}\\ \\mathrm{V}\\), d'où \\(V_S = -\\dfrac{R_S\\,V_{ref}}{8R}\\,N\\). Calculer la tension de sortie \\(V_S\\) pour l'entrée binaire \\(b_3b_2b_1b_0 = ${bin(b4, 4)}_2\\).</p><p>2) Pour un CNA 4 bits à <b>réseau R–2R</b>, par quel coefficient est divisé \\(R_S V_{ref}\\,N\\) dans la formule \\(V_S = -\\dfrac{R_S V_{ref}}{\\dots}\\,N\\) ?</p>`,
+      items: [Nn('V_S', vs, 'V'), Ch('Dénominateur du CNA R–2R 4 bits', [['32R', '\\(32R\\)'], ['8R', '\\(8R\\)'], ['16R', '\\(16R\\)']], '32R')],
+      corr: `<p>1) Ici \\(${bin(b4, 4)}_2 = ${b4}_{10}\\) et \\(\\dfrac{R_S V_{ref}}{8R} = \\dfrac{${ratio}\\times ${vref}}{8} = ${nfmt(step)}\\ \\mathrm{V}\\), donc \\(V_S = -${nfmt(step)}\\times ${b4} = ${nfmt(vs)}\\ \\mathrm{V}\\).</p>
+        <p>2) Dans le réseau R–2R 4 bits du cours, les tensions aux nœuds valent \\(V_{ref}/2, V_{ref}/4, V_{ref}/8, V_{ref}/16\\) à travers des branches \\(2R\\) : \\(I_S = \\dfrac{V_{ref}}{32R}N\\) et \\(V_S = -\\dfrac{R_S V_{ref}}{32R}N\\).</p>`
+    };
+  }
+  const nB = g.pick([8, 10]), fH = g.pick([1, 2]), T = 1 / fH; // en µs
+  const N = g.int(80, 240);
+  return {
+    title: 'CAN simple rampe vs CAN à approximations successives (CAS)',
+    q: `<p>On compare un <b>CAN simple rampe</b> et un <b>CAN à approximations successives (CAS)</b> de \\(n = ${nB}\\) bits, cadencés par la même horloge \\(F_H = ${fH}\\ \\mathrm{MHz}\\) (période \\(T = ${nfmt(T)}\\ \\mathrm{\\mu s}\\)).</p><p>1) Pour une tension d'entrée qui conduit au code décimal \\(N = ${N}\\), calculer la durée de conversion \\(t_{\\text{rampe}}\\) du CAN simple rampe et la durée de conversion \\(t_{\\text{CAS}}\\) du CAS.</p><p>2) En fin de conversion, quelle inégalité relie \\(V_{Ax}\\) (sortie du CNA interne) et \\(V_A\\) (tension à convertir) dans un CAS ?</p>`,
+    items: [
+      Nn('t_{\\text{rampe}}', N * T, 'µs'),
+      Nn('t_{\\text{CAS}}', nB * T, 'µs'),
+      Ch('En fin de conversion d\'un CAS', [['le', '\\(V_{Ax} \\le V_A\\) (conversion par valeur par défaut)'], ['gt', '\\(V_{Ax} > V_A\\) (conversion par valeur par excès)']], 'le')
+    ],
+    corr: `<p>1) Le CAN simple rampe compte pas à pas de \\(0\\) à \\(N\\) : \\(t_{\\text{rampe}} = N\\times T = ${N}\\times ${nfmt(T)} = ${nfmt(N * T)}\\ \\mathrm{\\mu s}\\). Le CAS procède par dichotomie du MSB au LSB en exactement \\(n\\) périodes : \\(t_{\\text{CAS}} = n\\times T = ${nB}\\times ${nfmt(T)} = ${nfmt(nB * T)}\\ \\mathrm{\\mu s}\\).</p>
+      <p>2) Dans un CAS, chaque bit qui fait dépasser \\(V_A\\) (\\(V_{Ax} > V_A\\)) est immédiatement remis à 0 : en fin de conversion on a toujours <b>\\(V_{Ax} \\le V_A\\)</b> (alors que le CAN simple rampe s'arrête dès que \\(V_{Ax} > V_A\\)).</p>`
+  };
+};
+
+/* =====================================================================
+   VÉRIFICATION
+   ===================================================================== */
+function check(it, raw) {
+  raw = raw == null ? '' : String(raw);
+  if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
+  if (it.type === 'bw') {
+    const u = normWord(raw, it.fixed), a = normWord(it.ans, it.fixed);
+    if (!u) return { st: 'empty' };
+    if (it.fixed && u.length !== a.length && normWord(raw, false) === normWord(it.ans, false)) {
+      return { st: 'bad', msg: `écris tous les ${a.length} chiffres (avec les zéros à gauche).` };
+    }
+    return { st: u === a ? 'ok' : 'bad' };
+  }
+  const q = parseNum(raw, it.unit);
+  if (q.err !== undefined) return { st: q.err === '' ? 'empty' : 'err', msg: q.err };
+  const tol = Math.max((it.tol || 0.015) * Math.abs(it.val), 1e-9);
+  if (Math.abs(q.v - it.val) <= tol) return { st: 'ok' };
+  if (Math.abs(q.v + it.val) <= tol) return { st: 'bad', msg: 'attention au signe (n\'oublie pas le signe − si l\'AOP est inverseur ou le nombre négatif).' };
+  return { st: 'bad' };
+}
+const fbHTML = r => PILL[r.st] + (r.msg ? ' <span>' + esc(r.msg) + '</span>' : '');
+function itemHTML(it, id, val) {
+  if (it.type === 'choice') return `<div class="it full" data-id="${id}"><span class="it-lab w">${it.lab}</span><div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${o.t}</span></label>`).join('')}</div><div class="fb"></div></div>`;
+  const lab = `<span class="it-lab">${tx(it.lab + ' =')}</span>`;
+  if (it.type === 'bw') return `<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" autocomplete="off" spellcheck="false" autocapitalize="characters" placeholder="${esc(it.ph || 'réponse')}" value="${esc(val || '')}"></div><div class="fb"></div></div>`;
+  return `<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="valeur" value="${esc(val || '')}">${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div><div class="fb"></div></div>`;
+}
+const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); if (r) return r.value; const t = $(`input[type=text][data-id="${id}"]`, root); return t ? t.value : ''; };
+
+/* =====================================================================
+   COMPÉTENCES ET PROGRESSION (3 séquences, 12 compétences)
+   ===================================================================== */
+const CH = ['Séquence A · Logique combinatoire', 'Séquence B · Logique séquentielle', 'Séquence C · Conversion CAN / CNA'];
+const LEARN = window.SITE_LEARN ? window.SITE_LEARN({ Ch, Nn, Bw, esc }) : {};
+const SK = [
+  { id: 'num', ch: 0, name: 'Bases 2, 8, 10, 16 et conversions', fiche: 0 },
+  { id: 'addb', ch: 0, name: 'Addition binaire, opérateur ADD et complément à 2', fiche: 0 },
+  { id: 'boole', ch: 0, name: 'Portes logiques, Boole et De Morgan', fiche: 1 },
+  { id: 'canon', ch: 0, name: 'Formes canoniques (SDP, PDS) et liste de poids', fiche: 2 },
+  { id: 'karn', ch: 0, name: 'Tableaux de Karnaugh (3 et 4 variables, états X)', fiche: 2 },
+  { id: 'mux', ch: 0, name: 'Multiplexeurs (MUX), décodeurs et additionneurs', fiche: 3 },
+  { id: 'basc', ch: 1, name: 'Bascules RS, D et JK, entrées RAU/RAZ', fiche: 4 },
+  { id: 'cpta', ch: 1, name: 'Compteurs asynchrones et modulo', fiche: 5 },
+  { id: 'cpts', ch: 1, name: 'Synthèse de compteurs synchrones (D et JK)', fiche: 5 },
+  { id: 'reg', ch: 1, name: 'Registres de stockage, décalage et anneau', fiche: 6 },
+  { id: 'ech', ch: 2, name: 'Chaîne d\'acquisition, échantillonnage et quantification', fiche: 7 },
+  { id: 'cnacan', ch: 2, name: 'Convertisseurs CNA (pondéré, R–2R) et CAN (rampe, CAS)', fiche: 8 }
+];
+
+let CUR = null, EXAM = null;
+function exHTML(ex) {
+  return `<article class="card ex"><h2>${esc(ex.title)}</h2><div class="q">${ex.q}</div>${ex.fig || ''}
+    <div class="items">${ex.items.map(it => itemHTML(it, it.id, (CUR && CUR.ans[it.id]) || '')).join('')}</div>
+    <div class="actions"><button type="button" class="btn btn-primary" data-act="check">Vérifier</button></div>
+    <details class="corr"><summary>Correction</summary><div class="expl">${ex.corr}</div></details></article>`;
+}
+function renderEx() {
+  const host = $('#exHost'); if (!host || !CUR) return;
+  if (E.lessonGate(host)) return;
+  const k = CUR.k, s = skS(pst(), k.id);
+  host.innerHTML = (CUR.mode === 'path' ? `<div class="strip"><span class="fine">${esc(CH[k.ch])}</span><b>${esc(k.name)}</b><span class="lvl">${[0, 1, 2].map(i => `<i class="${i <= CUR.d ? 'on' : ''}"></i>`).join('')} niveau ${CUR.d + 1}/3</span>${CUR.review ? '<span class="tag-rev">Révision</span>' : ''}<span style="flex:1"></span>${E.learnBtn(k)}<button type="button" class="btn btn-ghost" data-fiche="${k.fiche}">Fiche du cours</button></div>`
+    + (s.ko >= 2 && !CUR.review ? '<div class="card" style="padding:14px 18px;background:var(--warn-soft)"><b>On ralentit.</b> Les deux derniers essais n\'étaient pas bons : exercice plus simple. Relis la fiche du cours, puis la correction si tu bloques.</div>' : '') : '')
+    + exHTML(CUR.ex);
+  mathIn(host);
+  CUR.ex.items.forEach(it => { if (it.id in CUR.first) { const fb = $(`.it[data-id="${it.id}"] .fb`, host); if (fb) fb.innerHTML = fbHTML(check(it, valOf(host, it.id))); } });
+  E.decorateEx(host);
+  host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function checkCur() {
+  if (!CUR || CUR.done) return;
+  const host = $('#exHost');
+  CUR.ex.items.forEach(it => {
+    const r = check(it, valOf(host, it.id)), fb = $(`.it[data-id="${it.id}"] .fb`, host);
+    if (fb) fb.innerHTML = fbHTML(r);
+    if (r.st !== 'empty' && r.st !== 'err' && !(it.id in CUR.first)) CUR.first[it.id] = r.st === 'ok' && !CUR.peek ? E.credit() : 0;
+  });
+  saveCur();
+  if (CUR.ex.items.every(it => it.id in CUR.first)) finish(CUR.ex.items.reduce((a, it) => a + CUR.first[it.id], 0) / CUR.ex.items.length);
+}
+
+/* =====================================================================
+   VUES
+   ===================================================================== */
+let VIEW = 'home';
+function nextCC() { return SiteSubjects.cc('eln'); }
+function vHome() {
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
+  const days = cc == null ? null : Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = cc == null ? 'CC1 en semaine 49 (Séquence A) · CC2 en semaine 2 (Tout)' : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Électronique numérique · ELECn · J. Bézy-Wendling</p><h1>Réussir l'électronique numérique</h1>
+    <p class="lede">Tout le programme des trois séquences (10 h CM, 10 h TD, 6 h TP) : <b>Séquence A</b> (numération, algèbre de Boole, tableaux de Karnaugh, multiplexeurs et additionneurs — évaluée au <b>CC1 d'1 h en semaine 49</b>), <b>Séquence B</b> (bascules RS/D/JK, compteurs asynchrones et synchrones, registres) et <b>Séquence C</b> (échantillonnage-quantification, convertisseurs CNA et CAN — évaluées au <b>CC2 d'1 h en semaine 2</b>).</p></div>
+    <section class="card"><div class="count"><b>${days == null ? '2 CC' : days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>Contrôles d'électronique numérique (1 h chacun) : ${esc(when)}</span></div></section>
+    <div class="grid2">
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées sur les 3 séquences (6 en Séquence A, 4 en Séquence B, 2 en Séquence C).</p>
+        <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
+      <section class="card"><h2>Sujet blanc (1 h)</h2><p class="sub">Entraînement chronométré sur les 3 séquences : logique combinatoire (8 pts), logique séquentielle (6 pts), conversion CAN/CNA (6 pts). ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
+    </div>
+    <section class="card"><h2>Organisation du module (3 notes)</h2><p class="sub">La note finale d'ELECn dépend du <b>CC1</b> (1 h en semaine 49, portant sur la Séquence A), du <b>CC2</b> (1 h en semaine 2, portant sur les Séquences B et C / tout le cours) et de la note de <b>TP</b> (3 séances de 2 h). Les 9 fiches de cours ci-dessous reprennent l'intégralité des diapositives de CM, des 4 quizz et des 3 TD corrigés.</p>
+      <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="cours">Lire les 9 fiches des 3 séquences →</button></div></section>`;
+  mathIn(app);
+}
+let FREE = { id: 'num', d: 0 };
+function vExos() {
+  app.innerHTML = `<div><p class="eyebrow">Entraînement libre</p><h1>Exercices par séquence</h1><p class="lede">Choisis une compétence (Séquence A, B ou C) et un niveau. Les nombres, tables et schémas sont générés à chaque essai.</p></div>
+    <section class="card"><div class="seg">${SK.map(k => `<button type="button" data-ft="${k.id}" aria-pressed="${k.id === FREE.id}">${esc(k.name)}</button>`).join('')}</div>
+      <div class="row" style="margin-top:12px"><div class="seg">${[0, 1, 2].map(d => `<button type="button" data-fd="${d}" aria-pressed="${d === FREE.d}">Niveau ${d + 1}</button>`).join('')}</div><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></section>
+    <div id="exHost" style="display:grid;gap:16px"></div>`;
+  startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+}
+
+/* =====================================================================
+   COURS COMPLET (9 FICHES COUVRANT LES SÉQUENCES A, B ET C)
+   ===================================================================== */
+const FICHES = [
+  ['A1. Systèmes de numération, opérateur ADD et complément à 2', 'Séquence A · Chap A1', `<p>En base \\(B\\), un nombre \\(N\\) s'écrit avec \\(B\\) symboles (poids forts à gauche, poids faibles à droite) : \\[N = \\sum_{i=0}^{n-1} a_i\\,B^i\\] Après la virgule, les chiffres portent les poids \\(B^{-1}, B^{-2}, B^{-3}\\dots\\) (en binaire : \\(2^{-1}=0{,}5\\), \\(2^{-2}=0{,}25\\), \\(2^{-3}=0{,}125\\)). Sur \\(n\\) bits, on code \\(2^n\\) valeurs (de \\(0\\) à \\(2^n - 1\\)).</p>
+    <table class="t"><tr><th>Base</th><th>Symboles</th><th>Conversion rapide avec le binaire</th></tr>
+      <tr><td><b>Base 2 (binaire)</b></td><td><code>0, 1</code> (bits)</td><td>—</td></tr>
+      <tr><td><b>Base 8 (octal)</b></td><td><code>0 … 7</code></td><td>Groupes de <b>3 bits</b> de part et d'autre de la virgule (\\(8 = 2^3\\))</td></tr>
+      <tr><td><b>Base 10 (décimal)</b></td><td><code>0 … 9</code></td><td>Vers base \\(B\\) : divisions entières successives par \\(B\\) (restes lus de bas en haut)</td></tr>
+      <tr><td><b>Base 16 (hexa)</b></td><td><code>0 … 9, A(10), B(11), C(12), D(13), E(14), F(15)</code></td><td>Groupes de <b>4 bits</b> de part et d'autre de la virgule (\\(16 = 2^4\\))</td></tr></table>
+    <div class="box key"><h5>Addition binaire et opérateur ADD sur n bits</h5>
+      Addition bit par bit de droite à gauche avec retenue \\(r_0 = 0\\) : \\(0+0=0\\), \\(0+1=1\\), \\(1+1=0\\) (retenue 1), \\(1+1+1=1\\) (retenue 1). L'opérateur <b>ADD</b> reçoit deux mots \\(X, Y\\) de \\(n\\) bits et fournit la somme \\(\\text{SOM} = s_{n-1}\\dots s_0\\) sur \\(n\\) bits et le bit <b>rep</b> (report ou retenue sortante \\(r_n\\)).</div>
+    <div class="box key"><h5>Entiers signés en complément à 2 (TD Séquence A)</h5>
+      Sur \\(n\\) bits, le bit de gauche indique le signe (<code>0</code> = positif, <code>1</code> = négatif). Pour coder \\(-X\\) à partir de \\(+X\\) : <b>inverser tous les bits</b> puis <b>ajouter 1</b> (ou garder les bits de droite jusqu'au premier <code>1</code> inclus et inverser tous les suivants).</div>`],
+
+  ['A2. Algèbre de Boole et portes logiques élémentaires', 'Séquence A · Chap A2', `<p>Le cours présente simultanément les symboles américains (formes distinctives) et européens (rectangles CEI/IEEE) :</p>
+    <table class="t"><tr><th>Fonction</th><th>Notation</th><th>Symbole IEEE</th><th>Condition pour que \\(S = 1\\)</th></tr>
+      <tr><td><b>NON (Inverseur)</b></td><td>\\(\\bar{A}\\) (ou <code>/A</code>)</td><td><code>1</code> + bulle</td><td>\\(A = 0\\)</td></tr>
+      <tr><td><b>ET (AND)</b></td><td>\\(A\\cdot B\\)</td><td><code>&amp;</code></td><td>Toutes les entrées valent 1 (7408)</td></tr>
+      <tr><td><b>OU (OR)</b></td><td>\\(A + B\\)</td><td><code>&gt;=1</code></td><td>Au moins une entrée vaut 1 (7432)</td></tr>
+      <tr><td><b>NON-ET (NAND)</b></td><td>\\(\\overline{A\\cdot B}\\)</td><td><code>&amp;</code> + bulle</td><td>Au moins une entrée vaut 0 (7400)</td></tr>
+      <tr><td><b>NON-OU (NOR)</b></td><td>\\(\\overline{A + B}\\)</td><td><code>&gt;=1</code> + bulle</td><td>Toutes les entrées valent 0</td></tr>
+      <tr><td><b>OU exclusif (XOR)</b></td><td>\\(A \\oplus B = \\bar{A}B + A\\bar{B}\\)</td><td><code>=1</code></td><td>Nombre impair d'entrées à 1 (\\(A\\ne B\\))</td></tr>
+      <tr><td><b>Coïncidence (XNOR)</b></td><td>\\(\\overline{A \\oplus B} = \\bar{A}\\bar{B} + AB\\)</td><td><code>=1</code> + bulle</td><td>Nombre pair d'entrées à 1 (\\(A = B\\), 74LS266)</td></tr></table>
+    <div class="box key"><h5>Propriétés et règles de simplification indispensables</h5>
+      <ul><li><b>Absorption</b> : \\(A + A\\cdot B = A\\) ; \\(A\\cdot(A+B) = A\\) ; <b>\\(A + \\bar{A}\\cdot B = A + B\\)</b> ; \\(\\bar{A} + A\\cdot B = \\bar{A} + B\\).</li>
+      <li><b>Double distributivité</b> : \\(A\\cdot(B+C) = AB + AC\\) et \\(A + (B\\cdot C) = (A+B)\\cdot(A+C)\\).</li>
+      <li><b>Théorèmes de De Morgan</b> : \\(\\overline{A\\cdot B\\cdot C} = \\bar{A} + \\bar{B} + \\bar{C}\\) et \\(\\overline{A + B + C} = \\bar{A}\\cdot\\bar{B}\\cdot\\bar{C}\\).</li>
+      <li><b>Propriétés du XOR</b> : \\(A\\oplus 0 = A\\) ; \\(A\\oplus 1 = \\bar{A}\\) (inverseur commandé) ; \\(A\\oplus A = 0\\) ; \\(A\\oplus \\bar{A} = 1\\).</li>
+      <li><b>Universalité NAND / NOR</b> : écrire \\(F = \\overline{\\overline{F}}\\) puis casser une barre par De Morgan pour ne garder que des \\(\\overline{X\\cdot Y}\\) (NAND) ou des \\(\\overline{X+Y}\\) (NOR).</li></ul></div>`],
+
+  ['A3. Formes canoniques et tableaux de Karnaugh', 'Séquence A · Chap A3', `<p>Une forme canonique contient <b>toutes les variables</b> dans chaque terme :</p>
+    <ul><li><b>Somme de Produits (SDP)</b> : somme des produits des lignes où <b>\\(F = 1\\)</b> (\\(x_i\\) si bit = 1, \\(\\bar{x}_i\\) si bit = 0). Réalisation directe en portes NAND.</li>
+    <li><b>Produit de Sommes (PDS)</b> : produit des sommes des lignes où <b>\\(F = 0\\)</b> (<b>attention</b> : \\(x_i\\) si bit = 0, \\(\\bar{x}_i\\) si bit = 1). Réalisation directe en portes NOR.</li>
+    <li><b>Liste de nombres (poids décimaux)</b> : équivalents décimaux des termes de la SDP, notée \\(F(a,b,c,d) = 1\\) pour \\((0, 2, 5, 7\\dots)\\) et \\(F = X\\) pour les états indifférents.</li></ul>
+    <div class="box key"><h5>Simplification par tableau de Karnaugh</h5>
+      <ul><li>Les lignes et colonnes suivent l'ordre du <b>code Gray : <code>00 - 01 - 11 - 10</code></b> (une seule variable change entre deux cases voisines).</li>
+      <li>On regroupe les <code>1</code> par paquets rectangulaires de taille <b>puissance de 2 (\\(1, 2, 4, 8, 16\\))</b> les plus grands possibles, en utilisant l'adjacence des <b>bords opposés</b> et des <b>4 coins</b>. Un paquet de \\(2^k\\) cases élimine \\(k\\) variables.</li>
+      <li><b>Cas indifférents (<code>X</code>, <code>-</code> ou \\(\\Phi\\))</b> : on met un <code>X</code> à <code>1</code> uniquement s'il permet d'agrandir un groupement de vrais <code>1</code> (jamais un paquet de seuls <code>X</code>).</li>
+      <li>Pour obtenir la forme <b>Produit de Sommes (PDS)</b> simplifiée : regrouper les <b><code>0</code></b> pour écrire \\(\\bar{F}\\), puis appliquer De Morgan.</li></ul></div>`],
+
+  ['A3. Additionneurs, multiplexeurs (MUX), décodeurs et comparateurs', 'Séquence A · Chap A3', `<div class="box key"><h5>Demi-additionneur et additionneur complet 1 bit</h5>
+      <ul><li><b>Demi-additionneur</b> (2 entrées \\(A, B\\)) : \\(S = A \\oplus B\\) et \\(R = A\\cdot B\\).</li>
+      <li><b>Additionneur complet</b> (3 entrées \\(A, B, R_e\\)) : \\[S = A \\oplus B \\oplus R_e \\qquad ; \\qquad R_s = A\\cdot B + R_e\\cdot(A \\oplus B) = AB + AR_e + BR_e\\] Il se câble avec <b>2 demi-additionneurs et 1 porte OU</b>. Quatre additionneurs complets en cascade forment un additionneur 4 bits (CI <b>7483</b>). En plaçant des portes XOR sur les entrées \\(B_i \\oplus M\\) avec \\(R_0 = M\\), on réalise un additionneur/soustracteur (\\(M=0\\) : \\(A+B\\) ; \\(M=1\\) : \\(A-B\\) en complément à 2).</li></ul></div>
+    <div class="box key"><h5>Multiplexeur (MUX) \\(2^n\\) vers 1 et synthèse de fonctions</h5>
+      Un MUX \\(2^n \\to 1\\) aiguille l'entrée \\(E_i\\) désignée par les \\(n\\) entrées d'adresse vers la sortie \\(S\\). Pour un MUX 4 vers 1 (adresses \\(B, A\\)) : \\[S = \\bar{B}\\bar{A}\\,E_0 + \\bar{B}A\\,E_1 + B\\bar{A}\\,E_2 + BA\\,E_3\\]
+      <ul><li><b>Fonction de \\(n\\) variables sur MUX \\(2^n\\to 1\\)</b> : variables sur les adresses, \\(E_i \\in \\{0, 1\\}\\) lu dans la table de vérité.</li>
+      <li><b>Fonction de \\(n+1\\) variables \\((x,y,z)\\) sur MUX \\(2^n\\to 1\\)</b> : mettre \\(x,y\\) sur les adresses \\(B,A\\), factoriser \\(F\\) selon \\(\\bar{x}\\bar{y}, \\bar{x}y, x\\bar{y}, xy\\), et identifier chaque entrée \\(E_i \\in \\{0, 1, z, \\bar{z}\\}\\).</li></ul></div>
+    <p><b>Démultiplexeur 1 vers 2</b> (commande \\(C\\), entrée \\(E\\)) : \\(S_0 = \\bar{C}\\cdot E\\), \\(S_1 = C\\cdot E\\). <b>Comparateur 4 bits 7485</b> : sorties \\(S (A>B)\\), \\(I (A<B)\\), \\(E (A=B)\\) et 3 entrées de cascade (les bits de poids faible alimentent les entrées d'expansion du boîtier de poids fort).</p>`],
+
+  ['B1. Les bascules synchrones (RS, D, JK) et entrées RAU / RAZ', 'Séquence B · Chap B1', `<p>Un système séquentiel possède un <b>effet mémoire</b> : l'état suivant \\(Q_{n+1}\\) (ou \\(Q^+\\)) dépend des entrées et de l'état présent \\(Q_n\\). Une bascule synchrone ne commute que sur le <b>front actif</b> de l'horloge \\(H\\) : front montant \\(\\uparrow\\) (triangle <code>&gt;</code>) ou front descendant \\(\\downarrow\\) (bulle + triangle <code>o&gt;</code>).</p>
+    <table class="t"><tr><th>Bascule</th><th>Table de transition (au front actif de \\(H\\))</th><th>Équation caractéristique</th></tr>
+      <tr><td><b>RS</b></td><td class="l">\\(00 \\to Q_n\\) (mémoire) · \\(01 \\to 0\\) · \\(10 \\to 1\\) · \\(11 \\to\\) <b>interdit</b></td><td>—</td></tr>
+      <tr><td><b>D</b></td><td class="l">Recopie l'entrée \\(D\\) au front actif (retard d'une période \\(T_H\\))</td><td>\\(Q_{n+1} = D\\)</td></tr>
+      <tr><td><b>JK</b> (74HC112)</td><td class="l">\\(00 \\to Q_n\\) (mémoire) · \\(01 \\to 0\\) · \\(10 \\to 1\\) · <b>\\(11 \\to \\overline{Q_n}\\) (basculement)</b></td><td><b>\\(Q_{n+1} = J_n\\,\\overline{Q_n} + \\overline{K_n}\\,Q_n\\)</b></td></tr></table>
+    <div class="box key"><h5>Diviseur de fréquence par 2 et entrées asynchrones RAU / RAZ</h5>
+      <ul><li>En rebouclant <b>\\(D = \\bar{Q}\\)</b> (sur une bascule D) ou en fixant <b>\\(J = K = 1\\)</b> (sur une bascule JK), la sortie bascule à chaque front actif de \\(H\\) : la fréquence est <b>divisée par 2</b> (\\(F_Q = F_H / 2\\)).</li>
+      <li>Les entrées asynchrones <b>RAU</b> (Remise À Un / Preset) et <b>RAZ</b> (Remise À Zéro / Clear) sont <b>prioritaires sur l'horloge \\(H\\)</b> et agissent immédiatement. Avec une bulle (\\(\\overline{\\text{RAU}}, \\overline{\\text{RAZ}}\\)), elles sont actives au niveau <b>bas 0</b> (mode synchrone normal quand \\(\\overline{\\text{RAU}} = \\overline{\\text{RAZ}} = 1\\)).</li></ul></div>`],
+
+  ['B2. Compteurs asynchrones et synthèse des compteurs synchrones', 'Séquence B · Chap B2', `<p>Le <b>modulo \\(N\\)</b> d'un compteur est le nombre d'états distincts de son cycle (il faut \\(n\\) bascules telles que \\(2^{n-1} < N \\le 2^n\\)).</p>
+    <div class="box key"><h5>1. Compteurs asynchrones</h5>
+      Seule la bascule \\(B_0\\) (LSB) reçoit \\(H\\) ; toutes les bascules sont en mode basculement (\\(J=K=1\\) ou \\(D=\\bar{Q}\\)).
+      <ul><li><b>Compteur croissant</b> : \\(H_{i+1}\\) reliée à <b>\\(Q_i\\)</b> si bascules à front \\(\\downarrow\\), ou à <b>\\(\\overline{Q_i}\\)</b> si bascules à front \\(\\uparrow\\). (Les deux autres couplages donnent un <b>décompteur</b>.)</li>
+      <li><b>Modulo \\(N < 2^n\\)</b> : une porte logique détecte l'<b>état transitoire \\(N\\)</b> et active immédiatement les entrées asynchrones <code>RAZ</code>.</li>
+      <li><b>Limite</b> : retard cumulé \\(n\\times t_p\\) après le front de \\(H\\), ce qui limite la fréquence (\\(T_H > n\\,t_p\\)).</li></ul></div>
+    <div class="box key"><h5>2. Synthèse des compteurs synchrones (méthode du cours)</h5>
+      Toutes les bascules reçoivent la <b>même horloge \\(H\\)</b> :
+      <ol><li>Dresser la <b>table des états</b> : état présent \\((Q_2, Q_1, Q_0)\\) et état suivant \\((Q_2^+, Q_1^+, Q_0^+)\\), en mettant des <b><code>X</code></b> pour les états hors cycle.</li>
+      <li>Simplifier chaque \\(Q_i^+\\) par un <b>tableau de Karnaugh</b>.</li>
+      <li><b>En bascules D</b> : \\(D_i = Q_i^+\\) (pour un compteur binaire 3 bits : \\(D_0 = \\overline{Q_0}\\), \\(D_1 = Q_1 \\oplus Q_0\\), \\(D_2 = Q_2 \\oplus (Q_1Q_0)\\)).</li>
+      <li><b>En bascules JK (méthode par identification)</b> : écrire \\(Q_i^+ = (\\text{Terme 1})\\cdot\\overline{Q_i} + (\\text{Terme 2})\\cdot Q_i\\) et identifier avec \\(J_i\\overline{Q_i} + \\overline{K_i}Q_i\\) : \\[J_i = \\text{Terme 1} \\qquad\\text{et}\\qquad \\overline{K_i} = \\text{Terme 2} \\iff K_i = \\overline{\\text{Terme 2}}\\]</li>
+      <li><b>Étudier les états hors cycle</b> avec les équations retenues pour vérifier qu'ils convergent vers le cycle principal.</li></ol>
+      <p><b>CI 74HC163</b> (compteur synchrone 4 bits) : entrées synchrones <code>/RAZ</code>, <code>/INIT</code> (chargement parallèle), validations <code>VAL1, VAL2</code> et sortie de retenue <code>RCO = 1</code> à l'état 15 (<code>1111</code>).</p></div>`],
+
+  ['B3. Les registres de stockage et à décalage', 'Séquence B · Chap B3', `<p>Un registre de \\(n\\) bits regroupe \\(n\\) bascules D partageant la même horloge \\(H\\) :</p>
+    <ul><li><b>Stockage systématique</b> : <code>q3-0 := d3-0</code> à chaque front de \\(H\\).</li>
+    <li><b>Chargement commandé par <code>ch</code></b> : un MUX 2→1 devant chaque \\(D_i\\) réalise \\(D_i = \\overline{ch}\\cdot Q_i + ch\\cdot e_i\\) (maintien si \\(ch=0\\), chargement si \\(ch=1\\)).</li>
+    <li><b>Registre universel bidirectionnel</b> (MUX 4→1 commandé par \\(s_1s_0\\) devant chaque bascule) : <code>00</code> maintien (<code>q3q2q1q0</code>), <code>01</code> décalage à droite (<code>R q3q2q1</code>), <code>10</code> décalage à gauche (<code>q2q1q0 L</code>), <code>11</code> chargement parallèle (<code>d3d2d1d0</code>).</li>
+    <li><b>Compteur en anneau modulo \\(n\\)</b> (TD Chap B3) : registre à décalage rebouclé (\\(D_0 = Q_{n-1}\\)) où l'initialisation force une seule bascule à <code>1</code> (via <code>RAU</code>) et les autres à <code>0</code> (via <code>RAZ</code>). Le <code>1</code> tourne en boucle et divise la fréquence d'horloge par \\(n\\).</li></ul>`],
+
+  ['C1. Chaîne d\'acquisition, échantillonnage et quantification', 'Séquence C · Chap C1', `<p>Schéma canonique à <b>5 blocs</b> de la chaîne de régulation numérique :</p>
+    <p style="text-align:center"><b>① Transducteur (Capteur)</b> → <i>analogique</i> → <b>② CAN</b> → <i>numérique</i> → <b>③ Système numérique</b> → <i>numérique</i> → <b>④ CNA</b> → <i>analogique</i> → <b>⑤ Actionneur</b></p>
+    <div class="box key"><h5>Les 3 étapes de la conversion Analogique → Numérique</h5>
+      <ol><li><b>Échantillonnage-blocage</b> : prélève la tension d'entrée toutes les \\(T_e = 1/F_e\\) et la maintient constante pendant la durée de conversion (signal en escalier). Critère de Shannon : \\(F_e > 2\\,f_{max}\\) (avec filtre passe-bas anti-repliement en amont).</li>
+      <li><b>Quantification</b> : approche la tension par un multiple entier du <b>pas (ou quantum) \\(P = q\\)</b>. Sur \\(n\\) bits, il y a \\(2^n\\) états et \\(N_{max} = 2^n - 1\\) intervalles : \\[P = q = \\frac{V_{max}}{2^n - 1} = \\frac{V_{max}}{N_{max}}\\]</li>
+      <li><b>Codage</b> : par défaut (convention du cours), toute tension \\(V_e \\in [N\\cdot P\\,;\\,(N+1)\\cdot P[\\) est ramenée à la valeur discrète inférieure \\(V_d = N\\cdot P\\) et codée sur \\(n\\) bits par \\(N = \\lfloor V_e / P \\rfloor\\).</li></ol></div>`],
+
+  ['C2 & C3. Convertisseurs CNA (pondéré, R–2R) et CAN (rampe, CAS)', 'Séquence C · Chap C2 & C3', `<div class="box key"><h5>Convertisseurs Numériques-Analogiques (CNA)</h5>
+      Relation générale : <b>\\(V_S = K \\cdot N\\)</b> (ou \\(I_S = K\\cdot N\\)), où \\(N = \\sum_{i=0}^{n-1} a_i 2^i\\) est l'entier décimal d'entrée, \\(K = \\text{Pas} = \\dfrac{V_{max}}{2^n - 1}\\) est le <b>facteur de proportionnalité</b> (résolution analogique), et la résolution en pourcentage vaut \\(r(\\%) = \\dfrac{100}{2^n - 1}\\).
+      <ul><li><b>CNA 4 bits à résistances pondérées</b> (branches \\(R, 2R, 4R, 8R\\) et AOP inverseur de contre-réaction \\(R_S\\)) : \\[I_S = \\frac{V_{ref}}{8R}\\left(8a_3 + 4a_2 + 2a_1 + a_0\\right) = \\frac{V_{ref}}{8R}\\,N \\qquad\\Longrightarrow\\qquad V_S = -R_S I_S = -\\frac{R_S\\,V_{ref}}{8R}\\,N\\] <i>Inconvénient</i> : valeurs de résistances très étendues (\\(R\\) à \\(2^{n-1}R\\)), difficiles à intégrer avec précision.</li>
+      <li><b>CNA 4 bits à réseau R–2R</b> : n'utilise que <b>2 valeurs de résistances (\\(R\\) et \\(2R\\))</b>. Les tensions aux nœuds valent \\(V_{ref}/2, V_{ref}/4, V_{ref}/8, V_{ref}/16\\), d'où : \\[I_S = \\frac{V_{ref}}{32R}\\,N \\qquad\\Longrightarrow\\qquad V_S = -\\frac{R_S\\,V_{ref}}{32R}\\,N\\]</li></ul></div>
+    <div class="box key"><h5>Convertisseurs Analogiques-Numériques (CAN) : les 2 architectures du cours</h5>
+      Un comparateur compare la tension d'entrée \\(V_A\\) à la sortie \\(V_{Ax} = K\\cdot N\\) d'un CNA interne :
+      <table class="t"><tr><th>Architecture</th><th>Principe</th><th>Fin de conversion</th><th>Durée \\(t_{conv}\\)</th></tr>
+        <tr><td><b>CAN simple rampe numérique</b></td><td class="l">Un compteur part de 0 et s'incrémente à chaque période \\(T\\) tant que \\(V_{Ax} < V_A\\). Dès que \\(V_{Ax} \\ge V_A\\) (ou \\(V_{Ax} + V_T \\ge V_A\\)), <code>FDC</code> passe à 0 et bloque l'horloge.</td><td>\\(V_{Ax} > V_A\\) (par excès)</td><td><b>Variable et lente : \\(N \\times T\\)</b> (max \\((2^n-1)T\\))</td></tr>
+        <tr><td><b>CAN à approximations successives (CAS)</b></td><td class="l">Dichotomie du <b>MSB vers le LSB</b> : met \\(Q_i = 1\\) ; si \\(V_{Ax} > V_A\\), remet \\(Q_i = 0\\), sinon garde \\(Q_i = 1\\).</td><td>\\(V_{Ax} \\le V_A\\) (par défaut)</td><td><b>Fixe et rapide : \\(n \\times T\\)</b></td></tr></table></div>`]
+];
+
+function vCours(open) {
+  app.innerHTML = `<div><p class="eyebrow">Électronique numérique · Séquences A, B et C</p><h1>Le cours complet</h1><p class="lede">Les 3 séquences de Mme Bézy-Wendling résumées en 9 fiches, accompagnées des 12 leçons interactives « Comprendre ».</p></div>
+    ${E.lessonList()}<div id="learnHost" style="display:grid;gap:16px"></div>
+    ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
+  mathIn(app);
+  if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
+}
+
+/* =====================================================================
+   SUJET BLANC (1 h · 20 points sur les 3 séquences)
+   ===================================================================== */
+const DUR = 3600;
+const EXAM_PLAN = [
+  ['Exercice 1 · Séquence A : Logique combinatoire', [['num', 1], ['boole', 1], ['karn', 1], ['mux', 1]], 8],
+  ['Exercice 2 · Séquence B : Logique séquentielle', [['basc', 1], ['cpta', 1], ['cpts', 1]], 6],
+  ['Exercice 3 · Séquence C : Conversion CAN / CNA', [['ech', 1], ['cnacan', 0], ['cnacan', 2]], 6]
+];
+function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+function vBlanc() {
+  const E0 = ls.get(EK, null);
+  if (E0 && !E0.closed && !EXAM) { EXAM = E0; EXAM.running = !E0.done; }
+  if (EXAM) return renderExam();
+  const H = ls.get(HK, []);
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Un sujet complet d'une heure couvrant les 3 séquences : Séquence A (numération, Boole, Karnaugh, MUX · 8 pts), Séquence B (bascules et compteurs · 6 pts) et Séquence C (échantillonnage, CNA et CAN · 6 pts).</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h)</button>${weakButton()}<span class="fine">Sans calculatrice : pose les divisions, les tableaux de Karnaugh et les équations sur brouillon.</span></div></section>
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+}
+function renderExam() {
+  EXAM.exs = examExos(EXAM.seed);
+  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'électronique numérique</p><h1>ELECn · 1 h</h1></div>`
+    + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div>${p.fig || ''}<div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
+    + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
+      : `<section class="card"><div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div></section>`);
+  mathIn(app);
+  if (EXAM.done && EXAM.fb) Object.entries(EXAM.fb).forEach(([id, h]) => { const fb = $(`.it[data-id="${id}"] .fb`, app); if (fb) fb.innerHTML = h; });
+  if (EXAM.done) hideCorr();
+  startTick();
+}
+const saveExam = () => { const { exs, ...rest } = EXAM; ls.set(EK, rest); };
+function submitExam(auto) {
+  if (!EXAM || EXAM.done) return;
+  if (!auto && !confirm('Rendre la copie ?')) return;
+  stopTick();
+  const exs = examExos(EXAM.seed); let note = 0; const fb = {};
+  for (const ex of exs) {
+    const its = [].concat(...ex.parts.map(p => p.items)); let got = 0;
+    for (const it of its) { const r = check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += tally(it, r.st === 'ok' ? 1 : 0); }
+    note += ex.pts * got / its.length;
+  }
+  EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord() }); ls.set(HK, H);
+  EXAM.closed = true; saveExam();
+  if (auto) toast('Temps écoulé : copie rendue.');
+  renderExam(); window.scrollTo(0, 0);
+}
+
+/* =====================================================================
+   ÉVÉNEMENTS
+   ===================================================================== */
+let saveT = 0;
+document.addEventListener('click', e => {
+  const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab); return; }
+  const fi = e.target.closest('[data-fiche]'); if (fi) { setTab('cours'); vCours(+fi.dataset.fiche); return; }
+  const go = e.target.closest('[data-go]');
+  if (go) { if (CUR && CUR.mode === 'path' && !CUR.done && CUR.k.id === go.dataset.go) { $('#exHost').scrollIntoView({ behavior: 'smooth' }); return; } startEx(skById(go.dataset.go), { user: true }); renderPathTop(); renderMap(); return; }
+  const ft = e.target.closest('[data-ft]'); if (ft) { FREE.id = ft.dataset.ft; vExos(); return; }
+  const fd = e.target.closest('[data-fd]'); if (fd) { FREE.d = +fd.dataset.fd; vExos(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'check') checkCur();
+  else if (act === 'next') nextPath();
+  else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
+  else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
+  else if (act === 'submit') submitExam(false);
+  else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
+});
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.matches('input')) return;
+  const id = t.dataset.id || t.name; if (!id) return;
+  if (EXAM && !EXAM.done && VIEW === 'blanc') { EXAM.ans[id] = t.value; saveExam(); }
+  else if (CUR && !CUR.done && VIEW !== 'blanc') { CUR.ans[id] = t.value; clearTimeout(saveT); saveT = setTimeout(saveCur, 400); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('#exHost input[type=text]')) { e.preventDefault(); checkCur(); } });
+
+window.__ELN = { GEN, build, G, rng, check, parseNum, normWord, SK, FICHES };
+E.start();
+})();
+</script>
+</body>
+</html>

@@ -30,6 +30,8 @@
     { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-12-16T08:45:00Z'], skills: 17 },
     { id: 'elec', name: 'Élec CC1', page: 'elec/', ade: /ELECa/i, nth: 0, dates: ELEC_CC, skills: 21, bonus: ['thv'] },
     { id: 'el2', name: 'Élec CC2', page: 'elec2/', ade: /ELECa/i, nth: 1, later: true, dates: ELEC_CC, skills: 9 },
+    // Électronique numérique (CUPGE1-ELECn-S1) : CC1 (Séquence A) en S49, CC2 (Séquences A, B, C) en S2
+    { id: 'eln', name: 'Élec num.', page: 'elecn/', ade: /ELECn/i, dates: [], skills: 12 },
     // DS du 23/10 reporté au 5/11, puis annulé (campus fermé) : « semaine du 9/11, pas le lundi » (Rannou, 4/11),
     // d'où le mardi 10/11 provisoire ; DS 2 le 7/12 (et l'oral sur machine en janvier, avec { oral: true })
     { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), dates: ['2026-11-10T15:45:00Z', '2026-12-07T12:15:00Z'], skills: 18 },

@@ -11415,6 +11415,8 @@ function groupHTML() {
       </div>
     </section>
 
+    ${curGroup === '7b6b51f8-8bca-44e2-b4b3-b9a030633127' ? `<section class="card"><div class="card-head" style="margin:0"><div><h2>🎤 Oral d'anglais · Changchong City</h2><p class="sub">La présentation « Cities of the Future » avec un quiz en direct pour la classe. Page réservée au groupe.</p></div><a class="btn btn-primary" href="../anglais/">Ouvrir</a></div></section>` : ''}
+
     <section class="card"><div class="card-head"><div><h2>Contrôles du groupe</h2><p class="sub">Un contrôle commun sur les points faibles du groupe, à faire ensemble en direct.</p><details class="elo-how"><summary>Comment ça marche ?</summary><p class="sub">Le contrôle est construit sur les points faibles du groupe et se fait <b>ensemble en direct</b> : une salle d'attente s'ouvre, tout le groupe la voit en haut de la page et la rejoint, puis le créateur (ou le propriétaire du groupe) lance le départ ; chacun répond de son côté avec le même chrono, puis vous comparez vos notes. Une fois le temps écoulé, on peut encore le faire seul.</p></details></div></div>
       <div class="data-row"><select id="gtN" aria-label="Type et longueur"><optgroup label="Normal"><option value="10">10 questions · 30 min</option><option value="20" selected>20 questions · 1 h</option><option value="37">37 questions · 1 h 30</option></optgroup><optgroup label="Hardcore · sans calculatrice">${Object.entries(HC_MODES).map(([k, m]) => `<option value="hc:${k}">Hardcore ${m.name} · ${m.n} questions · ${fmtMin(m.dur)}</option>`).join('')}</optgroup></select><button type="button" class="btn btn-primary" data-g="newTest">Lancer un contrôle en direct</button></div>
       ${testsLive ? `<div style="margin-top:18px">${testsLive}</div>` : ''}

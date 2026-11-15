@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script src="../config.js"></script>
 <script defer src="../account.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -194,6 +195,87 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
 .score{font:600 18px/1.4 var(--text);color:#C6D3DE}
 .score b{color:#fff;font-size:24px}
 .err{color:#FF8F86;font-size:15px}
+
+/* ---------- Ville 3D ---------- */
+#city,#pcity{position:fixed;inset:0;background:#07121f}
+.c3-canvas{display:block;width:100%;height:100%;touch-action:none}
+.c3-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.c3-tag{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:2px;font:600 12px/1.2 var(--text);letter-spacing:.08em;text-transform:uppercase;color:#C9F5E2;white-space:nowrap;text-shadow:0 0 8px rgba(111,227,180,.6)}
+.c3-tag b{background:rgba(7,18,31,.72);border:1px solid rgba(111,227,180,.45);border-radius:4px;padding:3px 8px;font-weight:600}
+.c3-tag span{font-size:12px;color:#fff;letter-spacing:0}
+.c3-tag.on b{background:rgba(111,227,180,.25);border-color:#6FE3B4;color:#fff}
+.c3-pl{position:absolute;left:0;top:0;font:600 12px/1 var(--text);color:#fff;background:rgba(7,18,31,.7);border-radius:999px;padding:3px 8px;white-space:nowrap}
+#show.c3 #stage{pointer-events:none}
+#show.c3.free #stage .holo{opacity:.25}
+.holo{position:absolute;left:72px;top:72px;width:780px;max-height:930px;display:flex;flex-direction:column;gap:24px;padding:46px 48px;background:linear-gradient(160deg,rgba(10,28,46,.88),rgba(7,18,31,.8));border:2px solid rgba(111,227,180,.5);border-radius:8px;box-shadow:0 0 0 1px rgba(95,212,255,.15),0 0 70px rgba(111,227,180,.16);color:#EEF2EC;overflow:hidden;transition:opacity .3s}
+.holo::before,.holo::after{content:"";position:absolute;width:46px;height:46px;border:4px solid var(--mint);pointer-events:none}
+.holo::before{left:-2px;top:-2px;border-right:0;border-bottom:0}
+.holo::after{right:-2px;bottom:-2px;border-left:0;border-top:0}
+.holo .scan{position:absolute;left:0;right:0;height:140px;top:-140px;background:linear-gradient(180deg,transparent,rgba(111,227,180,.09),transparent);pointer-events:none}
+@media (prefers-reduced-motion:no-preference){.holo .scan{animation:scan 4.5s linear infinite}@keyframes scan{to{top:100%}}.holo.in{animation:holoIn .55s both}@keyframes holoIn{from{opacity:0;transform:translateX(-30px) scale(.98)}}}
+.holo p{margin:0}
+.holo .eb{font:600 22px/1.2 var(--text);letter-spacing:.16em;text-transform:uppercase;color:var(--mint);margin:0}
+.holo h1{font:700 96px/1 var(--display)!important;margin:0}
+.holo h2{font:700 60px/1.05 var(--display);margin:0}
+.holo .cards{display:grid;grid-template-columns:1fr!important;gap:14px}
+.holo .cards[style*="1fr 1fr"]{grid-template-columns:1fr 1fr!important}
+.holo .cardS{flex-direction:row;align-items:flex-start;gap:20px;padding:18px 22px!important;background:rgba(21,38,57,.72);border:1px solid rgba(111,227,180,.25);border-radius:10px}
+.holo .cardS .ic{font-size:40px}
+.holo .cardS h3{font:700 30px/1.15 var(--display);margin:0 0 6px}
+.holo .cardS p{font:400 23px/1.4 var(--text);color:#C6D3DE}
+.holo .strip{font:500 24px/1.4 var(--text);padding:16px 22px;background:rgba(29,58,58,.8);color:#C9F5E2;border-radius:10px}
+.holo .statement{font:700 38px/1.2 var(--display)!important;color:var(--mint)}
+.holo .pills{display:flex;flex-wrap:wrap;gap:10px}
+.holo .pill{font:600 20px/1 var(--text);padding:10px 16px;background:rgba(21,38,57,.72);border:1px solid rgba(111,227,180,.25);border-radius:999px;color:#EEF2EC}
+.holo .split{display:flex;flex-direction:column;gap:22px}
+.holo .big{font:700 150px/.9 var(--display)!important;color:var(--mint)}
+.holo .lead{font:500 28px/1.35 var(--text)!important}
+.holo .muted{color:#AFC0CF}
+.holo .bars{display:flex;flex-direction:column;gap:14px}
+.holo .bar{display:grid;grid-template-columns:120px 1fr 100px;gap:16px;align-items:center;font:600 24px/1 var(--text)}
+.holo .bar i{display:block;height:32px;border-radius:6px;background:var(--mint)}
+.holo .bar.bad i{background:#8a96a3}
+.holo .steps{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.holo .step{padding:18px;background:rgba(21,38,57,.72);border:1px solid rgba(111,227,180,.25);border-radius:10px;display:flex;flex-direction:column;gap:8px}
+.holo .step .no{width:44px;height:44px;font:700 24px/1 var(--display);background:var(--mint);color:var(--navy);border-radius:50%;display:grid;place-items:center}
+.holo .step h3{font:700 28px/1.1 var(--display);margin:0}
+.holo .step p{font:400 21px/1.35 var(--text);color:#C6D3DE}
+.holo .motto{font:600 40px/1.2 var(--display)!important;color:var(--mint)}
+.holo .names-row{display:flex;flex-wrap:wrap;gap:8px 26px;font:500 26px/1.2 var(--text);color:#C6D3DE}
+.holo .jrow{display:flex;gap:30px;align-items:center}
+.holo .qr{width:340px;height:340px;padding:18px;border-radius:16px;flex:none;background:#fff;display:grid;place-items:center}
+.holo .qr img,.holo .qr canvas{width:304px!important;height:304px!important}
+.holo .room{font:700 92px/1 var(--display);letter-spacing:.1em;color:var(--mint)}
+.holo .url{font:500 22px/1.3 var(--text);color:#C6D3DE;word-break:break-all}
+.holo .chips{display:flex;flex-wrap:wrap;gap:10px;max-height:150px;overflow:hidden}
+.holo .chip{font:600 20px/1 var(--text);padding:8px 14px;pointer-events:auto}
+.s.over{background:rgba(7,18,31,.84)!important;backdrop-filter:blur(5px)}
+.h3d-top{position:absolute;top:40px;right:72px;font:600 24px/1 var(--text);color:#C9F5E2;display:flex;gap:10px;align-items:center;text-shadow:0 0 10px rgba(0,0,0,.8)}
+.h3d-top b{color:var(--mint)}
+.h3d-bot{position:absolute;left:72px;right:72px;bottom:36px;display:flex;justify-content:space-between;align-items:center;font:600 24px/1 var(--text);color:#AFC0CF;letter-spacing:.06em;text-shadow:0 0 10px rgba(0,0,0,.9)}
+.h3d-bot b{color:var(--mint);font:700 34px/1 var(--display);letter-spacing:.1em}
+.h3d-free{position:absolute;top:40px;left:50%;transform:translateX(-50%);font:600 26px/1 var(--text);color:var(--navy);background:var(--mint);padding:10px 20px;border-radius:999px}
+.modes{display:flex;gap:10px;flex-wrap:wrap}
+.modes label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;background:#fff}
+.modes label:has(input:checked){border-color:var(--green);background:var(--green-soft)}
+
+/* téléphone : ville + interface par-dessus */
+.play.c3{background:transparent;padding:0}
+.ptop{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:max(10px,env(safe-area-inset-top)) 12px 10px;background:linear-gradient(180deg,rgba(7,18,31,.9),rgba(7,18,31,0));font:600 13px/1.2 var(--text);color:#C6D3DE;z-index:3}
+.ptop b{color:var(--mint);font-family:var(--display)}
+.pfollow{border:1px solid rgba(111,227,180,.5);background:rgba(7,18,31,.7);color:#C9F5E2;border-radius:999px;padding:8px 12px;font:600 13px var(--text);cursor:pointer}
+.pfollow.on{background:var(--mint);color:var(--navy)}
+.pnav{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;overflow-x:auto;padding:10px 12px max(12px,env(safe-area-inset-bottom));background:linear-gradient(0deg,rgba(7,18,31,.92),rgba(7,18,31,0));z-index:3;scrollbar-width:none}
+.pnav button{flex:none;border:1px solid rgba(111,227,180,.45);background:rgba(7,18,31,.75);color:#EEF2EC;border-radius:999px;padding:10px 14px;font:600 14px var(--text);cursor:pointer}
+.pinfo{position:fixed;left:12px;right:12px;bottom:calc(70px + env(safe-area-inset-bottom));background:rgba(10,28,46,.94);border:1px solid rgba(111,227,180,.5);border-radius:14px;padding:16px 18px;z-index:4;color:#EEF2EC}
+.pinfo h3{margin:0 0 6px;font:700 20px/1.2 var(--display);color:var(--mint)}
+.pinfo p{margin:0;color:#C6D3DE;font-size:15px;line-height:1.45}
+.pinfo .x{position:absolute;top:8px;right:10px;border:0;background:none;color:#AFC0CF;font-size:22px;cursor:pointer}
+.ptoast{position:fixed;left:50%;top:calc(56px + env(safe-area-inset-top));transform:translateX(-50%);background:rgba(7,18,31,.85);border:1px solid rgba(111,227,180,.4);color:#C9F5E2;border-radius:999px;padding:8px 14px;font:600 13px var(--text);z-index:3;white-space:nowrap}
+.pmodal{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;padding:max(18px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom));background:var(--navy);overflow-y:auto}
+.play.c3 .pmodal{background:rgba(7,18,31,.86);backdrop-filter:blur(4px)}
+.pmodal main{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;padding:18px 0;max-width:520px;width:100%;margin:0 auto}
+.pghost{min-height:48px;border:1px solid rgba(111,227,180,.5);border-radius:14px;background:transparent;color:#C9F5E2;font:600 16px var(--text);cursor:pointer;width:100%}
 </style>
 </head>
 <body>
@@ -201,6 +283,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
 <div id="homeView" class="home"><section class="card"><p class="fine">Loading…</p></section></div>
 
 <div id="show" hidden>
+  <div id="city" hidden></div>
   <div id="stage"></div>
   <div id="hud"><span id="hudL"></span><span><span id="hudR"></span><button type="button" id="hudFs">Plein écran (F)</button><button type="button" id="hudExit">Quitter (Échap)</button></span></div>
 </div>
@@ -213,7 +296,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   const GROUP_ID = '7b6b51f8-8bca-44e2-b4b3-b9a030633127';   // groupe « ESIR » du QCM maths
   const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
   const DUR = 20;                                               // secondes par question
-  const LS = { names: 'oral.names.v1', game: 'oral.game.v1', me: 'oral.player.v1' };
+  const LS = { names: 'oral.names.v1', game: 'oral.game.v1', me: 'oral.player.v1', mode: 'oral.mode.v1' };
   const $ = s => document.querySelector(s);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const ls = {
@@ -359,10 +442,29 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <p class="motto" style="margin-top:auto">Smart for people, green for the planet.</p>
       <div class="names-row">${N.map(n => `<span>${esc(n)}</span>`).join('')}</div>` }
   ];
+  /* ---------- La ville 3D : quartiers (coordonnées dans la scène) et caméra de chaque diapo ---------- */
+  const ZONES = [
+    { id: 'core', name: 'Changchong Core', x: 0, z: 0, r: 20, cam: [40, 60, 64], look: 26, info: 'The AI brain of the city: big data from thousands of sensors, in real time.' },
+    { id: 'archi', name: 'Smart Architecture', x: -68, z: -25, r: 24, info: 'Earthquake-proof towers on rubber shock absorbers, vertical gardens, parks on the roofs and solar glass.' },
+    { id: 'security', name: 'Smart Security', x: -30, z: -66, r: 22, info: 'Green points for good actions, a prison that gives a second chance, and data that is never sold.' },
+    { id: 'transport', name: 'Smart Transport', x: 36, z: -62, r: 20, info: 'Self-driving electric buses, safe bike lanes, an underground metro and traffic lights that adapt in real time.' },
+    { id: 'energy', name: 'Energy Coast', x: 92, z: -12, r: 28, cam: [-58, 40, 24], info: 'Nuclear power for a stable base, solar panels, wind turbines at sea, and a smart grid managed by AI.' },
+    { id: 'waste', name: 'Waste to Energy', x: 55, z: 46, r: 18, info: 'Smart bins and underground pipes: garbage is sorted, recycled and turned into electricity and heat.' },
+    { id: 'food', name: 'Robot Restaurants', x: 6, z: 72, r: 16, info: 'Robot chefs and robot waiters. AI predicts how many customers will come, so there is less food waste.' },
+    { id: 'school', name: 'Smart School', x: -46, z: 56, r: 20, info: 'AI hologram teachers, free online courses and VR school trips.' },
+    { id: 'hospital', name: 'Smart Hospital', x: -78, z: 21, r: 20, info: 'An AI health assistant tracks your heart and your sleep. AI helps, doctors decide.' }
+  ];
+  const zoneAt = (x, z) => { const f = ZONES.find(q => Math.hypot(x - q.x, z - q.z) <= q.r + 3); return f ? f.id : null; };
+  const CAM = { meet: 'core', archi: 'archi', q2: 'archi', transport: 'transport', q3: 'transport', q4: 'energy', energy: 'energy', waste: 'waste', education: 'school', health: 'hospital', food: 'food', q5: 'hospital', security: 'security', q6: 'security' };
+  S.forEach(s => { s.cam = CAM[s.id] || 'overview'; s.ring = s.id === 'fifteen'; });
+  const webgl = (() => { try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) { return false; } })();
+  const loadCityMod = () => import('./city.js?v=2026111504');
+
   const QUIZ = S.filter(s => s.quiz);
   QUIZ.forEach((s, i) => { s.qn = i + 1; s.title = 'Quiz ' + (i + 1) + ' · ' + s.quiz.q; });
 
   const names = () => { const n = ls.get(LS.names, []); return [0, 1, 2, 3, 4].map(i => (n[i] || '').trim() || 'Speaker ' + (i + 1)); };
+  const mode3d = () => webgl && ls.get(LS.mode, '3d') === '3d';
 
   /* =====================================================================
      Téléphone du public (?play ou ?room=…) : page publique, sans compte
@@ -424,6 +526,11 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
         <div class="row" style="margin:14px 0"><button type="button" class="btn btn-primary" data-go="${G.slide}">${G.slide ? `Reprendre à la diapo ${G.slide + 1}` : 'Lancer la présentation'}</button>${G.slide ? '<button type="button" class="btn" data-go="0">Depuis le début</button>' : ''}</div>
         <p class="row fine">Code de la partie <span class="code-pill">${G.room}</span> · ${Object.keys(G.players).length} joueur(s) enregistré(s) <button type="button" class="btn" id="newGame">Nouvelle partie (scores à zéro)</button></p>
         <p class="fine">Pour tester avec ton téléphone : <a href="${esc(G.joinUrl())}" target="_blank" rel="noopener">${esc(G.joinUrl())}</a></p>
+        <div class="modes" style="margin-top:14px">
+          <label><input type="radio" name="mode" value="3d"${mode3d() ? ' checked' : ''}${webgl ? '' : ' disabled'}> 🌆 Ville 3D holographique</label>
+          <label><input type="radio" name="mode" value="2d"${mode3d() ? '' : ' checked'}> 🖼️ Diapos classiques (secours)</label>
+        </div>
+        <p class="fine" style="margin-top:8px">${webgl ? 'En 3D, la caméra vole vers le quartier de chaque partie et le texte s\'affiche dans un panneau holographique. Le public se balade dans la même ville sur son téléphone : chacun apparaît comme un drone avec son pseudo. Si l\'ordinateur de la salle rame, passe en diapos classiques : le contenu et le quiz sont les mêmes.' : 'Cet appareil ne gère pas la 3D (WebGL) : la présentation sera en diapos classiques.'}</p>
       </section>
       <section class="card">
         <h2>Prénoms des orateurs</h2>
@@ -433,7 +540,9 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <section class="card">
         <h2>Commandes pendant la présentation</h2>
         <div class="keys"><span><kbd>→</kbd> <kbd>Espace</kbd> clic</span><span>avancer (sur un quiz : lancer → corriger → classement → suite)</span>
-        <span><kbd>←</kbd></span><span>reculer</span><span><kbd>F</kbd></span><span>plein écran</span><span><kbd>Échap</kbd></span><span>revenir ici</span></div>
+        <span><kbd>←</kbd></span><span>reculer</span><span><kbd>F</kbd></span><span>plein écran</span><span><kbd>Échap</kbd></span><span>revenir ici</span>
+        <span><kbd>E</kbd></span><span>3D : séisme de démonstration (les tours tiennent, les téléphones vibrent)</span>
+        <span><kbd>C</kbd></span><span>3D : caméra libre à la souris (pour les questions), <kbd>C</kbd> encore pour revenir</span></div>
         <p class="fine" style="margin-top:12px">Une télécommande de présentation marche aussi (elle envoie les touches Page suivante / précédente). Sur la diapo 2, cliquer sur un pseudo l'exclut du jeu.</p>
       </section>
       <section class="card">
@@ -446,9 +555,10 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     if (go) { startShow(+go.dataset.go); return; }
     if (e.target.id === 'newGame') {
       if (!confirm('Remettre les scores à zéro et changer de code ?')) return;
-      G.reset(); if (chan) { chan.unsubscribe(); chan = null; } renderHome();
+      G.reset(); if (chan) { chan.unsubscribe(); chan = null; } if (chanPos) { chanPos.unsubscribe(); chanPos = null; } Object.keys(POS).forEach(k => delete POS[k]); renderHome();
     }
   });
+  home.addEventListener('change', e => { if (e.target.name === 'mode') ls.set(LS.mode, e.target.value); });
   home.addEventListener('input', e => {
     const i = e.target.dataset.name; if (i == null) return;
     const N = ls.get(LS.names, []); N[+i] = e.target.value; ls.set(LS.names, N);
@@ -467,16 +577,36 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   }
   addEventListener('resize', fit);
 
-  function startShow(i) {
+  let city = null, cityBusy = false, free = false;
+  async function startShow(i) {
     home.hidden = true; show.hidden = false; fit();
+    if (document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+    if (mode3d() && !city && !cityBusy) {
+      cityBusy = true;
+      stage.innerHTML = '<section class="s dark"><p class="eb">Changchong City</p><h2>Loading the city…</h2></section>';
+      try {
+        const m = await loadCityMod();
+        $('#city').hidden = false;
+        city = m.createCity($('#city'), { mode: 'presenter', zones: ZONES });
+      } catch (e) { console.warn(e); city = null; $('#city').hidden = true; }
+      cityBusy = false;
+    }
+    if (city && !mode3d()) { $('#city').hidden = true; }
+    const on3d = !!city && mode3d();
+    show.classList.toggle('c3', on3d); $('#city').hidden = !on3d;
     connect();
     go(i);
-    if (document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
   }
   function exitShow() {
-    stopTick(); show.hidden = true; home.hidden = false; renderHome();
+    stopTick(); setFree(false); show.hidden = true; home.hidden = false; renderHome();
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     send('st', { phase: 'wait', title: '' });
+  }
+  const is3d = () => !!city && show.classList.contains('c3');
+  function setFree(on) {
+    free = !!on && is3d(); show.classList.toggle('free', free);
+    if (city) { city.setFree(free); if (!free) city.fly(S[cur].cam); }
+    if (!show.hidden && is3d()) render(false);
   }
 
   function go(i) {
@@ -487,6 +617,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     const s = S[i];
     phase = s.quiz ? (G.ans[s.id] && G.ans[s.id]._done ? 'reveal' : 'ask') : 'show';
     if (s.quiz && phase === 'ask') { G.ans[s.id] = {}; askAt = Date.now(); G.save(); startTick(); }
+    if (is3d()) { if (free) setFree(false); city.fly(s.cam); city.ring15(s.ring); }
     render(true);
     broadcastState();
   }
@@ -527,6 +658,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   function answersOf(id) { const A = G.ans[id] || {}; return Object.keys(A).filter(k => k !== '_done' && !G.banned.includes(k)).map(k => A[k]); }
 
   function render(anim) {
+    if (is3d()) { render3D(anim); return; }
     const s = S[cur], N = names();
     let html;
     if (s.quiz) html = quizHTML(s);
@@ -538,6 +670,34 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     if (s.quiz && phase === 'ask') drawQR('#qrSm', 202);
     $('#hudL').textContent = `Diapo ${cur + 1}/${S.length} · ${N[s.sp - 1]}`;
     $('#hudR').textContent = `Code ${G.room} · ${playersOnline().length} connecté(s)${chanOk ? '' : ' · hors ligne'}`;
+  }
+  // 3D : panneau holographique par-dessus la ville ; quiz et podium en plein écran semi-transparent
+  function render3D(anim) {
+    const s = S[cur], N = names();
+    let html, panel = false;
+    if (s.quiz) html = quizHTML(s).replace('class="s quiz', 'class="s over quiz');
+    else if (s.podium) html = podiumHTML().replace('class="s dark', 'class="s over dark');
+    else {
+      panel = true;
+      const inner = s.join ? joinInner() : s.html(N);
+      html = `<section class="holo${anim ? ' in' : ''}"><div class="scan"></div>${inner}</section>`;
+    }
+    html += `<div class="h3d-top"><b>●</b> ${esc(N[s.sp - 1])}</div>`;
+    if (panel) html += `<div class="h3d-bot"><span>CHANGCHONG CITY · ${cur + 1} / ${S.length}</span><span>${esc(G.shortUrl())} &nbsp;code <b>${G.room}</b></span></div>`;
+    if (free) html += '<div class="h3d-free">Free camera · press C to come back</div>';
+    stage.innerHTML = html;
+    city.setPanel(panel ? 0.2 : 0);
+    if (s.join) drawQR('#qrBig', 304);
+    if (s.quiz && phase === 'ask') drawQR('#qrSm', 202);
+    $('#hudL').textContent = `Diapo ${cur + 1}/${S.length} · ${N[s.sp - 1]} · 3D`;
+    $('#hudR').textContent = `Code ${G.room} · ${playersOnline().length} connecté(s)${chanOk ? '' : ' · hors ligne'}`;
+  }
+  function joinInner() {
+    const ps = playersOnline();
+    return `<p class="eb">Interactive city</p><h2>Take out your phone!</h2>
+      <p class="lead">Scan the code, choose a nickname and explore Changchong with us. Answer our questions: the best listener wins!</p>
+      <div class="jrow"><div class="qr" id="qrBig"></div><div style="display:flex;flex-direction:column;gap:16px"><p class="url">${esc(G.shortUrl())}</p><p class="room">${G.room}</p><p class="lead"><b id="pcount">${ps.length}</b> player${ps.length > 1 ? 's' : ''}</p></div></div>
+      <div class="chips" id="chips">${ps.map(p => `<button type="button" class="chip" data-ban="${esc(p)}" title="Exclure">${esc(online[p])}</button>`).join('')}</div>`;
   }
   function footHTML(s) {
     return `<div class="who-tag"><b>●</b> ${esc(names()[s.sp - 1])}</div><div class="foot"><span>Changchong City</span><span>${cur + 1} / ${S.length}</span></div>`;
@@ -609,13 +769,17 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     if (['ArrowRight', 'PageDown', ' ', 'Enter', 'ArrowDown'].includes(e.key)) { e.preventDefault(); next(); }
     else if (['ArrowLeft', 'PageUp', 'ArrowUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
     else if (e.key === 'f' || e.key === 'F') { toggleFs(); }
+    else if ((e.key === 'e' || e.key === 'E') && is3d()) { city.quake(); send('fx', { t: 'quake' }); }
+    else if ((e.key === 'c' || e.key === 'C') && is3d()) { setFree(!free); }
+    else if ((e.key === 'g' || e.key === 'G') && is3d()) { city.bloom(); }
+    else if (e.key === 'Escape' && free) { setFree(false); }
     else if (e.key === 'Escape' && !document.fullscreenElement) { exitShow(); }
   });
   document.addEventListener('fullscreenchange', () => setTimeout(fit, 50));
   show.addEventListener('click', e => {
     const b = e.target.closest('[data-ban]');
     if (b) { const p = b.dataset.ban; if (!G.banned.includes(p)) G.banned.push(p); G.save(); refreshLive(); return; }
-    if (e.target.closest('#hud')) return;
+    if (e.target.closest('#hud') || free) return;
     next();
   });
   $('#hudFs').addEventListener('click', e => { e.stopPropagation(); toggleFs(); });
@@ -654,10 +818,34 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       if (chanOk) broadcastState();
       if (!show.hidden) refreshLive();
     });
+    // positions des téléphones dans la ville : canal à part, écouté par le présentateur seulement
+    chanPos = sb.channel('oral-' + G.room + '-pos', { config: { broadcast: { self: false } } });
+    chanPos.on('broadcast', { event: 'pos' }, ({ payload: p }) => {
+      if (!p || !p.pid || G.banned.includes(p.pid)) return;
+      const x = +p.x, z = +p.z; if (!isFinite(x) || !isFinite(z)) return;
+      POS[p.pid] = { x: Math.max(-160, Math.min(160, x)), z: Math.max(-160, Math.min(160, z)), t: Date.now() };
+    });
+    chanPos.subscribe();
+    clearInterval(mapTimer);
+    mapTimer = setInterval(shareMap, 2000);
+  }
+  let chanPos = null, mapTimer = null; const POS = {};
+  // toutes les 2 s : drones sur l'écran + carte envoyée aux téléphones (positions et nombre par quartier)
+  function shareMap() {
+    const now = Date.now(), list = [], counts = {};
+    Object.keys(POS).forEach(pid => {
+      const p = POS[pid];
+      if (now - p.t > 45000 || !online[pid] || G.banned.includes(pid)) return;
+      list.push({ id: pid, name: online[pid], x: p.x, z: p.z });
+      const zz = zoneAt(p.x, p.z); if (zz) counts[zz] = (counts[zz] || 0) + 1;
+    });
+    if (city) { city.setPlayers(list); city.setCounts(counts); }
+    if (list.length || shareMap.had) send('map', { p: list.map(o => [o.id, Math.round(o.x), Math.round(o.z), o.name]), c: counts });
+    shareMap.had = list.length > 0;
   }
   function send(event, payload) { if (chan && chanOk) chan.send({ type: 'broadcast', event, payload }).catch(() => {}); }
   function broadcastState() {
-    const s = S[cur], st = { phase: 'wait', title: s.title || '', slide: cur };
+    const s = S[cur], st = { phase: 'wait', title: s.title || '', slide: cur, cam: s.cam, ring: s.ring };
     if (s.quiz) {
       st.qid = s.id; st.qn = s.qn; st.qt = QUIZ.length; st.q = s.quiz.q; st.o = s.quiz.o;
       if (phase === 'ask') { st.phase = 'ask'; st.left = Math.max(0, DUR * 1000 - (Date.now() - askAt)); st.dur = DUR * 1000; }
@@ -682,43 +870,69 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     $('#homeView').hidden = true;
     const view = $('#playView'); view.hidden = false;
     document.body.style.background = 'var(--navy)';
+    view.innerHTML = `<div id="pcity" hidden></div><div class="ptop" id="ptop" hidden></div><div class="ptoast" id="ptoast" hidden></div>
+      <div class="pinfo" id="pinfo" hidden></div><div class="pnav" id="pnav" hidden></div><div class="pmodal" id="pmodal"><main></main></div>`;
     const P = ls.get(LS.me, null) || {};
     if (!P.pid) P.pid = Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+    if (P.follow == null) P.follow = true;
     let room = (params.get('room') || '').replace(/\D/g, '').slice(0, 4);
     let ch = null, ok = false, st = null, picked = {}, tmr = null, rcvAt = 0;
+    let city = null, counts = {}, lastCam = null, info = null, dismissed = null, toastT = null, posT = null, httpOk = true, posCh = null;
+    const last = { x: 1e9, z: 1e9, t: 0 };
     const save = () => ls.set(LS.me, P);
+    const modal = $('#pmodal'), mm = modal.querySelector('main');
+    const C = () => window.QCM_CONFIG;
 
     function screen(html) {
-      view.innerHTML = `<header><span>Changchong City · Quiz</span>${room && P.name ? `<span>${esc(P.name)} · <b>${room}</b></span>` : ''}</header><main>${html}</main>`;
+      modal.hidden = false; $('#pinfo').hidden = true;
+      mm.innerHTML = (room && P.name ? `<p class="score" style="text-align:center">${esc(P.name)} · code <b>${room}</b></p>` : '<p class="score" style="text-align:center">Changchong City</p>') + html;
     }
+    function explore() { modal.hidden = true; }
+    function toast(txt, ms = 3500) {
+      const t = $('#ptoast'); t.textContent = txt; t.hidden = false;
+      clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, ms);
+    }
+
+    /* ---------- Formulaires ---------- */
     function askCode(err) {
-      screen(`<h1>Join the quiz</h1><p>Type the code shown on the screen.</p>
+      screen(`<h1>Join Changchong City</h1><p>Type the code shown on the screen.</p>
         <form id="f" style="display:grid;gap:12px"><input id="code" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="1234" aria-label="Code" value="${esc(room)}">
         ${err ? `<p class="err">${esc(err)}</p>` : ''}<button class="pbtn">Next</button></form>`);
       $('#f').addEventListener('submit', e => { e.preventDefault(); const c = $('#code').value.replace(/\D/g, ''); if (c.length !== 4) { askCode('The code has 4 digits.'); return; } room = c; askName(); });
     }
     function askName(err) {
-      screen(`<h1>Choose a nickname</h1><p>It will appear on the leaderboard. Keep it friendly!</p>
+      screen(`<h1>Choose a nickname</h1><p>Your drone will fly over the city with this name, and it will appear on the leaderboard. Keep it friendly!</p>
         <form id="f" style="display:grid;gap:12px"><input id="nm" autocomplete="nickname" maxlength="16" placeholder="Nickname" aria-label="Nickname" value="${esc(P.name || '')}">
         ${err ? `<p class="err">${esc(err)}</p>` : ''}<button class="pbtn">Join</button></form>`);
       $('#nm').focus();
       $('#f').addEventListener('submit', e => { e.preventDefault(); const n = $('#nm').value.trim().replace(/\s+/g, ' '); if (n.length < 2) { askName('At least 2 characters.'); return; } P.name = n; save(); join(); });
     }
+
+    /* ---------- Connexion ---------- */
     async function join() {
       screen('<h1>Connecting…</h1>');
       try {
         if (!window.supabase || !window.supabase.createClient) await new Promise((res, rej) => { const s = document.createElement('script'); s.src = SUPABASE_JS; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
-        const C = window.QCM_CONFIG;
-        const cl = window.supabase.createClient(C.supabaseUrl, C.supabaseAnonKey, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+        const cl = window.supabase.createClient(C().supabaseUrl, C().supabaseAnonKey, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+        join.cl = cl;
         if (ch) ch.unsubscribe();
         ch = cl.channel('oral-' + room, { config: { broadcast: { self: false }, presence: { key: P.pid } } });
-        ch.on('broadcast', { event: 'st' }, ({ payload }) => { st = payload; rcvAt = Date.now(); draw(); });
+        ch.on('broadcast', { event: 'st' }, ({ payload }) => { st = payload; rcvAt = Date.now(); onState(); });
+        ch.on('broadcast', { event: 'map' }, ({ payload }) => onMap(payload));
+        ch.on('broadcast', { event: 'fx' }, ({ payload }) => {
+          if (payload && payload.t === 'quake') {
+            if (city) city.quake();
+            if (navigator.vibrate) navigator.vibrate([300, 80, 400, 80, 600]);
+            toast('🌍 Earthquake! The towers are moving… but they stand.', 4500);
+          }
+        });
         ch.subscribe(async s => {
           if (s === 'SUBSCRIBED') {
             ok = true;
             await ch.track({ pid: P.pid, name: P.name });
             ch.send({ type: 'broadcast', event: 'hello', payload: { pid: P.pid } });
-            if (!st) screen(`<h1>You're in, ${esc(P.name)}!</h1><p>Watch the screen. The questions will appear here.</p><p class="score">Code ${room}. If nothing happens, the presentation may not have started yet.</p>`);
+            if (!city && webgl) loadCity();
+            if (!st) waiting();
           } else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') {
             ok = false; screen(`<h1>Connection lost</h1><p>Check your internet connection.</p><button class="pbtn" id="re">Try again</button>`);
             $('#re').addEventListener('click', join);
@@ -729,14 +943,89 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
         $('#re').addEventListener('click', join);
       }
     }
+    function waiting() {
+      if (city) { explore(); toast('👋 Explore the city! Your drone is on the big screen.', 4500); return; }
+      screen(`<h1>You're in, ${esc(P.name)}!</h1><p>Watch the screen. The questions will appear here.</p><p class="score">Code ${room}. If nothing happens, the presentation may not have started yet.</p>`);
+    }
+
+    /* ---------- Ville 3D sur le téléphone ---------- */
+    async function loadCity() {
+      try {
+        const m = await loadCityMod();
+        $('#pcity').hidden = false;
+        city = m.createCity($('#pcity'), { mode: 'player', zones: ZONES, lite: true, onPick: id => { follow(false); city.fly(id, 1.6); showInfo(id); }, onUser: () => follow(false) });
+      } catch (e) { console.warn(e); city = null; $('#pcity').hidden = true; return; }
+      view.classList.add('c3');
+      const top = $('#ptop'); top.hidden = false;
+      top.innerHTML = `<span>${esc(P.name)} · <b>${room}</b></span><button type="button" class="pfollow" id="pfol">📡 Follow the screen</button>`;
+      $('#pfol').addEventListener('click', () => { follow(!P.follow); if (P.follow && lastCam) city.fly(lastCam, 1.6); });
+      follow(P.follow);
+      const nav = $('#pnav'); nav.hidden = false;
+      nav.innerHTML = ZONES.map(z => `<button type="button" data-z="${z.id}">${esc(z.name)}</button>`).join('');
+      nav.addEventListener('click', e => { const b = e.target.closest('[data-z]'); if (!b) return; follow(false); city.fly(b.dataset.z, 1.6); showInfo(b.dataset.z); });
+      $('#pinfo').addEventListener('click', e => { if (e.target.closest('.x')) { $('#pinfo').hidden = true; info = null; } });
+      if (st && st.cam) { lastCam = st.cam; if (P.follow) city.fly(st.cam, 0.01); city.ring15(!!st.ring); }
+      clearInterval(posT); posT = setInterval(sendPos, 2000);
+      if (st) onState(); else waiting();
+    }
+    function follow(on) {
+      P.follow = !!on; save();
+      const b = $('#pfol'); if (b) b.classList.toggle('on', P.follow);
+    }
+    function showInfo(id) {
+      const z = ZONES.find(q => q.id === id); if (!z) return; info = id;
+      const el = $('#pinfo'), n = counts[id] || 0; el.hidden = false;
+      el.innerHTML = `<button type="button" class="x" aria-label="Close">×</button><h3>${esc(z.name)}</h3><p>${esc(z.info)}</p><p style="margin-top:8px;color:#6FE3B4">👥 ${n} ${n === 1 ? 'person' : 'people'} here</p>`;
+    }
+    function onMap(m) {
+      if (!m) return;
+      counts = m.c || {};
+      if (city) {
+        city.setPlayers((m.p || []).filter(r => r[0] !== P.pid).map(r => ({ id: r[0], x: r[1], z: r[2], name: r[3] })));
+        city.setCounts(counts);
+      }
+      if (info && !$('#pinfo').hidden) showInfo(info);
+    }
+    // position envoyée au présentateur (seulement s'il a bougé), par l'API HTTP pour ne pas inonder les autres téléphones
+    async function sendPos() {
+      if (!city || !ok) return;
+      const p = city.pos(), now = Date.now();
+      if (Math.hypot(p.x - last.x, p.z - last.z) < 1.5 && now - last.t < 12000) return;
+      last.x = p.x; last.z = p.z; last.t = now;
+      const payload = { pid: P.pid, x: p.x, z: p.z };
+      if (httpOk) {
+        try {
+          const r = await fetch(C().supabaseUrl + '/realtime/v1/api/broadcast', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', apikey: C().supabaseAnonKey },
+            body: JSON.stringify({ messages: [{ topic: 'oral-' + room + '-pos', event: 'pos', payload, private: false }] })
+          });
+          if (r.ok) return;
+          httpOk = false;
+        } catch (e) { httpOk = false; }
+      }
+      // secours : canal temps réel (reçoit aussi les positions des autres, ignorées)
+      if (!posCh && join.cl) { posCh = join.cl.channel('oral-' + room + '-pos', { config: { broadcast: { self: false } } }); posCh.subscribe(); }
+      if (posCh) posCh.send({ type: 'broadcast', event: 'pos', payload }).catch(() => {});
+    }
+
+    /* ---------- État de la présentation ---------- */
+    function onState() {
+      if (!st) return;
+      if (city && st.cam && st.cam !== lastCam) { lastCam = st.cam; if (P.follow) city.fly(st.cam, 1.8); }
+      if (city) city.ring15(!!st.ring);
+      draw();
+    }
     function scoreLine() {
       const r = st && st.p && st.p[P.pid];
       return r ? `<p class="score">Score <b>${r[0]}</b> · rank <b>${r[3]}</b> / ${st.n}</p>` : '';
     }
+    const backBtn = () => city ? '<button type="button" class="pghost" id="back">🌆 Back to the city</button>' : '';
+    function bindBack(key) { const b = $('#back'); if (b) b.addEventListener('click', () => { dismissed = key; explore(); }); }
     function draw() {
       clearInterval(tmr);
       if (!st) return;
       if (st.banned && st.banned.includes(P.pid)) { screen('<h1>You have been removed from the game.</h1>'); return; }
+      const key = st.phase + ':' + (st.qid || '') + ':' + st.slide;
       if (st.phase === 'ask') {
         const mine = picked[st.qid];
         screen(`<p class="score">Question ${st.qn} / ${st.qt}</p><p class="pq">${esc(st.q)}</p>
@@ -746,7 +1035,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
         const end = rcvAt + st.left;
         const upd = () => { const pt = $('#pt'); if (pt) pt.style.transform = `scaleX(${Math.max(0, (end - Date.now()) / st.dur)})`; };
         upd(); tmr = setInterval(upd, 150);
-        view.querySelectorAll('.popt').forEach(b => b.addEventListener('click', () => {
+        mm.querySelectorAll('.popt').forEach(b => b.addEventListener('click', () => {
           if (picked[st.qid] != null || Date.now() > end + 500) return;
           picked[st.qid] = +b.dataset.k;
           ch.send({ type: 'broadcast', event: 'ans', payload: { pid: P.pid, name: P.name, qid: st.qid, k: +b.dataset.k } });
@@ -755,19 +1044,23 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
         }));
         return;
       }
+      if (dismissed === key) { explore(); return; }
       if (st.phase === 'reveal' || st.phase === 'board') {
         const r = st.p && st.p[P.pid], k = r ? r[2] : -1;
         const good = k === st.ok;
         screen(`<p class="score">Question ${st.qn} / ${st.qt}</p>
           ${k < 0 ? '<p class="res">⏱ No answer</p>' : good ? `<p class="res ok">✓ Correct! +${r[1]}</p>` : '<p class="res ko">✗ Wrong answer</p>'}
-          <p>The answer was <b style="color:#fff">${LET[st.ok]}: ${esc(st.o[st.ok])}</b></p>${scoreLine()}`);
+          <p>The answer was <b style="color:#fff">${LET[st.ok]}: ${esc(st.o[st.ok])}</b></p>${scoreLine()}${backBtn()}`);
+        bindBack(key);
         return;
       }
       if (st.phase === 'end') {
         const r = st.p && st.p[P.pid];
-        screen(r ? `<h1>${r[3] === 1 ? '🏆 You won!' : r[3] <= 3 ? '🥇 Top 3!' : 'Thanks for playing!'}</h1><p class="score">Final score <b>${r[0]}</b> · rank <b>${r[3]}</b> / ${st.n}</p><p>Don't forget to vote for Changchong City!</p>` : '<h1>Thanks for playing!</h1><p>Don\'t forget to vote for Changchong City!</p>');
+        screen((r ? `<h1>${r[3] === 1 ? '🏆 You won!' : r[3] <= 3 ? '🥇 Top 3!' : 'Thanks for playing!'}</h1><p class="score">Final score <b>${r[0]}</b> · rank <b>${r[3]}</b> / ${st.n}</p>` : '<h1>Thanks for playing!</h1>') + `<p>Don't forget to vote for Changchong City!</p>${backBtn()}`);
+        bindBack(key);
         return;
       }
+      if (city) { const was = modal.hidden; explore(); if (!was || draw.lastSlide !== st.slide) toast('📍 ' + (st.title || 'Changchong City')); draw.lastSlide = st.slide; return; }
       screen(`<h1>Listen carefully…</h1><p>The next question is coming soon.</p>${scoreLine()}`);
     }
     document.addEventListener('visibilitychange', () => { if (!document.hidden && ch && ok) ch.send({ type: 'broadcast', event: 'hello', payload: { pid: P.pid } }); });

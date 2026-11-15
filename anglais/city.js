@@ -214,6 +214,12 @@ export function createCity(el, opt) {
     l.computeLineDistances(); scene.add(l);
   }
   const SPOKES = [17, 62, 107, 147, 222, 272, 325].map(d => d * Math.PI / 180);
+  const BANDS = [[35.2, 44.8], [45.3, 46.7], [95.2, 104.8], [119.3, 121.8]];   // boulevards + trottoirs, piste cyclable, promenade
+  function roadHit(x, z, pad = 0) {
+    const r = Math.hypot(x, z), a = Math.atan2(z, x);
+    if (BANDS.some(([a1, b1]) => r > a1 - pad && r < b1 + pad)) return true;
+    return SPOKES.some(s => { const along = r * Math.cos(a - s), lat = Math.abs(r * Math.sin(a - s)); return along > 42 && along < 98 && lat < 3.9 + pad; });
+  }
   const lights = [];
   SPOKES.forEach((a, i) => {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(56, 5.4), new THREE.MeshStandardMaterial({ color: ASPHALT, roughness: 0.92 }));
@@ -232,7 +238,7 @@ export function createCity(el, opt) {
     const step = lite ? 2 : 1;
     for (const [r, n] of [[44.6, 34], [35.4, 30], [95.4, 70], [104.6, 76]]) for (let i = 0; i < n; i += step) { const a = i / n * Math.PI * 2; pts.push([Math.cos(a) * r, Math.sin(a) * r]); }
     SPOKES.forEach(a => { for (let u = 50; u < 96; u += 9 * step) for (const s of [-3.85, 3.85]) pts.push([Math.cos(a) * u - Math.sin(a) * s, Math.sin(a) * u + Math.cos(a) * s]); });
-    const ok = pts.filter(([x, z]) => Z.every(q => Math.hypot(x - q.x, z - q.z) > q.r * 0.7));
+    const ok = pts.filter(([x, z]) => Z.every(q => Math.hypot(x - q.x, z - q.z) > q.r + 1));
     const n = ok.length, M = new THREE.Matrix4(), Q = new THREE.Quaternion(), one = V(1, 1, 1);
     const poles = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.07, 0.1, 4.4, 5).translate(0, 2.2, 0), new THREE.MeshStandardMaterial({ color: 0x2a2f36, roughness: 0.6, metalness: 0.5 }), n);
     const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(0.26, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffd9a0 }), n);
@@ -265,7 +271,9 @@ export function createCity(el, opt) {
       if (Math.abs(r - 40) < 5 + fr || Math.abs(r - 100) < 5 + fr || Math.abs(r - 46) < 1 + fr || r > 118.5 - fr) continue;
       if (SPOKES.some(s => r > 36 - fr && r < 104 + fr && Math.cos(a - s) > 0 && Math.abs(Math.sin(a - s)) * r < 5.6 + fr)) continue;
       if (!away(x, z, fr + 1) || !vacant(x, z, fr + 0.7)) continue;
-      const h = 3 + Math.pow(R(), 2.2) * 30 * (1.2 - r / 140);
+      let h = 3 + Math.pow(R(), 2.2) * 30 * (1.2 - r / 140);
+      // couloir de vue : entre un quartier et la côte (là où se place la caméra), seulement des immeubles bas
+      if (Z.some(q => { const qa = Math.atan2(q.z, q.x), qr = Math.hypot(q.x, q.z); let d = Math.abs(a - qa); d = Math.min(d, 2 * Math.PI - d); return qr > 5 && r > qr && d < 0.5; })) h = Math.min(h, 7);
       const gi = Math.floor(R() * mats.length), rot = -a;
       occ.push([x, z, fr]);
       groups[gi].push([x, 0, z, w, h, d, rot]);
@@ -493,6 +501,7 @@ export function createCity(el, opt) {
 
   /* ---------- Quartiers ---------- */
   const rec = {};       // éléments animés
+  const D0 = scene.children.length;
   const at = (id, dx = 0, dz = 0) => { const z = zone(id); return [z.x + dx, z.z + dz]; };
 
   // Cœur : la tour IA
@@ -534,49 +543,37 @@ export function createCity(el, opt) {
   // Transports : station de métro, dépôt de bus, feux
   {
     const [x, z] = at('transport');
-    const pad = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 0.4, 32), holo(CYAN, 0.5)); pad.position.set(x, 0.2, z); scene.add(pad);
+    const pad = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 0.3, 40), new THREE.MeshStandardMaterial({ color: 0x1b4f7a, emissive: 0x2f8fd0, emissiveIntensity: 0.6, roughness: 0.4 })); pad.position.set(x, 0.15, z); scene.add(pad);
     const m = textSprite('M', '#5FD4FF', 7); m.position.set(x, 7, z); scene.add(m);
-    const st = new THREE.Mesh(new THREE.BoxGeometry(14, 3, 6), glass); st.position.set(x + 9, 1.5, z - 9); scene.add(st);
-    for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(busGeo, vehMat); b.rotation.y = 0; b.position.set(x - 13 + i * 2, 0, z - 9); scene.add(b); }
+    const st = new THREE.Mesh(new THREE.BoxGeometry(14, 3, 6), glass); st.position.set(x + 2, 1.5, z - 11); scene.add(st);
+    for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(busGeo, vehMat); b.rotation.y = 0; b.position.set(x - 10 + i * 2.2, 0, z + 6); scene.add(b); }
   }
-  // métro souterrain (tracé holographique) et rames
-  const metro = { trains: [] };
-  {
-    const order = ['archi', 'security', 'transport', 'energy', 'waste', 'food', 'school', 'hospital'];
-    const pts = order.map(id => { const z = zone(id), a = Math.atan2(z.z, z.x); return V(Math.cos(a) * 60, 0.1, Math.sin(a) * 60); });
-    const curve = new THREE.CatmullRomCurve3(pts, true, 'centripetal');
-    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 240, 0.12, 5, true), holo(CYAN, 0.22)); scene.add(tube);
-    pts.forEach(p => { const s = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.2, 20), holo(CYAN, 0.35)); s.position.copy(p); scene.add(s); });
-    for (let i = 0; i < 3; i++) { const t = new THREE.Mesh(new THREE.CapsuleGeometry(0.6, 3.5, 4, 8), glow(CYAN, 2)); t.rotation.z = Math.PI / 2; scene.add(t); metro.trains.push({ t, u: i / 3 }); }
-    metro.curve = curve;
-  }
-
   // Énergie : nucléaire, solaire, éolien en mer, réseau intelligent
   const turbines = [], steam = {};
   {
     const [x, z] = at('energy');
     const prof = [[9, 0], [7.6, 6], [6.1, 12], [5.6, 16], [6.2, 22], [7, 26]].map(([r, y]) => new THREE.Vector2(r, y));
     const ct = new THREE.Mesh(new THREE.LatheGeometry(prof, 48), new THREE.MeshStandardMaterial({ color: 0xc9cfd4, roughness: 0.95, side: THREE.DoubleSide }));
-    ct.position.set(x + 10, 0, z - 14); scene.add(ct);
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(5.5, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), white); dome.position.set(x - 3, 3, z - 18); scene.add(dome);
-    const base = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 5.5, 3, 24), white); base.position.set(x - 3, 1.5, z - 18); scene.add(base);
+    ct.position.set(x + 8, 0, z - 8); scene.add(ct);
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(5.5, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), white); dome.position.set(x - 6, 3, z - 12); scene.add(dome);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 5.5, 3, 24), white); base.position.set(x - 6, 1.5, z - 12); scene.add(base);
     // vapeur
     const n = 70, p = new Float32Array(n * 3), life = new Float32Array(n);
     for (let i = 0; i < n; i++) { life[i] = R(); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3));
     const sc = document.createElement('canvas'); sc.width = sc.height = 64; { const g2 = sc.getContext('2d'), gr = g2.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 64, 64); }
     const pts = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xcfd9e6, size: 9, map: new THREE.CanvasTexture(sc), transparent: true, opacity: 0.22, depthWrite: false }));
-    scene.add(pts); Object.assign(steam, { g, p, life, n, x: x + 10, z: z - 14 });
+    scene.add(pts); Object.assign(steam, { g, p, life, n, x: x + 8, z: z - 8 });
     // champ solaire
     const pg = new THREE.BoxGeometry(3, 0.15, 2), pm = new THREE.MeshStandardMaterial({ color: 0x1e58b8, metalness: 0.6, roughness: 0.25, emissive: 0x0b2f77, emissiveIntensity: 0.8 });
     const im = new THREE.InstancedMesh(pg, pm, 30), M = new THREE.Matrix4(), Q = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.55, 0, 0));
-    for (let i = 0; i < 30; i++) { M.compose(V(x - 14 + (i % 6) * 3.6, 0.65, z + 4 + Math.floor(i / 6) * 3), Q, V(1, 1, 1)); im.setMatrixAt(i, M); }
+    for (let i = 0; i < 30; i++) { M.compose(V(x - 10 + (i % 6) * 3.6, 0.65, z + 4 + Math.floor(i / 6) * 3), Q, V(1, 1, 1)); im.setMatrixAt(i, M); }
     scene.add(im);
     // éoliennes en mer
     const tm = new THREE.MeshStandardMaterial({ color: 0xeef4f7, roughness: 0.5 });
     for (let i = 0; i < 8; i++) {
       const tx = 148 + (i % 2) * 18 + R() * 6, tz = -70 + i * 17;
-      const g2 = new THREE.Group(); g2.position.set(tx, -1.6, tz); scene.add(g2);
+      const g2 = new THREE.Group(); g2.position.set(tx, -1.6, tz); g2.userData.sea = true; scene.add(g2);
       const tw = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.8, 28, 10), tm); tw.position.y = 14; g2.add(tw);
       const nac = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.4, 1.3), tm); nac.position.y = 28.3; g2.add(nac);
       const rotor = new THREE.Group(); rotor.position.set(-1.4, 28.3, 0); g2.add(rotor);
@@ -590,8 +587,8 @@ export function createCity(el, opt) {
   {
     const [ex, ez] = at('energy');
     [['core', 0, 0], ['archi', 0, 0], ['hospital', 0, 0], ['school', 0, 0]].forEach(([id]) => {
-      const [x, z] = at(id), mid = V((ex + x) / 2, 22, (ez + z) / 2);
-      const c = new THREE.QuadraticBezierCurve3(V(ex, 3, ez), mid, V(x, 3, z));
+      const [x, z] = at(id), mid = V((ex + x) / 2, 58, (ez + z) / 2);
+      const c = new THREE.QuadraticBezierCurve3(V(ex, 8, ez), mid, V(x, 8, z));
       scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(c.getPoints(60)), lineMat(0xffcf73, 0.35)));
       const ps = []; for (let i = 0; i < 3; i++) { const s = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), glow(0xffcf73, 3)); scene.add(s); ps.push({ s, u: i / 3 }); }
       grids.push({ c, ps });
@@ -606,11 +603,6 @@ export function createCity(el, opt) {
     for (let i = 0; i < 3; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.18, 8, 32), holo(MINT, 0.9)); r.rotation.x = Math.PI / 2; r.position.set(x + 5, 15 + i * 3, z - 2); scene.add(r); }
     const bio = new THREE.Mesh(new THREE.SphereGeometry(4, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), glow(0x3c9f6a, 0.35)); bio.position.set(x - 9, 0, z + 6); scene.add(bio);
     [0x3a7bd5, 0xf2c94c, 0x2fae6a, 0x8a96a3].forEach((c, i) => { const b = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2, 1.4), glow(c, 0.6)); b.position.set(x - 6 + i * 2, 1, z - 9); scene.add(b); });
-    // canalisations souterraines (collecte automatique)
-    [[20, 20], [-5, 40], [40, 8], [30, 75]].forEach(([sx, sz]) => {
-      const c = new THREE.QuadraticBezierCurve3(V(sx, 0.2, sz), V((sx + x) / 2, 0.2, (sz + z) / 2 + 6), V(x, 0.2, z));
-      scene.add(new THREE.Mesh(new THREE.TubeGeometry(c, 40, 0.18, 5), holo(MINT, 0.45)));
-    });
   }
 
   // Restaurants robots
@@ -641,18 +633,18 @@ export function createCity(el, opt) {
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.85, 14, 10), holo(MINT, 0.5)); head.position.y = 6.6; g.add(head);
     const base = new THREE.Mesh(new THREE.TorusGeometry(2, 0.12, 8, 40), holo(CYAN, 0.9)); base.rotation.x = Math.PI / 2; base.position.y = 0.3; g.add(base);
     rec.holo = g;
-    for (let i = 0; i < 8; i++) addTree(x - 12 + R() * 24, z + 10 + R() * 5, 0.9);
+    for (let i = 0; i < 7; i++) addTree(x - 8 + i * 2.6 + R() * 0.6, z + 11 + R() * 2, 0.85);
   }
 
   // Hôpital : croix verte, drone médical
   {
     const [x, z] = at('hospital');
     const b = new THREE.Mesh(new THREE.BoxGeometry(16, 12, 12), facadeMat(0xe3e8eb, { lit: 0.75, gain: 1.8, rough: 0.6 })); b.position.set(x, 6, z); scene.add(b);
-    const w = new THREE.Mesh(new THREE.BoxGeometry(8, 7, 14), white); w.position.set(x + 11, 3.5, z + 2); scene.add(w);
+    const w = new THREE.Mesh(new THREE.BoxGeometry(6, 7, 12), white); w.position.set(x + 10, 3.5, z + 1); scene.add(w);
     const cm = glow(0x35e08a, 2.2);
     const c1 = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.6, 1.3), cm), c2 = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.6, 4.2), cm);
     c1.position.set(x, 12.4, z); c2.position.set(x, 12.4, z); scene.add(c1, c2);
-    const pad = new THREE.Mesh(new THREE.RingGeometry(2, 2.6, 32), holo(0xffffff, 0.8)); pad.rotation.x = -Math.PI / 2; pad.position.set(x + 11, 7.05, z + 2); scene.add(pad);
+    const pad = new THREE.Mesh(new THREE.RingGeometry(2, 2.6, 32), holo(0xffffff, 0.8)); pad.rotation.x = -Math.PI / 2; pad.position.set(x + 10, 7.05, z + 1); scene.add(pad);
     const dr = new THREE.Group(); scene.add(dr);
     const db = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 1.2), white); dr.add(db);
     const dl = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 6), glow(0x35e08a, 3)); dl.position.y = -0.3; dr.add(dl);
@@ -664,7 +656,8 @@ export function createCity(el, opt) {
     const [x, z] = at('security');
     const wood = new THREE.MeshStandardMaterial({ color: 0x8a6a4a, roughness: 0.85 });
     [[-10, -6], [-4, 6], [6, -10], [-14, 6]].forEach(([dx, dz]) => { const b = new THREE.Mesh(new THREE.BoxGeometry(7, 3.5, 5), wood); b.position.set(x + dx, 1.75, z + dz); scene.add(b); });
-    for (let i = 0; i < 26; i++) addTree(x - 18 + R() * 20, z - 16 + R() * 30, 0.9 + R() * 0.4);
+    { const bl = [[-10, -6], [-4, 6], [6, -10], [-14, 6]]; let n = 0, k = 0;
+      while (n < 26 && k++ < 400) { const dx = -17 + R() * 19, dz = -15 + R() * 30; if (Math.hypot(dx, dz) < 18 && bl.every(([bx, bz]) => Math.abs(dx - bx) > 5 || Math.abs(dz - bz) > 4) && Math.hypot(dx - 8, dz - 4) > 3) { addTree(x + dx, z + dz, 0.9 + R() * 0.4); n++; } } }
     const t = edges(new THREE.Mesh(new THREE.CylinderGeometry(1, 1.5, 30, 8), glass), MINT, 0.6); t.position.set(x + 8, 15, z + 4); scene.add(t);
     const orbs = []; for (let i = 0; i < 8; i++) { const o = new THREE.Mesh(new THREE.SphereGeometry(0.75, 12, 8), glow(0x3cf09a, 2.4)); scene.add(o); orbs.push(o); }
     const dc = new THREE.Mesh(new THREE.BoxGeometry(8, 4, 6), new THREE.MeshStandardMaterial({ color: 0x2a3038, roughness: 0.5, metalness: 0.4 })); dc.position.set(x + 12, 2, z - 10); scene.add(dc);
@@ -673,9 +666,10 @@ export function createCity(el, opt) {
     const bd = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2.8, 0.8), holo(CYAN, 0.55)); lock.add(bd);
     rec.sec = { orbs, x: x + 8, z: z + 4, lock };
   }
+  const D1 = scene.children.length;
 
   // arbres supplémentaires dans les espaces libres
-  for (let i = 0; i < (lite ? 50 : 110); i++) { const a = R() * Math.PI * 2, r = 25 + R() * 95, x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.abs(r - 40) > 5 && Math.abs(r - 100) > 5 && away(x, z, 2)) addTree(x, z, 0.7 + R() * 0.5); }
+  for (let i = 0; i < (lite ? 50 : 110); i++) { const a = R() * Math.PI * 2, r = 25 + R() * 95, x = Math.cos(a) * r, z = Math.sin(a) * r; if (!roadHit(x, z, 1.3) && away(x, z, 2)) addTree(x, z, 0.7 + R() * 0.5); }
   // le long des avenues
   SPOKES.forEach(a => { for (let u = 52; u < 95; u += lite ? 10 : 6) for (const s of [-4.4, 4.4]) addTree(Math.cos(a) * u - Math.sin(a) * s, Math.sin(a) * u + Math.cos(a) * s, 0.55); });
   {
@@ -695,6 +689,24 @@ export function createCity(el, opt) {
     });
     crowns.count = nc; pines.count = np;
     scene.add(trunks, crowns, pines);
+  }
+
+  /* ---------- Contrôle du plan : rien de solide sur une route, rien qui dépasse de son îlot ---------- */
+  function audit() {
+    const out = [], box = new THREE.Box3();
+    for (let i = D0; i < D1; i++) {
+      const o = scene.children[i];
+      if (o.isSprite || o.isLine || o.isPoints || o.userData.sea) continue;
+      box.setFromObject(o);
+      if (box.isEmpty() || box.min.y > 2.5 || box.max.y - box.min.y < 0.5) continue;      // en l'air ou posé à plat
+      const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2, pts = [];
+      for (let u = 0; u <= 4; u++) for (let v = 0; v <= 4; v++) pts.push([box.min.x + (box.max.x - box.min.x) * u / 4, box.min.z + (box.max.z - box.min.z) * v / 4]);
+      const zz = Z.slice().sort((a, b) => Math.hypot(cx - a.x, cz - a.z) - Math.hypot(cx - b.x, cz - b.z))[0];
+      const road = pts.filter(([x, z]) => roadHit(x, z)).length, outside = pts.filter(([x, z]) => Math.hypot(x - zz.x, z - zz.z) > zz.r + 0.5).length;
+      if (road || outside) out.push({ zone: zz.id, at: [Math.round(cx), Math.round(cz)], size: [Math.round(box.max.x - box.min.x), Math.round(box.max.z - box.min.z)], road, outside });
+    }
+    treePts.forEach(([x, z]) => { if (roadHit(x, z, 0.3)) out.push({ tree: [Math.round(x), Math.round(z)] }); });
+    return out;
   }
 
   /* ---------- Zones : anneaux, colonne de lumière, étiquettes, cibles de clic ---------- */
@@ -834,7 +846,6 @@ export function createCity(el, opt) {
       o.g.rotation.z = Math.sin(t * 13 + i) * 0.035 * a; o.g.rotation.x = Math.cos(t * 11 + i) * 0.025 * a;
       o.abs.forEach(c => { c.material.emissiveIntensity = 0.5 + a * 3; });
     });
-    metro.trains.forEach(o => { o.u = (o.u + dt * 0.035) % 1; metro.curve.getPointAt(o.u, tmp); o.t.position.copy(tmp); const tg = metro.curve.getTangentAt(o.u); o.t.rotation.y = Math.atan2(-tg.z, tg.x); o.t.rotation.z = Math.PI / 2; });
     lights.forEach(o => { const g = Math.sin(t * 0.8 + o.ph) > 0; o.bulb.material.color.setHex(g ? 0x35e08a : 0xff5a4f); });
     turbines.forEach(o => { o.rotor.rotation.x += dt * o.sp; });
     grids.forEach(g => g.ps.forEach(p => { p.u = (p.u + dt * 0.22) % 1; g.c.getPointAt(p.u, tmp); p.s.position.copy(tmp); }));
@@ -873,6 +884,7 @@ export function createCity(el, opt) {
 
   return {
     fly: flyTo,
+    audit,
     // vue libre (caméra en p, regarde q) : sert aux plans rapprochés
     look(p, q, dur = 1.5) { current = '_look'; fly = { p0: camera.position.clone(), q0: target.clone(), p1: V(p[0], p[1], p[2]), q1: V(q[0], q[1], q[2]), s: performance.now(), d: dur }; },
     setPanel(f) { panelT = f; },

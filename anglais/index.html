@@ -512,20 +512,20 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   /* ---------- La ville 3D : quartiers (coordonnées dans la scène) et caméra de chaque diapo ---------- */
   const ZONES = [
     { id: 'core', name: 'Changchong Core', x: 0, z: 0, r: 20, cam: [40, 60, 64], look: 26, info: 'The AI brain of the city: big data from thousands of sensors, in real time.' },
-    { id: 'archi', name: 'Smart Architecture', x: -68, z: -25, r: 24, info: 'Earthquake-proof towers on rubber shock absorbers, vertical gardens, parks on the roofs and solar glass.' },
-    { id: 'security', name: 'Smart Security', x: -30, z: -66, r: 22, info: 'Green points for good actions, a prison that gives a second chance, and data that is never sold.' },
-    { id: 'transport', name: 'Smart Transport', x: 36, z: -62, r: 20, info: 'Self-driving electric buses, safe bike lanes, an underground metro and traffic lights that adapt in real time.' },
-    { id: 'energy', name: 'Energy Coast', x: 92, z: -12, r: 28, cam: [-34, 62, 52], info: 'Nuclear power for a stable base, solar panels, wind turbines at sea, and a smart grid managed by AI.' },
-    { id: 'waste', name: 'Waste to Energy', x: 55, z: 46, r: 18, info: 'Smart bins and underground pipes: garbage is sorted, recycled and turned into electricity and heat.' },
-    { id: 'food', name: 'Robot Restaurants', x: 6, z: 72, r: 16, info: 'Robot chefs and robot waiters. AI predicts how many customers will come, so there is less food waste.' },
-    { id: 'school', name: 'Smart School', x: -46, z: 56, r: 20, info: 'AI hologram teachers, free online courses and VR school trips.' },
-    { id: 'hospital', name: 'Smart Hospital', x: -78, z: 21, r: 20, info: 'An AI health assistant tracks your heart and your sleep. AI helps, doctors decide.' }
+    { id: 'archi', name: 'Smart Architecture', x: 33.9, z: -62.4, r: 22, info: 'Earthquake-proof towers on rubber shock absorbers, vertical gardens, parks on the roofs and solar glass.' },
+    { id: 'security', name: 'Smart Security', x: -27.7, z: -65.4, r: 21, info: 'Green points for good actions, a prison that gives a second chance, and data that is never sold.' },
+    { id: 'transport', name: 'Smart Transport', x: 54.8, z: 45.2, r: 18, info: 'Self-driving electric buses, safe bike lanes, an underground metro and traffic lights that adapt in real time.' },
+    { id: 'energy', name: 'Energy Coast', x: 70.1, z: -11.1, r: 23, cam: [-46, 58, 40], info: 'Nuclear power for a stable base, solar panels, wind turbines at sea, and a smart grid managed by AI.' },
+    { id: 'waste', name: 'Waste to Energy', x: 6.8, z: 70.7, r: 18, info: 'Smart bins and underground pipes: garbage is sorted, recycled and turned into electricity and heat.' },
+    { id: 'food', name: 'Robot Restaurants', x: -42.7, z: 56.7, r: 16, info: 'Robot chefs and robot waiters. AI predicts how many customers will come, so there is less food waste.' },
+    { id: 'school', name: 'Smart School', x: -65.4, z: -27.7, r: 17, info: 'AI hologram teachers, free online courses and VR school trips.' },
+    { id: 'hospital', name: 'Smart Hospital', x: -68.9, z: 17.2, r: 17, info: 'An AI health assistant tracks your heart and your sleep. AI helps, doctors decide.' }
   ];
   const zoneAt = (x, z) => { const f = ZONES.find(q => Math.hypot(x - q.x, z - q.z) <= q.r + 3); return f ? f.id : null; };
   const CAM = { meet: 'core', archi: 'archi', q2: 'archi', transport: 'transport', q3: 'transport', q4: 'energy', energy: 'energy', waste: 'waste', education: 'school', health: 'hospital', food: 'food', q5: 'hospital', security: 'security', q6: 'security' };
   S.forEach(s => { s.cam = CAM[s.id] || 'overview'; s.ring = s.id === 'fifteen'; });
   const webgl = (() => { try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) { return false; } })();
-  const loadCityMod = () => import('./city.js?v=2026111705');
+  const loadCityMod = () => import('./city.js?v=2026111804');
 
   const QUIZ = S.filter(s => s.quiz);
   QUIZ.forEach((s, i) => { s.qn = i + 1; s.title = 'Quiz ' + (i + 1) + ' · ' + s.quiz.q; });

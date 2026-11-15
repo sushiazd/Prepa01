@@ -728,7 +728,11 @@ export function createCity(el, opt) {
   /* ---------- Joueurs : drones ---------- */
   const players = new Map();
   const droneGeo = new THREE.OctahedronGeometry(1.5);
-  function hue(s) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return (h % 360) / 360; }
+  // nombre entre 0 et 1 tiré de l'identifiant (FNV-1a + mélange) : deux identifiants voisins donnent des couleurs et des places éloignées
+  function hue(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15; return (h >>> 0) / 4294967296; }
+  // Ceux qui suivent l'écran envoient tous le même point (le centre du quartier) : chaque drone garde
+  // un écart fixe tiré de son identifiant (angle, rayon 8 à 18, altitude 20 à 30) et l'essaim tourne
+  // lentement autour du point, au lieu d'un tas de drones et de pseudos empilés.
   function setPlayers(list) {
     const seen = new Set();
     list.forEach(p => {
@@ -736,14 +740,19 @@ export function createCity(el, opt) {
       let o = players.get(p.id);
       if (!o) {
         const c = new THREE.Color().setHSL(hue(p.id), 0.85, 0.62);
-        const m = new THREE.Mesh(droneGeo, new THREE.MeshBasicMaterial({ color: c }));
-        const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 9, 6, 1, true), holo(c, 0.5)); beam.position.y = -4.5; m.add(beam);
-        m.position.set(p.x, 10, p.z); scene.add(m);
+        // dessinés par-dessus les bâtiments (marqueurs holographiques) : un drone derrière une tour reste visible
+        const m = new THREE.Mesh(droneGeo, new THREE.MeshBasicMaterial({ color: c, depthTest: false, transparent: true }));
+        const bm = holo(c, 0.5); bm.depthTest = false;
+        const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 9, 6, 1, true), bm); beam.position.y = -4.5; m.add(beam);
+        m.renderOrder = beam.renderOrder = 20;
+        const k = hue(p.id + '#'), a = hue(p.id) * Math.PI * 2, rr = 8 + k * 10, oy = 20 + hue(p.id + '*') * 10;
+        m.position.set(p.x + Math.cos(a) * rr, oy, p.z + Math.sin(a) * rr); scene.add(m);
         const lab = document.createElement('div'); lab.className = 'c3-pl'; labels.appendChild(lab);
-        o = { m, lab, x: p.x, z: p.z, ph: R() * 6 }; players.set(p.id, o);
+        o = { m, lab, x: p.x, z: p.z, a, rr, oy, ph: R() * 6, hw: 20 }; players.set(p.id, o);
       }
       o.x = p.x; o.z = p.z;
-      o.lab.textContent = p.name || ''; o.lab.hidden = !p.name;
+      if (o.lab.textContent !== (p.name || '')) { o.lab.textContent = p.name || ''; o.hw = (o.lab.textContent.length * 7 + 18) / 2; }
+      o.lab.hidden = !p.name;
     });
     for (const [id, o] of players) if (!seen.has(id)) { scene.remove(o.m); o.lab.remove(); players.delete(id); }
   }
@@ -864,8 +873,9 @@ export function createCity(el, opt) {
     Z.forEach(z => { const p = ZR[z.id].pillar; if (p.visible) p.material.opacity = 0.014 + Math.sin(t * 2.2) * 0.008; });
     if (r15.visible) { const s = Math.min(1, r15.scale.x + dt * 0.8); r15.scale.setScalar(s); }
     for (const o of players.values()) {
-      o.m.position.x += (o.x - o.m.position.x) * Math.min(1, dt * 2.5); o.m.position.z += (o.z - o.m.position.z) * Math.min(1, dt * 2.5);
-      o.m.position.y = 10 + Math.sin(t * 2 + o.ph) * 0.8; o.m.rotation.y += dt * 1.5;
+      const a = o.a + t * 0.12, tx = o.x + Math.cos(a) * o.rr, tz = o.z + Math.sin(a) * o.rr;
+      o.m.position.x += (tx - o.m.position.x) * Math.min(1, dt * 2.5); o.m.position.z += (tz - o.m.position.z) * Math.min(1, dt * 2.5);
+      o.m.position.y = o.oy + Math.sin(t * 2 + o.ph) * 0.8; o.m.rotation.y += dt * 1.5;
     }
 
     if (bloomOn && composer) composer.render(); else renderer.render(scene, camera);
@@ -878,15 +888,25 @@ export function createCity(el, opt) {
     const x = (tmp.x * 0.5 + 0.5) * W, y = (-tmp.y * 0.5 + 0.5) * H;
     const off = tmp.z > 1 || x - hw < 8 || x + hw > W - 8 || y < 36 || y > H - 4
       || (mask && x + hw > mask.l - 16 && x - hw < mask.r + 16 && y > mask.t - 16 && y - 40 < mask.b + 16);
-    if (off) { div.style.display = 'none'; return; }
+    if (off) { div.style.display = 'none'; return null; }
     div.style.display = '';
     div.style.transform = `translate(${x}px,${y}px) translate(-50%,-100%)`;
+    return [x, y];
   }
+  const near = (a, b) => a.m.position.distanceToSquared(camera.position) - b.m.position.distanceToSquared(camera.position);
   function placeLabels() {
     // présentateur sur un quartier : seule son étiquette reste, les autres distrairaient
-    const focus = presenter && !free && zone(current) ? current : null;
-    Z.forEach(z => { const r = ZR[z.id]; if (focus && z.id !== focus) r.tag.style.display = 'none'; else place(r.tag, r.pos, 0, r.hw); });
-    for (const o of players.values()) if (!o.lab.hidden) place(o.lab, o.m.position, 2.2, 30);
+    const focus = presenter && !free && zone(current) ? current : null, boxes = [];
+    Z.forEach(z => {
+      const r = ZR[z.id]; if (focus && z.id !== focus) { r.tag.style.display = 'none'; return; }
+      const q = place(r.tag, r.pos, 0, r.hw); if (q) boxes.push([q[0] - r.hw, q[1] - 40, q[0] + r.hw, q[1]]);
+    });
+    // pseudos des drones : du plus proche au plus loin, un pseudo qui en chevaucherait un autre est caché
+    [...players.values()].filter(o => !o.lab.hidden).sort(near).forEach(o => {
+      const q = place(o.lab, o.m.position, 2.2, o.hw); if (!q) return;
+      const b = [q[0] - o.hw - 4, q[1] - 24, q[0] + o.hw + 4, q[1]];
+      if (boxes.some(c => b[0] < c[2] && b[2] > c[0] && b[1] < c[3] && b[3] > c[1])) o.lab.style.display = 'none'; else boxes.push(b);
+    });
   }
   loop();
 

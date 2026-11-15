@@ -138,9 +138,11 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
 .qr.sm img,.qr.sm canvas{width:152px!important;height:152px!important}
 .pcount{font:500 34px/1.3 var(--text);color:var(--ink-2)}
 .pcount b{color:var(--ink);font-weight:700}
-.chips{display:flex;flex-wrap:wrap;gap:12px;max-height:250px;overflow:hidden}
+/* 4 lignes de pseudos au plus (hauteur exacte : jamais de ligne coupée), le reste résumé par « +N more » */
+.chips{position:relative;display:flex;flex-wrap:wrap;gap:12px;max-height:252px;overflow:hidden}
 .chip{font:600 28px/1 var(--text);background:var(--navy-3);color:var(--ink);border-radius:999px;padding:12px 22px;border:0;cursor:pointer}
 .chip:hover{background:var(--red)}
+.chip.more,.chip.more:hover{cursor:default;background:transparent!important;border-color:transparent!important;color:var(--muted)}
 
 /* Quiz */
 .quiz{background:var(--navy);color:var(--ink);padding:80px 110px 120px;gap:34px}
@@ -277,8 +279,8 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
 .holo .qr img,.holo .qr canvas{width:304px!important;height:304px!important}
 .holo .pcount{font-size:26px}
 .holo .pcount b{display:block;font:600 96px/1 var(--display);color:var(--mint);margin-bottom:6px}
-.holo .chips{display:flex;flex-wrap:wrap;gap:10px;max-height:150px;overflow:hidden}
-.holo .chip{font:600 20px/1 var(--text);padding:8px 14px;pointer-events:auto}
+.holo .chips{gap:8px;max-height:156px}
+.holo .chip{font:600 17px/1 var(--text);padding:7px 12px;pointer-events:auto}
 .s.over{background:rgba(18,18,17,.84)!important;backdrop-filter:blur(5px)}
 .h3d-tag{position:absolute;right:72px;bottom:40px;font:500 22px/1 var(--text);color:var(--ink-2);background:rgba(18,18,17,.78);border:1px solid var(--line-2);border-radius:999px;padding:10px 18px}
 .modes{display:flex;gap:10px;flex-wrap:wrap}
@@ -431,6 +433,8 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     'trending-down': '<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>',
     'users': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     'wind': '<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
+    'ship': '<path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/><path d="M12 10v4"/><path d="M12 2v3"/>',
+    'building-2': '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
     'zap': '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>'
   };
   const I = n => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ''}</svg>`;
@@ -465,7 +469,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <div class="cards c3">
         ${card('cpu', 'Smart', 'Big data, AI and sensors collect data in real time.')}
         ${card('leaf', 'Green', 'Its goal: a smaller carbon footprint and zero waste.')}
-        ${card('recycle', 'Sustainable', 'It lives on its own local resources.')}
+        ${card('recycle', 'Sustainable', 'It relies on its own local resources.')}
       </div>
       <div class="strip">On the coast of southern China: strong wind, a port for trade… and earthquakes.</div>
       <div class="pills">${pill('brick-wall', 'Architecture')}${pill('bus', 'Transport')}${pill('zap', 'Energy')}${pill('presentation', 'Education')}${pill('heart-pulse', 'Health care')}${pill('lock', 'Security')}</div>` },
@@ -473,26 +477,27 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <p class="eb">Pillar 1</p>
       <h2>Smart architecture</h2>
       <div class="cards c3">
-        ${card('activity', 'Earthquake-proof', 'Every building stands on rubber shock absorbers, a technology Japan has used for decades.')}
-        ${card('trees', 'Green buildings', 'Vertical gardens and parks on the roofs, like Singapore’s Supertrees.')}
+        ${card('activity', 'Earthquake-resistant', 'Every building stands on rubber shock absorbers, a technology Japan has used for decades.')}
+        ${card('building-2', 'High-rise green housing', 'Homes for more people on less land, covered with vertical gardens like Singapore’s Supertrees.')}
         ${card('brick-wall', 'Low-carbon materials', 'Wood, recycled steel, low-carbon concrete and solar glass.')}
       </div>
-      <p class="statement">A building that protects you… and produces energy.</p>` },
+      <p class="statement">A building that protects you, collects rainwater… and produces energy.</p>` },
     { id: 'q2', sp: 1, quiz: { q: 'What keeps Changchong’s buildings safe during an earthquake?', o: ['Giant magnets', 'Rubber shock absorbers', 'Floating foundations', 'Thick steel walls'], ok: 1, why: 'Rubber shock absorbers: the building moves slowly instead of breaking.' } },
     { id: 'transport', sp: 2, title: 'Smart transport', html: () => `
       <p class="eb">Pillar 2</p>
       <h2>Smart transport</h2>
-      <div class="cards c3">
+      <div class="cards c4">
         ${card('bike', 'Bikes', 'Safe bike lanes everywhere. Get on a shared e-bike with an app.')}
-        ${card('bus', 'Self-driving buses', 'Electric, guided by sensors and AI. Track your bus in real time.')}
+        ${card('bus', 'On-demand buses', 'Electric and self-driving. Book a seat in the app and the bus picks you up.')}
         ${card('train-front', 'Metro', 'Fast, electric and underground. It links all the districts.')}
+        ${card('ship', 'Water taxis', 'Electric boats link the port and the coast.')}
       </div>
-      <div class="strip">Traffic lights adapt in real time, and street lights dim when the street is empty.</div>` },
+      <div class="strip">One app to plan and pay for every trip. Traffic lights adapt in real time, and street lights dim when the street is empty.</div>` },
     { id: 'fifteen', sp: 2, title: 'The 15-minute city', html: () => `
       <p class="eb">Pillar 2 · Urban mobility</p>
       <h2>The 15-minute city</h2>
       <div class="split top">
-        <div class="col"><div class="big">15 min</div><p class="lead">Everything you need is 15 minutes away, on foot or by bike.</p><p class="lead muted note">An idea by Carlos Moreno, adopted by Paris.</p></div>
+        <div class="col"><div class="big">15 min</div><p class="lead">Everything you need is within walking distance: 15 minutes on foot or by bike.</p><p class="lead muted note">An idea by Carlos Moreno, adopted by Paris.</p></div>
         <div class="col"><div class="pills g3">${pill('school', 'School')}${pill('shopping-cart', 'Shops')}${pill('stethoscope', 'Doctor')}${pill('trees', 'Park')}${pill('briefcase', 'Offices')}${pill('dumbbell', 'Sport')}</div>
         <p class="statement sm">If you lived here, you wouldn’t need a car.</p></div>
       </div>` },
@@ -503,7 +508,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <h2>Smart energy</h2>
       <div class="split top">
         <div class="cards c1">
-          ${card('atom', 'Nuclear', 'Stable, day and night.', 'mini')}
+          ${card('atom', 'Nuclear', 'Stable, day and night. It shuts down automatically in an earthquake.', 'mini')}
           ${card('sun', 'Solar', 'Roofs and solar glass.', 'mini')}
           ${card('wind', 'Wind', 'Turbines out at sea.', 'mini')}
           ${card('recycle', 'Waste', 'Turned into power.', 'mini')}
@@ -521,7 +526,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <div class="steps">
         <div class="step"><div class="no">1</div><h3>Sort</h3><p>Smart bins and underground pipes. No garbage trucks, no litter.</p></div>
         <div class="step"><div class="no">2</div><h3>Recycle</h3><p>Plastic, glass and metal get a second life.</p></div>
-        <div class="step"><div class="no">3</div><h3>Transform</h3><p>Food waste becomes biogas. The rest is burnt with filters.</p></div>
+        <div class="step"><div class="no">3</div><h3>Transform</h3><p>Food waste becomes biogas for our buses. The rest is burned with filters.</p></div>
         <div class="step"><div class="no">4</div><h3>Power</h3><p>Electricity and heat for the whole city.</p></div>
       </div>
       <div class="strip">Sweden already sends less than 1% of its household waste to landfill.</div>` },
@@ -540,7 +545,8 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <div class="split top">
         ${card('heart-pulse', 'Your AI health assistant', 'It tracks your heart rate and your sleep, reminds you to take your medicine and books a real doctor when something is wrong.')}
         <div class="col"><p class="statement xl">AI helps,<br>doctors decide.</p><p class="lead muted">And your health data stays private.</p></div>
-      </div>` },
+      </div>
+      <div class="strip">Traffic lights turn green for ambulances: about 3 minutes faster on average, as in a pilot in Liverpool.</div>` },
     { id: 'food', sp: 4, title: 'Smart restaurants', html: () => `
       <p class="eb">And also…</p>
       <h2>Smart restaurants</h2>
@@ -554,18 +560,18 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <p class="eb">Pillar 6</p>
       <h2>Smart security</h2>
       <div class="cards c3">
-        ${card('sprout', 'Smart credit', 'Recycle, cycle, volunteer: earn green points for free transport and cheaper concerts. It never punishes.')}
+        ${card('sprout', 'Green points', 'Optional and anonymous: recycle, cycle or volunteer to earn free transport and cheaper concerts. No penalties, no ranking.')}
         ${card('key-round', 'Smart prison', 'A second chance: training, online courses and an AI coach to find a job, like Halden in Norway.')}
         ${card('lock', 'Privacy first', 'Data is protected by law, anonymous and never sold.')}
       </div>` },
-    { id: 'q6', sp: 5, quiz: { q: 'How do you earn green points in Changchong?', o: ['By buying a bigger car', 'By recycling and cycling to work', 'By paying more taxes', 'By watching adverts'], ok: 1, why: 'Good actions for the city earn points: recycling, cycling, helping a neighbour, volunteering.' } },
+    { id: 'q6', sp: 5, quiz: { q: 'How do you earn green points in Changchong?', o: ['By buying a bigger car', 'By recycling and cycling to work', 'By paying more taxes', 'By watching ads'], ok: 1, why: 'Good actions for the city earn points: recycling, cycling, helping a neighbor, volunteering.' } },
     { id: 'vote', sp: 5, dark: true, title: 'Why vote for Changchong?', html: () => `
-      <p class="eb">To conclude</p>
+      <p class="eb">To conclude · Three challenges, three answers</p>
       <h2>Why vote for Changchong?</h2>
       <div class="cards c3">
-        ${card('leaf', 'Green', 'Clean energy, garbage turned into power, nature on every building.')}
-        ${card('cpu', 'Smart', 'AI saves time on the roads, energy in the grid and lives in hospitals.')}
-        ${card('handshake', 'Human', 'Education and health care for everyone, and a second chance.')}
+        ${card('thermometer-sun', 'Climate change', 'Clean energy, green buildings and no need for a car.')}
+        ${card('pickaxe', 'Depletion of resources', 'Garbage becomes energy, rainwater is collected and materials are recycled.')}
+        ${card('users', 'Increase in population', 'High-rise green housing, <span style="white-space:nowrap">15-minute</span> districts and a metro for everyone.')}
       </div>
       <p class="motto lg">${MOTTO}</p>` },
     { id: 'podium', sp: 5, dark: true, bare: true, podium: true, title: 'Quiz podium' },
@@ -579,9 +585,9 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   /* ---------- La ville 3D : quartiers (coordonnées dans la scène) et caméra de chaque diapo ---------- */
   const ZONES = [
     { id: 'core', name: 'Changchong Core', x: 0, z: 0, r: 20, cam: [40, 60, 64], look: 26, info: 'The AI brain of the city: big data from thousands of sensors, in real time.' },
-    { id: 'archi', name: 'Smart Architecture', x: 33.9, z: -62.4, r: 22, info: 'Earthquake-proof towers on rubber shock absorbers, vertical gardens, parks on the roofs and solar glass.' },
-    { id: 'security', name: 'Smart Security', x: -27.7, z: -65.4, r: 21, info: 'Green points for good actions, a prison that gives a second chance, and data that is never sold.' },
-    { id: 'transport', name: 'Smart Transport', x: 54.8, z: 45.2, r: 18, info: 'Self-driving electric buses, safe bike lanes, an underground metro and traffic lights that adapt in real time.' },
+    { id: 'archi', name: 'Smart Architecture', x: 33.9, z: -62.4, r: 22, info: 'Earthquake-resistant towers on rubber shock absorbers, high-rise green housing with vertical gardens, solar glass and rainwater collection.' },
+    { id: 'security', name: 'Smart Security', x: -27.7, z: -65.4, r: 21, info: 'Optional green points for good actions, a prison that gives a second chance, and data that is never sold.' },
+    { id: 'transport', name: 'Smart Transport', x: 54.8, z: 45.2, r: 18, info: 'On-demand electric buses, safe bike lanes, an underground metro, water taxis and traffic lights that adapt in real time.' },
     { id: 'energy', name: 'Energy Coast', x: 70.1, z: -11.1, r: 23, cam: [-46, 58, 40], info: 'Nuclear power for a stable base, solar panels, wind turbines at sea, and a smart grid managed by AI.' },
     { id: 'waste', name: 'Waste to Energy', x: 6.8, z: 70.7, r: 18, info: 'Smart bins and underground pipes: garbage is sorted, recycled and turned into electricity and heat.' },
     { id: 'food', name: 'Robot Restaurants', x: -42.7, z: 56.7, r: 16, info: 'Robot chefs and robot waiters. AI predicts how many customers will come, so there is less food waste.' },
@@ -592,7 +598,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   const CAM = { meet: 'core', archi: 'archi', q2: 'archi', transport: 'transport', q3: 'transport', q4: 'energy', energy: 'energy', waste: 'waste', education: 'school', health: 'hospital', food: 'food', q5: 'hospital', security: 'security', q6: 'security' };
   S.forEach(s => { s.cam = CAM[s.id] || 'overview'; s.ring = s.id === 'fifteen'; });
   const webgl = (() => { try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) { return false; } })();
-  const loadCityMod = () => import('./city.js?v=2026111805');
+  const loadCityMod = () => import('./city.js?v=2026111807');
 
   const QUIZ = S.filter(s => s.quiz);
   QUIZ.forEach((s, i) => { s.qn = i + 1; s.title = 'Quiz ' + (i + 1) + ' · ' + s.quiz.q; });
@@ -804,7 +810,22 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   // « 3 / 5 answered » pendant la question, « 3 answers » une fois corrigée
   const answeredTxt = (tot, live) => { const on = playersOnline().length; return live && on ? `${tot} / ${on} answered` : plural(tot, 'answer'); };
   const playersTxt = n => n ? `<b>${n}</b> ${n === 1 ? 'player' : 'players'} connected` : 'Waiting for players…';
-  const chipsHTML = ps => ps.map(p => `<button type="button" class="chip" data-ban="${esc(p)}" title="Exclure">${esc(online[p])}</button>`).join('');
+  // les derniers arrivés d'abord : un pseudo déplacé se voit (et s'exclut d'un clic) tout de suite
+  const chipsHTML = ps => ps.slice().reverse().map(p => `<button type="button" class="chip" data-ban="${esc(p)}" title="Exclure">${esc(online[p])}</button>`).join('');
+  // pseudos qui ne tiennent pas dans les 4 lignes : cachés et résumés par « +N more »
+  function fitChips() {
+    const c = $('#chips'); if (!c) return;
+    const kids = [...c.querySelectorAll('[data-ban]')], over = el => el.offsetTop + el.offsetHeight > c.clientHeight + 1;
+    let n = 0;
+    kids.forEach(k => { if (over(k)) { k.hidden = true; n++; } });
+    if (!n) return;
+    const m = document.createElement('span'); m.className = 'chip more'; c.appendChild(m);
+    for (let i = kids.length - 1; i >= 0; i--) {
+      m.textContent = `+${n} more`;
+      if (!over(m)) break;
+      if (!kids[i].hidden) { kids[i].hidden = true; n++; }
+    }
+  }
 
   function render(anim) {
     if (is3d()) { render3D(anim); return; }
@@ -815,7 +836,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     else if (s.podium) html = podiumHTML();
     else html = `<section class="s${s.dark ? ' dark' : ''}${anim ? ' in' : ''}">${s.html(N)}${footHTML(s)}</section>`;
     stage.innerHTML = html;
-    if (s.join) drawQR('#qrBig', 464);
+    if (s.join) { drawQR('#qrBig', 464); fitChips(); }
     if (s.quiz && phase === 'ask') drawQR('#qrSm', 152);
     $('#hudL').textContent = `Diapo ${cur + 1}/${S.length} · ${N[s.sp - 1]}`;
     $('#hudR').textContent = hudInfo();
@@ -835,7 +856,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     stage.innerHTML = html;
     city.setPanel(panel ? 0.2 : 0);
     maskLabels(); setTimeout(maskLabels, 650);   // remesuré après l'animation d'entrée
-    if (s.join) drawQR('#qrBig', 304);
+    if (s.join) { drawQR('#qrBig', 304); fitChips(); }
     if (s.quiz && phase === 'ask') drawQR('#qrSm', 152);
     $('#hudL').textContent = `Diapo ${cur + 1}/${S.length} · ${N[s.sp - 1]} · 3D`;
     $('#hudR').textContent = hudInfo();
@@ -908,7 +929,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     const s = S[cur];
     if (s.join) {
       const ps = playersOnline(), c = $('#chips'), n = $('#pcount');
-      if (c) c.innerHTML = chipsHTML(ps);
+      if (c) { c.innerHTML = chipsHTML(ps); fitChips(); }
       if (n) n.innerHTML = playersTxt(ps.length);
       if (is3d()) maskLabels();
     }

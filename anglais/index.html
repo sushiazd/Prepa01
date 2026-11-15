@@ -448,7 +448,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     { id: 'archi', name: 'Smart Architecture', x: -68, z: -25, r: 24, info: 'Earthquake-proof towers on rubber shock absorbers, vertical gardens, parks on the roofs and solar glass.' },
     { id: 'security', name: 'Smart Security', x: -30, z: -66, r: 22, info: 'Green points for good actions, a prison that gives a second chance, and data that is never sold.' },
     { id: 'transport', name: 'Smart Transport', x: 36, z: -62, r: 20, info: 'Self-driving electric buses, safe bike lanes, an underground metro and traffic lights that adapt in real time.' },
-    { id: 'energy', name: 'Energy Coast', x: 92, z: -12, r: 28, cam: [-58, 40, 24], info: 'Nuclear power for a stable base, solar panels, wind turbines at sea, and a smart grid managed by AI.' },
+    { id: 'energy', name: 'Energy Coast', x: 92, z: -12, r: 28, cam: [-34, 62, 52], info: 'Nuclear power for a stable base, solar panels, wind turbines at sea, and a smart grid managed by AI.' },
     { id: 'waste', name: 'Waste to Energy', x: 55, z: 46, r: 18, info: 'Smart bins and underground pipes: garbage is sorted, recycled and turned into electricity and heat.' },
     { id: 'food', name: 'Robot Restaurants', x: 6, z: 72, r: 16, info: 'Robot chefs and robot waiters. AI predicts how many customers will come, so there is less food waste.' },
     { id: 'school', name: 'Smart School', x: -46, z: 56, r: 20, info: 'AI hologram teachers, free online courses and VR school trips.' },
@@ -458,7 +458,7 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   const CAM = { meet: 'core', archi: 'archi', q2: 'archi', transport: 'transport', q3: 'transport', q4: 'energy', energy: 'energy', waste: 'waste', education: 'school', health: 'hospital', food: 'food', q5: 'hospital', security: 'security', q6: 'security' };
   S.forEach(s => { s.cam = CAM[s.id] || 'overview'; s.ring = s.id === 'fifteen'; });
   const webgl = (() => { try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) { return false; } })();
-  const loadCityMod = () => import('./city.js?v=2026111504');
+  const loadCityMod = () => import('./city.js?v=2026111607');
 
   const QUIZ = S.filter(s => s.quiz);
   QUIZ.forEach((s, i) => { s.qn = i + 1; s.title = 'Quiz ' + (i + 1) + ' · ' + s.quiz.q; });

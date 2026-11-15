@@ -716,7 +716,7 @@ export function createCity(el, opt) {
     const pillar = new THREE.Mesh(new THREE.CylinderGeometry(z.r, z.r, 36, 64, 1, true), holo(MINT, 0.03)); pillar.position.set(z.x, 18, z.z); pillar.visible = false; scene.add(pillar);
     const pick = new THREE.Mesh(new THREE.CylinderGeometry(z.r, z.r, 40, 24), new THREE.MeshBasicMaterial({ visible: false })); pick.position.set(z.x, 20, z.z); pick.userData.zone = z.id; scene.add(pick); picks.push(pick);
     const tag = document.createElement('div'); tag.className = 'c3-tag'; tag.innerHTML = `<b>${z.name}</b><span></span>`; labels.appendChild(tag);
-    ZR[z.id] = { ring, pillar, tag, cnt: tag.querySelector('span'), pos: V(z.x, z.id === 'core' ? 74 : 14, z.z) };
+    ZR[z.id] = { ring, pillar, tag, cnt: tag.querySelector('span'), pos: V(z.x, z.id === 'core' ? 74 : 14, z.z), hw: (z.name.length * 8.5 + 24) / 2 };
   });
   // cercle de la ville du quart d'heure
   const r15 = new THREE.Group(); r15.visible = false; scene.add(r15);
@@ -747,7 +747,8 @@ export function createCity(el, opt) {
     });
     for (const [id, o] of players) if (!seen.has(id)) { scene.remove(o.m); o.lab.remove(); players.delete(id); }
   }
-  function setCounts(c) { Z.forEach(z => { const n = (c && c[z.id]) || 0; ZR[z.id].cnt.textContent = n ? `👥 ${n}` : ''; }); }
+  const USERS = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+  function setCounts(c) { Z.forEach(z => { const n = (c && c[z.id]) || 0; ZR[z.id].cnt.innerHTML = n ? `${USERS} ${n}` : ''; }); }
 
   /* ---------- Caméra ---------- */
   let current = 'overview', fly = null, orbitA = 0.6, free = false, shake = 0;
@@ -870,15 +871,22 @@ export function createCity(el, opt) {
     if (bloomOn && composer) composer.render(); else renderer.render(scene, camera);
     placeLabels();
   }
-  function place(div, p, dy = 0) {
+  // étiquette cachée si elle sort de l'écran (même en partie) ou passe sous le panneau de texte (mask)
+  let mask = null;
+  function place(div, p, dy = 0, hw = 0) {
     tmp.copy(p); tmp.y += dy; tmp.project(camera);
-    if (tmp.z > 1 || tmp.x < -1.2 || tmp.x > 1.2 || tmp.y < -1.2 || tmp.y > 1.2) { div.style.display = 'none'; return; }
+    const x = (tmp.x * 0.5 + 0.5) * W, y = (-tmp.y * 0.5 + 0.5) * H;
+    const off = tmp.z > 1 || x - hw < 8 || x + hw > W - 8 || y < 36 || y > H - 4
+      || (mask && x + hw > mask.l - 16 && x - hw < mask.r + 16 && y > mask.t - 16 && y - 40 < mask.b + 16);
+    if (off) { div.style.display = 'none'; return; }
     div.style.display = '';
-    div.style.transform = `translate(${(tmp.x * 0.5 + 0.5) * W}px,${(-tmp.y * 0.5 + 0.5) * H}px) translate(-50%,-100%)`;
+    div.style.transform = `translate(${x}px,${y}px) translate(-50%,-100%)`;
   }
   function placeLabels() {
-    Z.forEach(z => place(ZR[z.id].tag, ZR[z.id].pos));
-    for (const o of players.values()) if (!o.lab.hidden) place(o.lab, o.m.position, 2.2);
+    // présentateur sur un quartier : seule son étiquette reste, les autres distrairaient
+    const focus = presenter && !free && zone(current) ? current : null;
+    Z.forEach(z => { const r = ZR[z.id]; if (focus && z.id !== focus) r.tag.style.display = 'none'; else place(r.tag, r.pos, 0, r.hw); });
+    for (const o of players.values()) if (!o.lab.hidden) place(o.lab, o.m.position, 2.2, 30);
   }
   loop();
 
@@ -888,6 +896,7 @@ export function createCity(el, opt) {
     // vue libre (caméra en p, regarde q) : sert aux plans rapprochés
     look(p, q, dur = 1.5) { current = '_look'; fly = { p0: camera.position.clone(), q0: target.clone(), p1: V(p[0], p[1], p[2]), q1: V(q[0], q[1], q[2]), s: performance.now(), d: dur }; },
     setPanel(f) { panelT = f; },
+    setMask(r) { mask = r ? { l: r.left, r: r.right, t: r.top, b: r.bottom } : null; },
     setPlayers, setCounts, setActive,
     ring15(on) { if (on && !r15.visible) r15.scale.setScalar(0.01); r15.visible = !!on; },
     quake() { shake = 2.6; },

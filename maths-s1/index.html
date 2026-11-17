@@ -10,8 +10,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026103101"></script>
-<script src="../core.js?v=2026103101"></script>
+<script src="../subjects.js?v=2026111701"></script>
+<script src="../core.js?v=2026111701"></script>
 <script src="learn.js?v=2026102806"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026102803">
@@ -763,9 +763,10 @@ function vHome() {
   const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
   const days = Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
   const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
-  const H = ls.get(HK, []), jan = cc > Date.parse('2026-12-01');
-  app.innerHTML = `<div><p class="eyebrow">MATH-S1 · A. Karfoul, M. Bauer</p><h1>Réussir le CC de maths du 6/11</h1>
-    <p class="lede">Le premier CC de MATH-S1 (vendredi 6/11, 1 h 30, sans document ni calculatrice) porte sur la partie d'A. Karfoul et de M. Bauer : <b>logique</b> (tables de vérité, quantificateurs, raisonnements), <b>ensembles</b>, <b>applications</b>, <b>relations</b> et <b>dénombrement</b>. L'analyse de L. Albera (complexes, limites, DL, intégrales, suites) est pour le CC du 6/1 : elle a sa propre page, <a href="../maths-s1-analyse/">Maths S1 : analyse</a>.</p></div>
+  const H = ls.get(HK, []), jan = cc > Date.parse('2026-12-15');
+  const dm = ts => new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'numeric' }).format(ts);
+  app.innerHTML = `<div><p class="eyebrow">MATH-S1 · A. Karfoul, M. Bauer</p><h1>Réussir le CC1 de maths</h1>
+    <p class="lede">Le premier CC de MATH-S1 (${cc ? esc(dm(cc)) : 'date à confirmer'}, après le report du 6/11 ; 1 h 30, sans document ni calculatrice) porte sur la partie d'A. Karfoul et de M. Bauer : <b>logique</b> (tables de vérité, quantificateurs, raisonnements), <b>ensembles</b>, <b>applications</b>, <b>relations</b> et <b>dénombrement</b>. L'analyse de L. Albera (complexes, limites, DL, intégrales, suites) est pour le CC2 : elle a sa propre page, <a href="../maths-s1-analyse/">Maths S1 : analyse</a>.</p></div>
     <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>${jan ? 'Prochain CC de maths : partie analyse, voir la page Analyse' : 'CC de maths'} : ${esc(when)}</span></div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Des tables de vérité au dénombrement, avec une progression qui s'adapte à tes résultats.</p>
@@ -836,7 +837,7 @@ const FICHES = [
     <div class="box warn"><h5>Les « extraits de CC » des TD</h5>Exercice 2.6 (application ni injective ni surjective avec un \\(F\\) minimal), 3.7 (points alignés avec O : relation d'équivalence, classes = droites privées de O), 3.12 (ordre partiel, majorants) : à refaire en priorité.</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Logique, ensembles, applications, relations, dénombrement · CC du 6/11</p><h1>Le cours utile</h1><p class="lede">Les cours d'A. Karfoul et de M. Bauer condensés en 8 fiches : définitions, formules, méthodes et pièges. Chaque fiche dit à quel type d'exercice elle sert.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Logique, ensembles, applications, relations, dénombrement · CC1</p><h1>Le cours utile</h1><p class="lede">Les cours d'A. Karfoul et de M. Bauer condensés en 8 fiches : définitions, formules, méthodes et pièges. Chaque fiche dit à quel type d'exercice elle sert.</p></div>
     ${E.lessonList()}<div id="learnHost" style="display:grid;gap:16px"></div>
     ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
   mathIn(app);

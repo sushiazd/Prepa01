@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
-<script src="subjects.js?v=2026111001"></script>
+<script src="subjects.js?v=2026111701"></script>
 <script defer src="account.js"></script>
 <script defer src="planning.js?v=2026101502"></script>
 <style>
@@ -414,7 +414,7 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
       const k = el.querySelector('.kind[data-kind]');
       if (rank === 1 || tbc) {
         w.textContent = 'date à confirmer'; el.classList.remove('past', 'near');
-        if (k) k.textContent = k.dataset.kind + num + ' · date à confirmer' + (ts ? `, avant le CC${num ? +num + 1 : ''} du ${dm(ts)}` : '');
+        if (k) k.textContent = k.dataset.kind + num + ' · date à confirmer' + (ts ? `, avant le ${/DS$/.test(k.dataset.kind) ? 'DS' : 'CC'}${num ? +num + 1 : ''} du ${dm(ts)}` : '');
         return;
       }
       const day = new Date(ts); day.setHours(0, 0, 0, 0);

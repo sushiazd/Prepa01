@@ -2,7 +2,7 @@
    Matières du site : la seule liste des pages, des contrôles et de leurs dates.
    Un CC déplacé ou une nouvelle matière se règle ICI, pour l'accueil, le planning et chaque page.
    - ade : intitulé du créneau dans l'emploi du temps ADE (planning.cache.v1, voir planning.js)
-   - dates : tous les CC de la matière sur l'année (copie d'ADE du 28/10), utilisés tant que l'emploi du temps
+   - dates : tous les CC de la matière sur l'année (copie d'ADE du 17/11), utilisés tant que l'emploi du temps
      n'est pas chargé sur l'appareil (vide = « date à confirmer »)
    - nth : quand plusieurs pages se partagent une matière (CC1 / CC2), la page prend le n-ième CC de l'année
      (0 = le premier) : le CC1 tombe toujours avant le CC2, même si un CC est déplacé ou annulé.
@@ -19,22 +19,24 @@
   'use strict';
   const word = w => new RegExp(`(^|[^A-Za-z])${w}([^A-Za-z]|$)`);
   const MATH = word('MATHS?');
-  // ADE au 28/10 : un seul CC d'élec analogique, le CC1 du 6/11 (décalé du 2/11) ; date du CC2 pas encore fixée (mail du 24/10)
-  const ELEC_CC = ['2026-11-06T07:00:00Z'], MATH_CC = ['2026-11-06T08:45:00Z', '2027-01-06T07:00:00Z'];
+  // ADE au 17/11 : les CC du 6/11 n'ont pas eu lieu (mouvement social, CC écrits suspendus le 4/11) ;
+  // élec analogique CC1 le 2/12 et CC2 le 14/12, maths CC1 le 30/11 et CC2 (analyse) le 6/01
+  const ELEC_CC = ['2026-12-02T14:00:00Z', '2026-12-14T07:00:00Z'], MATH_CC = ['2026-11-30T07:00:00Z', '2027-01-06T07:00:00Z'];
   const LIST = [
+    // QCM : ADE n'a plus que ceux de septembre (les suivants ont disparu début novembre) ; tous passés → date à confirmer
     { id: 'maths', name: 'QCM maths', page: 'maths/', ade: /QCM/i, qcm: true,
-      dates: ['2026-09-18T13:00:00Z', '2026-09-28T14:45:00Z', '2026-11-06T13:00:00Z', '2026-11-16T07:45:00Z', '2026-12-02T14:00:00Z', '2026-12-17T09:15:00Z', '2027-01-14T11:00:00Z'] },
+      dates: ['2026-09-18T13:00:00Z', '2026-09-28T14:45:00Z'] },
     { id: 'ms1', name: 'Maths S1', page: 'maths-s1/', ade: MATH, nth: 0, dates: MATH_CC, skills: 16 },
     { id: 'ma2', name: 'Analyse', page: 'maths-s1-analyse/', ade: MATH, nth: 1, dates: MATH_CC, skills: 14 },
-    // CC1 « L'atome » prévu le 20/10, pas encore passé et sans nouvelle date ; CC2 (tout le cours) le 16/12
-    { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-12-16T08:45:00Z'], skills: 17 },
+    // CC1 « L'atome » (prévu le 20/10, reporté) le 25/11 ; CC2 (tout le cours) le 16/12
+    { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-11-25T12:15:00Z', '2026-12-16T08:45:00Z'], skills: 17 },
     { id: 'elec', name: 'Élec CC1', page: 'elec/', ade: /ELECa/i, nth: 0, dates: ELEC_CC, skills: 21, bonus: ['thv'] },
     { id: 'el2', name: 'Élec CC2', page: 'elec2/', ade: /ELECa/i, nth: 1, later: true, dates: ELEC_CC, skills: 9 },
-    // Électronique numérique (CUPGE1-ELECn-S1) : CC1 (Séquence A) en S49, CC2 (Séquences A, B, C) en S2
-    { id: 'eln', name: 'Élec num.', page: 'elecn/', ade: /ELECn/i, dates: [], skills: 12 },
-    // DS du 23/10 reporté au 5/11, puis annulé (campus fermé) : « semaine du 9/11, pas le lundi » (Rannou, 4/11),
-    // d'où le mardi 10/11 provisoire ; DS 2 le 7/12 (et l'oral sur machine en janvier, avec { oral: true })
-    { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), dates: ['2026-11-10T15:45:00Z', '2026-12-07T12:15:00Z'], skills: 18 },
+    // Électronique numérique (CUPGE1-ELECn-S1) : CC1 (Séquence A) le 4/12, CC2 (Séquences A, B, C) le 12/01
+    { id: 'eln', name: 'Élec num.', page: 'elecn/', ade: /ELECn/i, dates: ['2026-12-04T08:45:00Z', '2027-01-12T08:45:00Z'], skills: 12 },
+    // DS 1 (23/10, puis 5/11, puis « semaine du 9/11 ») jamais passé et absent d'ADE au 17/11 : count 2 le place avant
+    // le DS 2 du 7/12, « date à confirmer » ; l'oral sur machine les 6-7/01 (avec { oral: true })
+    { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), count: 2, dates: ['2026-12-07T12:15:00Z'], skills: 18 },
     // CC1 de physique le 28/09 (avant le site) : la page prépare le CC2
     { id: 'phys', name: 'Méca du point', page: 'phys/', ade: word('PHYS'), nth: 1, dates: ['2026-09-28T11:15:00Z', '2026-12-02T08:45:00Z'], skills: 16 },
     { id: 'meca', name: 'Ingé méca', page: 'meca/', ade: word('MECA'), dates: ['2026-12-09T12:15:00Z'], skills: 11 }
@@ -75,6 +77,7 @@
     if (s.nth != null && s.later && s.nth >= list.length) return { ts: null, ev: null, n: s.nth + 1, past: false, shared: false, tbc: true, before: null };
     if (s.nth != null) return out(list[Math.min(s.nth, list.length - 1)], s.nth >= list.length);
     const n = list.find(x => !past(x));
+    if (!n && s.qcm) return null;   // QCM : plus aucun de prévu → « date à confirmer », pas « passé »
     return out(n || list[list.length - 1], false);
   }
   const cc = (id, o) => { const n = next(id, o); return n ? n.ts : null; };

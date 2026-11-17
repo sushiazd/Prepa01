@@ -229,6 +229,8 @@
        révisions s'espacent (une toutes les 3 nouvelles compétences au lieu d'une sur 2). Avec cfg.spread (chapitres
        indépendants), le parcours avance en largeur, chapitre le moins avancé d'abord : tout le programme est vu avant le CC. */
     const sprint = () => window.SiteSubjects && SiteSubjects.sprint ? SiteSubjects.sprint(id) : null;
+    // compétences au programme du prochain CC (cfg.scope, par ex. le CC1 d'ATO sur une partie du parcours) ; tout par défaut
+    const scope = () => (cfg.scope && cfg.scope()) || cfg.SK;
     const frontier = P => {
       if (cfg.spread && sprint() != null) {
         let best = null, bv = 2;
@@ -421,7 +423,7 @@
         ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'}${(() => { const d = SK.filter(k => M.due(skS(P, k.id))).length; return d ? ` · <b>${d} compétence${d > 1 ? 's' : ''} à revoir</b> : ta maîtrise y a baissé depuis ta dernière séance.` : ''; })()}</p>
-        ${sprintHTML(SK.length - done)}
+        ${sprintHTML(scope().filter(k => !isVal(skS(P, k.id))).length)}
         <details style="margin-top:8px"><summary class="fine" style="cursor:pointer">Comment marche la maîtrise ?</summary><ul class="fine" style="margin:8px 0 0;padding-left:18px;display:grid;gap:4px">
           <li>Un sans-faute fait monter le niveau de 25 (35 si le précédent était aussi parfait), un exercice à moitié juste de 10, un raté le fait baisser de 15. La compétence est validée à 75 % : 3 sans-faute, et la suivante se débloque.</li>
           <li><b>La maîtrise baisse chaque jour sans pratique</b>, comme la mémoire. Au début, elle tient environ 2 jours ; chaque révision réussie après une pause la fait tenir plus longtemps (une semaine, puis un mois…). Refaire le même exercice dix fois le même jour ne l'allonge presque pas.</li>
@@ -507,8 +509,9 @@
     function weakSkills(n = 5) {
       const P = pst(), rate = {}, f = frontier(P), fi = f ? cfg.SK.indexOf(f) : cfg.SK.length - 1;
       ls.get(HK, []).slice(-8).forEach(r => Object.keys(r.sk || {}).forEach(k => { const t = rate[k] || (rate[k] = [0, 0]); t[0] += r.sk[k][0]; t[1] += r.sk[k][1]; }));
-      let pool = cfg.SK.filter((k, i) => i <= fi || skS(P, k.id).n > 0 || rate[k.id]);
-      if (pool.length < n) pool = pool.concat(cfg.SK.filter(k => !pool.includes(k)).slice(0, n - pool.length));
+      const SC = scope();
+      let pool = SC.filter(k => { const i = cfg.SK.indexOf(k); return i <= fi || skS(P, k.id).n > 0 || rate[k.id]; });
+      if (pool.length < n) pool = pool.concat(SC.filter(k => !pool.includes(k)).slice(0, n - pool.length));
       return pool.map(k => {
         const i = cfg.SK.indexOf(k);
         const s = skS(P, k.id), r = rate[k.id];

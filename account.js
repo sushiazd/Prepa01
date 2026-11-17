@@ -8,6 +8,7 @@
            <script defer src="../account.js" data-lazy></script> → seulement si une session existe
    API : SiteAccount.on('change' | 'status' | 'data', f), .user, .profile, .status,
          .signIn(email, pw), .signUp(email, pw, pseudo), .signOut(), .touch(key), .syncNow()
+         .qrLogin(el) (QR de connexion), .qrInfo(id), .qrApprove(id) (validation depuis le téléphone)
    ===================================================================== */
 (function () {
   'use strict';
@@ -240,6 +241,76 @@
     booting.catch(e => { console.warn('Compte indisponible', e); readyFn(); });
     return booting;
   }
+
+  /* ---------- Connexion par QR code ----------
+     L'appareil à connecter affiche un QR (A.qrLogin(el)) ; le téléphone déjà connecté le scanne, ce qui ouvre
+     l'accueil avec ?qr=<id>, et valide (A.qrInfo / A.qrApprove). Côté serveur : fonction « qr-login »
+     (supabase/functions/qr-login). Le QR ne contient que l'id : le secret qui récupère la session reste ici. */
+  const QR_JS = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  async function qrCall(body) {
+    await boot(true);
+    const C = window.QCM_CONFIG, h = { 'Content-Type': 'application/json', apikey: C.supabaseAnonKey };
+    if (body.a === 'info' || body.a === 'approve') {
+      const { data } = await sb.auth.getSession();
+      if (data && data.session) h.Authorization = 'Bearer ' + data.session.access_token;
+    }
+    const r = await fetch(C.supabaseUrl + '/functions/v1/qr-login', { method: 'POST', headers: h, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'Erreur ' + r.status);
+    return j;
+  }
+  function agentName() {
+    const u = navigator.userAgent || '';
+    const os = /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) ? 'iPad' : /Android/.test(u) ? 'Android'
+      : /CrOS/.test(u) ? 'Chromebook' : /Windows/.test(u) ? 'Windows' : /Mac OS X/.test(u) ? 'Mac' : /Linux/.test(u) ? 'Linux' : 'Appareil';
+    const br = /Edg\//.test(u) ? 'Edge' : /OPR\//.test(u) ? 'Opera' : /Firefox\//.test(u) ? 'Firefox' : /Chrome\//.test(u) ? 'Chrome' : /Safari\//.test(u) ? 'Safari' : 'navigateur';
+    return os + ' · ' + br;
+  }
+  A.qrInfo = id => qrCall({ a: 'info', id });
+  A.qrApprove = id => qrCall({ a: 'approve', id });
+  // affiche le QR dans el et connecte cet appareil dès qu'un téléphone l'a validé ; s'arrête quand el quitte la page
+  A.qrLogin = function (el) {
+    let alive = true, n = 0, t = null, cur = null;
+    const gone = () => !alive || !el.isConnected;
+    const msg = (txt, btn) => { const m = el.querySelector('[data-qr-msg]'); if (m) m.innerHTML = txt + (btn ? ' <button type="button" data-qr-new style="font:inherit;font-weight:600;color:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer">Nouveau QR code</button>' : ''); };
+    const img = html => { const q = el.querySelector('[data-qr-img]'); if (q) q.innerHTML = html; };
+    el.innerHTML = `<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+        <div data-qr-img style="background:#fff;padding:10px;border-radius:12px;width:168px;height:168px;display:grid;place-items:center;flex:none"></div>
+        <div style="flex:1;min-width:200px;display:grid;gap:6px">
+          <b style="font-size:16px">Se connecter avec son téléphone</b>
+          <span style="font-size:14px;line-height:1.45;opacity:.8">Scanne ce code avec l'appareil photo d'un téléphone déjà connecté au site, puis valide sur le téléphone : cet appareil se connecte sans mot de passe.</span>
+          <span data-qr-msg style="font-size:13px;opacity:.65"></span>
+        </div></div>`;
+    el.addEventListener('click', e => { if (e.target.closest('[data-qr-new]')) { n = 0; clearTimeout(t); fresh(); } });
+    async function fresh() {
+      if (gone()) return;
+      if (++n > 5) { img('<span style="color:#555;font-size:13px;text-align:center">Code expiré</span>'); msg('Code expiré.', true); return; }
+      msg('');
+      try {
+        cur = await qrCall({ a: 'create', agent: agentName() });
+        if (!window.QRCode) await load(QR_JS);
+      } catch (e) { console.warn('QR de connexion', e); msg('QR code indisponible (connexion au serveur).', true); return; }
+      if (gone()) return;
+      img(''); const q = el.querySelector('[data-qr-img]');
+      new window.QRCode(q, { text: ROOT + '?qr=' + cur.id, width: 148, height: 148, colorDark: '#121211', colorLight: '#ffffff', correctLevel: window.QRCode.CorrectLevel.M });
+      q.title = '';
+      t = setTimeout(poll, 2000);
+    }
+    async function poll() {
+      if (gone()) return;
+      if (document.hidden) { t = setTimeout(poll, 3000); return; }
+      let r;
+      try { r = await qrCall({ a: 'poll', id: cur.id, secret: cur.secret }); } catch (e) { t = setTimeout(poll, 4000); return; }
+      if (gone()) return;
+      if (r.status === 'expired') { fresh(); return; }
+      if (r.status !== 'ok') { t = setTimeout(poll, 2000); return; }
+      msg('Validé sur le téléphone, connexion…');
+      const { error } = await sb.auth.verifyOtp({ token_hash: r.token_hash, type: 'magiclink' });
+      if (error) { console.warn('Connexion QR', error); msg('La connexion a échoué.', true); }
+    }
+    t = setTimeout(fresh, 0);      // el peut être placé dans la page juste après cet appel
+    return () => { alive = false; clearTimeout(t); };
+  };
 
   /* ---------- Temps passé sur le site ----------
      Compté seulement pour un compte connecté, onglet visible et action de l'utilisateur dans les 2 dernières

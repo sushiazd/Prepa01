@@ -171,6 +171,10 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
 .seg button{height:34px;padding:0 14px;border:0;border-radius:9px;background:transparent;color:var(--ink-2);font:500 14px/1 var(--sans);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .acc-msg{font-size:14px;color:var(--ink-2)}
+.acc-or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px}
+.acc-or::before,.acc-or::after{content:"";flex:1;height:1px;background:var(--rule)}
+.qr-warn{font-size:14px;color:var(--ink-2);background:var(--sheet-2);border-left:3px solid var(--warn);border-radius:8px;padding:10px 12px}
+@media (max-width:600px){#accQrWrap{display:none}}
 .fb textarea{font:16px/1.45 var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:10px;padding:10px 12px;width:100%;min-height:110px;resize:vertical}
 .fb textarea:focus-visible{outline:2px solid var(--pen);outline-offset:1px}
 .fb form{display:grid;gap:12px}
@@ -200,6 +204,7 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   </nav>
   <div id="vPlan" hidden></div>
   <div id="vRev">
+  <section class="acc" style="margin:0 0 28px" id="qrBox" aria-live="polite" hidden></section>
   <p class="eyebrow">Révisions des contrôles continus</p>
   <h1>Choisis ta matière</h1>
   <p class="lede">Chaque matière a son entraînement calqué sur le format de son contrôle.</p>
@@ -457,10 +462,65 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
           <button type="submit" class="btn btn-primary">${mode === 'signup' ? 'Créer mon compte' : 'Me connecter'}</button>
         </form>
         <p class="acc-msg" id="accMsg"></p>
-        <p class="fine">Tu as déjà un compte sur le QCM maths ? C'est le même : utilise-le ici.</p>`;
+        <p class="fine">Tu as déjà un compte sur le QCM maths ? C'est le même : utilise-le ici.</p>
+        ${mode === 'login' && !qrId ? '<div id="accQrWrap" style="display:grid;gap:14px"><p class="acc-or">ou</p><div id="accQr"></div></div>' : ''}`;
+      // QR de connexion : gardé d'un rendu à l'autre (sinon un nouveau code à chaque mise à jour)
+      const slot = box.querySelector('#accQr');
+      if (slot && A.qrLogin) { if (!qrEl) { qrEl = document.createElement('div'); qrStop = A.qrLogin(qrEl); } slot.replaceWith(qrEl); }
     }
+    if (u && qrStop) { qrStop(); qrStop = null; qrEl = null; }
+    if (!box.querySelector('#accQr') && !document.contains(qrEl) && qrStop) { qrStop(); qrStop = null; qrEl = null; }
     box.hidden = false;
+    renderQrBox();
   }
+
+  /* ---------- Téléphone qui a scanné le QR d'un autre appareil (?qr=<id>) ---------- */
+  const qrId = (new URLSearchParams(location.search).get('qr') || '').toLowerCase();
+  let qrEl = null, qrStop = null, qrState = null, qrShown = null;
+  const qrBox = document.getElementById('qrBox');
+  function qrClose() {
+    qrBox.hidden = true; qrState = 'closed';
+    try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) { /* ignore */ }
+  }
+  async function renderQrBox() {
+    const A = window.SiteAccount;
+    if (!qrId || !A || !A.qrInfo || qrState === 'closed' || qrState === 'done') return;
+    const head = '<p class="eyebrow" style="margin:0">Connexion par QR code</p>';
+    if (!A.user) {
+      if (qrShown === 'out') return; qrShown = 'out';
+      qrBox.innerHTML = `${head}<h2>Connecte d'abord ce téléphone</h2><p class="sub">Pour connecter l'autre appareil sans mot de passe, ce téléphone doit être connecté à ton compte. Connecte-toi avec le formulaire ci-dessous, puis valide.</p>`;
+      qrBox.hidden = false; return;
+    }
+    if (qrShown === 'in:' + A.user.id || qrState === 'busy') return;
+    qrShown = 'in:' + A.user.id; qrState = 'busy';
+    qrBox.innerHTML = `${head}<p class="sub">Un instant…</p>`; qrBox.hidden = false;
+    let r;
+    try { r = await A.qrInfo(qrId); } catch (e) { r = { status: 'error' }; }
+    qrState = null;
+    const pseudo = esc(A.profile ? A.profile.pseudo : 'toi');
+    if (r.status === 'pending') {
+      const age = r.age < 60 ? `il y a ${r.age} s` : `il y a ${Math.round(r.age / 60)} min`;
+      qrBox.innerHTML = `${head}<h2>Connecter cet appareil à ton compte ${pseudo} ?</h2>
+        <p class="sub">Appareil : <b>${esc(r.agent || 'inconnu')}</b>, QR code affiché ${age}.</p>
+        <p class="qr-warn">Valide seulement si c'est toi qui affiches ce QR code, sur un écran devant toi : l'appareil aura accès à ton compte jusqu'à ce que tu t'y déconnectes.</p>
+        <div class="acc-row"><button type="button" class="btn btn-primary" data-qr="ok">Connecter l'appareil</button><button type="button" class="btn" data-qr="no">Annuler</button></div>`;
+    } else {
+      qrBox.innerHTML = `${head}<h2>${r.status === 'error' ? 'Vérification impossible' : 'Ce QR code n\'est plus valable'}</h2>
+        <p class="sub">${r.status === 'error' ? 'Pas de connexion au serveur. Vérifie ta connexion Internet et scanne à nouveau.' : 'Il a expiré ou a déjà servi. Sur l\'autre appareil, clique sur « Nouveau QR code » si besoin, puis scanne-le à nouveau.'}</p>
+        <div class="acc-row"><button type="button" class="btn" data-qr="no">Fermer</button></div>`;
+    }
+  }
+  qrBox.addEventListener('click', async e => {
+    const b = e.target.closest('[data-qr]'); if (!b) return;
+    if (b.dataset.qr === 'no') { qrClose(); return; }
+    b.disabled = true;
+    let r; try { r = await window.SiteAccount.qrApprove(qrId); } catch (err) { r = { status: 'error' }; }
+    if (r.status === 'ok') {
+      qrState = 'done';
+      qrBox.innerHTML = `<p class="eyebrow" style="margin:0">Connexion par QR code</p><h2>C'est fait</h2><p class="sub">L'autre appareil se connecte à ton compte dans quelques secondes. Tu peux fermer cette page.</p><div class="acc-row"><button type="button" class="btn" data-qr="no">Fermer</button></div>`;
+      try { history.replaceState(null, '', location.pathname + location.hash); } catch (err) { /* ignore */ }
+    } else { qrShown = null; renderQrBox(); }
+  });
   box.addEventListener('click', async e => {
     const A = window.SiteAccount; if (!A) return;
     const m = e.target.closest('[data-mode]'); if (m) { mode = m.dataset.mode; render(); return; }

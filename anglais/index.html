@@ -623,9 +623,15 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     if (!A) { setTimeout(boot, 200); return; }
     if (!boot.hooked) { boot.hooked = true; A.on('change', boot); }
     if (!A.user || !A.client) {
-      gate(`<p class="eyebrow">Page privée</p><h2>Connecte-toi d'abord</h2><p class="fine">Cette page est réservée au groupe ESIR. Connecte-toi sur <a href="../">l'accueil</a> (le compte est partagé par tout le site), puis reviens ici.</p>`);
+      // attendre de savoir s'il y a une session (sinon le QR s'afficherait une fraction de seconde pour rien)
+      A.ready.then(() => {
+        if (A.user || boot.qr) return;
+        gate(`<p class="eyebrow">Page privée</p><h2>Connecte-toi d'abord</h2><p class="fine">Cette page est réservée au groupe ESIR.</p><div id="qrLogin" style="margin:16px 0"></div><p class="fine">Ou connecte-toi avec ton e-mail et ton mot de passe sur <a href="../">l'accueil</a> (le compte est partagé par tout le site), puis reviens ici.</p>`);
+        boot.qr = A.qrLogin ? A.qrLogin($('#qrLogin')) : null;
+      });
       return;
     }
+    if (boot.qr) { boot.qr(); boot.qr = null; }
     if (booted) return;
     booted = true; sb = A.client; me = A.user;
     checkMember();

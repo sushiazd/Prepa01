@@ -478,6 +478,9 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   const qrId = (new URLSearchParams(location.search).get('qr') || '').toLowerCase();
   let qrEl = null, qrStop = null, qrState = null, qrShown = null;
   const qrBox = document.getElementById('qrBox');
+  let qrLost = false;   // session du téléphone fermée côté serveur : il doit se reconnecter avant de valider
+  // erreur d'un appel QR : session fermée, réseau absent ou refus du serveur
+  const qrErr = e => e && e.code === 'session' ? 'session' : e && e.code === 'server' ? 'server' : 'error';
   function qrClose() {
     qrBox.hidden = true; qrState = 'closed';
     try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) { /* ignore */ }
@@ -488,15 +491,18 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
     const head = '<p class="eyebrow" style="margin:0">Connexion par QR code</p>';
     if (!A.user) {
       if (qrShown === 'out') return; qrShown = 'out';
-      qrBox.innerHTML = `${head}<h2>Connecte d'abord ce téléphone</h2><p class="sub">Pour connecter l'autre appareil sans mot de passe, ce téléphone doit être connecté à ton compte. Connecte-toi avec le formulaire ci-dessous, puis valide.</p>`;
+      qrBox.innerHTML = qrLost
+        ? `${head}<h2>Ce téléphone a été déconnecté</h2><p class="sub">Sa session a été fermée, sans doute par une déconnexion sur un autre appareil. Reconnecte-toi avec le formulaire ci-dessous (ta progression est gardée), puis valide le QR code.</p>`
+        : `${head}<h2>Connecte d'abord ce téléphone</h2><p class="sub">Pour connecter l'autre appareil sans mot de passe, ce téléphone doit être connecté à ton compte. Connecte-toi avec le formulaire ci-dessous, puis valide.</p>`;
       qrBox.hidden = false; return;
     }
     if (qrShown === 'in:' + A.user.id || qrState === 'busy') return;
     qrShown = 'in:' + A.user.id; qrState = 'busy';
     qrBox.innerHTML = `${head}<p class="sub">Un instant…</p>`; qrBox.hidden = false;
     let r;
-    try { r = await A.qrInfo(qrId); } catch (e) { r = { status: 'error' }; }
+    try { r = await A.qrInfo(qrId); } catch (e) { r = { status: qrErr(e) }; }
     qrState = null;
+    if (r.status === 'session') { qrLost = true; qrShown = null; setTimeout(renderQrBox, 100); return; }
     const pseudo = esc(A.profile ? A.profile.pseudo : 'toi');
     if (r.status === 'pending') {
       const age = r.age < 60 ? `il y a ${r.age} s` : `il y a ${Math.round(r.age / 60)} min`;
@@ -505,8 +511,8 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
         <p class="qr-warn">Valide seulement si c'est toi qui affiches ce QR code, sur un écran devant toi : l'appareil aura accès à ton compte jusqu'à ce que tu t'y déconnectes.</p>
         <div class="acc-row"><button type="button" class="btn btn-primary" data-qr="ok">Connecter l'appareil</button><button type="button" class="btn" data-qr="no">Annuler</button></div>`;
     } else {
-      qrBox.innerHTML = `${head}<h2>${r.status === 'error' ? 'Vérification impossible' : 'Ce QR code n\'est plus valable'}</h2>
-        <p class="sub">${r.status === 'error' ? 'Pas de connexion au serveur. Vérifie ta connexion Internet et scanne à nouveau.' : 'Il a expiré ou a déjà servi. Sur l\'autre appareil, clique sur « Nouveau QR code » si besoin, puis scanne-le à nouveau.'}</p>
+      qrBox.innerHTML = `${head}<h2>${r.status === 'error' || r.status === 'server' ? 'Vérification impossible' : 'Ce QR code n\'est plus valable'}</h2>
+        <p class="sub">${r.status === 'error' ? 'Pas de connexion au serveur. Vérifie ta connexion Internet et scanne à nouveau.' : r.status === 'server' ? 'Le serveur n\'a pas pu vérifier ce QR code. Réessaie dans un instant, ou affiche un nouveau QR code sur l\'autre appareil.' : 'Il a expiré ou a déjà servi. Sur l\'autre appareil, clique sur « Nouveau QR code » si besoin, puis scanne-le à nouveau.'}</p>
         <div class="acc-row"><button type="button" class="btn" data-qr="no">Fermer</button></div>`;
     }
   }
@@ -514,7 +520,8 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
     const b = e.target.closest('[data-qr]'); if (!b) return;
     if (b.dataset.qr === 'no') { qrClose(); return; }
     b.disabled = true;
-    let r; try { r = await window.SiteAccount.qrApprove(qrId); } catch (err) { r = { status: 'error' }; }
+    let r; try { r = await window.SiteAccount.qrApprove(qrId); } catch (err) { r = { status: qrErr(err) }; }
+    if (r.status === 'session') { qrLost = true; qrShown = null; setTimeout(renderQrBox, 100); return; }
     if (r.status === 'ok') {
       qrState = 'done';
       qrBox.innerHTML = `<p class="eyebrow" style="margin:0">Connexion par QR code</p><h2>C'est fait</h2><p class="sub">L'autre appareil se connecte à ton compte dans quelques secondes. Tu peux fermer cette page.</p><div class="acc-row"><button type="button" class="btn" data-qr="no">Fermer</button></div>`;

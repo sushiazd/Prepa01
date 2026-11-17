@@ -136,7 +136,9 @@
       clearTimeout(pushT);                        // dernières modifs envoyées avant de partir
       for (let i = 0; pulling && i < 50; i++) await new Promise(r => setTimeout(r, 100));
       await push();
-      await sb.auth.signOut();
+      // scope local : se déconnecter ici ne déconnecte pas les autres appareils (par défaut, Supabase ferme
+      // toutes les sessions du compte, et le téléphone qui sert à valider les QR codes se retrouvait hors ligne)
+      await sb.auth.signOut({ scope: 'local' });
       // comme le QCM maths : les données restent sur le compte mais quittent cet appareil
       KEYS.forEach(k => put(k, null));
       put('qcmhub.controls.v1', []); put('qcmhub.attempts.v1', []); put('qcmhub.owner.v1', null);
@@ -256,7 +258,13 @@
     }
     const r = await fetch(C.supabaseUrl + '/functions/v1/qr-login', { method: 'POST', headers: h, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j.error || 'Erreur ' + r.status);
+    if (r.status === 401 && (body.a === 'info' || body.a === 'approve')) {
+      // session fermée côté serveur (déconnexion ailleurs, mot de passe changé) : on l'oublie ici aussi, sans
+      // effacer la progression de l'appareil, pour que le formulaire de connexion réapparaisse
+      await sb.auth.signOut({ scope: 'local' }).catch(() => {});
+      const e = new Error('Session expirée'); e.code = 'session'; throw e;
+    }
+    if (!r.ok) { const e = new Error(j.error || 'Erreur ' + r.status); e.code = 'server'; throw e; }
     return j;
   }
   function agentName() {

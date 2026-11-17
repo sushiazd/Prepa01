@@ -10687,7 +10687,7 @@ async function saveProfile() {
 }
 async function signOut() {
   if (!await ask('Te déconnecter ? Tes données restent sur ton compte, mais sont retirées de cet appareil.', 'Me déconnecter')) return;
-  await sb.auth.signOut();
+  await sb.auth.signOut({ scope: 'local' });   // cet appareil seulement, pas les autres
 }
 async function deleteAccount() {
   if (!await ask('Supprimer définitivement ton compte, tes contrôles, tes épreuves et tes adhésions aux groupes ? C\'est irréversible.', 'Tout supprimer')) return;

@@ -60,6 +60,7 @@ button{font:inherit}
 .plan .n{font:600 13px var(--text);color:var(--ink-2);width:24px;text-align:right;flex:none}
 .plan .t{flex:1}
 .plan .who{font-size:13px;color:var(--ink-2)}
+.plan.order li{cursor:default}.plan.order li:hover{background:none}
 .tag{font:600 12px/1 var(--text);border-radius:999px;padding:4px 9px;background:var(--green-soft);color:var(--green)}
 .tag.q{background:var(--mint-soft);color:var(--qa)}
 kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 7px}
@@ -603,7 +604,9 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   const QUIZ = S.filter(s => s.quiz);
   QUIZ.forEach((s, i) => { s.qn = i + 1; s.title = 'Quiz ' + (i + 1) + ' · ' + s.quiz.q; });
 
-  const names = () => { const n = ls.get(LS.names, []); return [0, 1, 2, 3, 4].map(i => (n[i] || '').trim() || 'Speaker ' + (i + 1)); };
+  // Ordre de passage fixé par le groupe (oral du 19/11)
+  const NAMES = ['Adrien', 'Jean-Gabriel', 'Névénoé', 'Raphaël', 'Antoine'];
+  const names = () => NAMES;
   const mode3d = () => webgl && ls.get(LS.mode, '3d') === '3d';
 
   /* =====================================================================
@@ -661,7 +664,6 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   };
 
   function renderHome() {
-    const N = ls.get(LS.names, []);
     home.innerHTML = `
       <header><p class="eyebrow">Groupe ESIR · page privée</p><h1>Oral d'anglais : Changchong City</h1>
         <p class="lede">La présentation « Cities of the Future » avec un quiz en direct : la classe répond sur son téléphone pendant que vous parlez, et le meilleur auditeur gagne. Six questions, une ou deux par orateur, 20 secondes chacune.</p></header>
@@ -678,9 +680,9 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
         <p class="fine" style="margin-top:8px">${webgl ? 'En 3D, la caméra vole vers le quartier de chaque partie et le texte s\'affiche dans un panneau holographique. Le public se balade dans la même ville sur son téléphone : chacun apparaît comme un drone avec son pseudo. Si l\'ordinateur de la salle rame, passe en diapos classiques : le contenu et le quiz sont les mêmes.' : 'Cet appareil ne gère pas la 3D (WebGL) : la présentation sera en diapos classiques.'}</p>
       </section>
       <section class="card">
-        <h2>Prénoms des orateurs</h2>
-        <p class="fine">Ils s'affichent sur la couverture, les remerciements et en bas à droite de chaque diapo (avec le numéro). Enregistrés sur cet appareil seulement.</p>
-        <div class="names">${[0, 1, 2, 3, 4].map(i => `<label>Orateur ${i + 1}<input data-name="${i}" maxlength="24" value="${esc(N[i] || '')}" placeholder="Speaker ${i + 1}"></label>`).join('')}</div>
+        <h2>Ordre de passage</h2>
+        <p class="fine">Affiché sur la couverture, les remerciements et en bas à droite de chaque diapo.</p>
+        <ol class="plan order">${NAMES.map((n, i) => `<li><span class="n">${i + 1}</span><span class="t">${esc(n)}</span></li>`).join('')}</ol>
       </section>
       <section class="card">
         <h2>Commandes pendant la présentation</h2>
@@ -704,10 +706,6 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
     }
   });
   home.addEventListener('change', e => { if (e.target.name === 'mode') ls.set(LS.mode, e.target.value); });
-  home.addEventListener('input', e => {
-    const i = e.target.dataset.name; if (i == null) return;
-    const N = ls.get(LS.names, []); N[+i] = e.target.value; ls.set(LS.names, N);
-  });
 
   /* =====================================================================
      Diaporama

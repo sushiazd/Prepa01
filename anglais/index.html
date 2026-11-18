@@ -454,7 +454,6 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <p class="motto">${MOTTO}</p>
       <div class="names-row" style="margin-top:auto">${N.map(n => `<span>${esc(n)}</span>`).join('')}</div>` },
     { id: 'join', sp: 1, dark: true, bare: true, join: true, title: 'Join the game (QR code)', pt: 'Welcome to Changchong City' },
-    { id: 'q1', sp: 1, quiz: { q: 'By 2050, what share of humans will live in cities?', o: ['About 38%', 'About 52%', 'About 68%', 'About 85%'], ok: 2, why: 'About 68%: two people out of three (United Nations, World Urbanization Prospects).' } },
     { id: 'challenges', sp: 1, title: 'Three challenges', html: () => `
       <p class="eb">The problem</p>
       <h2>Three challenges for 2050</h2>
@@ -464,12 +463,13 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
         ${card('users', 'Increase in population', '68% of humans will live in cities by 2050.')}
       </div>
       <p class="statement">How can we solve all three at the same time?</p>` },
+    { id: 'q1', sp: 1, quiz: { q: 'By 2050, what share of humans will live in cities?', o: ['About 38%', 'About 52%', 'About 68%', 'About 85%'], ok: 2, why: 'About 68%: two people out of three (United Nations, World Urbanization Prospects).' } },
     { id: 'meet', sp: 1, title: 'Meet Changchong', html: () => `
       <p class="eb">Our answer</p>
       <h2>Meet Changchong</h2>
       <div class="cards c3">
         ${card('cpu', 'Smart', 'Big data, AI and sensors collect data in real time.')}
-        ${card('leaf', 'Green', 'Its goal: a smaller carbon footprint and zero waste.')}
+        ${card('leaf', 'Green', 'Its goal: to reduce its carbon footprint.')}
         ${card('recycle', 'Sustainable', 'It relies on its own local resources.')}
       </div>
       <div class="strip">On the coast of southern China: strong wind, a port for trade… and earthquakes.</div>
@@ -478,38 +478,36 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <p class="eb">Pillar 1</p>
       <h2>Smart architecture</h2>
       <div class="cards c3">
-        ${card('activity', 'Earthquake-resistant', 'Every building stands on rubber shock absorbers, a technology Japan has used for decades.')}
-        ${card('building-2', 'High-rise green housing', 'Homes for more people on less land, covered with vertical gardens like Singapore’s Supertrees.')}
+        ${card('activity', 'Earthquake-proof', 'Every building stands on rubber shock absorbers, a technology Japan has used for decades.')}
+        ${card('trees', 'Green buildings', 'Vertical gardens like Singapore’s Supertrees, and parks on the roofs.')}
         ${card('brick-wall', 'Low-carbon materials', 'Wood, recycled steel, low-carbon concrete and solar glass.')}
       </div>
-      <p class="statement">A building that protects you, collects rainwater… and produces energy.</p>` },
+      <p class="statement">A building that protects you… and produces energy.</p>` },
     { id: 'q2', sp: 1, quiz: { q: 'What keeps Changchong’s buildings safe during an earthquake?', o: ['Giant magnets', 'Rubber shock absorbers', 'Floating foundations', 'Thick steel walls'], ok: 1, why: 'Rubber shock absorbers: the building moves slowly instead of breaking.' } },
     { id: 'transport', sp: 2, title: 'Smart transport', html: () => `
       <p class="eb">Pillar 2</p>
       <h2>Smart transport</h2>
-      <div class="cards c4">
+      <div class="cards c3">
         ${card('bike', 'Bikes', 'Safe bike lanes everywhere. Get on a shared e-bike with an app.')}
-        ${card('bus', 'On-demand buses', 'Electric and self-driving. Book a seat in the app and the bus picks you up.')}
+        ${card('bus', 'Self-driving buses', 'Electric, guided by sensors, cameras and AI. Track your bus in real time.')}
         ${card('train-front', 'Metro', 'Fast, electric and underground. It links all the districts.')}
-        ${card('ship', 'Water taxis', 'Electric boats link the port and the coast.')}
       </div>
-      <div class="strip">One app to plan and pay for every trip. Traffic lights adapt in real time, and street lights dim when the street is empty.</div>` },
+      <div class="strip">Traffic lights adapt in real time, and street lights dim when the street is empty.</div>` },
     { id: 'fifteen', sp: 2, title: 'The 15-minute city', html: () => `
       <p class="eb">Pillar 2 · Urban mobility</p>
       <h2>The 15-minute city</h2>
       <div class="split top">
-        <div class="col"><div class="big">15 min</div><p class="lead">Everything you need is within walking distance: 15 minutes on foot or by bike.</p><p class="lead muted note">An idea by Carlos Moreno, adopted by Paris.</p></div>
+        <div class="col"><div class="big">15 min</div><p class="lead">Everything you need is 15 minutes away from your home, on foot or by bike.</p><p class="lead muted note">An idea by Carlos Moreno, adopted by Paris.</p></div>
         <div class="col"><div class="pills g3">${pill('school', 'School')}${pill('shopping-cart', 'Shops')}${pill('stethoscope', 'Doctor')}${pill('trees', 'Park')}${pill('briefcase', 'Offices')}${pill('dumbbell', 'Sport')}</div>
         <p class="statement sm">If you lived here, you wouldn’t need a car.</p></div>
       </div>` },
     { id: 'q3', sp: 2, quiz: { q: 'In which city are almost half of the trips to work or school made by bike?', o: ['London', 'Copenhagen', 'Rome', 'New York'], ok: 1, why: 'Copenhagen: between 43% and 49% of trips to work or school, depending on the year.' } },
-    { id: 'q4', sp: 3, quiz: { q: 'Per kilowatt-hour, how much more CO₂ does coal emit than nuclear power?', o: ['2 times more', '10 times more', 'About 70 times more', '1,000 times more'], ok: 2, why: 'Coal: about 820 g of CO₂ per kWh. Nuclear: about 12 g (IPCC).' } },
     { id: 'energy', sp: 3, title: 'Smart energy', html: () => `
       <p class="eb">Pillar 3</p>
       <h2>Smart energy</h2>
       <div class="split top">
         <div class="cards c1">
-          ${card('atom', 'Nuclear', 'Stable, day and night. It shuts down automatically in an earthquake.', 'mini')}
+          ${card('atom', 'Nuclear', 'Stable, day and night. Far from the city, it stops automatically if the ground shakes.', 'mini')}
           ${card('sun', 'Solar', 'Roofs and solar glass.', 'mini')}
           ${card('wind', 'Wind', 'Turbines out at sea.', 'mini')}
           ${card('recycle', 'Waste', 'Turned into power.', 'mini')}
@@ -521,16 +519,17 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
           <div class="strip">A smart grid: AI balances supply and demand, and batteries store the extra energy.</div>
         </div>
       </div>` },
+    { id: 'q4', sp: 3, quiz: { q: 'Per kilowatt-hour, how much more CO₂ does coal emit than nuclear power?', o: ['2 times more', '10 times more', 'About 70 times more', '1,000 times more'], ok: 2, why: 'Coal: about 820 g of CO₂ per kWh. Nuclear: about 12 g (IPCC).' } },
     { id: 'waste', sp: 3, title: 'Waste becomes energy', html: () => `
       <p class="eb">Pillar 3 · Waste to energy</p>
       <h2>Garbage is a resource</h2>
       <div class="steps">
         <div class="step"><div class="no">1</div><h3>Sort</h3><p>Smart bins and underground pipes. No garbage trucks, no litter.</p></div>
         <div class="step"><div class="no">2</div><h3>Recycle</h3><p>Plastic, glass and metal get a second life.</p></div>
-        <div class="step"><div class="no">3</div><h3>Transform</h3><p>Food waste becomes biogas for our buses. The rest is burned with filters.</p></div>
-        <div class="step"><div class="no">4</div><h3>Power</h3><p>Electricity and heat for the whole city.</p></div>
+        <div class="step"><div class="no">3</div><h3>Transform</h3><p>Food waste becomes biogas for public transport. The rest is burnt with filters.</p></div>
+        <div class="step"><div class="no">4</div><h3>Power</h3><p>Electricity for the city, and heat to warm homes in winter.</p></div>
       </div>
-      <div class="strip">Sweden already sends less than 1% of its household waste to landfill.</div>` },
+      <div class="strip">Sweden already sends less than 1% of its household waste to landfill, and even imports garbage from its neighbors.</div>` },
     { id: 'education', sp: 4, title: 'Smart education', html: () => `
       <p class="eb">Pillar 4</p>
       <h2>Smart education</h2>
@@ -544,15 +543,15 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <p class="eb">Pillar 5</p>
       <h2>Smart health care</h2>
       <div class="split top">
-        ${card('heart-pulse', 'Your AI health assistant', 'It tracks your heart rate and your sleep, reminds you to take your medicine and books a real doctor when something is wrong.')}
+        ${card('heart-pulse', 'Your AI health assistant', 'It works with a smartwatch: it tracks your heart rate and your sleep, reminds you to take your medicine and books a real doctor when something looks wrong.')}
         <div class="col"><p class="statement xl">AI helps,<br>doctors decide.</p><p class="lead muted">And your health data stays private.</p></div>
       </div>
-      <div class="strip">Traffic lights turn green for ambulances: about 3 minutes faster on average, as in a pilot in Liverpool.</div>` },
+      <div class="strip">Health problems are detected early, before they become serious.</div>` },
     { id: 'food', sp: 4, title: 'Smart restaurants', html: () => `
       <p class="eb">And also…</p>
       <h2>Smart restaurants</h2>
       <div class="cards c3">
-        ${card('chef-hat', 'Robot chefs', 'Fast, clean, always the same quality.')}
+        ${card('chef-hat', 'Robot chefs', 'They cook fast, always with the same quality.')}
         ${card('bot', 'Robot waiters', 'As in some restaurants in China and Japan today.')}
         ${card('trending-down', 'Less food waste', 'AI predicts how many customers will come.')}
       </div>` },
@@ -561,19 +560,20 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
       <p class="eb">Pillar 6</p>
       <h2>Smart security</h2>
       <div class="cards c3">
-        ${card('sprout', 'Green points', 'Optional and anonymous: recycle, cycle or volunteer to earn free transport and cheaper concerts. No penalties, no ranking.')}
+        ${card('sprout', 'Smart credit', 'A reward system: recycle, cycle or volunteer to earn green points for free transport and cheaper concerts. It never punishes.')}
         ${card('key-round', 'Smart prison', 'A second chance: training, online courses and an AI coach to find a job, like Halden in Norway.')}
-        ${card('lock', 'Privacy first', 'Data is protected by law, anonymous and never sold.')}
+        ${card('lock', 'Privacy first', 'Data is protected by law, anonymous and never sold. An independent agency controls it.')}
       </div>` },
     { id: 'q6', sp: 5, quiz: { q: 'How do you earn green points in Changchong?', o: ['By buying a bigger car', 'By recycling and cycling to work', 'By paying more taxes', 'By watching ads'], ok: 1, why: 'Good actions for the city earn points: recycling, cycling, helping a neighbor, volunteering.' } },
     { id: 'vote', sp: 5, dark: true, title: 'Why vote for Changchong?', html: () => `
-      <p class="eb">To conclude · Three challenges, three answers</p>
+      <p class="eb">To conclude</p>
       <h2>Why vote for Changchong?</h2>
       <div class="cards c3">
-        ${card('thermometer-sun', 'Climate change', 'Clean energy, green buildings and no need for a car.')}
-        ${card('pickaxe', 'Depletion of resources', 'Garbage becomes energy, rainwater is collected and materials are recycled.')}
-        ${card('users', 'Increase in population', 'High-rise green housing, <span style="white-space:nowrap">15-minute</span> districts and a metro for everyone.')}
+        ${card('leaf', 'Green', 'Clean energy, garbage turned into power, nature on every building.')}
+        ${card('cpu', 'Smart', 'AI saves time on the roads, energy in the grid and lives in hospitals.')}
+        ${card('handshake', 'Human', 'Education and health care for everyone, and a second chance.')}
       </div>
+      <p class="lead muted">Our answer to climate change, the depletion of natural resources and the increase in population.</p>
       <p class="motto lg">${MOTTO}</p>` },
     { id: 'podium', sp: 5, dark: true, bare: true, podium: true, title: 'Quiz podium' },
     { id: 'thanks', sp: 5, dark: true, bare: true, title: 'Thank you', html: N => `
@@ -586,9 +586,9 @@ kbd{font:600 13px var(--text);background:var(--paper);border:1px solid var(--lin
   /* ---------- La ville 3D : quartiers (coordonnées dans la scène) et caméra de chaque diapo ---------- */
   const ZONES = [
     { id: 'core', name: 'Changchong Core', x: 0, z: 0, r: 20, cam: [40, 60, 64], look: 26, info: 'The AI brain of the city: big data from thousands of sensors, in real time.' },
-    { id: 'archi', name: 'Smart Architecture', x: 33.9, z: -62.4, r: 22, info: 'Earthquake-resistant towers on rubber shock absorbers, high-rise green housing with vertical gardens, solar glass and rainwater collection.' },
-    { id: 'security', name: 'Smart Security', x: -27.7, z: -65.4, r: 21, info: 'Optional green points for good actions, a prison that gives a second chance, and data that is never sold.' },
-    { id: 'transport', name: 'Smart Transport', x: 54.8, z: 45.2, r: 18, info: 'On-demand electric buses, safe bike lanes, an underground metro, water taxis and traffic lights that adapt in real time.' },
+    { id: 'archi', name: 'Smart Architecture', x: 33.9, z: -62.4, r: 22, info: 'Earthquake-proof towers on rubber shock absorbers, vertical gardens, parks on the roofs and solar glass.' },
+    { id: 'security', name: 'Smart Security', x: -27.7, z: -65.4, r: 21, info: 'Green points for good actions, a prison that gives a second chance, and data that is never sold.' },
+    { id: 'transport', name: 'Smart Transport', x: 54.8, z: 45.2, r: 18, info: 'Self-driving electric buses, safe bike lanes, an underground metro and traffic lights that adapt in real time.' },
     { id: 'energy', name: 'Energy Coast', x: 70.1, z: -11.1, r: 23, cam: [-46, 58, 40], info: 'Nuclear power for a stable base, solar panels, wind turbines at sea, and a smart grid managed by AI.' },
     { id: 'waste', name: 'Waste to Energy', x: 6.8, z: 70.7, r: 18, info: 'Smart bins and underground pipes: garbage is sorted, recycled and turned into electricity and heat.' },
     { id: 'food', name: 'Robot Restaurants', x: -42.7, z: 56.7, r: 16, info: 'Robot chefs and robot waiters. AI predicts how many customers will come, so there is less food waste.' },

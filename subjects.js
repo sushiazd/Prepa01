@@ -11,6 +11,8 @@
    - count : nombre de CC de l'année quand certains ne sont pas encore dans ADE ; ceux qui manquent sont
      comptés AVANT ceux qui y sont (CC1 sans date, CC2 déjà placé) et rendus avec tbc: true
    - ignore : ancien créneau d'un CC déplacé, ignoré tant qu'ADE ne le retire pas
+   - cc1 : compétences au programme du CC1 quand la page prépare deux CC (le CC2 porte sur tout le parcours) ;
+     la page les passe à SiteCore (scope) et l'accueil compte les validées sur sa case CC1
    - name : nom court (tableau de bord moi/) ; skills : nombre de compétences du parcours (affiché sur l'accueil),
      sans les compétences bonus (bonus : leurs identifiants, non comptées)
    Usage : <script src="subjects.js"></script> avant les autres scripts. API : window.SiteSubjects
@@ -29,11 +31,13 @@
     { id: 'ms1', name: 'Maths S1', page: 'maths-s1/', ade: MATH, nth: 0, dates: MATH_CC, skills: 16 },
     { id: 'ma2', name: 'Analyse', page: 'maths-s1-analyse/', ade: MATH, nth: 1, later: true, dates: MATH_CC, skills: 14 },
     // CC1 « L'atome » (prévu le 20/10, reporté) le 25/11 ; CC2 (tout le cours) le 16/12, retiré d'ADE au 21/11
-    { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-11-25T12:15:00Z', '2026-12-16T08:45:00Z'], skills: 17 },
+    { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-11-25T12:15:00Z', '2026-12-16T08:45:00Z'], skills: 17,
+      cc1: ['noyau', 'iso', 'onde', 'niv', 'trans', 'serie', 'nq', 'conf', 'exc', 'case', 'place', 'prop', 'lewis'] },
     { id: 'elec', name: 'Élec CC1', page: 'elec/', ade: /ELECa/i, nth: 0, dates: ELEC_CC, skills: 21, bonus: ['thv'] },
     { id: 'el2', name: 'Élec CC2', page: 'elec2/', ade: /ELECa/i, nth: 1, later: true, dates: ELEC_CC, skills: 9 },
     // Électronique numérique (CUPGE1-ELECn-S1) : CC1 (Séquence A) le 4/12, CC2 (Séquences A, B, C) le 12/01
-    { id: 'eln', name: 'Élec num.', page: 'elecn/', ade: /ELECn/i, dates: ['2026-12-04T08:45:00Z', '2027-01-12T08:45:00Z'], skills: 12 },
+    { id: 'eln', name: 'Élec num.', page: 'elecn/', ade: /ELECn/i, dates: ['2026-12-04T08:45:00Z', '2027-01-12T08:45:00Z'], skills: 12,
+      cc1: ['num', 'addb', 'boole', 'canon', 'karn', 'mux'] },
     // DS 1 (23/10, puis 5/11, puis « semaine du 9/11 ») jamais passé et absent d'ADE au 17/11 : count 2 le place avant
     // le DS 2 du 7/12, « date à confirmer » ; l'oral sur machine les 6-7/01 (avec { oral: true })
     { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), count: 2, dates: ['2026-12-07T12:15:00Z'], skills: 18 },
@@ -92,6 +96,17 @@
     return out(n || list[list.length - 1], false);
   }
   const cc = (id, o) => { const n = next(id, o); return n ? n.ts : null; };
+  // n-ième CC de l'année d'une matière (1 = CC1), même forme que next() ; null s'il n'existe pas
+  function slot(id, n) {
+    const list = byId[id] ? slots(id) : [], x = list[n - 1]; if (!x) return null;
+    const after = x.ts == null ? list.find(y => y.n > x.n && y.ts != null) : null;
+    return Object.assign({ past: x.ts != null && x.ts <= Date.now() - 3 * 3600e3, shared: false, tbc: x.ts == null, before: after ? after.ts : null }, x);
+  }
+  // compétences au programme du prochain CC : celles de cc1 tant que le CC1 n'est pas passé, sinon null (tout)
+  function scope(id, SK) {
+    const s = byId[id], n = s && s.cc1 && next(id);
+    return n && n.n === 1 && !n.past ? SK.filter(k => s.cc1.includes(k.id)) : null;
+  }
   // Sprint avant le CC : nombre de jours (0 = jour J) quand le CC de la page tombe dans les SPRINT jours, sinon null
   const SPRINT = 10;
   function sprint(id) {
@@ -108,5 +123,5 @@
     const ahead = m.map(s => ({ s, ts: cc(s.id) })).filter(x => x.ts != null && x.ts >= ev.s).sort((a, b) => a.ts - b.ts);
     return (ahead.length ? ahead[0].s : m[m.length - 1]).page;
   }
-  window.SiteSubjects = { list: LIST, get: id => byId[id] || null, events, next, cc, sprint, pageOf, ignored };
+  window.SiteSubjects = { list: LIST, get: id => byId[id] || null, events, next, slot, cc, scope, sprint, pageOf, ignored };
 })();

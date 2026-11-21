@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
-<script src="subjects.js?v=2026112101"></script>
+<script src="subjects.js?v=2026112102"></script>
 <script defer src="account.js"></script>
 <script defer src="planning.js?v=2026101502"></script>
 <style>
@@ -206,90 +206,114 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   <div id="vRev">
   <section class="acc" style="margin:0 0 28px" id="qrBox" aria-live="polite" hidden></section>
   <p class="eyebrow">Révisions des contrôles continus</p>
-  <h1>Choisis ta matière</h1>
-  <p class="lede">Chaque matière a son entraînement calqué sur le format de son contrôle.</p>
+  <h1>Choisis ton contrôle</h1>
+  <p class="lede">Une case par contrôle, du plus proche au plus lointain, chacune avec son entraînement calqué sur le format du sujet.</p>
   <div class="plan-banner now-banner" id="nowBanner" hidden></div>
   <div class="plan-banner" id="planBanner" hidden></div>
   <section class="acc" id="compte" aria-live="polite" hidden></section>
   <div class="grid">
-    <a class="tool" href="maths/">
+    <a class="tool" href="maths/" data-s="maths">
       <span class="ic" aria-hidden="true">∑</span>
-      <span class="kind">Mathématiques</span>
-      <h2>QCM Maths</h2>
+      <span class="kind" data-kind="Mathématiques">Mathématiques</span>
+      <h2>QCM de maths</h2>
       <p>Import des contrôles en PDF, bilan par thème, épreuves générées, catalogue de méthodes et groupes entre potes.</p>
       <span class="meta" id="mathsMeta"></span>
       <span class="go">Ouvrir →</span>
     </a>
-    <a class="tool" href="maths-s1/">
-      <span class="ic" aria-hidden="true">∀</span>
-      <span class="kind" data-kind="Mathématiques 1 · CC">Mathématiques 1 · CC</span>
-      <h2>Maths S1 : logique et ensembles</h2>
-      <p>Tables de vérité, quantificateurs, raisonnements, ensembles, applications, relations et dénombrement : parcours guidé, cours résumé, sujet blanc d'1 h 30.</p>
-      <span class="meta" id="ms1Meta"></span>
-      <span class="go">Ouvrir →</span>
-    </a>
-    <a class="tool" href="maths-s1-analyse/">
-      <span class="ic" aria-hidden="true">∫</span>
-      <span class="kind" data-kind="Mathématiques 1 · CC">Mathématiques 1 · CC</span>
-      <h2>Maths S1 : analyse</h2>
-      <p>Complexes, dérivées, limites et DL, intégrales, suites : parcours guidé, exercices des annales 2025-26, cours résumé, sujet blanc d'1 h 30.</p>
-      <span class="meta" id="ma2Meta"></span>
-      <span class="go">Ouvrir →</span>
-    </a>
-    <a class="tool" href="ato/">
+    <a class="tool" href="ato/" data-s="ato" data-n="1">
       <span class="ic" aria-hidden="true">Ato</span>
-      <span class="kind" data-kind="Chimie · Atomistique · CC">Chimie · Atomistique · CC</span>
-      <h2>Atomistique</h2>
-      <p>Structure de l'atome, spectres de l'hydrogène, nombres quantiques, configurations électroniques et tableau périodique : parcours guidé, exercices corrigés et sujet blanc d'une heure.</p>
-      <span class="meta" id="atoMeta"></span>
+      <span class="kind" data-kind="Chimie">Chimie</span>
+      <h2>Atomistique&nbsp;· CC1</h2>
+      <p>Partie 1, L'atome : structure, isotopes, spectres de l'hydrogène, nombres quantiques, configurations électroniques, tableau périodique, plus les schémas de Lewis. Sujet blanc d'1 h.</p>
+      <span class="meta"></span>
       <span class="go">Ouvrir →</span>
     </a>
-    <a class="tool" href="elec/">
+    <a class="tool" href="maths-s1/" data-s="ms1">
+      <span class="ic" aria-hidden="true">∀</span>
+      <span class="kind" data-kind="Mathématiques">Mathématiques</span>
+      <h2>Maths&nbsp;· CC1</h2>
+      <p>Logique et ensembles : tables de vérité, quantificateurs, raisonnements, applications, relations et dénombrement. Sujet blanc d'1 h 30.</p>
+      <span class="meta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
+    <a class="tool" href="phys/" data-s="phys">
+      <span class="ic" aria-hidden="true">F</span>
+      <span class="kind" data-kind="Physique">Physique</span>
+      <h2>Mécanique du point&nbsp;· CC2</h2>
+      <p>PFD, frottements, chocs, énergie, oscillateurs et gravitation, avec les démos à savoir refaire. Sujet blanc d'1 h 30.</p>
+      <span class="meta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
+    <a class="tool" href="elec/" data-s="elec">
       <span class="ic" aria-hidden="true">Ω</span>
-      <span class="kind" data-kind="Électronique analogique · CC1">Électronique analogique · CC1</span>
-      <h2>Électricité</h2>
-      <p>Cours utile, les démos à connaître, des exercices générés au format du CC avec correction, les 5 annales corrigées et des sujets blancs chronométrés.</p>
+      <span class="kind" data-kind="Électronique">Électronique</span>
+      <h2>Électronique analogique&nbsp;· CC1</h2>
+      <p>Lois des circuits, les démos à connaître, exercices au format du CC, les 5 annales corrigées et des sujets blancs chronométrés.</p>
       <span class="meta" id="elecMeta"></span>
       <span class="go">Ouvrir →</span>
     </a>
-    <a class="tool" href="algo/">
-      <span class="ic" aria-hidden="true">&gt;_</span>
-      <span class="kind" data-kind="Informatique · Algorithmique · DS">Informatique · Algorithmique · DS</span>
-      <h2>Algorithmique</h2>
-      <p>Bases de Python, fonctions, complexité, tableaux et dictionnaires : parcours guidé, fonctions à écrire testées en vrai Python, cours résumé et sujet blanc d'1 h 30.</p>
-      <span class="meta" id="algoMeta"></span>
-      <span class="go">Ouvrir →</span>
-    </a>
-    <a class="tool" href="phys/">
-      <span class="ic" aria-hidden="true">F</span>
-      <span class="kind" data-kind="Physique · Mécanique du point · CC">Physique · Mécanique du point · CC</span>
-      <h2>Mécanique du point</h2>
-      <p>PFD, frottements, chocs, énergie, oscillateurs et gravitation : parcours guidé, formules littérales corrigées automatiquement, cours résumé avec les démos à savoir refaire, sujet blanc d'1 h 30.</p>
-      <span class="meta" id="physMeta"></span>
-      <span class="go">Ouvrir →</span>
-    </a>
-    <a class="tool" href="meca/">
-      <span class="ic" aria-hidden="true">Σ</span>
-      <span class="kind" data-kind="Ingénierie mécanique · Statique · CC">Ingénierie mécanique · Statique · CC</span>
-      <h2>Ingénierie mécanique</h2>
-      <p>Vecteurs, moments, torseurs, liaisons et PFS : parcours guidé avec un schéma par exercice, les deux exercices du DS corrigé, cours résumé, sujet blanc d'1 h 30.</p>
-      <span class="meta" id="mecaMeta"></span>
-      <span class="go">Ouvrir →</span>
-    </a>
-    <a class="tool" href="elec2/">
-      <span class="ic" aria-hidden="true">RC</span>
-      <span class="kind" data-kind="Électronique analogique · CC2">Électronique analogique · CC2</span>
-      <h2>Électronique : CC2</h2>
-      <p>Démonstrations, générateur de Thévenin à deux sources, circuits RC et RL du premier ordre : parcours avec schémas, 4 annales reprises, sujet blanc d'1 h.</p>
-      <span class="meta" id="el2Meta"></span>
-      <span class="go">Ouvrir →</span>
-    </a>
-    <a class="tool" href="elecn/">
+    <a class="tool" href="elecn/" data-s="eln" data-n="1">
       <span class="ic" aria-hidden="true">01</span>
-      <span class="kind" data-kind="Électronique numérique · CC">Électronique numérique · CC</span>
-      <h2>Électronique numérique</h2>
-      <p>Logique combinatoire (numération, C2, Boole, Karnaugh, MUX), séquentielle (bascules, compteurs, registres) et conversion CAN / CNA : parcours, cours des 3 séquences et sujet blanc d'1 h.</p>
-      <span class="meta" id="elnMeta"></span>
+      <span class="kind" data-kind="Électronique">Électronique</span>
+      <h2>Électronique numérique&nbsp;· CC1</h2>
+      <p>Séquence A, logique combinatoire : numération, complément à 2, Boole, Karnaugh, multiplexeurs. Sujet blanc d'1 h.</p>
+      <span class="meta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
+    <a class="tool" href="algo/" data-s="algo" data-n="1">
+      <span class="ic" aria-hidden="true">&gt;_</span>
+      <span class="kind" data-kind="Informatique">Informatique</span>
+      <h2>Algorithmique&nbsp;· DS1</h2>
+      <p>Bases de Python, fonctions, complexité, tableaux et dictionnaires, fonctions à écrire testées en vrai Python. Sujet blanc d'1 h 30.</p>
+      <span class="meta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
+    <a class="tool" href="algo/" data-s="algo" data-n="2">
+      <span class="ic" aria-hidden="true">&gt;_</span>
+      <span class="kind" data-kind="Informatique">Informatique</span>
+      <h2>Algorithmique&nbsp;· DS2</h2>
+      <p>Même page que le DS1, en attendant le programme du DS2 : parcours guidé, fonctions testées en vrai Python et sujet blanc.</p>
+      <span class="meta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
+    <a class="tool" href="meca/" data-s="meca">
+      <span class="ic" aria-hidden="true">Σ</span>
+      <span class="kind" data-kind="Mécanique">Mécanique</span>
+      <h2>Ingénierie mécanique&nbsp;· CC</h2>
+      <p>Statique : vecteurs, moments, torseurs, liaisons et PFS, un schéma par exercice, le DS corrigé. Sujet blanc d'1 h 30.</p>
+      <span class="meta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
+    <a class="tool" href="elec2/" data-s="el2">
+      <span class="ic" aria-hidden="true">RC</span>
+      <span class="kind" data-kind="Électronique">Électronique</span>
+      <h2>Électronique analogique&nbsp;· CC2</h2>
+      <p>Démonstrations, Thévenin à deux sources, circuits RC et RL du premier ordre, 4 annales reprises. Sujet blanc d'1 h.</p>
+      <span class="meta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
+    <a class="tool" href="ato/" data-s="ato" data-n="2">
+      <span class="ic" aria-hidden="true">Ato</span>
+      <span class="kind" data-kind="Chimie">Chimie</span>
+      <h2>Atomistique&nbsp;· CC2</h2>
+      <p>Tout le cours : L'atome, puis les liaisons (Lewis, charges formelles, VSEPR, hybridation, polarité). Même page que le CC1 : le parcours s'ouvre à la partie 2 après le CC1.</p>
+      <span class="meta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
+    <a class="tool" href="maths-s1-analyse/" data-s="ma2">
+      <span class="ic" aria-hidden="true">∫</span>
+      <span class="kind" data-kind="Mathématiques">Mathématiques</span>
+      <h2>Maths&nbsp;· CC2</h2>
+      <p>Analyse : complexes, dérivées, limites et DL, intégrales, suites, exercices des annales 2025-26. Sujet blanc d'1 h 30.</p>
+      <span class="meta"></span>
+      <span class="go">Ouvrir →</span>
+    </a>
+    <a class="tool" href="elecn/" data-s="eln" data-n="2">
+      <span class="ic" aria-hidden="true">01</span>
+      <span class="kind" data-kind="Électronique">Électronique</span>
+      <h2>Électronique numérique&nbsp;· CC2</h2>
+      <p>Tout le cours : Séquence A, puis la logique séquentielle (bascules, compteurs, registres) et la conversion CAN / CNA. Même page que le CC1.</p>
+      <span class="meta"></span>
       <span class="go">Ouvrir →</span>
     </a>
     <div class="tool soon" aria-label="D'autres matières arriveront plus tard">
@@ -382,46 +406,56 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   if (hist.length) parts.push(`${hist.length} sujet${hist.length > 1 ? 's' : ''} blanc${hist.length > 1 ? 's' : ''} fait${hist.length > 1 ? 's' : ''}`);
   else if (st) { const n = ['ex2', 'ex3', 'ex4'].reduce((s, k) => s + ((st[k] && st[k].n) || 0), 0); if (n) parts.push(`${n} réponse${n > 1 ? 's' : ''} en entraînement`); }
   document.getElementById('elecMeta').innerHTML = parts.join(' · ');
-  // pages à parcours : compétences validées (nombre total dans subjects.js) et dernier sujet blanc
+  // pages à parcours : compétences validées (nombre total dans subjects.js ; liste cc1 sur la case du CC1) et dernier
+  // sujet blanc, sur la case du prochain CC de la page seulement (pas en double quand une page a deux cases)
   SiteSubjects.list.filter(s => s.skills && s.id !== 'elec').forEach(s => {   // l'élec a son propre résumé (ci-dessus)
-    const el = document.getElementById(s.id + 'Meta'); if (!el) return;
-    const p = get(s.id + '.path.v1', null), n = p && p.sk ? Object.values(p.sk).filter(k => k.ever || k.m >= 75).length : 0, H = get(s.id + '.hist.v1', []);
-    el.innerHTML = [n ? `<b>${n}/${s.skills}</b> compétences validées` : '', H.length ? `dernier sujet blanc : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
+    const p = get(s.id + '.path.v1', null), sk = (p && p.sk) || {}, H = get(s.id + '.hist.v1', []), nx = SiteSubjects.next(s.id);
+    const ok = k => sk[k] && (sk[k].ever || sk[k].m >= 75);
+    document.querySelectorAll(`#vRev a.tool[data-s="${s.id}"] .meta`).forEach(el => {
+      const cn = +el.closest('.tool').dataset.n || 0, list = cn === 1 && s.cc1;
+      const n = list ? list.filter(ok).length : Object.keys(sk).filter(ok).length, tot = list ? list.length : s.skills;
+      const cur = !cn || !nx || nx.n === cn;
+      el.innerHTML = [n ? `<b>${n}/${tot}</b> compétences validées` : '', cur && H.length ? `dernier sujet blanc : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>` : ''].filter(Boolean).join(' · ');
+    });
   });
   orderTools();
   }
 
-  /* ---------- Cartes des matières : de l'évaluation la plus proche à la plus lointaine ---------- */
-  // dates des contrôles : subjects.js (emploi du temps, sinon dates de secours ; aucune date → « date à confirmer »)
-  // à date égale, l'ordre de subjects.js (CC1 avant CC2) ; les CC passés à la fin
+  /* ---------- Cartes des contrôles : une case par CC, du plus proche au plus lointain ---------- */
+  // dates : subjects.js (emploi du temps, sinon dates de secours ; aucune date → « date à confirmer »). Une page qui
+  // prépare deux CC a deux cases (data-n : CC1, CC2) ; la case d'un CC passé disparaît tant que l'autre est à venir.
+  // À date égale, l'ordre de la page ; les CC passés à la fin
   function orderTools() {
     const grid = document.querySelector('#vRev .grid'); if (!grid) return;
     const t0 = new Date(); t0.setHours(0, 0, 0, 0);
     const dm = ts => new Date(ts).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' }).split('/').slice(0, 2).map(Number).join('/');   // « 5/11 »
-    const cards = SiteSubjects.list.map((s, i) => {
-      const el = grid.querySelector(`a.tool[href="${s.page}"]`); if (!el) return null;
-      const n = SiteSubjects.next(s.id), num = s.count && n ? String(n.n) : '';   // « CC1 », « CC2 » quand la matière en compte plusieurs
-      if (!n) return { el, i, rank: 1, ts: 0 };
+    const cards = [...grid.querySelectorAll('a.tool[data-s]')].map((el, i) => {
+      const id = el.dataset.s, cn = +el.dataset.n || 0;
+      const n = cn ? SiteSubjects.slot(id, cn) : SiteSubjects.next(id);
+      if (!n) return { el, id, i, rank: 1, ts: 0 };
       // CC sans date mais qui tombera avant le suivant : rangé à la date de ce suivant
-      if (n.tbc) return { el, i, rank: n.before ? 0 : 1, ts: n.before || 0, tbc: true, num };
-      return { el, i, rank: n.past ? 2 : 0, ts: n.ts, past: n.past, shared: n.shared, num };
-    }).filter(Boolean);
+      if (n.tbc) return { el, id, i, rank: n.before ? 0 : 1, ts: n.before || 0, tbc: true, n };
+      return { el, id, i, rank: n.past ? 2 : 0, ts: n.ts, past: n.past, n };
+    });
     cards.sort((a, b) => (a.rank - b.rank) || (a.rank === 2 ? b.ts - a.ts : a.ts - b.ts) || (a.i - b.i));
     const anchor = grid.querySelector('.tool.soon');
-    cards.forEach(({ el, rank, ts, past, shared, tbc, num }) => {
+    cards.forEach(c => {
+      const { el, rank, ts, past, tbc } = c;
       grid.insertBefore(el, anchor);
+      el.hidden = !!past && cards.some(o => o.id === c.id && o !== c && !o.past);
       let w = el.querySelector('.when'); if (!w) { w = document.createElement('span'); w.className = 'when'; el.prepend(w); }
       const k = el.querySelector('.kind[data-kind]');
       if (rank === 1 || tbc) {
         w.textContent = 'date à confirmer'; el.classList.remove('past', 'near');
-        if (k) k.textContent = k.dataset.kind + num + ' · date à confirmer' + (ts ? `, avant le ${/DS$/.test(k.dataset.kind) ? 'DS' : 'CC'}${num ? +num + 1 : ''} du ${dm(ts)}` : '');
+        // tombera avant le CC suivant de la matière : « avant le DS2 du 7/12 »
+        if (k) k.textContent = k.dataset.kind + (ts ? ` · avant le ${/DS\d$/.test(el.querySelector('h2').textContent) ? 'DS' : 'CC'}${c.n ? c.n.n + 1 : ''} du ${dm(ts)}` : '');
         return;
       }
       const day = new Date(ts); day.setHours(0, 0, 0, 0);
-      const n = Math.round((day - t0) / 864e5);
-      w.textContent = past ? 'passé · ' + dm(ts) : n <= 0 ? 'aujourd\'hui' : n === 1 ? 'demain · ' + dm(ts) : `J−${n} · ${dm(ts)}`;
-      if (k) k.textContent = `${k.dataset.kind}${num} du ${dm(ts)}${shared ? ' (même CC que le CC1 pour l\'instant)' : ''}`;
-      el.classList.toggle('past', past); el.classList.toggle('near', !past && n <= 7);
+      const d = Math.round((day - t0) / 864e5);
+      w.textContent = past ? 'passé · ' + dm(ts) : d <= 0 ? 'aujourd\'hui' : d === 1 ? 'demain · ' + dm(ts) : `J−${d} · ${dm(ts)}`;
+      if (k) k.textContent = k.dataset.kind;
+      el.classList.toggle('past', past); el.classList.toggle('near', !past && d <= 7);
     });
   }
   renderMeta();

@@ -10,8 +10,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112101"></script>
-<script src="../core.js?v=2026111701"></script>
+<script src="../subjects.js?v=2026112102"></script>
+<script src="../core.js?v=2026112101"></script>
 <script src="learn.js?v=2026102806"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026102803">
@@ -101,7 +101,8 @@ table.t td,table.t th{border:1px solid var(--rule);padding:5px 10px;text-align:c
    ===================================================================== */
 // Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
 // avant le CC1 : la partie « L'atome » et les schémas de Lewis (sprint, sujet ciblé) ; ensuite tout le parcours
-const ccScope = () => { const n = window.SiteSubjects && SiteSubjects.next('ato'); return n && n.n === 1 && !n.past ? SK.slice(0, SK.findIndex(k => k.id === 'lewis') + 1) : null; };
+// (liste cc1 dans subjects.js)
+const ccScope = () => window.SiteSubjects && SiteSubjects.scope ? SiteSubjects.scope('ato', SK) : null;
 const E = SiteCore({ id: 'ato', scope: ccScope, get DUR() { return 3600; }, clock: 'ms', rush: 300, typeset: el => typeset(el),
   get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check, valOf }; },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },

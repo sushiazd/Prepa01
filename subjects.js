@@ -27,8 +27,8 @@
     { id: 'maths', name: 'QCM maths', page: 'maths/', ade: /QCM/i, qcm: true,
       dates: ['2026-09-18T13:00:00Z', '2026-09-28T14:45:00Z'] },
     { id: 'ms1', name: 'Maths S1', page: 'maths-s1/', ade: MATH, nth: 0, dates: MATH_CC, skills: 16 },
-    { id: 'ma2', name: 'Analyse', page: 'maths-s1-analyse/', ade: MATH, nth: 1, dates: MATH_CC, skills: 14 },
-    // CC1 « L'atome » (prévu le 20/10, reporté) le 25/11 ; CC2 (tout le cours) le 16/12
+    { id: 'ma2', name: 'Analyse', page: 'maths-s1-analyse/', ade: MATH, nth: 1, later: true, dates: MATH_CC, skills: 14 },
+    // CC1 « L'atome » (prévu le 20/10, reporté) le 25/11 ; CC2 (tout le cours) le 16/12, retiré d'ADE au 21/11
     { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-11-25T12:15:00Z', '2026-12-16T08:45:00Z'], skills: 17 },
     { id: 'elec', name: 'Élec CC1', page: 'elec/', ade: /ELECa/i, nth: 0, dates: ELEC_CC, skills: 21, bonus: ['thv'] },
     { id: 'el2', name: 'Élec CC2', page: 'elec2/', ade: /ELECa/i, nth: 1, later: true, dates: ELEC_CC, skills: 9 },
@@ -60,7 +60,18 @@
     const s = byId[id], evs = events(id, o);
     const list = evs.length ? evs.map(e => ({ ts: e.s, ev: e })) : (s.dates || []).map(d => ({ ts: Date.parse(d), ev: null }));
     const miss = Math.max(0, (s.count || 0) - list.length);
-    return Array.from({ length: miss }, () => ({ ts: null, ev: null })).concat(list).map((x, i) => Object.assign(x, { n: i + 1 }));
+    if (!miss) return list.map((x, i) => Object.assign(x, { n: i + 1 }));
+    // CC manquants : un créneau ADE du même jour qu'une date de secours prend son rang (dates = les derniers CC de
+    // l'année quand il y en a moins que count) ; les autres CC connus vont aux derniers rangs libres, les manquants
+    // restent sans date (ex. ATO : le CC1 du 25/11 est dans ADE, le CC2 n'y est plus → CC2 « à confirmer »)
+    const dates = s.dates || [], off = s.count - dates.length, day = t => new Date(t).toDateString();
+    const out = Array.from({ length: s.count }, () => null), rest = [];
+    list.forEach(x => {
+      const k = dates.findIndex(d => day(Date.parse(d)) === day(x.ts)) + off;
+      if (k >= off && !out[k]) out[k] = x; else rest.push(x);
+    });
+    for (let k = s.count - 1; k >= 0 && rest.length; k--) if (!out[k]) out[k] = rest.pop();
+    return out.map((x, i) => Object.assign(x || { ts: null, ev: null }, { n: i + 1 }));
   }
   // Contrôle de la page : { ts, ev (créneau ADE ou null pour une date de secours), n, past, shared, tbc, before }.
   // Page avec nth : son CC de l'année ; sinon le prochain, ou le dernier avec past: true s'ils sont tous passés.

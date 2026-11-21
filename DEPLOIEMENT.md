@@ -111,3 +111,16 @@ Le QCM était à la racine du dépôt ; il est maintenant dans `maths/`. Pour mi
 - Le « temps d'entraînement » ne compte que les épreuves faites sur le site (pauses exclues).
 - Une épreuve de maths ou un sujet blanc en cours se reprend sur un autre appareil connecté au même compte. L'autre appareil le récupère à l'ouverture de la page ou en revenant sur l'onglet, pas en direct pendant qu'on écrit.
 - Les projets Supabase gratuits peuvent être mis en pause après une période d'inactivité : il suffit de les relancer depuis le tableau de bord Supabase.
+
+## Sécurité
+
+- `config.js` ne contient que la clé **publishable** : tout le reste est protégé par les règles de `supabase.sql` (relance-le après chaque mise à jour, il ne supprime aucune donnée).
+- Les fonctions Supabase (`planning`, `qr-login`) lisent les nouvelles clés (`sb_publishable_…`, `sb_secret_…`) en priorité : les anciennes clés `anon` / `service_role` peuvent être désactivées sans rien casser.
+- Ne déploie jamais une fonction de test qui renvoie `Deno.env` : elle donnerait la clé secrète et le mot de passe de la base à n'importe qui.
+- **Connexion par QR code** : l'écran à connecter affiche un code à 2 chiffres que le téléphone doit recopier (contre l'hameçonnage par lien `?qr=…`). Une fois cette version du site en ligne, passe `PIN_REQUIRED` à `true` dans `supabase/functions/qr-login/index.ts` et redéploie la fonction : jusque-là, un QR créé par l'ancienne version du site reste validable sans code.
+
+### Si une clé secrète a fuité
+
+1. **Project Settings → API Keys** : crée une nouvelle clé secrète, puis supprime l'ancienne (et désactive les clés « legacy » `anon` / `service_role` si elles ont fuité).
+2. **Database → Settings** : *Reset database password* (le mot de passe est dans `SUPABASE_DB_URL`).
+3. Vérifie que la connexion par QR code et l'emploi du temps marchent toujours.

@@ -470,3 +470,82 @@ create policy elec_copies_obj_select on storage.objects for select to authentica
 drop policy if exists elec_copies_obj_delete on storage.objects;
 create policy elec_copies_obj_delete on storage.objects for delete to authenticated
   using (bucket_id = 'elec-copies' and (storage.foldername(name))[2] = auth.uid()::text);
+
+-- =====================================================================
+-- Durcissement (2026-11-21, audit de sécurité)
+-- =====================================================================
+-- Rien pour « anon » (le site ne lit aucune table sans compte), et pas de TRUNCATE / TRIGGER / REFERENCES
+-- pour les comptes connectés : TRUNCATE ignorerait les règles RLS.
+do $$ declare t text; begin
+  for t in select tablename from pg_tables where schemaname = 'public' loop
+    execute format('revoke all on public.%I from anon', t);
+    execute format('revoke truncate, references, trigger on public.%I from authenticated', t);
+  end loop;
+end $$;
+
+-- Contrôles de groupe : seule l'heure de départ se modifie (« Démarrer maintenant »).
+-- Sans ça, le créateur pouvait déplacer un contrôle dans un autre groupe (group_id) ou changer created_by.
+revoke update on public.group_tests from authenticated;
+grant update (starts_at) on public.group_tests to authenticated;
+
+-- Épreuves : type et identifiant de sujet en caractères simples (ils sont affichés dans les tableaux de bord)
+alter table public.attempts drop constraint if exists attempts_kind_fmt;
+alter table public.attempts add constraint attempts_kind_fmt check (kind ~ '^[a-z0-9_]{1,32}$');
+alter table public.attempts drop constraint if exists attempts_def_id_fmt;
+alter table public.attempts add constraint attempts_def_id_fmt check (def_id ~ '^[A-Za-z0-9_:.-]{1,200}$');
+
+-- Données synchronisées : clés simples, 256 Ko par clé, 100 clés par compte
+alter table public.user_data drop constraint if exists user_data_key_fmt;
+alter table public.user_data add constraint user_data_key_fmt check (key ~ '^[a-z0-9_.-]{1,64}$');
+alter table public.user_data drop constraint if exists user_data_value_size;
+alter table public.user_data add constraint user_data_value_size check (octet_length(value::text) <= 262144);
+create or replace function public.user_data_quota() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  -- un upsert d'une clé existante passe aussi par ici : on ne compte que les nouvelles clés
+  if not exists (select 1 from public.user_data where user_id = new.user_id and key = new.key)
+     and (select count(*) from public.user_data where user_id = new.user_id) >= 100 then
+    raise exception 'Trop de données synchronisées pour ce compte' using errcode = '54000';
+  end if;
+  return new;
+end $$;
+drop trigger if exists user_data_quota on public.user_data;
+create trigger user_data_quota before insert on public.user_data for each row execute function public.user_data_quota();
+
+-- Copies papier d'élec : 15 photos au plus par copie
+alter table public.elec_copies drop constraint if exists elec_copies_photos_max;
+alter table public.elec_copies add constraint elec_copies_photos_max check (cardinality(photos) <= 15);
+create or replace function public.elec_photo_count(t text, u text) returns int
+language sql stable security definer set search_path = public, storage as $$
+  select count(*)::int from storage.objects where bucket_id = 'elec-copies' and name like t || '/' || u || '/%'
+$$;
+revoke all on function public.elec_photo_count(text, text) from public, anon;
+grant execute on function public.elec_photo_count(text, text) to authenticated;
+drop policy if exists elec_copies_obj_insert on storage.objects;
+create policy elec_copies_obj_insert on storage.objects for insert to authenticated
+  with check (bucket_id = 'elec-copies' and (storage.foldername(name))[2] = auth.uid()::text
+    and public.test_member_txt((storage.foldername(name))[1])
+    and public.elec_photo_count((storage.foldername(name))[1], (storage.foldername(name))[2]) < 15);
+
+-- Connexion par QR code (fonction qr-login, clé de service seulement) : code de vérification à 2 chiffres
+-- affiché sur l'appareil à connecter et recopié sur le téléphone, essais comptés, limite de création par adresse IP
+create table if not exists public.qr_logins (
+  id          uuid primary key default gen_random_uuid(),
+  secret_hash text not null,
+  agent       text,
+  user_id     uuid references auth.users(id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  expires_at  timestamptz not null default now() + interval '3 minutes',
+  approved_at timestamptz
+);
+alter table public.qr_logins add column if not exists pin text;
+alter table public.qr_logins add column if not exists tries int not null default 0;
+alter table public.qr_logins add column if not exists ip_hash text;
+create index if not exists qr_logins_ip_idx on public.qr_logins (ip_hash, created_at);
+alter table public.qr_logins enable row level security;
+revoke all on public.qr_logins from anon, authenticated;
+grant select, insert, update, delete on public.qr_logins to service_role;
+
+-- Fonctions de déclencheur : jamais appelées directement par l'API
+revoke all on function public.handle_new_user(), public.skip_tombstoned_attempt(), public.elec_copies_guard(), public.user_data_quota()
+  from public, anon, authenticated;

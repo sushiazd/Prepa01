@@ -378,7 +378,7 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
             <div class="bars" title="Justes · vides · fausses"><span style="background:var(--good);width:${(100 * s.ok / s.n).toFixed(1)}%"></span><span style="background:var(--muted);width:${(100 * s.blank / s.n).toFixed(1)}%"></span><span style="background:var(--red);width:${(100 * s.bad / s.n).toFixed(1)}%"></span></div>
             <dl class="kv">
               <dt>Questions</dt><dd>${s.n} · ${fmt(100 * s.ok / s.n)} % justes · ${fmt(100 * s.bad / s.n)} % fausses</dd>
-              <dt>Copies</dt><dd>${s.copies} (${Object.entries(s.kinds).map(([k, v]) => `${v} ${(v > 1 ? KIND : KIND1)[k] || k}`).join(', ') || 'copies du prof'}${m.controls.length ? `, ${m.controls.length} copie${m.controls.length > 1 ? 's' : ''} du prof` : ''})</dd>
+              <dt>Copies</dt><dd>${s.copies} (${Object.entries(s.kinds).map(([k, v]) => `${v} ${esc((v > 1 ? KIND : KIND1)[k] || k)}`).join(', ') || 'copies du prof'}${m.controls.length ? `, ${m.controls.length} copie${m.controls.length > 1 ? 's' : ''} du prof` : ''})</dd>
               <dt>Moyenne</dt><dd>${s.avgNote != null ? fmt(s.avgNote, 2) + '/20 sur le site' : '—'}</dd>
               <dt>Meilleure</dt><dd>${s.best ? `${fmt(s.best.note, 2)}/20 · ${esc(s.best.title)}` : '—'}</dd>
               <dt>Rythme</dt><dd>${s.avgT != null ? fmt(s.avgT) + ' s / question' : '—'} · ${fmtT(s.used)} au total</dd>

@@ -10886,9 +10886,9 @@ function gtTitle(t) {
 async function deleteGroupTest(tid) {
   const t = G && G.tests.find(x => x.id === tid); if (!t) return;
   if (!await ask(`Supprimer « ${gtTitle(t)} » pour tout le groupe ? Il disparaît de la liste avec son classement, et tes copies de ce contrôle sont effacées.`, 'Supprimer')) return;
-  if (liveId === tid && liveCh) await Promise.resolve(liveCh.send({ type: 'broadcast', event: 'ctl', payload: { type: 'cancel', tid, by: me.pseudo } })).catch(() => {});
   const { error } = await sb.from('group_tests').delete().eq('id', tid);
   if (error) { toast(frErr(error), 5000); return; }
+  if (liveId === tid && liveCh) await Promise.resolve(liveCh.send({ type: 'broadcast', event: 'ctl', payload: { type: 'cancel', tid, by: me.pseudo } })).catch(() => {});
   dropGroupAttempts(tid);
   LIVE = LIVE.filter(x => x.id !== tid);
   toast('Contrôle supprimé.');
@@ -10966,6 +10966,25 @@ function liveIntro(def) {
   upd(); liveIntroTick = setInterval(upd, 500);
   renderLive();
 }
+// Les canaux temps réel sont publics : un message reçu n'est qu'un signal. Ce qui s'affiche est nettoyé, et un
+// départ ou une annulation n'est appliqué qu'après vérification dans la base (heure de départ, contrôle supprimé).
+const liveInt = (v, max) => { v = Math.floor(+v); return Number.isFinite(v) && v >= 0 ? Math.min(v, max) : 0; };
+function cleanLiveMeta(x) {
+  x = x && typeof x === 'object' ? x : {};
+  return { pseudo: String(x.pseudo || '?').slice(0, 24), st: ['done', 'test', 'spec', 'lobby', 'left'].includes(x.st) ? x.st : 'lobby', sp: x.sp === true, n: liveInt(x.n, 500), N: liveInt(x.N, 500) };
+}
+function cleanSpecCopy(p) {
+  if (!p || typeof p !== 'object' || typeof p.uid !== 'string' || !/^[0-9a-f-]{36}$/.test(p.uid)) return null;
+  return { uid: p.uid, pseudo: String(p.pseudo || '?').slice(0, 24), cur: liveInt(p.cur, 500), done: p.done === true, at: liveInt(p.at, 9e15),
+    a: (Array.isArray(p.a) ? p.a : []).slice(0, 500).map(x => String(x == null ? '' : x).replace(/[^0-9.]/g, '').slice(0, 40)) };
+}
+async function liveCtlCheck(q) {
+  const tid = q.tid;
+  const { data, error } = await sb.from('group_tests').select('id,starts_at').eq('id', tid).maybeSingle();
+  if (error) return;
+  if (!data) { liveCanceled(tid, typeof q.by === 'string' ? q.by.slice(0, 24) : null); return; }
+  if (q.type === 'start' && data.starts_at) applyStart(tid, Date.parse(data.starts_at));
+}
 function liveJoin(def) {
   if (!cloud.on() || !me || !def.live) return;
   if (liveCh && liveId === def.live.tid) { liveTrack(); renderLive(); return; }
@@ -10973,10 +10992,10 @@ function liveJoin(def) {
   liveId = def.live.tid; liveDef = def;
   try {
     const ch = liveCh = sb.channel('gt-live-' + liveId, { config: { presence: { key: me.id }, broadcast: { self: false } } });
-    ch.on('broadcast', { event: 'ctl' }, ({ payload: q }) => { if (!q) return; if (q.type === 'start') applyStart(q.tid, q.at); else if (q.type === 'cancel') liveCanceled(q.tid, q.by); });
+    ch.on('broadcast', { event: 'ctl' }, ({ payload: q }) => { if (q && q.tid === liveId) liveCtlCheck(q); });
     ch.on('presence', { event: 'sync' }, () => {
       const st = ch.presenceState(), m = new Map();
-      Object.entries(st).forEach(([id, metas]) => { if (metas && metas.length) m.set(id, metas[metas.length - 1]); });
+      Object.entries(st).forEach(([id, metas]) => { if (metas && metas.length) m.set(id, cleanLiveMeta(metas[metas.length - 1])); });
       liveMembers = m; renderLive();
     });
     ch.subscribe(stt => {
@@ -11030,9 +11049,9 @@ function dropGroupAttempts(tid) {
 async function liveCancel(def) {
   if (!await ask('Annuler ce contrôle pour tout le groupe ? Il est supprimé, avec son classement, et personne n\'a de note.', 'Annuler le contrôle')) return;
   const tid = def.live.tid;
-  if (liveCh) await Promise.resolve(liveCh.send({ type: 'broadcast', event: 'ctl', payload: { type: 'cancel', tid, by: me.pseudo } })).catch(() => {});
   const { error } = await sb.from('group_tests').delete().eq('id', tid);
   if (error) { toast(frErr(error), 5000); return; }
+  if (liveCh) await Promise.resolve(liveCh.send({ type: 'broadcast', event: 'ctl', payload: { type: 'cancel', tid, by: me.pseudo } })).catch(() => {});
   dropGroupAttempts(tid);
   liveCanceled(tid, null, true);
 }
@@ -11139,8 +11158,9 @@ async function startSpec(def) {
   liveJoin(def); liveTrack();
   try {
     const ch = SPEC.ch = sb.channel('gt-spec-' + tid, { config: { broadcast: { self: false } } });
-    ch.on('broadcast', { event: 'copy' }, ({ payload: p }) => {
-      if (!SPEC || SPEC.tid !== tid || !p || !p.uid || p.uid === me.id) return;
+    ch.on('broadcast', { event: 'copy' }, ({ payload }) => {
+      const p = cleanSpecCopy(payload);
+      if (!SPEC || SPEC.tid !== tid || !p || p.uid === me.id) return;
       const old = SPEC.copies.get(p.uid);
       if (old && old.db && !p.done) return;
       SPEC.copies.set(p.uid, p);

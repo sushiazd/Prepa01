@@ -2668,13 +2668,30 @@ async function grpLoad() {
       a.sb.from('elec_copies').select('id,test_id,user_id,auto_pts,review_pts,reviewer,photos,comment,self,ans,res').eq('user_id', a.uid),
       a.sb.from('elec_copies').select('id,test_id,user_id,review_pts').eq('reviewer', a.uid),
       a.sb.from('memberships').select('user_id').in('group_id', gids)]);
-    GRP.groups = gs.data || []; GRP.tests = (ts.data || []).filter(t => t.def);
+    GRP.groups = gs.data || []; GRP.tests = (ts.data || []).filter(t => safeDef(t.def));
     GRP.mine = {}; (cs.data || []).forEach(c => { GRP.mine[c.test_id] = c; });
     GRP.rev = {}; (rv.data || []).forEach(c => { GRP.rev[c.test_id] = { id: c.id, user_id: c.user_id, done: c.review_pts != null }; });
     const ids = [...new Set((mb.data || []).map(m => m.user_id))];
     if (ids.length) { const { data: ps } = await a.sb.from('profiles').select('id,pseudo').in('id', ids); (ps || []).forEach(p => { GRP.pseudo[p.id] = p.pseudo; }); }
     GRP.loaded = true;
   } catch (e) { console.warn('Groupe indisponible', e); } finally { GRP.busy = false; }
+}
+// Le sujet d'un contrôle de groupe (def) est écrit par le membre qui l'a créé, puis transformé en HTML chez
+// tout le monde : on n'accepte que des nombres et des identifiants simples (rien qui puisse former du HTML ou du
+// LaTeX), et un sujet que le site ne sait pas construire est écarté.
+function safeDef(def) {
+  let n = 0;
+  const ok = v => {
+    if (++n > 5000) return false;
+    if (v === null || typeof v === 'boolean') return true;
+    if (typeof v === 'number') return Number.isFinite(v);
+    if (typeof v === 'string') return /^[A-Za-z0-9_.-]{1,40}$/.test(v);
+    if (Array.isArray(v)) return v.every(ok);
+    if (typeof v === 'object') return Object.keys(v).every(k => /^[A-Za-z0-9_]{1,40}$/.test(k) && ok(v[k]));
+    return false;
+  };
+  if (!def || typeof def !== 'object' || !ok(def) || !Object.prototype.hasOwnProperty.call(DEMOS, def.e1)) return false;
+  try { buildAll(def); return true; } catch (e) { return false; }
 }
 // Copies rendues sans réseau ou avant la connexion : renvoyées au prochain chargement
 async function grpFlush(a) {
@@ -2806,6 +2823,7 @@ async function grpUpload(tid, files) {
   const cur = GRP.mine[tid]; if (!cur) { toast('Rends d\'abord ta copie.'); return; }
   toast(`Envoi de ${files.length} photo${files.length > 1 ? 's' : ''}…`);
   const paths = (cur.photos || []).slice();
+  if (paths.length + files.length > 15) { toast(`15 photos au plus par copie (${paths.length} déjà envoyée${paths.length > 1 ? 's' : ''}).`); return; }
   let i = 0;
   for (const f of files) {
     try {

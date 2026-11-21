@@ -17,7 +17,10 @@ const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { sta
 // Le jeton doit être celui d'un utilisateur connecté (vérifié auprès du service d'authentification)
 async function signedIn(req: Request): Promise<boolean> {
   const auth = req.headers.get('Authorization') || '';
-  const key = Deno.env.get('SUPABASE_ANON_KEY') || req.headers.get('apikey') || '';
+  // clé publique : la nouvelle (sb_publishable_…) d'abord, l'ancienne clé « anon » pouvant être désactivée
+  let key = '';
+  try { const k = JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') || '{}'); key = String(k.default || Object.values(k)[0] || ''); } catch { /* absent */ }
+  key = key || req.headers.get('apikey') || Deno.env.get('SUPABASE_ANON_KEY') || '';
   if (!/^Bearer\s+ey/.test(auth)) return false;
   try {
     const r = await fetch(`${Deno.env.get('SUPABASE_URL')}/auth/v1/user`, { headers: { Authorization: auth, apikey: key } });

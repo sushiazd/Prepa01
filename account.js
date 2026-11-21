@@ -275,7 +275,7 @@
     return os + ' · ' + br;
   }
   A.qrInfo = id => qrCall({ a: 'info', id });
-  A.qrApprove = id => qrCall({ a: 'approve', id });
+  A.qrApprove = (id, pin) => qrCall({ a: 'approve', id, pin });
   // affiche le QR dans el et connecte cet appareil dès qu'un téléphone l'a validé ; s'arrête quand el quitte la page
   A.qrLogin = function (el) {
     let alive = true, n = 0, t = null, cur = null;
@@ -295,13 +295,15 @@
       if (++n > 5) { img('<span style="color:#555;font-size:13px;text-align:center">Code expiré</span>'); msg('Code expiré.', true); return; }
       msg('');
       try {
-        cur = await qrCall({ a: 'create', agent: agentName() });
+        cur = await qrCall({ a: 'create', v: 2, agent: agentName() });
         if (!window.QRCode) await load(QR_JS);
       } catch (e) { console.warn('QR de connexion', e); msg('QR code indisponible (connexion au serveur).', true); return; }
       if (gone()) return;
       img(''); const q = el.querySelector('[data-qr-img]');
       new window.QRCode(q, { text: ROOT + '?qr=' + cur.id, width: 148, height: 148, colorDark: '#121211', colorLight: '#ffffff', correctLevel: window.QRCode.CorrectLevel.M });
       q.title = '';
+      // code à recopier sur le téléphone : prouve que celui qui valide a bien cet écran sous les yeux
+      if (cur.pin) msg(`Code à taper sur le téléphone : <b style="font-size:20px;letter-spacing:.12em;opacity:1">${String(cur.pin).replace(/\D/g, '')}</b>`);
       t = setTimeout(poll, 2000);
     }
     async function poll() {

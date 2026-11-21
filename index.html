@@ -173,6 +173,9 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
 .acc-msg{font-size:14px;color:var(--ink-2)}
 .acc-or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px}
 .acc-or::before,.acc-or::after{content:"";flex:1;height:1px;background:var(--rule)}
+.qr-pin{display:grid;gap:6px;max-width:180px;font:600 12px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.qr-pin input{font:600 24px/1.2 var(--sans);letter-spacing:.3em;text-align:center;color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:10px;padding:8px 12px;min-height:48px;width:100%}
+.qr-pin input:focus-visible{outline:2px solid var(--pen);outline-offset:1px}
 .qr-warn{font-size:14px;color:var(--ink-2);background:var(--sheet-2);border-left:3px solid var(--warn);border-radius:8px;padding:10px 12px}
 @media (max-width:600px){#accQrWrap{display:none}}
 .fb textarea{font:16px/1.45 var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:10px;padding:10px 12px;width:100%;min-height:110px;resize:vertical}
@@ -478,7 +481,7 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   const qrId = (new URLSearchParams(location.search).get('qr') || '').toLowerCase();
   let qrEl = null, qrStop = null, qrState = null, qrShown = null;
   const qrBox = document.getElementById('qrBox');
-  let qrLost = false;   // session du téléphone fermée côté serveur : il doit se reconnecter avant de valider
+  let qrLost = false, qrPinMsg = '';   // session du téléphone fermée côté serveur : il doit se reconnecter avant de valider
   // erreur d'un appel QR : session fermée, réseau absent ou refus du serveur
   const qrErr = e => e && e.code === 'session' ? 'session' : e && e.code === 'server' ? 'server' : 'error';
   function qrClose() {
@@ -509,7 +512,10 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
       qrBox.innerHTML = `${head}<h2>Connecter cet appareil à ton compte ${pseudo} ?</h2>
         <p class="sub">Appareil : <b>${esc(r.agent || 'inconnu')}</b>, QR code affiché ${age}.</p>
         <p class="qr-warn">Valide seulement si c'est toi qui affiches ce QR code, sur un écran devant toi : l'appareil aura accès à ton compte jusqu'à ce que tu t'y déconnectes.</p>
+        ${r.pin ? `<label class="qr-pin">Code affiché sous le QR code<input id="qrPin" inputmode="numeric" autocomplete="off" maxlength="2" pattern="[0-9]{2}" placeholder="00"></label>` : ''}
+        <p class="acc-msg err" id="qrPinMsg"${qrPinMsg ? '' : ' hidden'}>${esc(qrPinMsg)}</p>
         <div class="acc-row"><button type="button" class="btn btn-primary" data-qr="ok">Connecter l'appareil</button><button type="button" class="btn" data-qr="no">Annuler</button></div>`;
+      const pi = qrBox.querySelector('#qrPin'); if (pi) pi.focus();
     } else {
       qrBox.innerHTML = `${head}<h2>${r.status === 'error' || r.status === 'server' ? 'Vérification impossible' : 'Ce QR code n\'est plus valable'}</h2>
         <p class="sub">${r.status === 'error' ? 'Pas de connexion au serveur. Vérifie ta connexion Internet et scanne à nouveau.' : r.status === 'server' ? 'Le serveur n\'a pas pu vérifier ce QR code. Réessaie dans un instant, ou affiche un nouveau QR code sur l\'autre appareil.' : 'Il a expiré ou a déjà servi. Sur l\'autre appareil, clique sur « Nouveau QR code » si besoin, puis scanne-le à nouveau.'}</p>
@@ -519,8 +525,12 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   qrBox.addEventListener('click', async e => {
     const b = e.target.closest('[data-qr]'); if (!b) return;
     if (b.dataset.qr === 'no') { qrClose(); return; }
+    const pinEl = qrBox.querySelector('#qrPin'), pin = pinEl ? pinEl.value.replace(/\D/g, '') : '';
+    if (pinEl && pin.length !== 2) { qrPinMsg = 'Tape les 2 chiffres affichés sous le QR code, sur l\'écran à connecter.'; qrShown = null; renderQrBox(); return; }
     b.disabled = true;
-    let r; try { r = await window.SiteAccount.qrApprove(qrId); } catch (err) { r = { status: qrErr(err) }; }
+    let r; try { r = await window.SiteAccount.qrApprove(qrId, pin); } catch (err) { r = { status: qrErr(err) }; }
+    if (r.status === 'badpin') { qrPinMsg = `Code incorrect : ${r.left} essai${r.left > 1 ? 's' : ''} restant${r.left > 1 ? 's' : ''}.`; qrShown = null; renderQrBox(); return; }
+    qrPinMsg = '';
     if (r.status === 'session') { qrLost = true; qrShown = null; setTimeout(renderQrBox, 100); return; }
     if (r.status === 'ok') {
       qrState = 'done';

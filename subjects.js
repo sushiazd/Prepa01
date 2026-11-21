@@ -11,8 +11,9 @@
    - count : nombre de CC de l'année quand certains ne sont pas encore dans ADE ; ceux qui manquent sont
      comptés AVANT ceux qui y sont (CC1 sans date, CC2 déjà placé) et rendus avec tbc: true
    - ignore : ancien créneau d'un CC déplacé, ignoré tant qu'ADE ne le retire pas
-   - cc1 : compétences au programme du CC1 quand la page prépare deux CC (le CC2 porte sur tout le parcours) ;
-     la page les passe à SiteCore (scope) et l'accueil compte les validées sur sa case CC1
+   - cc1 : compétences au programme du CC1 quand la page prépare deux CC (le CC2 porte sur tout le parcours).
+     La page est ouverte pour un CC (ccNum : ?cc=1 ou ?cc=2 dans l'adresse, venant des cases de l'accueil, sinon
+     le prochain CC) ; pour le CC1 elle ne garde que ces compétences (scope), partout : parcours, cours, exercices
    - name : nom court (tableau de bord moi/) ; skills : nombre de compétences du parcours (affiché sur l'accueil),
      sans les compétences bonus (bonus : leurs identifiants, non comptées)
    Usage : <script src="subjects.js"></script> avant les autres scripts. API : window.SiteSubjects
@@ -102,10 +103,16 @@
     const after = x.ts == null ? list.find(y => y.n > x.n && y.ts != null) : null;
     return Object.assign({ past: x.ts != null && x.ts <= Date.now() - 3 * 3600e3, shared: false, tbc: x.ts == null, before: after ? after.ts : null }, x);
   }
-  // compétences au programme du prochain CC : celles de cc1 tant que le CC1 n'est pas passé, sinon null (tout)
+  // CC préparé par la page : ?cc=1 / ?cc=2 dans l'adresse (cases de l'accueil), sinon le prochain CC
+  function ccNum(id) {
+    let q = 0; try { q = +new URLSearchParams(location.search).get('cc'); } catch (e) { /* ignore */ }
+    if (q === 1 || q === 2) return q;
+    const n = next(id); return n ? n.n : 1;
+  }
+  // compétences de la page pour ce CC : celles de cc1 pour le CC1, toutes sinon
   function scope(id, SK) {
-    const s = byId[id], n = s && s.cc1 && next(id);
-    return n && n.n === 1 && !n.past ? SK.filter(k => s.cc1.includes(k.id)) : null;
+    const s = byId[id];
+    return s && s.cc1 && ccNum(id) === 1 ? SK.filter(k => s.cc1.includes(k.id)) : SK;
   }
   // Sprint avant le CC : nombre de jours (0 = jour J) quand le CC de la page tombe dans les SPRINT jours, sinon null
   const SPRINT = 10;
@@ -123,5 +130,5 @@
     const ahead = m.map(s => ({ s, ts: cc(s.id) })).filter(x => x.ts != null && x.ts >= ev.s).sort((a, b) => a.ts - b.ts);
     return (ahead.length ? ahead[0].s : m[m.length - 1]).page;
   }
-  window.SiteSubjects = { list: LIST, get: id => byId[id] || null, events, next, slot, cc, scope, sprint, pageOf, ignored };
+  window.SiteSubjects = { list: LIST, get: id => byId[id] || null, events, next, slot, cc, ccNum, scope, sprint, pageOf, ignored };
 })();

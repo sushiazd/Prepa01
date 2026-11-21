@@ -419,9 +419,7 @@
     function renderPathTop() {
       const el = $('#pathTop'); if (!el) return;
       const SK = cfg.SK, CUR = cfg.CUR, P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, f = frontier(P);
-      // CC1 sur une partie du parcours (cfg.scope) : le compteur porte sur ses compétences
-      const SC = scope(), part = SC.length < SK.length, scDone = SC.filter(k => isVal(skS(P, k.id))).length;
-      el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${part ? scDone + '/' + SC.length : done + '/' + SK.length}</b><span>${part ? `compétences du CC1 validées (${done}/${SK.length} sur tout le parcours)` : 'compétences validées'}</span></div><span class="sp"></span>
+      el.innerHTML = `<section class="card"><div class="row"><div class="count"><b>${done}/${SK.length}</b><span>compétences validées</span></div><span class="sp"></span>
         ${CUR && CUR.mode === 'path' && !CUR.done ? '<button type="button" class="btn btn-ghost" data-act="skip">Changer d\'exercice</button>' : `<button type="button" class="btn btn-primary btn-lg" data-act="next">${P.n ? 'Continuer' : 'Commencer'}</button>`}</div>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'}${(() => { const d = SK.filter(k => M.due(skS(P, k.id))).length; return d ? ` · <b>${d} compétence${d > 1 ? 's' : ''} à revoir</b> : ta maîtrise y a baissé depuis ta dernière séance.` : ''; })()}</p>
@@ -442,13 +440,12 @@
     function renderMap() {
       const el = $('#pathMap'); if (!el) return;
       const CUR = cfg.CUR, P = pst(), f = frontier(P);
-      // chapitres hors du prochain CC (cfg.scope) : marqués « CC2 »
-      const SC = scope(), out = ci => SC.length < cfg.SK.length && !SC.some(k => k.ch === ci);
-      el.innerHTML = cfg.CH.map((c, ci) => `<div class="pch"><h3>${ci + 1}. ${esc(c)}${out(ci) ? ' <span class="fine">· CC2, pas au CC1</span>' : ''}</h3>${cfg.SK.filter(k => k.ch === ci).map(k => {
+      // chapitres sans compétence (hors du CC préparé, voir SiteSubjects.scope) : pas affichés
+      el.innerHTML = cfg.CH.map((c, ci) => cfg.SK.some(k => k.ch === ci) ? `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${cfg.SK.filter(k => k.ch === ci).map(k => {
         const s = skS(P, k.id), due = M.due(s), val = isVal(s) && !due, open = isVal(s) || k === f || s.n > 0, pct = Math.min(100, Math.round(eff(s)));
-        return `<div class="psk ${val ? 'val' : due ? 'rev' : k === f ? 'cur' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : due ? '!' : k === f ? '▶' : ''}</span><span class="nm">${esc(k.name)}${SC.length < cfg.SK.length && !SC.includes(k) && !out(ci) ? ' <span class="fine">· CC2</span>' : ''}${s.last ? `<small>${pct} %${isVal(s) ? ' · ' + M.when(s) : ''}</small>` : ''}</span>
+        return `<div class="psk ${val ? 'val' : due ? 'rev' : k === f ? 'cur' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : due ? '!' : k === f ? '▶' : ''}</span><span class="nm">${esc(k.name)}${s.last ? `<small>${pct} %${isVal(s) ? ' · ' + M.when(s) : ''}</small>` : ''}</span>
           <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
-      }).join('')}</div>`).join('');
+      }).join('')}</div>` : '').join('');
     }
     function nextPath(o = {}) {
       const P = pst();
@@ -783,7 +780,7 @@
 
     // à appeler à la fin du script de la page : ouvre l'onglet de l'adresse (#path, #blanc…)
     function start() {
-      if (window.SiteSubjects && SiteSubjects.get(id) && SiteSubjects.get(id).skills !== cfg.SK.length) console.warn(`subjects.js : ${id} a ${cfg.SK.length} compétences, pas ${SiteSubjects.get(id).skills}`);
+      if (window.SiteSubjects && SiteSubjects.get(id) && ![SiteSubjects.get(id).skills, (SiteSubjects.get(id).cc1 || []).length].includes(cfg.SK.length)) console.warn(`subjects.js : ${id} a ${cfg.SK.length} compétences, pas ${SiteSubjects.get(id).skills}`);
       const boot = () => { const h = location.hash.slice(1); setTab(TABS.includes(h) ? h : 'home'); };
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
     }

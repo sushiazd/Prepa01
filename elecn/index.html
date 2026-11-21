@@ -10,8 +10,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112102"></script>
-<script src="../core.js?v=2026112101"></script>
+<script src="../subjects.js?v=2026112103"></script>
+<script src="../core.js?v=2026112102"></script>
 <script src="learn.js?v=2026111001"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026102803">
@@ -114,8 +114,9 @@ table.kmap td.dc{color:var(--muted)}
 /* =====================================================================
    OUTILS
    ===================================================================== */
-// avant le CC1 : la Séquence A (liste cc1 dans subjects.js) ; ensuite tout le parcours
-const E = SiteCore({ id: 'eln', scope: () => window.SiteSubjects && SiteSubjects.scope ? SiteSubjects.scope('eln', SK) : null, get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check, valOf, fbHTML, answer: it => it.type === 'bw' ? it.ans : null }; },
+// La page prépare un CC (CCN, voir SiteSubjects.ccNum) : le CC1 ne garde que la Séquence A (liste cc1 dans
+// subjects.js), partout ; le CC2 porte sur tout le cours
+const E = SiteCore({ id: 'eln', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check, valOf, fbHTML, answer: it => it.type === 'bw' ? it.ans : null }; },
   typeset: el => mathIn(el), get DUR() { return DUR; },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
@@ -762,7 +763,7 @@ const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); 
    ===================================================================== */
 const CH = ['Séquence A · Logique combinatoire', 'Séquence B · Logique séquentielle', 'Séquence C · Conversion CAN / CNA'];
 const LEARN = window.SITE_LEARN ? window.SITE_LEARN({ Ch, Nn, Bw, esc }) : {};
-const SK = [
+const SK_ALL = [
   { id: 'num', ch: 0, name: 'Bases 2, 8, 10, 16 et conversions', fiche: 0 },
   { id: 'addb', ch: 0, name: 'Addition binaire, opérateur ADD et complément à 2', fiche: 0 },
   { id: 'boole', ch: 0, name: 'Portes logiques, Boole et De Morgan', fiche: 1 },
@@ -776,6 +777,12 @@ const SK = [
   { id: 'ech', ch: 2, name: 'Chaîne d\'acquisition, échantillonnage et quantification', fiche: 7 },
   { id: 'cnacan', ch: 2, name: 'Convertisseurs CNA (pondéré, R–2R) et CAN (rampe, CAS)', fiche: 8 }
 ];
+const CCN = SiteSubjects.ccNum('eln'), SK = SiteSubjects.scope('eln', SK_ALL);
+// lien vers la même page pour l'autre CC (?cc=), tant que celui-ci n'est pas passé
+function otherCC() {
+  const o = 3 - CCN, n = SiteSubjects.slot('eln', o);
+  return n && !n.past ? `<a href="?cc=${o}#home">Préparer le CC${o} d'électronique numérique →</a>` : '';
+}
 
 let CUR = null, EXAM = null;
 function exHTML(ex) {
@@ -812,24 +819,24 @@ function checkCur() {
    VUES
    ===================================================================== */
 let VIEW = 'home';
-function nextCC() { return SiteSubjects.cc('eln'); }
 function vHome() {
-  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, cc = nextCC();
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, N = SiteSubjects.slot('eln', CCN), cc = N ? N.ts : null;
   const days = cc == null ? null : Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
-  const when = cc == null ? 'CC1 en semaine 49 (Séquence A) · CC2 en semaine 2 (Tout)' : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
+  const when = cc == null ? (CCN === 1 ? 'semaine 49' : 'semaine 2') : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Électronique numérique · ELECn · J. Bézy-Wendling</p><h1>Réussir l'électronique numérique</h1>
-    <p class="lede">Tout le programme des trois séquences (10 h CM, 10 h TD, 6 h TP) : <b>Séquence A</b> (numération, algèbre de Boole, tableaux de Karnaugh, multiplexeurs et additionneurs — évaluée au <b>CC1 d'1 h en semaine 49</b>), <b>Séquence B</b> (bascules RS/D/JK, compteurs asynchrones et synchrones, registres) et <b>Séquence C</b> (échantillonnage-quantification, convertisseurs CNA et CAN — évaluées au <b>CC2 d'1 h en semaine 2</b>).</p></div>
-    <section class="card"><div class="count"><b>${days == null ? '2 CC' : days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>Contrôles d'électronique numérique (1 h chacun) : ${esc(when)}</span></div></section>
+  app.innerHTML = `<div><p class="eyebrow">Électronique numérique · ELECn · J. Bézy-Wendling</p><h1>Réussir le CC${CCN} d'électronique numérique</h1>
+    <p class="lede">${CCN === 1 ? 'Le CC1 (1 h) porte sur la <b>Séquence A, logique combinatoire</b> : numération, complément à 2, algèbre de Boole, tableaux de Karnaugh, multiplexeurs et additionneurs. Cette page ne montre que ce programme : les Séquences B et C sont pour le CC2.' : 'Le CC2 (1 h) porte sur <b>tout le cours</b> : Séquence A (logique combinatoire), <b>Séquence B</b> (bascules RS/D/JK, compteurs asynchrones et synchrones, registres) et <b>Séquence C</b> (échantillonnage-quantification, convertisseurs CNA et CAN).'}</p>
+    ${otherCC() ? `<p class="sub" style="margin-top:10px">${otherCC()}</p>` : ''}</div>
+    <section class="card"><div class="count"><b>${days == null ? '?' : days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC${CCN} d'électronique numérique (1 h) : ${esc(when)}</span></div></section>
     <div class="grid2">
-      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées sur les 3 séquences (6 en Séquence A, 4 en Séquence B, 2 en Séquence C).</p>
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées ${CCN === 1 ? 'en Séquence A (programme du CC1)' : 'sur les 3 séquences (6 en Séquence A, 4 en Séquence B, 2 en Séquence C)'}.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
-      <section class="card"><h2>Sujet blanc (1 h)</h2><p class="sub">Entraînement chronométré sur les 3 séquences : logique combinatoire (8 pts), logique séquentielle (6 pts), conversion CAN/CNA (6 pts). ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+      <section class="card"><h2>Sujet blanc (1 h)</h2><p class="sub">${CCN === 1 ? 'Entraînement chronométré sur la Séquence A : numération et complément à 2 (6 pts), Boole et Karnaugh (8 pts), multiplexeurs (6 pts).' : 'Entraînement chronométré sur les 3 séquences : logique combinatoire (8 pts), logique séquentielle (6 pts), conversion CAN/CNA (6 pts).'} ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
         <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
     </div>
-    <section class="card"><h2>Organisation du module (3 notes)</h2><p class="sub">La note finale d'ELECn dépend du <b>CC1</b> (1 h en semaine 49, portant sur la Séquence A), du <b>CC2</b> (1 h en semaine 2, portant sur les Séquences B et C / tout le cours) et de la note de <b>TP</b> (3 séances de 2 h). Les 9 fiches de cours ci-dessous reprennent l'intégralité des diapositives de CM, des 4 quizz et des 3 TD corrigés.</p>
-      <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="cours">Lire les 9 fiches des 3 séquences →</button></div></section>`;
+    <section class="card"><h2>Organisation du module (3 notes)</h2><p class="sub">La note finale d'ELECn dépend du <b>CC1</b> (1 h en semaine 49, portant sur la Séquence A), du <b>CC2</b> (1 h en semaine 2, portant sur les Séquences B et C / tout le cours) et de la note de <b>TP</b> (3 séances de 2 h). Les fiches de cours reprennent l'intégralité des diapositives de CM, des 4 quizz et des 3 TD corrigés.</p>
+      <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="cours">${CCN === 1 ? 'Lire les fiches de la Séquence A →' : 'Lire les 9 fiches des 3 séquences →'}</button></div></section>`;
   mathIn(app);
 }
 let FREE = { id: 'num', d: 0 };
@@ -940,9 +947,11 @@ const FICHES = [
 ];
 
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Électronique numérique · Séquences A, B et C</p><h1>Le cours complet</h1><p class="lede">Les 3 séquences de Mme Bézy-Wendling résumées en 9 fiches, accompagnées des 12 leçons interactives « Comprendre ».</p></div>
+  // fiches des compétences de ce CC seulement
+  const FI = new Set(SK.map(k => k.fiche));
+  app.innerHTML = `<div><p class="eyebrow">${CCN === 1 ? 'Programme du CC1 · Séquence A' : 'Programme du CC2 · Séquences A, B et C'}</p><h1>${CCN === 1 ? 'Le cours de la Séquence A' : 'Le cours complet'}</h1><p class="lede">${CCN === 1 ? `La Séquence A de Mme Bézy-Wendling (logique combinatoire) résumée en ${FI.size} fiches, avec ses ${SK.length} leçons interactives « Comprendre ».` : 'Les 3 séquences de Mme Bézy-Wendling résumées en 9 fiches, accompagnées des 12 leçons interactives « Comprendre ».'}</p></div>
     ${E.lessonList()}<div id="learnHost" style="display:grid;gap:16px"></div>
-    ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}`;
+    ${FICHES.map(([t, tag, b], i) => FI.has(i) ? `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>` : '').join('')}`;
   mathIn(app);
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
 }
@@ -951,24 +960,33 @@ function vCours(open) {
    SUJET BLANC (1 h · 20 points sur les 3 séquences)
    ===================================================================== */
 const DUR = 3600;
-const EXAM_PLAN = [
+// CC1 : Séquence A seule
+const EXAM_PLAN1 = [
+  ['Exercice 1 · Numération et complément à 2', [['num', 1], ['addb', 1]], 6],
+  ['Exercice 2 · Algèbre de Boole et Karnaugh', [['boole', 1], ['canon', 1], ['karn', 1]], 8],
+  ['Exercice 3 · Multiplexeurs et additionneurs', [['mux', 1], ['mux', 2]], 6]
+];
+// CC2 : les 3 séquences
+const EXAM_PLAN2 = [
   ['Exercice 1 · Séquence A : Logique combinatoire', [['num', 1], ['boole', 1], ['karn', 1], ['mux', 1]], 8],
   ['Exercice 2 · Séquence B : Logique séquentielle', [['basc', 1], ['cpta', 1], ['cpts', 1]], 6],
   ['Exercice 3 · Séquence C : Conversion CAN / CNA', [['ech', 1], ['cnacan', 0], ['cnacan', 2]], 6]
 ];
-function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+// CC d'un sujet blanc : celui pour lequel il a été commencé (EXAM.cc), sinon celui de la page
+const examCC = () => (EXAM && EXAM.cc) || CCN;
+function examExos(seed) { const g = G(rng(seed)); return examPlan(examCC() === 1 ? EXAM_PLAN1 : EXAM_PLAN2).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E0 = ls.get(EK, null);
   if (E0 && !E0.closed && !EXAM) { EXAM = E0; EXAM.running = !E0.done; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Un sujet complet d'une heure couvrant les 3 séquences : Séquence A (numération, Boole, Karnaugh, MUX · 8 pts), Séquence B (bascules et compteurs · 6 pts) et Séquence C (échantillonnage, CNA et CAN · 6 pts).</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">${CCN === 1 ? 'Un sujet d\'une heure sur la Séquence A, programme du CC1 : numération et complément à 2 (6 pts), algèbre de Boole et Karnaugh (8 pts), multiplexeurs et additionneurs (6 pts).' : 'Un sujet complet d\'une heure couvrant les 3 séquences : Séquence A (numération, Boole, Karnaugh, MUX · 8 pts), Séquence B (bascules et compteurs · 6 pts) et Séquence C (échantillonnage, CNA et CAN · 6 pts).'}</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h)</button>${weakButton()}<span class="fine">Sans calculatrice : pose les divisions, les tableaux de Karnaugh et les équations sur brouillon.</span></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
   EXAM.exs = examExos(EXAM.seed);
-  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'électronique numérique</p><h1>ELECn · 1 h</h1></div>`
+  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'électronique numérique</p><h1>ELECn CC${examCC()} · 1 h</h1></div>`
     + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div>${p.fig || ''}<div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
       : `<section class="card"><div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div></section>`);
@@ -1012,7 +1030,7 @@ document.addEventListener('click', e => {
   else if (act === 'next') nextPath();
   else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
   else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
-  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false, cc: CCN }; saveExam(); renderExam(); }
   else if (act === 'submit') submitExam(false);
   else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
 });

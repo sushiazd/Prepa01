@@ -10,8 +10,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112102"></script>
-<script src="../core.js?v=2026112101"></script>
+<script src="../subjects.js?v=2026112103"></script>
+<script src="../core.js?v=2026112102"></script>
 <script src="learn.js?v=2026102806"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026102803">
@@ -100,10 +100,9 @@ table.t td,table.t th{border:1px solid var(--rule);padding:5px 10px;text-align:c
    OUTILS
    ===================================================================== */
 // Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
-// avant le CC1 : la partie « L'atome » et les schémas de Lewis (sprint, sujet ciblé) ; ensuite tout le parcours
-// (liste cc1 dans subjects.js)
-const ccScope = () => window.SiteSubjects && SiteSubjects.scope ? SiteSubjects.scope('ato', SK) : null;
-const E = SiteCore({ id: 'ato', scope: ccScope, get DUR() { return 3600; }, clock: 'ms', rush: 300, typeset: el => typeset(el),
+// La page prépare un CC (CCN, voir SiteSubjects.ccNum) : le CC1 (1 h) ne garde que « L'atome » et les schémas de Lewis
+// (liste cc1 dans subjects.js), partout ; le CC2 (1 h 30) porte sur tout le cours
+const E = SiteCore({ id: 'ato', get DUR() { return examCC() === 2 ? 5400 : 3600; }, clock: 'ms', rush: 300, typeset: el => typeset(el),
   get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check, valOf }; },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
@@ -666,7 +665,7 @@ const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); 
    COMPÉTENCES ET PROGRESSION (mêmes règles que le parcours d'élec)
    ===================================================================== */
 const CH = ['Structure de l\'atome', 'Spectres atomiques', 'Modèle quantique', 'Atomes polyélectroniques', 'Tableau périodique', 'Liaison covalente : modèle de Lewis', 'Géométrie : VSEPR et hybridation', 'Polarité des molécules'];
-const SK = [
+const SK_ALL = [
   { id: 'noyau', ch: 0, name: 'Composition des atomes et des ions', fiche: 0 },
   { id: 'iso', ch: 0, name: 'Isotopes et masse molaire', fiche: 0 },
   { id: 'onde', ch: 1, name: 'Lumière : λ, ν, E et De Broglie', fiche: 1 },
@@ -686,6 +685,12 @@ const SK = [
   { id: 'hyb', ch: 6, name: 'Hybridation sp, sp², sp³ et liaisons σ, π', fiche: 6 },
   { id: 'polar', ch: 7, name: 'Polarité, moment dipolaire, interactions', fiche: 7 }
 ];
+const CCN = SiteSubjects.ccNum('ato'), SK = SiteSubjects.scope('ato', SK_ALL);
+// lien vers la même page pour l'autre CC (?cc=), tant que celui-ci n'est pas passé
+function otherCC() {
+  const o = 3 - CCN, n = SiteSubjects.slot('ato', o);
+  return n && !n.past ? `<a href="?cc=${o}#home">Préparer le CC${o} d'atomistique →</a>` : '';
+}
 
 /* ---------- Exercice affiché (parcours ou entraînement libre) ---------- */
 let CUR = null;   // { mode: 'path'|'free', k, d, seed, review, ex, ans, first: {}, done }
@@ -737,31 +742,31 @@ const LEARN = window.ATO_LEARN ? window.ATO_LEARN({ conf, ionConf, confTex, conf
    ===================================================================== */
 let VIEW = 'home';
 // prochain CC : subjects.js ({ ts, n : CC1 ou CC2, tbc : sans date, before : date du CC suivant }), null si aucune date
-function nextCC() { return SiteSubjects.cc('ato'); }
 function vHome() {
-  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, N = SiteSubjects.next('ato'), cc = nextCC(), num = N ? N.n : 1;
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, N = SiteSubjects.slot('ato', CCN), cc = N ? N.ts : null, num = CCN;
   const dayMonth = ts => new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long' }).format(ts);
   const days = cc == null ? 0 : Math.round((new Date(new Date(cc).toDateString()) - new Date(new Date().toDateString())) / 864e5);
   const when = cc == null ? '' : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Chimie · Atomistique · V. Bouquet</p><h1>Réussir le CC d'atomistique</h1>
-    <p class="lede">Le CC1 (1 h) porte sur toute la 1<sup>re</sup> partie du cours, <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique), plus <b>un peu de schémas de Lewis</b> (début de la 2<sup>e</sup> partie : compétence « Schémas de Lewis et règle de l'octet », juste après le tableau périodique dans le parcours). Annoncé pour le 20/10, il a été reporté : sa nouvelle date, tirée de ton emploi du temps, est juste en dessous. Le CC2 du mercredi 16/12 (1 h 30) porte sur tout le cours, avec la 2<sup>e</sup> partie, <b>les liaisons chimiques</b> (Lewis, VSEPR, hybridation, polarité), déjà dans la suite du parcours et dans l'onglet Cours.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Chimie · Atomistique · V. Bouquet</p><h1>Réussir le CC${num} d'atomistique</h1>
+    <p class="lede">${num === 1 ? `Le CC1 (1 h) porte sur la 1<sup>re</sup> partie du cours, <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique), plus <b>un peu de schémas de Lewis</b> (début de la 2<sup>e</sup> partie). Cette page ne montre que ce programme : la VSEPR, l'hybridation et la polarité sont pour le CC2.` : `Le CC2 (1 h 30) porte sur <b>tout le cours</b> : L'atome (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique) et <b>les liaisons chimiques</b> (Lewis, charges formelles, VSEPR, hybridation, polarité).`}</p>
+    ${otherCC() ? `<p class="sub" style="margin-top:10px">${otherCC()}</p>` : ''}</div>
     <section class="card"><div class="count">${cc == null ? `<b>?</b><span>CC${num} d'atomistique : date à confirmer${N && N.before ? `, avant le CC${num + 1} du ${esc(dayMonth(N.before))}` : ''}. Révise quand même, tout reste disponible.</span>` : `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC${num} d'atomistique : ${esc(when)}</span>`}</div></section>
     <div class="grid2">
-      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du plus simple (composition d'un atome) au plus dur (anomalies d'énergie d'ionisation), avec une progression qui s'adapte à tes résultats. Chaque compétence commence par une leçon « Comprendre » : l'idée physique, des questions sans calcul, puis un calcul guidé, avant les exercices.</p>
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées${num === 1 ? ' (programme du CC1)' : ''}. Dans l'ordre du cours, avec une progression qui s'adapte à tes résultats. Chaque compétence commence par une leçon « Comprendre » : l'idée physique, des questions sans calcul, puis un calcul guidé, avant les exercices.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
-      <section class="card"><h2>Sujet blanc (1 h)</h2><p class="sub">Même plan que le CC de 2021 (isotopes, spectre de He<sup>+</sup>, nombres quantiques, configurations et classification), noté sur 20, avec correction détaillée. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+      <section class="card"><h2>Sujet blanc (${num === 1 ? '1 h' : '1 h 30'})</h2><p class="sub">${num === 1 ? 'Même plan que le CC de 2021 (isotopes, spectre de He<sup>+</sup>, nombres quantiques, configurations et classification), plus un schéma de Lewis' : 'Tout le cours : isotopes, spectres, configurations et tableau périodique, Lewis et charges formelles, VSEPR et hybridation, polarité'}, noté sur 20, avec correction détaillée. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
         <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
     </div>
-    <section class="card"><h2>Ce que montre le CC de 2021</h2><p class="sub">CC du 16/11/2021 (dossier <code>ANNALES_CC</code>) : 1 h, aucun document, calculatrice autorisée pour les calculs numériques seulement ; données fournies (masses molaires, \\(e\\), \\(h\\), \\(c\\)).</p>
+    ${num === 1 ? `<section class="card"><h2>Ce que montre le CC de 2021</h2><p class="sub">CC du 16/11/2021 (dossier <code>ANNALES_CC</code>) : 1 h, aucun document, calculatrice autorisée pour les calculs numériques seulement ; données fournies (masses molaires, \\(e\\), \\(h\\), \\(c\\)).</p>
       <ul class="sub" style="margin:10px 0 0 18px;display:grid;gap:6px">
         <li><b>A · Isotopes (4 pts)</b> : protons, neutrons, électrons de <sup>63</sup>Cu et <sup>65</sup>Cu, puis abondances naturelles à partir des masses molaires.</li>
         <li><b>B · Spectres (8 pts)</b> : pourquoi He<sup>+</sup> est hydrogénoïde, \\(E_n=-13{,}6\\,\\dfrac{Z^2}{n^2}\\) eV, de quel nombre quantique elle dépend, énergie d'une transition (eV puis J), longueur d'onde en nm, domaine (UV, visible, IR), fréquence, énergie de 2<sup>e</sup> ionisation.</li>
         <li><b>C · Nombres quantiques (3,5 pts)</b> : valeurs permises de \\(n,\\ell,m_\\ell\\), nombres qui définissent une sous-couche et une orbitale, sous-couche d'un électron \\((3,2,1,\\tfrac12)\\) et nombre d'électrons qu'elle peut contenir.</li>
         <li><b>D · Configurations et classification (9,5 pts)</b> : configurations complètes de Mo (exception 4d<sup>5</sup> 5s<sup>1</sup>) et de I, période, colonne et bloc, cases quantiques de valence, ion le plus probable de l'iode, comparaison des rayons et des énergies d'ionisation, toujours en justifiant.</li>
       </ul>
-      <p class="sub" style="margin-top:10px">Presque tout est déjà dans le parcours : refais surtout les exceptions (Cr, Cu, Mo, Ag) et l'enchaînement complet sur He<sup>+</sup> (énergie, λ, ν, domaine, ionisation).</p></section>`;
+      <p class="sub" style="margin-top:10px">Presque tout est déjà dans le parcours : refais surtout les exceptions (Cr, Cu, Mo, Ag) et l'enchaînement complet sur He<sup>+</sup> (énergie, λ, ν, domaine, ionisation).</p></section>` : ''}`;
   typeset(app);
 }
 let FREE = { id: 'noyau', d: 0 };
@@ -803,8 +808,8 @@ const FICHES = [
   ['VI. Liaison covalente : modèle de Lewis (partie 2)', `<p>Une liaison de covalence = un <b>doublet d'électrons mis en commun</b> par deux atomes (recouvrement de deux O.A.), représenté par un tiret. Δχ ≤ 1,7 : covalente (à droite du tableau) ou métallique (à gauche) ; Δχ &gt; 1,7 : ionique (NaCl, CaO).</p>
     <h4>Construire un schéma de Lewis</h4><ol style="padding-left:22px;margin-top:10px"><li>Compter les électrons de valence de tous les atomes, <b>moins la charge</b> pour un cation, <b>plus la charge</b> pour un anion ; diviser par 2 : nombre de doublets.</li><li>Relier l'atome central aux autres par des liaisons simples.</li><li>Compléter les octets des atomes externes (H : un seul doublet, le duet), puis placer les doublets restants sur l'atome central.</li><li>Si l'atome central n'a pas son octet : transformer des doublets non liants voisins en liaisons multiples (CO<sub>2</sub> : O=C=O ; HCN : H–C≡N).</li></ol>
     <div class="box warn"><h5>Exceptions à l'octet</h5><b>Lacune électronique</b> : BF<sub>3</sub>, AlCl<sub>3</sub>, BeCl<sub>2</sub> (moins de 8 électrons autour de B, Al, Be) : acides de Lewis, BF<sub>3</sub> accepte le doublet de NH<sub>3</sub> (BF<sub>3</sub>NH<sub>3</sub>). <b>Hypervalence</b> : plus de 8 électrons pour les éléments de la 3<sup>e</sup> période et au-delà (PCl<sub>5</sub>, SF<sub>6</sub>, SF<sub>4</sub>, XeF<sub>2</sub>) ; <b>jamais</b> pour C, N, O, F (2<sup>e</sup> période).</div>
-    <div class="box key"><h5>Charge formelle</h5>CF = (électrons de valence de l'atome isolé) − (électrons non liants) − (nombre de liaisons). Ex. NH<sub>4</sub><sup>+</sup> : N = 5 − 0 − 4 = +1 ; CO : C = 4 − 2 − 3 = −1, O = 6 − 2 − 3 = +1. La somme des CF est la charge de l'édifice ; la meilleure structure a des CF petites, la charge négative sur l'atome le plus électronégatif.</div>
-    <h4>Mésomérie</h4><p>Quand plusieurs schémas ne diffèrent que par la place des doublets (pas des atomes), ce sont des <b>formes mésomères</b> ; la molécule réelle est l'<b>hybride de résonance</b>. CO<sub>3</sub><sup>2−</sup>, NO<sub>3</sub><sup>−</sup>, SO<sub>3</sub> : 3 formes (liaisons C–O toutes identiques, charge répartie) ; SO<sub>2</sub>, NO<sub>2</sub><sup>−</sup>, O<sub>3</sub> : 2 formes. Les formes qui respectent l'octet pèsent le plus.</p>`],
+    <!--cc2--><div class="box key"><h5>Charge formelle</h5>CF = (électrons de valence de l'atome isolé) − (électrons non liants) − (nombre de liaisons). Ex. NH<sub>4</sub><sup>+</sup> : N = 5 − 0 − 4 = +1 ; CO : C = 4 − 2 − 3 = −1, O = 6 − 2 − 3 = +1. La somme des CF est la charge de l'édifice ; la meilleure structure a des CF petites, la charge négative sur l'atome le plus électronégatif.</div>
+    <h4>Mésomérie</h4><p>Quand plusieurs schémas ne diffèrent que par la place des doublets (pas des atomes), ce sont des <b>formes mésomères</b> ; la molécule réelle est l'<b>hybride de résonance</b>. CO<sub>3</sub><sup>2−</sup>, NO<sub>3</sub><sup>−</sup>, SO<sub>3</sub> : 3 formes (liaisons C–O toutes identiques, charge répartie) ; SO<sub>2</sub>, NO<sub>2</sub><sup>−</sup>, O<sub>3</sub> : 2 formes. Les formes qui respectent l'octet pèsent le plus.</p><!--/cc2-->`],
   ['VII. Géométrie : VSEPR et hybridation (partie 2)', `<p><b>VSEPR</b> (Gillespie) : autour de l'atome central A, les doublets liants et non liants se repoussent et s'écartent au maximum. On écrit <b>AX<sub>n</sub>E<sub>p</sub></b> : n atomes liés à A (une liaison multiple compte une fois), p doublets non liants (ou électron célibataire).</p>
     <table class="t"><tr><th>n + p</th><th>Figure de répulsion</th><th>Géométries</th></tr><tr><td>2</td><td>linéaire (180°)</td><td>AX<sub>2</sub> linéaire (CO<sub>2</sub>, HCN)</td></tr><tr><td>3</td><td>triangle (120°)</td><td>AX<sub>3</sub> triangulaire plane (BF<sub>3</sub>, CO<sub>3</sub><sup>2−</sup>) · AX<sub>2</sub>E coudée (SO<sub>2</sub>, O<sub>3</sub>)</td></tr><tr><td>4</td><td>tétraèdre (109°28′)</td><td>AX<sub>4</sub> tétraédrique (CH<sub>4</sub>) · AX<sub>3</sub>E pyramide à base triangulaire (NH<sub>3</sub>, 107°) · AX<sub>2</sub>E<sub>2</sub> coudée (H<sub>2</sub>O, 104,5°)</td></tr><tr><td>5</td><td>bipyramide à base triangulaire (90° et 120°)</td><td>AX<sub>5</sub> (PCl<sub>5</sub>) · AX<sub>4</sub>E balançoire (SF<sub>4</sub>) · AX<sub>3</sub>E<sub>2</sub> en T (ClF<sub>3</sub>) · AX<sub>2</sub>E<sub>3</sub> linéaire (XeF<sub>2</sub>)</td></tr><tr><td>6</td><td>octaèdre (90°)</td><td>AX<sub>6</sub> octaédrique (SF<sub>6</sub>) · AX<sub>5</sub>E pyramide à base carrée (BrF<sub>5</sub>) · AX<sub>4</sub>E<sub>2</sub> plan carré (XeF<sub>4</sub>)</td></tr></table>
     <div class="box warn"><h5>Pièges</h5>La <b>figure de répulsion</b> compte tous les doublets ; la <b>géométrie</b> ne décrit que les atomes (H<sub>2</sub>O : tétraèdre, mais molécule coudée) · un doublet non liant prend plus de place : il resserre les angles · sur la bipyramide, les doublets non liants vont en position équatoriale · une liaison double repousse plus qu'une simple (HCHO : H–C–H &lt; 120°).</div>
@@ -816,10 +821,12 @@ const FICHES = [
     <div class="box warn"><h5>Complément (pas dans les slides du cours)</h5>Entre molécules : forces de <b>Van der Waals</b> (Keesom entre dipôles permanents, Debye dipôle–dipôle induit, London entre molécules polarisables, d'autant plus fortes qu'il y a d'électrons) et <b>liaison hydrogène</b> (H lié à F, O ou N face à un doublet de F, O ou N), plus forte : températures d'ébullition élevées de H<sub>2</sub>O, HF, NH<sub>3</sub>.</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Partie 1 · L'atome + Lewis (CC1) · Partie 2 · Liaisons (CC2 du 16/12, sur les deux)</p><h1>Le cours utile</h1><p class="lede">Le cours de V. Bouquet condensé : les 5 chapitres de « L'atome » (fiches I à V), puis la liaison covalente, la VSEPR, l'hybridation et la polarité (fiches VI à VIII). Définitions, formules, méthodes et pièges.</p></div>
+  // fiches des compétences de ce CC seulement
+  const FI = new Set(SK.map(k => k.fiche));
+  app.innerHTML = `<div><p class="eyebrow">${CCN === 1 ? 'Programme du CC1 · L\'atome et schémas de Lewis' : 'Programme du CC2 · tout le cours'}</p><h1>Le cours utile</h1><p class="lede">${CCN === 1 ? 'Le cours de V. Bouquet condensé : les 5 chapitres de « L\'atome » (fiches I à V) et la fiche VI sur la liaison covalente (Lewis).' : 'Le cours de V. Bouquet condensé : les 5 chapitres de « L\'atome » (fiches I à V), puis la liaison covalente, la VSEPR, l\'hybridation et la polarité (fiches VI à VIII).'} Définitions, formules, méthodes et pièges.</p></div>
     ${E.lessonList()}
     <div id="learnHost" style="display:grid;gap:16px"></div>
-    ${FICHES.map(([t, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}</summary><div class="body">${b}</div></details>`).join('')}
+    ${FICHES.map(([t, b], i) => FI.has(i) ? `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}</summary><div class="body">${CCN === 1 ? b.replace(/<!--cc2-->[\s\S]*?<!--\/cc2-->/g, '') : b}</div></details>` : '').join('')}
     <section class="card"><h2>Constantes (poly de TD)</h2><p class="sub">\\(h = 6{,}626\\times10^{-34}\\) J·s · \\(c = 3{,}00\\times10^{8}\\) m/s · \\(N_A = 6{,}022\\times10^{23}\\) mol⁻¹ · \\(R_H = 1{,}097\\times10^{7}\\) m⁻¹ · \\(e = 1{,}602\\times10^{-19}\\) C · \\(m_e = 9{,}11\\times10^{-31}\\) kg · \\(m_n = 1{,}675\\times10^{-27}\\) kg</p></section>`;
   typeset(app);
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
@@ -829,23 +836,28 @@ function vCours(open) {
 let EXAM = null;
 // Calqué sur le CC du 16/11/2021 : isotopes (4), spectre d'un hydrogénoïde (8), nombres quantiques (3,5), configurations et classification (9,5), ramené sur 20
 // + un peu de Lewis, au programme du CC1 2026 (E, 3 pts)
-const EXAM_PLAN = [['A · Isotopes', [['noyau', 1], ['iso', 0]], 3], ['B · Spectres atomiques (hydrogénoïde)', [['niv', 1], ['trans', 0]], 6], ['C · Nombres quantiques', [['nq', 2]], 3], ['D · Configuration électronique et classification', [['exc', 0], ['place', 1], ['prop', 2]], 5], ['E · Schéma de Lewis', [['lewis', 1]], 3]];
+const EXAM_PLAN1 = [['A · Isotopes', [['noyau', 1], ['iso', 0]], 3], ['B · Spectres atomiques (hydrogénoïde)', [['niv', 1], ['trans', 0]], 6], ['C · Nombres quantiques', [['nq', 2]], 3], ['D · Configuration électronique et classification', [['exc', 0], ['place', 1], ['prop', 2]], 5], ['E · Schéma de Lewis', [['lewis', 1]], 3]];
+// CC2 (1 h 30) : tout le cours, la 2e partie (liaisons) pesant la moitié
+const EXAM_PLAN2 = [['A · Isotopes', [['iso', 1]], 2], ['B · Spectre d\'un hydrogénoïde', [['niv', 1], ['trans', 1]], 4], ['C · Configurations et tableau périodique', [['conf', 1], ['place', 1], ['prop', 1]], 4],
+  ['D · Lewis et charges formelles', [['lewis', 1], ['cf', 1]], 4], ['E · Géométrie et hybridation', [['vsepr', 1], ['hyb', 1]], 4], ['F · Polarité', [['polar', 1]], 2]];
+// CC d'un sujet blanc : celui pour lequel il a été commencé (EXAM.cc), sinon celui de la page
+const examCC = () => (EXAM && EXAM.cc) || CCN;
 function examExos(seed) {
   const g = G(rng(seed));
-  return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) }));
+  return examPlan(examCC() === 2 ? EXAM_PLAN2 : EXAM_PLAN1).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) }));
 }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = true; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Programme du CC1 : toute la partie « L'atome » et un peu de schémas de Lewis. Plan du CC de novembre 2021, plus Lewis : isotopes (3 pts), spectre d'un ion hydrogénoïde comme He<sup>+</sup> (6 pts), nombres quantiques (3 pts), configurations électroniques et tableau périodique (5 pts), schéma de Lewis (3 pts). Au CC 2021, la calculatrice était autorisée pour les calculs numériques seulement.</p></div>
-    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (60 min)</button>${weakButton()}<span class="fine">Prévois une feuille : les justifications se font sur papier, seuls les résultats sont saisis ici.</span></div></section>
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · ${CCN === 2 ? '1 h 30' : '1 h'} · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">${CCN === 1 ? 'Programme du CC1 : toute la partie « L\'atome » et un peu de schémas de Lewis. Plan du CC de novembre 2021, plus Lewis : isotopes (3 pts), spectre d\'un ion hydrogénoïde comme He<sup>+</sup> (6 pts), nombres quantiques (3 pts), configurations électroniques et tableau périodique (5 pts), schéma de Lewis (3 pts). Au CC 2021, la calculatrice était autorisée pour les calculs numériques seulement.' : 'Programme du CC2 : tout le cours. Isotopes (2 pts), spectre d\'un hydrogénoïde (4 pts), configurations et tableau périodique (4 pts), Lewis et charges formelles (4 pts), VSEPR et hybridation (4 pts), polarité (2 pts).'}</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (${CCN === 2 ? 90 : 60} min)</button>${weakButton()}<span class="fine">Prévois une feuille : les justifications se font sur papier, seuls les résultats sont saisis ici.</span></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
   const exs = examExos(EXAM.seed);
-  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'atomistique</p><h1>CC · 1 h</h1></div>`
+  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'atomistique</p><h1>CC${examCC()} · ${examCC() === 2 ? '1 h 30' : '1 h'}</h1></div>`
     + exs.map((ex, i) => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
       : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div>`);
@@ -883,7 +895,7 @@ document.addEventListener('click', e => {
   else if (act === 'next') nextPath();
   else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
   else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
-  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; ls.set(EK, EXAM); renderExam(); }
+  else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false, cc: CCN }; ls.set(EK, EXAM); renderExam(); }
   else if (act === 'submit') submitExam(false);
   else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
 });

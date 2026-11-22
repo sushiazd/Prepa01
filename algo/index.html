@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
-<script src="../subjects.js?v=2026112103"></script>
+<script src="../subjects.js?v=2026112202"></script>
 <script src="../core.js?v=2026112102"></script>
-<script src="learn.js?v=2026102806"></script>
+<script src="learn.js?v=2026112201"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026102803">
 <style>
@@ -700,6 +700,307 @@ GEN.qcm = (d, g) => {
 };
 
 /* =====================================================================
+   DS 2 : récursivité, graphes, piles et files, parcours, plus courts chemins (Dijkstra), terminaison et correction
+   (chapitres 5 à 10 des slides, exercices 40 à 65 du poly). Les graphes ont pour sommets 0 … n − 1 et les listes
+   d'adjacence sont rangées par ordre croissant : c'est l'ordre dans lequel les parcours visitent les voisins.
+   ===================================================================== */
+let GUID = 0;
+// dessin d'un graphe : sommets sur un cercle ; o.sym = non orienté, o.w = poids (même ordre que edges)
+function gsvg(n, edges, o = {}) {
+  const id = 'ah' + (++GUID), cx = 150, cy = 118, R = 92, r = 15;
+  const P = k => [cx + R * Math.cos(-Math.PI / 2 + 2 * Math.PI * k / n), cy + R * Math.sin(-Math.PI / 2 + 2 * Math.PI * k / n)];
+  const has = (a, b) => edges.some(e => e[0] === a && e[1] === b);
+  const f = x => x.toFixed(1);
+  const labels = [];
+  const lines = edges.map((e, k) => {
+    const [a, b] = e, [x1, y1] = P(a), [x2, y2] = P(b), L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, px = -uy, py = ux;
+    const off = !o.sym && has(b, a) ? 5 : 0, end = o.sym ? r : r + 2;
+    // poids aux 2/5 de l'arc depuis son départ (deux arcs qui se croisent au milieu ne superposent pas leurs poids), avec un liseré du fond
+    const w = o.w ? `<text x="${f(x1 + (x2 - x1) * 0.4 + px * (off + 10))}" y="${f(y1 + (y2 - y1) * 0.4 + py * (off + 10) + 5)}" text-anchor="middle" style="font:700 14px ui-monospace,Consolas,monospace;fill:#d97706;stroke:Canvas;stroke-width:4px;paint-order:stroke">${o.w[k]}</text>` : ''; labels.push(w);
+    return `<line x1="${f(x1 + ux * r + px * off)}" y1="${f(y1 + uy * r + py * off)}" x2="${f(x2 - ux * end + px * off)}" y2="${f(y2 - uy * end + py * off)}" stroke="currentColor" stroke-width="1.6"${o.sym ? '' : ` marker-end="url(#${id})"`}/>`;
+  }).join('');
+  const nodes = Array.from({ length: n }, (_, k) => { const [x, y] = P(k); return `<circle cx="${f(x)}" cy="${f(y)}" r="${r}" fill="var(--algo-soft, #e0f2fe)" stroke="currentColor" stroke-width="1.6"/><text x="${f(x)}" y="${f(y + 5)}" text-anchor="middle" style="font:700 15px ui-monospace,Consolas,monospace;fill:currentColor">${k}</text>`; }).join('');
+  return `<svg viewBox="0 0 300 236" role="img" aria-label="Graphe ${o.sym ? 'non orienté' : 'orienté'} à ${n} sommets" style="width:100%;max-width:400px;display:block;margin:10px auto"><defs><marker id="${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>${lines}${labels.join("")}${nodes}</svg>`;
+}
+// graphe aléatoire : from0 = tous les sommets accessibles depuis 0 (un arbre depuis 0, puis des arêtes en plus)
+function rGraph(g, n, extra, sym, from0 = true) {
+  const E = [], key = new Set();
+  const add = (a, b) => { const k = sym ? Math.min(a, b) + '-' + Math.max(a, b) : a + '-' + b; if (a === b || key.has(k)) return false; key.add(k); E.push([a, b]); return true; };
+  if (from0) for (let v = 1; v < n; v++) add(g.int(0, v - 1), v);
+  let t = 0; while (extra > 0 && t++ < 400) if (add(g.int(0, n - 1), g.int(0, n - 1))) extra--;
+  const perm = [0, ...g.shuffle(Array.from({ length: n - 1 }, (_, k) => k + 1))], E2 = g.shuffle(E.map(([a, b]) => [perm[a], perm[b]]));
+  const L = Array.from({ length: n }, () => []); E2.forEach(([a, b]) => { L[a].push(b); if (sym) L[b].push(a); }); L.forEach(l => l.sort((x, y) => x - y));
+  return { n, E: E2, L };
+}
+const matOf = L => L.map(l => L.map((_, j) => l.includes(j) ? 1 : 0));
+const edgesTxt = (E, sym) => (sym ? '{' + E.map(([a, b]) => `{${a}, ${b}}`).join(', ') + '}' : '{' + E.map(([a, b]) => `(${a}, ${b})`).join(', ') + '}');
+// parcours du cours : largeur avec une file, profondeur avec une pile (on empile le premier voisin non vu)
+function bfs(L, s) { const vus = L.map(() => false), res = [s], f = [s]; vus[s] = true; while (f.length) { const x = f.shift(); for (const y of L[x]) if (!vus[y]) { vus[y] = true; res.push(y); f.push(y); } } return res; }
+function dfs(L, s) { const vus = L.map(() => false), res = [s], p = [s]; vus[s] = true; while (p.length) { const x = p[p.length - 1], y = L[x].find(v => !vus[v]); if (y === undefined) p.pop(); else { vus[y] = true; res.push(y); p.push(y); } } return res; }
+function dists(L, s) { const d = L.map(() => -1), f = [s]; d[s] = 0; while (f.length) { const x = f.shift(); for (const y of L[x]) if (d[y] < 0) { d[y] = d[x] + 1; f.push(y); } } return d; }
+function cycleFrom(L, s) { const st = L.map(() => 0); let c = false; const go = x => { st[x] = 1; for (const y of L[x]) { if (st[y] === 1) c = true; else if (!st[y]) go(y); } st[x] = 2; }; go(s); return c; }
+const hasCycle = L => L.some((_, s) => cycleFrom(L, s));
+const ON = [{ v: 'o', t: 'oui' }, { v: 'n', t: 'non' }];
+const pyL = L => pyRepr(L);
+const GRAPH_DATA = (G, sym) => `${gsvg(G.n, G.E, { sym })}<p class="fine">S = {0, …, ${G.n - 1}} · ${sym ? 'arêtes' : 'arcs'} : ${edgesTxt(G.E, sym)}</p>`;
+
+/* ---------- Récursivité : lire ---------- */
+const REC0 = [
+  k => ({ code: 'def f(n):\n    if n == 0:\n        return 0\n    return n + f(n - 1)', call: `f(${k})`, val: k * (k + 1) / 2, calls: k + 1, what: 'la somme 0 + 1 + … + n', how: `f(${k}) = ${k} + f(${k - 1}) = … : ${k + 1} appels, de f(${k}) jusqu'au cas de base f(0)` }),
+  k => ({ code: 'def p(a, n):\n    if n == 0:\n        return 1\n    return a * p(a, n - 1)', call: `p(2, ${k})`, val: 2 ** k, calls: k + 1, what: 'a puissance n', how: `n descend de ${k} à 0 : ${k + 1} appels` }),
+  k => { const n = 1000 + k * 437; const s = String(n).split('').reduce((a, c) => a + +c, 0); return { code: 'def s(n):\n    if n < 10:\n        return n\n    return n % 10 + s(n // 10)', call: `s(${n})`, val: s, calls: String(n).length, what: 'la somme des chiffres de n', how: `on enlève un chiffre à chaque appel (n // 10) : ${String(n).length} appels pour ${String(n).length} chiffres` }; },
+  k => ({ code: 'def ajoute(a, b):\n    if b > 0:\n        return 1 + ajoute(a, b - 1)\n    else:\n        return a', call: `ajoute(${k + 3}, ${k})`, val: 2 * k + 3, calls: k + 1, what: 'a + b (exemple du cours)', how: `b descend de ${k} à 0 : ${k + 1} appels` }),
+  k => ({ code: 'def m(n):\n    if n <= 1:\n        return n\n    return m(n - 2)', call: `m(${2 * k + 1})`, val: 1, calls: k + 1, what: 'le reste de n par 2 (n ≥ 0)', how: `n descend de 2 en 2 : ${2 * k + 1}, ${2 * k - 1}, …, 1 : ${k + 1} appels` })
+];
+const fibC = n => n < 2 ? 1 : 1 + fibC(n - 1) + fibC(n - 2), fibV = n => n < 2 ? n : fibV(n - 1) + fibV(n - 2);
+GEN.rec = (d, g) => {
+  if (d === 0) {
+    const x = g.pick(REC0)(g.int(3, 6));
+    return { title: 'Que renvoie cette fonction récursive ?', q: `Que renvoie l'appel ${ic(x.call)} ? Combien d'appels de la fonction sont effectués en tout (l'appel initial compris) ?` + pre(x.code),
+      items: [{ type: 'int', label: x.call, val: x.val }, { type: 'int', label: 'nombre d\'appels', val: x.calls }],
+      corr: `<p>On déroule les appels jusqu'au cas de base, puis on remonte les résultats : ${x.how}. ${ic(x.call)} = <b>${x.val}</b>. La fonction calcule ${x.what}.</p><p class="fine">Un appel récursif = un appel sur un problème plus petit ; le cas de base arrête la descente. Sans lui, la récursion ne s'arrête jamais (RecursionError).</p>` };
+  }
+  if (d === 1) {
+    const v = g.r();
+    if (v < 0.4) {
+      const n = g.int(4, 7);
+      return { title: 'Deux appels récursifs', q: `Que renvoie ${ic(`f(${n})`)} ? Combien d'appels de ${ic('f')} sont effectués en tout ?` + pre('def f(n):\n    if n < 2:\n        return n\n    return f(n - 1) + f(n - 2)'),
+        items: [{ type: 'int', label: `f(${n})`, val: fibV(n) }, { type: 'int', label: 'nombre d\'appels', val: fibC(n) }],
+        corr: `<p>C'est la suite de Fibonacci : 0, 1, 1, 2, 3, 5, 8, 13… donc ${ic(`f(${n})`)} = <b>${fibV(n)}</b>.</p><p>Appels : \\(A(n) = 1 + A(n-1) + A(n-2)\\) avec \\(A(0) = A(1) = 1\\) : A(2) = 3, A(3) = 5, A(4) = 9, A(5) = 15, A(6) = 25, A(7) = 41. Ici <b>${fibC(n)}</b> : le nombre d'appels explose (complexité exponentielle), car les mêmes valeurs sont recalculées.</p>` };
+    }
+    const k = g.int(3, 4), kind = g.pick(['avant', 'après', 'les deux']);
+    const body = kind === 'avant' ? '        print(n)\n        compte(n - 1)' : kind === 'après' ? '        compte(n - 1)\n        print(n)' : '        print(n)\n        compte(n - 1)\n        print(n)';
+    const down = Array.from({ length: k }, (_, i) => k - i), up = down.slice().reverse();
+    const out = (kind === 'avant' ? down : kind === 'après' ? up : down.concat(up)).join('\n');
+    return { title: 'L\'ordre des affichages', q: `Qu'affiche l'appel ${ic(`compte(${k})`)} ? (une ligne par <code>print</code>)` + pre(`def compte(n):\n    if n > 0:\n${body}`),
+      items: [{ type: 'out', label: 'affichage', exp: out }],
+      corr: `<p>Affichage :</p>${pre(out)}<p>Un <code>print</code> placé <b>avant</b> l'appel récursif s'exécute en descendant (${k}, ${k - 1}, …, 1) ; placé <b>après</b>, il attend que l'appel sur n − 1 soit fini : il s'exécute en remontant (1, …, ${k}).</p>` };
+  }
+  const RC = [
+    ['def f(n):\n    if n == 0:\n        return 0\n    return 1 + f(n - 1)', 'O(n)', 'un appel sur n − 1 et O(1) en plus : T(n) = T(n − 1) + O(1) = O(n)'],
+    ['def f(n):\n    if n <= 1:\n        return 0\n    return 1 + f(n // 2)', 'O(log n)', 'n est divisé par 2 à chaque appel : environ log₂(n) appels'],
+    ['def f(n):\n    if n == 0:\n        return 1\n    return f(n - 1) + f(n - 1)', 'O(2ⁿ)', 'deux appels sur n − 1 : T(n) = 2 T(n − 1) + O(1), soit 2ⁿ appels'],
+    ['def f(n):\n    if n == 0:\n        return 0\n    s = 0\n    for i in range(n):\n        s = s + i\n    return s + f(n - 1)', 'O(n²)', 'un appel sur n − 1 et une boucle de n tours : T(n) = T(n − 1) + O(n) = O(n²) (cours : T(n) = T(n − 1) + O(nᵏ) donne O(nᵏ⁺¹))']
+  ];
+  const [code, cx, why] = g.pick(RC), odd = 2 * g.int(2, 4) + 1;
+  return { title: 'Complexité et terminaison', q: 'Quelle est la complexité de cette fonction ?' + pre(code) + `Et que se passe-t-il pour l'appel ${ic(`h(${odd})`)} ?` + pre('def h(n):\n    if n == 0:\n        return 0\n    return 1 + h(n - 2)'),
+    items: [{ type: 'choice', label: 'complexité de f', opts: CPLX_OPTS, ans: cx, wide: true }, { type: 'choice', label: `h(${odd})`, opts: [{ v: 'v', t: String((odd - 1) / 2) }, { v: 'w', t: String((odd + 1) / 2) }, { v: 'e', t: 'Erreur : la récursion ne s\'arrête jamais' }], ans: 'e', wide: true }],
+    corr: `<p>f : <b>${cx}</b>, ${why}.</p><p>h(${odd}) appelle h(${odd - 2}), …, h(1), puis h(−1), h(−3)… : n impair ne tombe jamais sur le cas de base 0. La récursion ne s'arrête pas : <b>erreur</b> (RecursionError). Pour prouver qu'une fonction récursive termine, on montre qu'un entier positif diminue strictement à chaque appel jusqu'au cas de base.</p>` };
+};
+
+/* ---------- Récursivité : écrire (exercices 40 à 49) ---------- */
+const NO_LOOP = '<p class="fine">Fonction <b>récursive</b> : elle doit s\'appeler elle-même, sans boucle <code>for</code> ni <code>while</code>.</p>';
+const RCODE = [
+  [0, 'multiplie', 'multiplie(n, m)', 'renvoie le produit des entiers positifs n et m, en n\'utilisant que l\'addition (exercice 40.1).', [['multiplie(3, 4)', '12'], ['multiplie(7, 1)', '7'], ['multiplie(5, 0)', '0'], ['multiplie(0, 6)', '0']], 'def multiplie(n, m):\n    if m == 0:\n        return 0\n    return n + multiplie(n, m - 1)', { a: 'O(n)', n: 'n = m, le second paramètre', why: 'm appels, chacun en O(1)' }],
+  [0, 'puissance', 'puissance(n, m)', 'renvoie n à la puissance m (m entier positif), sans ** (exercice 40.2).', [['puissance(2, 10)', '1024'], ['puissance(3, 0)', '1'], ['puissance(5, 3)', '125'], ['puissance(1, 7)', '1']], 'def puissance(n, m):\n    if m == 0:\n        return 1\n    return n * puissance(n, m - 1)', { a: 'O(n)', n: 'n = m, l\'exposant', why: 'm appels, une multiplication chacun' }],
+  [0, 'somme_carres', 'somme_carres(n)', 'renvoie 0² + 1² + … + n² (exercice 45). Indication : que vaut S(0) ? S(n) en fonction de S(n − 1) ?', [['somme_carres(0)', '0'], ['somme_carres(3)', '14'], ['somme_carres(10)', '385']], 'def somme_carres(n):\n    if n == 0:\n        return 0\n    return n * n + somme_carres(n - 1)', { a: 'O(n)', n: 'n', why: 'n + 1 appels en O(1)' }],
+  [0, 'factorielle', 'factorielle(n)', 'renvoie n! = 1 × 2 × … × n, avec 0! = 1.', [['factorielle(0)', '1'], ['factorielle(1)', '1'], ['factorielle(5)', '120'], ['factorielle(10)', '3628800']], 'def factorielle(n):\n    if n == 0:\n        return 1\n    return n * factorielle(n - 1)', { a: 'O(n)', n: 'n', why: 'T(n) = T(n − 1) + O(1)' }],
+  [0, 'est_pair', 'est_pair(n)', 'renvoie True si l\'entier n ≥ 0 est pair, False sinon, sans utiliser % (exercice 41.1).', [['est_pair(0)', 'True'], ['est_pair(7)', 'False'], ['est_pair(10)', 'True'], ['est_pair(1)', 'False']], 'def est_pair(n):\n    if n == 0:\n        return True\n    if n == 1:\n        return False\n    return est_pair(n - 2)', { a: 'O(n)', n: 'n', why: 'n / 2 appels' }],
+  [1, 'nombre_de_chiffres', 'nombre_de_chiffres(n)', 'renvoie le nombre de chiffres de l\'entier n ≥ 0 (exercice 49.1). Exemple : nombre_de_chiffres(4235) = 4, nombre_de_chiffres(0) = 1.', [['nombre_de_chiffres(4235)', '4'], ['nombre_de_chiffres(7)', '1'], ['nombre_de_chiffres(0)', '1'], ['nombre_de_chiffres(100)', '3']], 'def nombre_de_chiffres(n):\n    if n < 10:\n        return 1\n    return 1 + nombre_de_chiffres(n // 10)', { a: 'O(log n)', n: 'n, le nombre', why: 'n est divisé par 10 à chaque appel : un appel par chiffre, soit log₁₀(n)' }],
+  [1, 'pgcd', 'pgcd(n, m)', 'renvoie le plus grand diviseur commun des entiers positifs n et m (exercice 40.3), par l\'algorithme d\'Euclide : pgcd(n, 0) = n et pgcd(n, m) = pgcd(m, n % m).', [['pgcd(12, 18)', '6'], ['pgcd(17, 5)', '1'], ['pgcd(9, 0)', '9'], ['pgcd(0, 4)', '4'], ['pgcd(84, 36)', '12']], 'def pgcd(n, m):\n    if m == 0:\n        return n\n    return pgcd(m, n % m)', null],
+  [1, 'nombre_d_element', 'nombre_d_element(tab, i, el)', 'renvoie le nombre d\'éléments égaux à el parmi tab[0], …, tab[i − 1] (exercice 49.2).', [['nombre_d_element([0, 1, 2, 1, 3, 1], 6, 1)', '3'], ['nombre_d_element([0, 1, 2, 1, 3, 1], 3, 1)', '1'], ['nombre_d_element([], 0, 5)', '0'], ['nombre_d_element([5, 5], 1, 5)', '1']], 'def nombre_d_element(tab, i, el):\n    if i == 0:\n        return 0\n    if tab[i - 1] == el:\n        return 1 + nombre_d_element(tab, i - 1, el)\n    return nombre_d_element(tab, i - 1, el)', { a: 'O(n)', n: 'n = i', why: 'i appels en O(1)' }],
+  [1, 'est_multiple', 'est_multiple(n, m)', 'renvoie True si l\'entier n ≥ 0 est un multiple de l\'entier m ≥ 1, False sinon, sans % (exercice 41.2).', [['est_multiple(12, 4)', 'True'], ['est_multiple(13, 4)', 'False'], ['est_multiple(0, 3)', 'True'], ['est_multiple(5, 7)', 'False']], 'def est_multiple(n, m):\n    if n < m:\n        return n == 0\n    return est_multiple(n - m, m)', null],
+  [1, 'somme_liste', 'somme_liste(t)', 'renvoie la somme des éléments de la liste t (0 si elle est vide), sans sum. Indication : t[0] et t[1:].', [['somme_liste([3, 1, 4])', '8'], ['somme_liste([])', '0'], ['somme_liste([-2])', '-2']], 'def somme_liste(t):\n    if t == []:\n        return 0\n    return t[0] + somme_liste(t[1:])', null],
+  [2, 'recherche_trie_aux', 'recherche_trie_aux(tab, el, i, j)', 'reçoit un tableau tab trié par ordre croissant et deux indices i < j, et renvoie True si el est présent entre les indices i (inclus) et j (exclu), par dichotomie : si i = j − 1, un seul élément à tester ; sinon m = (i + j) // 2, si tab[m] > el on cherche entre i et m, sinon entre m et j (exercice 47.2).', [['recherche_trie_aux([1, 3, 5, 8, 13], 8, 0, 5)', 'True'], ['recherche_trie_aux([1, 3, 5, 8, 13], 4, 0, 5)', 'False'], ['recherche_trie_aux([2], 2, 0, 1)', 'True'], ['recherche_trie_aux([2, 4], 1, 0, 2)', 'False'], ['recherche_trie_aux(list(range(0, 300, 3)), 297, 0, 100)', 'True']], 'def recherche_trie_aux(tab, el, i, j):\n    if i == j - 1:\n        return tab[i] == el\n    m = (i + j) // 2\n    if tab[m] > el:\n        return recherche_trie_aux(tab, el, i, m)\n    return recherche_trie_aux(tab, el, m, j)', { a: 'O(log n)', n: 'n = j − i', why: 'la zone de recherche est coupée en deux à chaque appel' }],
+  [2, 'fusion_rec', 'fusion_rec(t1, t2)', 'reçoit deux tableaux triés par ordre croissant et renvoie leur fusion triée (exercice 49.3), sans sort ni sorted. Exemple : fusion_rec([1, 2, 7], [4, 5, 8, 9]) = [1, 2, 4, 5, 7, 8, 9].', [['fusion_rec([1, 2, 7], [4, 5, 8, 9])', '[1, 2, 4, 5, 7, 8, 9]'], ['fusion_rec([], [3])', '[3]'], ['fusion_rec([2], [])', '[2]'], ['fusion_rec([1, 1], [1])', '[1, 1, 1]']], 'def fusion_rec(t1, t2):\n    if t1 == []:\n        return t2\n    if t2 == []:\n        return t1\n    if t1[0] <= t2[0]:\n        return [t1[0]] + fusion_rec(t1[1:], t2)\n    return [t2[0]] + fusion_rec(t1, t2[1:])', null],
+  [2, 'puissance_rapide', 'puissance_rapide(x, n)', 'renvoie x puissance n (n entier positif) par exponentiation rapide : x⁰ = 1, xⁿ = (x^(n//2))² si n est pair, x × (x^(n//2))² sinon. Un seul appel récursif par appel (TP 6).', [['puissance_rapide(2, 10)', '1024'], ['puissance_rapide(3, 0)', '1'], ['puissance_rapide(3, 5)', '243'], ['puissance_rapide(2, 61)', '2305843009213693952']], 'def puissance_rapide(x, n):\n    if n == 0:\n        return 1\n    y = puissance_rapide(x, n // 2)\n    if n % 2 == 0:\n        return y * y\n    return x * y * y', { a: 'O(log n)', n: 'n, l\'exposant', why: 'n est divisé par 2 à chaque appel' }],
+  [2, 'palindrome', 'palindrome(s)', 'renvoie True si la chaîne s se lit pareil dans les deux sens. Indication : comparer s[0] et s[-1], puis recommencer sur s[1:-1].', [["palindrome('radar')", 'True'], ["palindrome('abca')", 'False'], ["palindrome('')", 'True'], ["palindrome('aa')", 'True']], 'def palindrome(s):\n    if len(s) <= 1:\n        return True\n    if s[0] != s[-1]:\n        return False\n    return palindrome(s[1:-1])', null]
+];
+const RBAN = { fusion_rec: ['sorted', 'sort'], somme_liste: ['sum'], puissance: ['pow'], puissance_rapide: ['pow'] };
+GEN.reccode = (d, g) => {
+  const [, name, sig, txt, tests, sol, cx] = g.pick(RCODE.filter(c => c[0] === d));
+  const ex = codeEx(name, sig, esc(txt).replace(/\b(sum|sort|sorted|for|while)\b/g, '<code>$1</code>'), tests, sol, { cx, title: `Écrire la fonction récursive ${name}`, intro: NO_LOOP, after: `<p class="fine">Deux parties : le cas de base (réponse directe), puis l'appel sur un problème plus petit. Pour la terminaison : un entier positif diminue strictement à chaque appel.</p>` });
+  Object.assign(ex.items[0], { rec: true, ban: RBAN[name] });
+  return ex;
+};
+
+/* ---------- Graphes : représentations et vocabulaire (chapitre 6) ---------- */
+GEN.graphe = (d, g) => {
+  if (d === 0) {
+    const G = rGraph(g, g.int(5, 6), g.int(2, 3), false), M = matOf(G.L), din = G.L.map((_, v) => G.L.filter(l => l.includes(v)).length);
+    const i = g.int(0, G.n - 1), j = g.pick(G.L.map((l, k) => k).filter(k => k !== i)), u = g.int(0, G.n - 1), v = g.int(0, G.n - 1);
+    return { title: 'Représenter un graphe orienté', q: 'Graphe orienté :' + GRAPH_DATA(G, false) + `Donner la liste des voisins de ${i} dans la liste de listes d'adjacence L (voisins par ordre croissant), la ligne ${j} de la matrice d'adjacence M, puis deux degrés.`,
+      items: [{ type: 'val', label: `L[${i}]`, exp: G.L[i] }, { type: 'val', label: `M[${j}]`, exp: M[j] }, { type: 'int', label: `d+(${u}) (degré sortant)`, val: G.L[u].length }, { type: 'int', label: `d-(${v}) (degré entrant)`, val: din[v] }],
+      corr: `<p>Listes d'adjacence : ${ic('L = ' + pyL(G.L))}. Matrice : M[i][j] = 1 s'il y a un arc de i vers j :</p>${pre(M.map(r => r.join(' ')).join('\n'))}<p>d+(${u}) = nombre d'arcs qui <b>partent</b> de ${u} = len(L[${u}]) = <b>${G.L[u].length}</b> ; d−(${v}) = nombre d'arcs qui <b>arrivent</b> en ${v} (nombre de 1 dans la colonne ${v} de M) = <b>${din[v]}</b>.</p>` };
+  }
+  if (d === 1) {
+    const G = rGraph(g, g.int(5, 6), g.int(3, 5), false, g.r() < 0.5);
+    let u = g.int(0, G.n - 1), walk = [u], t = 0;
+    while (walk.length < 4 && t++ < 20) { const l = G.L[walk[walk.length - 1]]; if (!l.length) break; walk.push(g.pick(l)); }
+    if (walk.length < 2) { u = G.E[0][0]; walk = [u, G.E[0][1]]; }
+    const ok = g.r() < 0.5, last = walk[walk.length - 2], bad = G.L.map((_, k) => k).filter(k => !G.L[last].includes(k) && k !== last);
+    const shown = ok || !bad.length ? walk : walk.slice(0, -1).concat([g.pick(bad)]), isPath = shown.every((x, k) => k === 0 || G.L[shown[k - 1]].includes(x));
+    const a = g.int(0, G.n - 1), reach = dists(G.L, a), b = g.pick(G.L.map((_, k) => k).filter(k => k !== a)), cyc = hasCycle(G.L);
+    return { title: 'Vocabulaire des graphes orientés', q: 'Graphe orienté :' + GRAPH_DATA(G, false) + 'Répondre aux questions.',
+      items: [{ type: 'choice', label: `[${shown.join(', ')}] est un chemin`, opts: ON, ans: isPath ? 'o' : 'n' }, { type: 'int', label: `longueur du chemin [${walk.join(', ')}]`, val: walk.length - 1 }, { type: 'choice', label: `${b} est accessible à partir de ${a}`, opts: ON, ans: reach[b] >= 0 ? 'o' : 'n' }, { type: 'choice', label: 'le graphe contient un cycle', opts: ON, ans: cyc ? 'o' : 'n' }],
+      corr: `<p>Un chemin suit les flèches : chaque (v<sub>k−1</sub>, v<sub>k</sub>) doit être un arc. [${shown.join(', ')}] ${isPath ? '<b>est</b> un chemin' : `<b>n'est pas</b> un chemin : il n'y a pas d'arc (${shown[shown.length - 2]}, ${shown[shown.length - 1]})`}. La longueur d'un chemin est son nombre d'arcs : [${walk.join(', ')}] a <b>${walk.length - 1}</b> arc${walk.length > 2 ? 's' : ''}.</p><p>${b} ${reach[b] >= 0 ? `<b>est</b> accessible depuis ${a} (distance ${reach[b]})` : `<b>n'est pas</b> accessible depuis ${a} : aucun chemin ne part de ${a} pour y arriver`}. Le graphe ${cyc ? '<b>contient</b> un cycle (un chemin qui revient à son point de départ)' : '<b>ne contient pas</b> de cycle'}.</p><p class="fine">Listes d'adjacence : ${ic(pyL(G.L))}.</p>` };
+  }
+  const n = g.int(5, 6), conn = g.r() < 0.6, G = rGraph(g, n, conn ? g.int(1, 3) : g.int(2, 3), true, conn), u = g.int(0, n - 1);
+  const isConn = L => dists(L, 0).every(x => x >= 0), e = g.pick(G.E), L2 = G.L.map((l, k) => l.filter(y => !((k === e[0] && y === e[1]) || (k === e[1] && y === e[0]))));
+  return { title: 'Graphe non orienté', q: 'Graphe non orienté :' + GRAPH_DATA(G, true) + 'Répondre aux questions.',
+    items: [{ type: 'int', label: `d(${u})`, val: G.L[u].length }, { type: 'val', label: `L[${u}]`, exp: G.L[u] }, { type: 'choice', label: 'le graphe est connexe', opts: ON, ans: isConn(G.L) ? 'o' : 'n' }, { type: 'choice', label: `connexe sans l'arête {${e[0]}, ${e[1]}}`, opts: ON, ans: isConn(L2) ? 'o' : 'n' }],
+    corr: `<p>En Python, un graphe non orienté est codé comme le graphe orienté symétrique : chaque arête {a, b} apparaît dans L[a] <b>et</b> dans L[b]. ${ic('L = ' + pyL(G.L))}.</p><p>d(${u}) = nombre d'arêtes touchant ${u} = <b>${G.L[u].length}</b>. Connexe = deux sommets quelconques sont reliés par un chemin : ${isConn(G.L) ? '<b>oui</b>' : `<b>non</b> (depuis 0 on n'atteint que ${dists(G.L, 0).map((x, k) => x >= 0 ? k : null).filter(x => x !== null).join(', ')})`}. Sans l'arête {${e[0]}, ${e[1]}} : ${isConn(L2) ? '<b>oui</b>, il reste un autre chemin' : '<b>non</b>'}.</p>` };
+};
+
+/* ---------- Graphes : écrire (exercices 51 à 53) ---------- */
+const G1 = '[(0, 1), (3, 1), (4, 3), (0, 3), (2, 4), (2, 5), (1, 4)]', L1 = '[[1, 3], [4], [4, 5], [1], [3], []]', M1 = '[[0, 1, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 1, 1], [0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0]]';
+const N_G = 'n = nombre de sommets, m = nombre d\'arcs';
+const GRC = [
+  [0, 'G_vers_L', 'G_vers_L(n, G)', 'reçoit le nombre n de sommets (numérotés de 0 à n − 1) et la liste G des arcs (des couples (a, b)), et renvoie la liste de listes d\'adjacence L, où L[a] contient les b dans l\'ordre où les arcs apparaissent dans G (exercice 51.3).', [[`G_vers_L(6, ${G1})`, L1], ['G_vers_L(3, [])', '[[], [], []]'], ['G_vers_L(3, [(2, 0), (2, 1)])', '[[], [], [0, 1]]']], 'def G_vers_L(n, G):\n    L = []\n    for i in range(n):\n        L.append([])\n    for (a, b) in G:\n        L[a].append(b)\n    return L', { a: 'O(n + m)', n: N_G, why: 'n tours pour créer les listes, puis un tour par arc' }],
+  [0, 'G_vers_M', 'G_vers_M(n, G)', 'reçoit n et la liste G des arcs, et renvoie la matrice d\'adjacence M (n lignes de n cases, M[a][b] = 1 s\'il y a un arc de a vers b, 0 sinon), exercice 51.2.', [[`G_vers_M(6, ${G1})`, M1], ['G_vers_M(2, [(1, 0)])', '[[0, 0], [1, 0]]'], ['G_vers_M(1, [])', '[[0]]']], 'def G_vers_M(n, G):\n    M = []\n    for i in range(n):\n        M.append([0] * n)\n    for (a, b) in G:\n        M[a][b] = 1\n    return M', { a: 'O(n²)', n: N_G, why: 'créer la matrice coûte n × n ; chaque arc ensuite O(1)' }],
+  [0, 'degres_sortants', 'degres_sortants(L)', 'reçoit la liste de listes d\'adjacence L et renvoie la liste des degrés sortants : la case i contient le nombre d\'arcs qui partent de i.', [[`degres_sortants(${L1})`, '[2, 1, 2, 1, 1, 0]'], ['degres_sortants([[]])', '[0]'], ['degres_sortants([[1], [0]])', '[1, 1]']], 'def degres_sortants(L):\n    res = []\n    for voisins in L:\n        res.append(len(voisins))\n    return res', { a: 'O(n)', n: N_G, why: 'un tour par sommet, len en O(1)' }],
+  [1, 'L_vers_M', 'L_vers_M(L)', 'reçoit la liste de listes d\'adjacence L et renvoie la matrice d\'adjacence (exercice 52.2).', [[`L_vers_M(${L1})`, M1], ['L_vers_M([[1], []])', '[[0, 1], [0, 0]]'], ['L_vers_M([[]])', '[[0]]']], 'def L_vers_M(L):\n    n = len(L)\n    M = []\n    for i in range(n):\n        M.append([0] * n)\n    for i in range(n):\n        for j in L[i]:\n            M[i][j] = 1\n    return M', { a: 'O(n²)', n: N_G, why: 'la matrice n × n domine ; les arcs ajoutent m ≤ n² opérations' }],
+  [1, 'M_vers_L', 'M_vers_L(M)', 'reçoit une matrice d\'adjacence M et renvoie la liste de listes d\'adjacence, voisins par ordre croissant (exercice 52.1).', [[`M_vers_L(${M1})`, L1], ['M_vers_L([[0]])', '[[]]'], ['M_vers_L([[0, 1], [1, 0]])', '[[1], [0]]']], 'def M_vers_L(M):\n    n = len(M)\n    L = []\n    for i in range(n):\n        voisins = []\n        for j in range(n):\n            if M[i][j] == 1:\n                voisins.append(j)\n        L.append(voisins)\n    return L', { a: 'O(n²)', n: N_G, why: 'deux boucles imbriquées de n tours' }],
+  [1, 'degres_entrants', 'degres_entrants(L)', 'reçoit la liste de listes d\'adjacence L et renvoie la liste des degrés entrants : la case j contient le nombre d\'arcs qui arrivent en j.', [[`degres_entrants(${L1})`, '[0, 2, 0, 2, 2, 1]'], ['degres_entrants([[]])', '[0]'], ['degres_entrants([[1, 2], [2], []])', '[0, 1, 2]']], 'def degres_entrants(L):\n    d = [0] * len(L)\n    for i in range(len(L)):\n        for j in L[i]:\n            d[j] = d[j] + 1\n    return d', { a: 'O(n + m)', n: N_G, why: 'on passe une fois sur chaque sommet et chaque arc' }],
+  [2, 'L_recip', 'L_recip(L)', 'reçoit une liste de listes d\'adjacence L et renvoie celle du graphe réciproque (tous les arcs retournés), en parcourant les sommets i dans l\'ordre croissant (exercice 53.3).', [[`L_recip(${L1})`, '[[], [0, 3], [], [0, 4], [1, 2], [2]]'], ['L_recip([[1], []])', '[[], [0]]'], ['L_recip([[]])', '[[]]']], 'def L_recip(L):\n    R = []\n    for i in range(len(L)):\n        R.append([])\n    for i in range(len(L)):\n        for j in L[i]:\n            R[j].append(i)\n    return R', { a: 'O(n + m)', n: N_G, why: 'un passage sur chaque sommet et chaque arc' }],
+  [2, 'est_chemin', 'est_chemin(L, ch)', 'reçoit une liste de listes d\'adjacence L et une liste de sommets ch (au moins un), et renvoie True si ch est un chemin du graphe (chaque sommet est voisin du précédent), False sinon.', [[`est_chemin(${L1}, [0, 1, 4, 3])`, 'True'], [`est_chemin(${L1}, [0, 4])`, 'False'], [`est_chemin(${L1}, [2])`, 'True'], [`est_chemin(${L1}, [3, 1, 4, 3, 1])`, 'True'], [`est_chemin(${L1}, [1, 4, 5])`, 'False']], 'def est_chemin(L, ch):\n    for k in range(1, len(ch)):\n        if ch[k] not in L[ch[k - 1]]:\n            return False\n    return True', null],
+  [2, 'L_vers_G', 'L_vers_G(L)', 'reçoit une liste de listes d\'adjacence et renvoie la liste des arcs (couples (a, b)) du graphe, dans n\'importe quel ordre (exercice 51.4).', [[`sorted(L_vers_G(${L1}))`, '[(0, 1), (0, 3), (1, 4), (2, 4), (2, 5), (3, 1), (4, 3)]'], ['L_vers_G([[], []])', '[]'], ['L_vers_G([[0]])', '[(0, 0)]']], 'def L_vers_G(L):\n    G = []\n    for a in range(len(L)):\n        for b in L[a]:\n            G.append((a, b))\n    return G', { a: 'O(n + m)', n: N_G, why: 'un passage sur chaque sommet et chaque arc' }]
+];
+GEN.grcode = (d, g) => {
+  const [, name, sig, txt, tests, sol, cx] = g.pick(GRC.filter(c => c[0] === d));
+  return codeEx(name, sig, esc(txt), tests, sol, { cx, intro: `<p class="fine">Graphe 1 du poly (exemple des tests) : arcs ${ic(G1)}, listes d'adjacence ${ic(L1)}.</p>` });
+};
+
+/* ---------- Piles et files (chapitre 7) ---------- */
+const PILE_PRE = 'def pile_vide():\n    return []\ndef est_pile_vide(p):\n    return len(p) == 0\ndef empiler(s, p):\n    p.append(s)\ndef depiler(p):\n    return p.pop()\ndef sommet(p):\n    return p[-1]\ndef file_vide():\n    return []\ndef est_file_vide(f):\n    return len(f) == 0\ndef ajouter(s, f):\n    f.insert(0, s)\ndef suivant(f):\n    return f.pop()';
+const PRIMS = '<p class="fine">Primitives du cours, déjà écrites : <code>pile_vide()</code>, <code>est_pile_vide(p)</code>, <code>empiler(s, p)</code>, <code>depiler(p)</code>, <code>sommet(p)</code> ; <code>file_vide()</code>, <code>est_file_vide(f)</code>, <code>ajouter(s, f)</code>, <code>suivant(f)</code>. Utilise-les.</p>';
+const PCODE = [
+  ['bien_parenthesee', 'bien_parenthesee(s)', 'reçoit une chaîne s faite des caractères ( ) [ ] { } et renvoie True si elle est bien parenthésée (chaque fermante ferme la dernière ouvrante encore ouverte, de même type), False sinon. Utiliser une pile.', [["bien_parenthesee('([]{})')", 'True'], ["bien_parenthesee('([)]')", 'False'], ["bien_parenthesee('')", 'True'], ["bien_parenthesee('((')", 'False'], ["bien_parenthesee('())')", 'False']], "def bien_parenthesee(s):\n    paire = {')': '(', ']': '[', '}': '{'}\n    p = pile_vide()\n    for c in s:\n        if c in '([{':\n            empiler(c, p)\n        else:\n            if est_pile_vide(p) or depiler(p) != paire[c]:\n                return False\n    return est_pile_vide(p)", { a: 'O(n)', n: 'n = len(s)', why: 'un tour par caractère, chaque opération de pile en O(1)' }, true],
+  ['eval_postfixe', 'eval_postfixe(t)', 'évalue une expression écrite en notation postfixée, donnée comme une liste t de nombres et d\'opérateurs \'+\', \'-\', \'*\' : un nombre est empilé ; un opérateur dépile b puis a et empile a op b. Exemple : [3, 4, \'+\', 2, \'*\'] vaut (3 + 4) × 2 = 14.', [["eval_postfixe([3, 4, '+', 2, '*'])", '14'], ['eval_postfixe([5])', '5'], ["eval_postfixe([10, 2, 3, '*', '-'])", '4'], ["eval_postfixe([2, 3, '-'])", '-1']], "def eval_postfixe(t):\n    p = pile_vide()\n    for x in t:\n        if x == '+' or x == '-' or x == '*':\n            b = depiler(p)\n            a = depiler(p)\n            if x == '+':\n                empiler(a + b, p)\n            elif x == '-':\n                empiler(a - b, p)\n            else:\n                empiler(a * b, p)\n        else:\n            empiler(x, p)\n    return depiler(p)", { a: 'O(n)', n: 'n = len(t)', why: 'un tour par élément de t' }, true],
+  ['pile_vide', 'pile_vide()', 'Implémenter les cinq primitives de pile avec une liste Python (le sommet est le dernier élément) : pile_vide(), est_pile_vide(p), empiler(s, p), depiler(p) (renvoie et supprime le sommet), sommet(p) (le renvoie sans le supprimer).', [['est_pile_vide(pile_vide())', 'True'], ['(lambda p: (empiler(3, p), empiler(5, p), depiler(p))[2])(pile_vide())', '5'], ['(lambda p: (empiler(3, p), empiler(5, p), depiler(p), sommet(p))[3])(pile_vide())', '3'], ['(lambda p: (empiler(3, p), depiler(p), est_pile_vide(p))[2])(pile_vide())', 'True'], ['(lambda p: (empiler(1, p), est_pile_vide(p))[1])(pile_vide())', 'False']], 'def pile_vide():\n    return []\n\ndef est_pile_vide(p):\n    return len(p) == 0\n\ndef empiler(s, p):\n    p.append(s)\n\ndef depiler(p):\n    return p.pop()\n\ndef sommet(p):\n    return p[-1]', null, false]
+];
+function pileOps(g, file) {
+  const lines = [file ? 'f = file_vide()' : 'p = pile_vide()'], S = [], vars = {}, order = [];
+  const push = v => { lines.push(file ? `ajouter(${v}, f)` : `empiler(${v}, p)`); if (file) S.unshift(v); else S.push(v); };
+  const pop = name => { const v = file ? S.pop() : S.pop(); lines.push(`${name} = ${file ? 'suivant(f)' : 'depiler(p)'}`); vars[name] = v; order.push(name); return v; };
+  [g.int(1, 9), g.int(1, 9), g.int(1, 9)].forEach(push);
+  pop('x'); push(g.int(10, 20)); pop('y');
+  if (file) { lines.push('ajouter(x + y, f)'); S.unshift(vars.x + vars.y); pop('z'); }
+  else { lines.push('empiler(x + y, p)'); S.push(vars.x + vars.y); lines.push('z = sommet(p)'); vars.z = S[S.length - 1]; order.push('z'); }
+  return { code: lines.join('\n'), vars };
+}
+GEN.pile = (d, g) => {
+  if (d < 2 && (d === 0 || g.r() < 0.55)) {
+    const file = d === 1 || g.r() < 0.4, o = pileOps(g, file);
+    return { title: file ? 'Une file' : 'Une pile', q: `On utilise les primitives du cours (${file ? 'file : <code>file_vide</code>, <code>ajouter</code> à la fin, <code>suivant</code> renvoie et supprime le premier' : 'pile : <code>pile_vide</code>, <code>empiler</code> au sommet, <code>depiler</code> renvoie et supprime le sommet, <code>sommet</code> le renvoie sans le supprimer'}). Que valent x, y et z à la fin ?` + pre(o.code),
+      items: ['x', 'y', 'z'].map(v => ({ type: 'int', label: v, val: o.vars[v] })),
+      corr: `<p>${file ? 'Une file est « premier arrivé, premier servi » (FIFO) : <code>suivant</code> sort l\'élément ajouté le plus tôt.' : 'Une pile est « dernier arrivé, premier sorti » (LIFO), comme une pile d\'assiettes : <code>depiler</code> sort le dernier élément empilé.'} Résultat : x = <b>${o.vars.x}</b>, y = <b>${o.vars.y}</b>, z = <b>${o.vars.z}</b>.</p>` };
+  }
+  if (d === 1) {
+    const t = g.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 4);
+    return { title: 'De la pile à la file', q: 'Que valent x et y à la fin ?' + pre(`p = pile_vide()\nfor v in ${pyRepr(t)}:\n    empiler(v, p)\nf = file_vide()\nwhile not est_pile_vide(p):\n    ajouter(depiler(p), f)\nx = suivant(f)\ny = suivant(f)`),
+      items: [{ type: 'int', label: 'x', val: t[3] }, { type: 'int', label: 'y', val: t[2] }],
+      corr: `<p>La pile rend les éléments dans l'ordre inverse : ${t.slice().reverse().join(', ')}. La file les garde dans l'ordre où on les ajoute : le premier sorti est ${t[3]}, puis ${t[2]}. x = <b>${t[3]}</b>, y = <b>${t[2]}</b>. Passer par une pile <b>inverse</b> l'ordre ; passer par une file le <b>conserve</b>.</p>` };
+  }
+  const [name, sig, txt, tests, sol, cx, prims] = g.pick(PCODE);
+  const ex = codeEx(name, sig, esc(txt), tests, sol, { cx, intro: prims ? PRIMS : '', title: name === 'pile_vide' ? 'Implémenter une pile avec une liste' : undefined });
+  if (prims) ex.items[0].pre = PILE_PRE;
+  return ex;
+};
+
+/* ---------- Parcours de graphes (chapitre 8, exercices 54 et 55) ---------- */
+const PCO = [
+  ['voisin_non_vu', 'voisin_non_vu(l, vus)', 'reçoit la liste l des voisins d\'un sommet et la liste de booléens vus, et renvoie le premier sommet de l qui n\'est pas vu, ou −1 s\'il n\'y en a pas (exercice 54.1).', [['voisin_non_vu([3, 5, 8, 9, 11], [False, False, False, True, True, True, False, True, False, True, False, False])', '8'], ['voisin_non_vu([3, 5], [False, False, True, True, True, True])', '-1'], ['voisin_non_vu([], [True])', '-1'], ['voisin_non_vu([0, 1], [False, False])', '0']], 'def voisin_non_vu(l, vus):\n    for s in l:\n        if not vus[s]:\n            return s\n    return -1', { a: 'O(n)', n: 'n = len(l)', why: 'au pire on parcourt toute la liste' }],
+  ['pp_pile', 'pp_pile(g, i)', 'reçoit un graphe g (liste de listes d\'adjacence) et un sommet i, et renvoie la liste des sommets dans l\'ordre du parcours en PROFONDEUR depuis i (algorithme du cours : tant que la pile n\'est pas vide, si le sommet de la pile a un voisin non vu — le premier dans sa liste —, on l\'empile, il devient vu et va dans le résultat ; sinon on dépile), exercice 54.2.', null, 'def pp_pile(g, i):\n    vus = [False] * len(g)\n    vus[i] = True\n    res = [i]\n    p = pile_vide()\n    empiler(i, p)\n    while not est_pile_vide(p):\n        s = sommet(p)\n        v = -1\n        for x in g[s]:\n            if v == -1 and not vus[x]:\n                v = x\n        if v == -1:\n            depiler(p)\n        else:\n            vus[v] = True\n            res.append(v)\n            empiler(v, p)\n    return res', null],
+  ['pl_file', 'pl_file(g, i)', 'reçoit un graphe g (liste de listes d\'adjacence) et un sommet i, et renvoie la liste des sommets dans l\'ordre du parcours en LARGEUR depuis i (algorithme du cours : on sort le sommet s de la file, on ajoute ses voisins non vus dans l\'ordre de sa liste, ils deviennent vus et vont dans le résultat), exercice 55.2.', null, 'def pl_file(g, i):\n    vus = [False] * len(g)\n    vus[i] = True\n    res = [i]\n    f = file_vide()\n    ajouter(i, f)\n    while not est_file_vide(f):\n        s = suivant(f)\n        for x in g[s]:\n            if not vus[x]:\n                vus[x] = True\n                res.append(x)\n                ajouter(x, f)\n    return res', { a: 'O(n + m)', n: 'n = nombre de sommets, m = nombre d\'arcs', why: 'chaque sommet entre une fois dans la file et chaque liste de voisins est lue une fois' }],
+  ['distances', 'distances(g, i)', 'reçoit un graphe g (liste de listes d\'adjacence) et un sommet i, et renvoie la liste d où d[s] est la distance de i à s (le plus petit nombre d\'arcs d\'un chemin de i à s), −1 si s n\'est pas accessible. Le parcours en largeur visite les sommets par distance croissante.', null, 'def distances(g, i):\n    d = [-1] * len(g)\n    d[i] = 0\n    f = file_vide()\n    ajouter(i, f)\n    while not est_file_vide(f):\n        s = suivant(f)\n        for x in g[s]:\n            if d[x] == -1:\n                d[x] = d[s] + 1\n                ajouter(x, f)\n    return d', { a: 'O(n + m)', n: 'n = nombre de sommets, m = nombre d\'arcs', why: 'c\'est un parcours en largeur' }]
+];
+const TG1 = [[1, 3], [4], [4, 5], [1], [3], []], TG2 = [[1, 2], [0, 3], [0, 3], [1, 2, 4], [3]], TG3 = [[2, 1], [3], [3, 4], [5], [5], [], [0]];
+const ptests = (name, fn) => [[TG1, 0], [TG1, 2], [TG2, 0], [TG2, 4], [TG3, 0], [TG3, 6]].map(([L, s]) => [`${name}(${pyRepr(L)}, ${s})`, pyRepr(fn(L, s))]);
+GEN.parcours = (d, g) => {
+  if (d < 2) {
+    const sym = d === 0 && g.r() < 0.5, G = rGraph(g, g.int(6, 7), g.int(2, 3), sym), s = 0;
+    if (d === 0) {
+      const B = bfs(G.L, s), D = dfs(G.L, s);
+      return { title: 'Ordre des parcours', q: `Graphe ${sym ? 'non orienté' : 'orienté'} :` + GRAPH_DATA(G, sym) + `<p>${ic('L = ' + pyL(G.L))}</p>Donner l'ordre de visite des sommets depuis 0, en traitant les voisins dans l'ordre croissant (l'ordre des listes L).`,
+        items: [{ type: 'val', label: 'parcours en largeur depuis 0', exp: B }, { type: 'val', label: 'parcours en profondeur depuis 0', exp: D }],
+        corr: `<p><b>Largeur</b> (avec une file) : on sort le premier sommet de la file et on ajoute tous ses voisins non vus. Les sommets sortent par distance croissante à 0 : ${ic(pyRepr(B))}.</p><p><b>Profondeur</b> (avec une pile) : on regarde le sommet de la pile ; s'il a un voisin non vu (le premier de sa liste), on l'empile et on continue depuis lui ; sinon on dépile (retour en arrière) : ${ic(pyRepr(D))}.</p><p class="fine">Un sommet est noté « vu » dès qu'il entre dans la file ou la pile : il n'y entre jamais deux fois.</p>` };
+    }
+    const D = dists(G.L, s), t = g.pick(G.L.map((_, k) => k).filter(k => k)), far = Math.max(...D), cyc = cycleFrom(G.L, s);
+    return { title: 'Distances et cycles', q: 'Graphe orienté :' + GRAPH_DATA(G, false) + `<p>${ic('L = ' + pyL(G.L))}</p>Répondre à l'aide d'un parcours depuis 0.`,
+      items: [{ type: 'int', label: `distance de 0 à ${t}`, val: D[t] }, { type: 'int', label: 'plus grande distance depuis 0', val: far }, { type: 'choice', label: 'un cycle est accessible depuis 0', opts: ON, ans: cyc ? 'o' : 'n' }, { type: 'choice', label: 'pour les distances, on utilise', opts: [{ v: 'f', t: 'un parcours en largeur (file)' }, { v: 'p', t: 'un parcours en profondeur (pile)' }], ans: 'f', wide: true }],
+      corr: `<p>Le parcours en <b>largeur</b> visite les sommets par distance croissante à 0 : distances ${ic(pyRepr(D))}. Distance de 0 à ${t} : <b>${D[t]}</b> ; la plus grande : <b>${far}</b>.</p><p>Cycle : le parcours en profondeur en trouve un si le sommet de la pile a un voisin <b>encore dans la pile</b> (un arc qui revient en arrière). Ici : <b>${cyc ? 'oui' : 'non'}</b>.</p>` };
+  }
+  const [name, sig, txt, tests, sol, cx] = g.pick(PCO), T = tests || ptests(name, name === 'pp_pile' ? dfs : name === 'pl_file' ? bfs : dists);
+  const ex = codeEx(name, sig, esc(txt), T, sol, { cx, intro: PRIMS + `<p class="fine">Graphe 1 du poly : ${ic(L1)} ; depuis 0, profondeur [0, 1, 4, 3], largeur [0, 1, 3, 4].</p>` });
+  ex.items[0].pre = PILE_PRE;
+  return ex;
+};
+
+/* ---------- Plus courts chemins : Dijkstra (chapitre 9, exercices 56 à 59) ---------- */
+function dijk(n, W, s) {
+  const dist = Array(n).fill(Infinity), pred = Array(n).fill(-1), done = Array(n).fill(false); dist[s] = 0;
+  for (let it = 0; it < n; it++) {
+    let u = -1; for (let k = 0; k < n; k++) if (!done[k] && dist[k] < Infinity && (u < 0 || dist[k] < dist[u])) u = k;
+    if (u < 0) break; done[u] = true;
+    for (const [a, b, w] of W) if (a === u && dist[u] + w < dist[b]) { dist[b] = dist[u] + w; pred[b] = u; }
+  }
+  return { dist, pred };
+}
+function wGraph(g) {   // graphe pondéré dont tous les plus courts chemins depuis 0 sont uniques
+  for (let t = 0; t < 60; t++) {
+    const n = g.int(5, 6), G = rGraph(g, n, g.int(2, 3), false), W = G.E.map(([a, b]) => [a, b, g.int(1, 9)]), r = dijk(n, W, 0);
+    const cnt = Array(n).fill(0); cnt[0] = 1;
+    G.L.map((_, k) => k).sort((x, y) => r.dist[x] - r.dist[y]).forEach(u => W.forEach(([a, b, w]) => { if (a === u && r.dist[a] + w === r.dist[b]) cnt[b] += cnt[a]; }));
+    if (cnt.every(c => c === 1)) return { n, G, W, r };
+  }
+  const W = [[0, 1, 4], [0, 2, 1], [2, 1, 2], [1, 3, 1], [2, 3, 6], [3, 4, 3]], G = { n: 5, E: W.map(([a, b]) => [a, b]) };
+  return { n: 5, G, W, r: dijk(5, W, 0) };
+}
+const pathTo = (pred, t) => { const p = [t]; while (pred[p[0]] >= 0) p.unshift(pred[p[0]]); return p; };
+GEN.dijkstra = (d, g) => {
+  const { n, G, W, r } = wGraph(g), data = gsvg(n, G.E, { w: W.map(x => x[2]) }) + `<p class="fine">Arcs (poids) : ${W.map(([a, b, w]) => `${a}→${b} (${w})`).join(', ')}</p>`;
+  const t = g.pick(r.dist.map((_, k) => k).filter(k => k && pathTo(r.pred, k).length >= 3)) || n - 1, P = pathTo(r.pred, t);
+  const tab = `<table class="t"><tr><th>k</th>${r.dist.map((_, k) => `<td>${k}</td>`).join('')}</tr><tr><th>dist(k)</th>${r.dist.map(x => `<td>${x}</td>`).join('')}</tr><tr><th>pred(k)</th>${r.pred.map(x => `<td>${x < 0 ? '/' : x}</td>`).join('')}</tr></table>`;
+  const method = `<p>Dijkstra : au départ dist(0) = 0, les autres à l'infini. On prend le sommet <b>non traité</b> de plus petite distance, on le marque traité et on met à jour ses voisins : dist(j) ← min(dist(j), dist(i) + p(i, j)) (et pred(j) ← i si ça baisse). On recommence jusqu'à ce que tout soit traité.</p>${tab}`;
+  if (d === 0) {
+    const w = P.slice(1).reduce((s, v, k) => s + W.find(x => x[0] === P[k] && x[1] === v)[2], 0);
+    let alt = null; for (const [a, b, ww] of W) if (b === t && a !== P[P.length - 2] && r.dist[a] < Infinity) { const pa = pathTo(r.pred, a); if (!pa.includes(t)) { alt = pa.concat([t]); break; } }
+    const altW = alt ? r.dist[alt[alt.length - 2]] + W.find(x => x[0] === alt[alt.length - 2] && x[1] === t)[2] : null;
+    const items = [{ type: 'int', label: `poids du chemin [${P.join(', ')}]`, val: w }, { type: 'int', label: `distance minimale de 0 à ${t}`, val: r.dist[t] }];
+    if (alt) items.splice(1, 0, { type: 'int', label: `poids du chemin [${alt.join(', ')}]`, val: altW });
+    return { title: 'Poids d\'un chemin', q: 'Graphe orienté pondéré :' + data + 'Le poids d\'un chemin est la somme des poids de ses arcs.', items,
+      corr: `<p>[${P.join(', ')}] : ${P.slice(1).map((v, k) => W.find(x => x[0] === P[k] && x[1] === v)[2]).join(' + ')} = <b>${w}</b>.${alt ? ` [${alt.join(', ')}] : <b>${altW}</b>.` : ''} Le plus court chemin de 0 à ${t} pèse <b>${r.dist[t]}</b>.</p>${method}` };
+  }
+  if (d === 1) return { title: 'Algorithme de Dijkstra', q: 'Graphe orienté pondéré :' + data + `Appliquer l'algorithme de Dijkstra depuis 0. Donner la liste des distances minimales dist (dist[k] = distance de 0 à k) et le prédécesseur de ${t}.`,
+    items: [{ type: 'val', label: 'dist', exp: r.dist }, { type: 'int', label: `pred(${t})`, val: r.pred[t] }], corr: method + `<p>Plus court chemin de 0 à ${t} : on remonte les prédécesseurs : [${P.join(', ')}].</p>` };
+  return { title: 'Plus court chemin', q: 'Graphe orienté pondéré :' + data + `Donner un plus court chemin de 0 à ${t} (liste des sommets), son poids, puis répondre à la question sur l'algorithme.`,
+    items: [{ type: 'val', label: `plus court chemin de 0 à ${t}`, exp: P }, { type: 'int', label: 'son poids', val: r.dist[t] }, { type: 'choice', label: 'Dijkstra donne toujours le bon résultat avec un arc de poids négatif', opts: ON, ans: 'n', wide: true }],
+    corr: method + `<p>On remonte pred depuis ${t} : [${P.join(', ')}], de poids <b>${r.dist[t]}</b>.</p><p>Avec un poids <b>négatif</b>, Dijkstra peut se tromper : un sommet déjà traité ne serait jamais remis à jour alors qu'un détour par l'arc négatif le rendrait plus proche (contre-exemple du cours). Il exige des poids positifs.</p>` };
+};
+
+/* ---------- Terminaison et correction (chapitre 10, exercices 60 à 65) ---------- */
+const TERM = [
+  ['while n != 0:\n    n = n - 1', false, 'si n < 0 au départ, n ne vaut jamais 0'], ['while n > 0:\n    n = n - 1', true, 'n est un entier qui décroît strictement et reste > 0 dans la boucle'],
+  ['while n != 0:\n    n = n - 2', false, 'si n est impair (ou négatif), n saute 0'], ['while n > 0:\n    n = n // 2', true, 'n entier, strictement décroissant tant que n > 0, minoré par 0'],
+  ['while n < 100:\n    n = n * 2', false, 'si n ≤ 0, n * 2 ne grandit pas (0 reste 0)'], ['while n < 100:\n    n = n + 3', true, 'n entier strictement croissant, majoré par 100 + 2 dans la boucle'],
+  ['while n != 1:\n    n = n // 2', false, 'si n ≤ 0, n // 2 ne vaut jamais 1 (0 reste 0)'], ['while n * n < 50:\n    n = n + 1', true, 'n croît strictement ; dès que |n| ≥ 8, n * n ≥ 50']
+];
+const ALGOS = [
+  { code: 'def f(n):\n    x = 0\n    y = n\n    while y > 0:\n        x = x + 3\n        y = y - 1\n    return x', call: g => { const n = g.int(3, 9); return [`f(${n})`, 3 * n]; }, what: '3 × n', vr: 'y', inv: 'x = 3 × (n − y)', bad: ['x = 3 × y', 'x + y = n', 'x = n − y'], out: 'y = 0, donc x = 3n' },
+  { code: 'def g(n, b):\n    x = 0\n    y = n\n    while y >= b:\n        x = x + 1\n        y = y - b\n    return x', call: g => { const n = g.int(15, 40), b = g.int(3, 7); return [`g(${n}, ${b})`, Math.floor(n / b)]; }, what: 'le quotient de la division euclidienne de n par b', vr: 'y', inv: 'n = x × b + y', bad: ['n = x + y × b', 'y = x × b', 'x = n − y'], out: '0 ≤ y < b, donc x est le quotient et y le reste' },
+  { code: 'def ra(n):\n    d = 0\n    s = 1\n    while s <= n:\n        d = d + 1\n        s = s + 2 * d + 1\n    return d', call: g => { const n = g.pick([17, 25, 48, 30, 64, 80]); return [`ra(${n})`, Math.floor(Math.sqrt(n))]; }, what: 'la partie entière de la racine carrée de n', vr: 'n − s', inv: 's = (d + 1)²', bad: ['s = d²', 's = 2d + 1', 'd = s²'], out: 'd² ≤ n < (d + 1)², donc d = ⌊√n⌋' },
+  { code: 'def euclide(a, b):\n    while b > 0:\n        c = b\n        b = a % b\n        a = c\n    return a', call: g => { const k = g.int(2, 9), a = k * g.int(3, 9), b = k * g.int(2, 7); const gc = (x, y) => y ? gc(y, x % y) : x; return [`euclide(${a}, ${b})`, gc(a, b)]; }, what: 'le PGCD de a et b', vr: 'b', inv: 'pgcd(a, b) ne change pas', bad: ['a = b × c', 'a > b', 'a + b ne change pas'], out: 'b = 0, et pgcd(a, 0) = a' },
+  { code: 'def h(n):\n    s = 0\n    i = 0\n    while i < n:\n        i = i + 1\n        s = s + i\n    return s', call: g => { const n = g.int(4, 12); return [`h(${n})`, n * (n + 1) / 2]; }, what: 'la somme 1 + 2 + … + n', vr: 'n − i', inv: 's = i(i + 1)/2', bad: ['s = n(n + 1)/2', 's = i²', 's = i + 1'], out: 'i = n, donc s = n(n + 1)/2' }
+];
+const WHAT_OPTS = ['3 × n', 'le quotient de la division euclidienne de n par b', 'la partie entière de la racine carrée de n', 'le PGCD de a et b', 'la somme 1 + 2 + … + n', 'n²'];
+GEN.preuve = (d, g) => {
+  if (d === 0) {
+    const L = g.shuffle(TERM).slice(0, 3);
+    return { title: 'Ce programme termine-t-il ?', q: 'Pour chacune de ces boucles, dire si elle termine pour <b>tout</b> entier n de départ :' + L.map((x, k) => `<p class="fine" style="margin-top:8px">Boucle ${k + 1}</p>` + pre(x[0])).join(''),
+      items: L.map((x, k) => ({ type: 'choice', label: `boucle ${k + 1} termine toujours`, opts: ON, ans: x[1] ? 'o' : 'n' })),
+      corr: `<ul>${L.map((x, k) => `<li>Boucle ${k + 1} : <b>${x[1] ? 'oui' : 'non'}</b>, ${x[2]}.</li>`).join('')}</ul><p class="fine">Preuve de terminaison : trouver un <b>variant</b>, une suite d'entiers strictement décroissante et minorée (ou croissante et majorée) pendant la boucle. Elle est forcément finie, donc la boucle aussi.</p>` };
+  }
+  const A = g.pick(ALGOS), [call, val] = A.call(g);
+  const vOpts = g.shuffle([...new Set([A.vr, 'n', 'x', 'd', 'a', 's', 'i', 'b', 'y', 'n − s', 'n − i'].filter(v => v !== A.vr))]).slice(0, 3).concat([A.vr]);
+  const items = [{ type: 'int', label: call, val }];
+  if (d === 1) items.push({ type: 'choice', label: 'cette fonction calcule', opts: g.shuffle(WHAT_OPTS).slice(0, 3).filter(w => w !== A.what).slice(0, 3).concat([A.what]).sort().map(w => ({ v: w, t: w })), ans: A.what, wide: true }, { type: 'choice', label: 'variant (prouve la terminaison)', opts: g.shuffle(vOpts).map(v => ({ v, t: v })), ans: A.vr, wide: true });
+  else items.push({ type: 'choice', label: 'invariant de boucle (vrai à chaque tour)', opts: g.shuffle([A.inv, ...A.bad]).map(v => ({ v, t: v })), ans: A.inv, wide: true }, { type: 'choice', label: 'variant (prouve la terminaison)', opts: g.shuffle(vOpts).map(v => ({ v, t: v })), ans: A.vr, wide: true });
+  return { title: d === 1 ? 'Que calcule cet algorithme ?' : 'Variant et invariant', q: pre(A.code) + (d === 1 ? 'Que renvoie l\'appel demandé ? Que calcule la fonction ? Quel variant prouve sa terminaison ?' : 'Que renvoie l\'appel demandé ? Quel invariant prouve la correction ? Quel variant prouve la terminaison ?'),
+    items, corr: `<p>${ic(call)} = <b>${val}</b> : la fonction calcule <b>${A.what}</b>.</p><p><b>Terminaison</b> : la suite des valeurs de <b>${A.vr}</b> est entière, strictement décroissante et minorée pendant la boucle : elle est finie, donc la boucle s'arrête.</p><p><b>Correction</b> : l'invariant <b>${A.inv}</b> est vrai avant la boucle, et s'il est vrai au début d'un tour, il l'est à la fin. À la sortie : ${A.out}.</p>` };
+};
+
+/* =====================================================================
    PYTHON DANS LE NAVIGATEUR (Pyodide, dans un Worker : une boucle infinie ne bloque pas la page)
    ===================================================================== */
 const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
@@ -782,7 +1083,12 @@ async function check(it, raw) {
   if (!new RegExp('def\\s+' + it.label + '\\s*\\(').test(raw)) return { st: 'err', msg: `écris une fonction qui commence par def ${it.label}(…):` };
   const banned = (it.ban || []).find(w => new RegExp('\\b' + w + '\\s*\\(').test(String(raw).replace(/#.*$/gm, '')));
   if (banned) return { st: 'bad', msg: `l'énoncé interdit ${banned}(…) : écris le parcours toi-même.` };
-  const r = await runPy(raw, it.tests);
+  if (it.rec) {   // fonction récursive demandée : elle s'appelle elle-même, sans boucle
+    const src = String(raw).replace(/#.*$/gm, '');
+    if (/\b(for|while)\b/.test(src)) return { st: 'bad', msg: 'l\'énoncé demande une fonction récursive : pas de boucle for ni while.' };
+    if ((src.match(new RegExp('\\b' + it.label + '\\s*\\(', 'g')) || []).length < 2) return { st: 'bad', msg: 'ta fonction doit s\'appeler elle-même (fonction récursive).' };
+  }
+  const r = await runPy((it.pre ? it.pre + '\n' : '') + raw, it.tests);   // it.pre : primitives de pile et de file du cours
   if (!r.ok) return r.err === 'LONG' ? { st: 'bad', msg: 'trop long : ta fonction tourne sans fin (boucle infinie ?).' } : { st: 'err', msg: 'Python n\'a pas pu se charger (connexion ?). Réessaie.', retry: true };
   if (r.res.err) return { st: 'bad', msg: 'ton code ne s\'exécute pas : ' + r.res.err, tests: [] };
   const n = r.res.tests.filter(t => t[1]).length;
@@ -808,9 +1114,11 @@ const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); 
 /* =====================================================================
    COMPÉTENCES ET PROGRESSION (mêmes règles que l'élec et l'atomistique)
    ===================================================================== */
-const CH = ['Bases de Python', 'Fonctions', 'Complexité', 'Tableaux et chaînes', 'Dictionnaires', 'Le DS de l\'an dernier'];
+const CH = ['Bases de Python', 'Fonctions', 'Complexité', 'Tableaux et chaînes', 'Dictionnaires', 'Le DS de l\'an dernier', 'Récursivité', 'Graphes', 'Piles, files et parcours', 'Plus courts chemins', 'Terminaison et correction'];
 const LEARN = window.SITE_LEARN ? window.SITE_LEARN({ esc }) : {};
-const SK = [
+// La page prépare un DS (CCN, voir SiteSubjects.ccNum) : le DS 1 garde les chapitres 1 à 4 (liste cc1 de subjects.js),
+// le DS 2 (7/12) tout le cours, chapitres 5 à 10 compris (récursivité, graphes, piles et files, parcours, Dijkstra, preuves)
+const SK_ALL = [
   { id: 'types', ch: 0, name: 'Types et valeurs d\'expressions', fiche: 0 },
   { id: 'trace', ch: 0, name: 'Suivre l\'exécution d\'un programme', fiche: 1 },
   { id: 'boucles', ch: 0, name: 'Boucles : que renvoie la fonction ?', fiche: 1 },
@@ -828,8 +1136,22 @@ const SK = [
   { id: 'fusion', ch: 3, name: 'Fusionner deux tableaux triés', fiche: 9 },
   { id: 'dict', ch: 4, name: 'Dictionnaires', fiche: 6 },
   { id: 'code3', ch: 4, name: 'Écrire une fonction avec un dictionnaire', fiche: 7 },
-  { id: 'qcm', ch: 5, name: 'QCM à points négatifs', fiche: 9 }
+  { id: 'qcm', ch: 5, name: 'QCM à points négatifs', fiche: 9 },
+  { id: 'rec', ch: 6, name: 'Lire une fonction récursive', fiche: 10 },
+  { id: 'reccode', ch: 6, name: 'Écrire une fonction récursive', fiche: 10 },
+  { id: 'graphe', ch: 7, name: 'Graphes : représentations et vocabulaire', fiche: 11 },
+  { id: 'grcode', ch: 7, name: 'Écrire une fonction sur un graphe', fiche: 11 },
+  { id: 'pile', ch: 8, name: 'Piles et files', fiche: 12 },
+  { id: 'parcours', ch: 8, name: 'Parcours en largeur et en profondeur', fiche: 12 },
+  { id: 'dijkstra', ch: 9, name: 'Plus court chemin (Dijkstra)', fiche: 13 },
+  { id: 'preuve', ch: 10, name: 'Terminaison et correction (variant, invariant)', fiche: 14 }
 ];
+const CCN = SiteSubjects.ccNum('algo'), SK = SiteSubjects.scope('algo', SK_ALL);
+// lien vers la même page pour l'autre DS, tant que celui-ci n'est pas passé
+function otherCC() {
+  const o = 3 - CCN, n = SiteSubjects.slot('algo', o);
+  return n && !n.past ? `<a href="?cc=${o}#home">Préparer le DS ${o} d'algorithmique →</a>` : '';
+}
 
 let CUR = null, busy = false;
 function exHTML(ex) {
@@ -881,11 +1203,36 @@ function nextDS() {   // date du DS : subjects.js (emploi du temps, sinon date d
   return { ts: n.ts, oral: !!(n.ev && /oraux/i.test(n.ev.t)) };
 }
 function vHome() {
+  if (CCN === 2) return vHome2();
+  vHome1();
+  const o = otherCC(); if (o) app.querySelector('div').insertAdjacentHTML('beforeend', `<p class="sub" style="margin-top:10px">${o}</p>`);
+}
+// DS 2 (7/12) : tout le cours, l'accent sur les chapitres 5 à 10
+function vHome2() {
+  const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, N = SiteSubjects.slot('algo', 2), ts = N ? N.ts : null;
+  const NEW = SK.filter(k => k.ch >= 6), doneNew = NEW.filter(k => isVal(skS(P, k.id))).length;
+  const days = ts == null ? null : Math.round((new Date(new Date(ts).toDateString()) - new Date(new Date().toDateString())) / 864e5);
+  const when = ts == null ? 'date à confirmer' : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(ts);
+  const H = ls.get(HK, []).filter(r => r.cc === 2);
+  app.innerHTML = `<div><p class="eyebrow">Informatique · Algorithmique · P. Rannou</p><h1>Réussir le DS 2 d'algorithmique</h1>
+    <p class="lede">Le DS 2 (1 h 30) arrive après tout le cours : il ajoute aux chapitres du DS 1 la <b>récursivité</b>, les <b>graphes</b> (matrice et listes d'adjacence, vocabulaire), les <b>piles et files</b>, les <b>parcours</b> en largeur et en profondeur, les <b>plus courts chemins</b> (Dijkstra) et les <b>preuves de terminaison et de correction</b> (chapitres 5 à 10 des slides, exercices 40 à 65 du poly). Le programme exact n'a pas été annoncé : le parcours garde aussi les bases du DS 1.</p>
+    ${otherCC() ? `<p class="sub" style="margin-top:10px">${otherCC()}</p>` : ''}</div>
+    <section class="card"><div class="count"><b>${days == null ? '?' : days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>DS 2 d'algorithmique : ${esc(when)}</span></div></section>
+    <div class="grid2">
+      <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées, dont ${doneNew}/${NEW.length} des chapitres 5 à 10. Chaque nouvelle compétence commence par une leçon « Comprendre ».</p>
+        <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
+      <section class="card"><h2>Sujet blanc du DS 2 (1 h 30)</h2><p class="sub">Récursivité (lire et écrire), graphes, piles et parcours, Dijkstra, terminaison : noté sur 20, fonctions testées en vrai Python. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+        <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
+    </div>
+    <section class="card"><h2>Ce qui tombe sûrement</h2><ul class="sub" style="margin:8px 0 0 20px"><li><b>Écrire une fonction récursive</b> : cas de base, appel sur un problème plus petit, et justifier qu'elle termine.</li><li><b>Passer d'une représentation à l'autre</b> : liste des arcs, matrice d'adjacence, listes d'adjacence.</li><li><b>Dérouler un parcours</b> à la main (ordre de visite, avec la file ou la pile) et le coder avec les primitives du cours.</li><li><b>Dijkstra à la main</b> : le tableau dist / pred, puis le chemin en remontant les prédécesseurs.</li><li><b>Prouver la terminaison</b> d'une boucle while avec un variant, et la correction avec un invariant.</li></ul><p class="sub" style="margin-top:8px">Pas d'annales : les exercices reprennent les slides et le poly. Le DS est sur papier : écris aussi tes fonctions à la main.</p></section>`;
+}
+function vHome1() {
   const P = pst(), done = SK.filter(k => isVal(skS(P, k.id))).length, ds = nextDS();
   const days = ds.tbd ? null : Math.round((new Date(new Date(ds.ts).toDateString()) - new Date(new Date().toDateString())) / 864e5);
   const dm = ts => new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long' }).format(ts);
   const when = ds.tbd ? 'date à confirmer, pas encore dans l’emploi du temps' + (ds.before ? ` (le DS 2 est le ${dm(ds.before)})` : '') : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(ds.ts);
-  const H = ls.get(HK, []);
+  const H = ls.get(HK, []).filter(r => r.cc !== 2);
   app.innerHTML = `<div><p class="eyebrow">Informatique · Algorithmique · P. Rannou</p><h1>Réussir le DS d'algorithmique</h1>
     <p class="lede">Le DS de mi-semestre (1 h 30), prévu le 23/10, puis le 5/11, puis la semaine du 9/11, n'a toujours pas eu lieu : depuis le 4/11, les contrôles écrits attendent le retour des cours en présentiel, et la direction les annoncera <b>au moins une semaine à l'avance</b>. Il porte sur les chapitres 1 à 4 : <b>bases de Python</b> (types, conditions, boucles), <b>fonctions</b>, <b>complexité</b>, <b>tableaux et dictionnaires</b>. Le 2<sup>e</sup> DS (${esc(ds.tbd && ds.before ? new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'numeric' }).format(ds.before) : '7/12')} dans l'emploi du temps) ajoutera récursivité, graphes, piles et files ; l'oral (6-7/01) se passe sur machine.</p></div>
     <section class="card"><h2>Le DS de l'an dernier</h2><p class="sub">D'après un étudiant qui l'a passé, de mémoire (rien n'empêche le prof de changer le sujet) :</p>
@@ -1001,13 +1348,41 @@ for c in d:              # parcourt les CLÉS
         v = 3 * v - 1
     return v</code></pre><p>Si la relation dépend du rang (<code>u(n+1) = u(n) + 2n + 1</code>), c'est la variable de boucle k. Deux termes (Fibonacci) : deux variables et un échange avec variable auxiliaire. « Premier n tel que u(n) &gt; s » : boucle <code>while</code>. Complexité O(n) ; appeler u(k) pour chaque k fait O(n²).</p>
     <h4>Dictionnaires, un cran plus dur</h4><p>Le schéma de comptage (<code>if x in d: d[x] = d[x] + 1</code> sinon <code>d[x] = 1</code>), puis un deuxième parcours pour exploiter le dictionnaire (le plus fréquent, le premier unique…). Regrouper : valeur = liste, <code>d[c].append(x)</code> sinon <code>d[c] = [x]</code>. Moyennes : deux dictionnaires (somme et nombre).</p>
-    <div class="box key"><h5>« Donner la complexité de ton programme »</h5>Une phrase suffit : « une boucle de n tours, chaque tour en temps constant (accès à une case, append, accès au dictionnaire), donc O(n) ». Boucles imbriquées : on multiplie ; successives : on additionne ; <code>x in liste</code>, <code>count</code>, <code>max</code> cachés dans une boucle coûtent n chacun.</div>`]
+    <div class="box key"><h5>« Donner la complexité de ton programme »</h5>Une phrase suffit : « une boucle de n tours, chaque tour en temps constant (accès à une case, append, accès au dictionnaire), donc O(n) ». Boucles imbriquées : on multiplie ; successives : on additionne ; <code>x in liste</code>, <code>count</code>, <code>max</code> cachés dans une boucle coûtent n chacun.</div>`],
+  ['11. Récursivité (chapitre 5)', 'lire et écrire une fonction récursive', `<p>Une fonction <b>récursive</b> s'appelle elle-même sur un problème plus petit. Deux parties obligatoires : le <b>cas de base</b> (réponse directe, sans appel) et l'<b>appel récursif</b> qui rapproche du cas de base. Sans cas de base, la récursion ne s'arrête pas (RecursionError).</p>
+    <pre class="code"><code>def factorielle(n):
+    if n == 0:              # cas de base
+        return 1
+    return n * factorielle(n - 1)   # problème plus petit</code></pre>
+    <ul><li>Récursivité = une autre façon d'itérer, comme un <code>while</code> : <code>ajoute(a, b) = 1 + ajoute(a, b − 1)</code>, <code>ajoute(a, 0) = a</code>.</li><li>Tours de Hanoï : hanoi(n + 1) = hanoi(n) + un déplacement + hanoi(n), soit 2ⁿ − 1 déplacements.</li><li>Un <code>print</code> avant l'appel s'exécute en descendant, après l'appel en remontant.</li></ul>
+    <div class="box key"><h5>Complexité</h5>Un appel sur n − 1 et O(nᵏ) opérations en plus : T(n) = T(n − 1) + O(nᵏ) = O(nᵏ⁺¹) (donc O(n) si le reste est en O(1)). Un appel sur n // 2 : O(log n). Deux appels sur n − 1 : O(2ⁿ) (Fibonacci naïf).</div>
+    <div class="box warn"><h5>Pièges</h5>Oublier un cas de base (est_pair : 0 <b>et</b> 1) · un pas qui saute le cas de base (n − 2 avec n impair) · <code>return</code> manquant devant l'appel récursif · au DS, on peut demander de justifier la terminaison : un entier positif diminue strictement à chaque appel.</div>`],
+  ['12. Graphes (chapitre 6)', 'représentations et vocabulaire', `<p>Graphe <b>orienté</b> G = (S, A) : des sommets et des arcs (a, b). <b>Non orienté</b> : des arêtes {a, b}, codées en Python comme le graphe orienté symétrique.</p>
+    <table class="t"><tr><th>Représentation</th><th>Graphe 1 du cours (arcs (0,1), (0,3), (1,4), (2,4), (2,5), (3,1), (4,3))</th></tr><tr><td>matrice d'adjacence</td><td>M[i][j] = 1 s'il y a un arc de i vers j (n × n cases)</td></tr><tr><td>liste de listes d'adjacence</td><td><code>L = [[1, 3], [4], [4, 5], [1], [3], []]</code>, L[i] = voisins de i</td></tr><tr><td>dictionnaire de listes</td><td>quand les sommets ne sont pas 0 … n − 1 : <code>D["x"] = ["v", "z"]</code></td></tr></table>
+    <ul><li>Degré sortant d⁺(u) = len(L[u]) ; degré entrant d⁻(u) = nombre de 1 dans la colonne u de M. Non orienté : degré d(u).</li><li><b>Chemin</b> : suite de sommets reliés par des arcs, de <b>longueur</b> = nombre d'arcs. <b>Cycle</b> : chemin qui revient à son départ. v <b>accessible</b> depuis u s'il existe un chemin de u à v. <b>Connexe</b> (non orienté) : deux sommets quelconques sont reliés par un chemin.</li></ul>
+    <div class="box key"><h5>À savoir écrire</h5>Liste des arcs → L : créer n listes vides, puis <code>L[a].append(b)</code> pour chaque (a, b) : O(n + m). → M : n listes <code>[0] * n</code>, puis <code>M[a][b] = 1</code> : O(n²). Réciproque : <code>R[j].append(i)</code> pour chaque j de L[i].</div>
+    <div class="box warn"><h5>Pièges</h5><code>[[0] * n] * n</code> crée n fois <b>la même</b> ligne (une modification les change toutes) : construire les lignes dans une boucle. Non orienté : ajouter l'arête dans les deux listes.</div>`],
+  ['13. Piles, files et parcours (chapitres 7 et 8)', 'dérouler et coder un parcours', `<p><b>Pile</b> (LIFO, pile d'assiettes) : <code>pile_vide()</code>, <code>est_pile_vide(p)</code>, <code>empiler(s, p)</code>, <code>depiler(p)</code> (renvoie et supprime le sommet), <code>sommet(p)</code>. Avec une liste : <code>append</code> et <code>pop()</code>. <b>File</b> (FIFO, file d'attente) : <code>file_vide()</code>, <code>est_file_vide(f)</code>, <code>ajouter(s, f)</code>, <code>suivant(f)</code> (renvoie et supprime le premier). Le cours ajoute à l'indice 0 (<code>insert(0, s)</code>, coûteux) et retire à la fin.</p>
+    <h4>Parcours depuis un sommet i (liste <code>vus</code> de booléens, résultat <code>res</code>)</h4>
+    <ul><li><b>Largeur</b> (file) : tant que la file n'est pas vide, on sort s, et chaque voisin non vu de s devient vu, va dans res et dans la file. Les sommets sortent par <b>distance croissante</b> : plus courts chemins en nombre d'arcs.</li><li><b>Profondeur</b> (pile) : si le sommet de la pile a un voisin non vu (le premier de sa liste), on l'empile, il devient vu et va dans res ; sinon on dépile. Détecte les <b>cycles</b> : un voisin encore dans la pile.</li></ul>
+    <div class="box key"><h5>Graphe 1 depuis 0</h5>Largeur : [0, 1, 3, 4]. Profondeur : [0, 1, 4, 3]. On marque « vu » au moment où le sommet entre dans la file ou la pile, jamais deux fois.</div>
+    <div class="box warn"><h5>Pièges</h5>Respecter l'ordre des voisins demandé (croissant ou décroissant) · en profondeur, on ne prend qu'<b>un</b> voisin à la fois, puis on repart du nouveau sommet · un sommet non accessible n'apparaît pas dans le parcours.</div>`],
+  ['14. Plus courts chemins : Dijkstra (chapitre 9)', 'tableau dist / pred', `<p>Graphe <b>pondéré</b> : chaque arc a un poids p(e). Poids d'un chemin = somme des poids. Codage : listes de couples (sommet, poids), ou matrice des poids avec <code>None</code> pour « pas d'arc » (pas 0 ni −1, ambigus).</p>
+    <ol style="padding-left:22px"><li>dist(départ) = 0, les autres à l'infini ; aucun sommet traité.</li><li>Prendre le sommet <b>non traité</b> i de plus petite distance ; le marquer traité.</li><li>Pour chaque arc (i, j) : si dist(i) + p(i, j) &lt; dist(j), alors dist(j) ← dist(i) + p(i, j) et pred(j) ← i.</li><li>Recommencer jusqu'à ce que tous les sommets soient traités.</li></ol>
+    <div class="box key"><h5>Au DS</h5>Tenir le tableau ligne par ligne (une ligne par sommet traité, la distance du sommet choisi soulignée). Le chemin se lit en remontant les pred depuis l'arrivée, puis en le retournant.</div>
+    <div class="box warn"><h5>Pièges</h5>Poids <b>positifs</b> obligatoires : avec un arc négatif, un sommet déjà traité pourrait encore baisser (contre-exemple du cours) · on choisit le minimum parmi les sommets <b>non traités</b>, pas parmi les voisins du dernier.</div>`],
+  ['15. Terminaison et correction (chapitre 10)', 'variant et invariant', `<p>Seules les boucles <code>while</code> (et la récursivité) posent problème : un <code>for</code> sur un range ou une liste a un nombre de tours connu.</p>
+    <div class="box key"><h5>Terminaison : le variant</h5>Exhiber une suite d'entiers prise par une variable (ou une expression) qui est <b>strictement décroissante et minorée</b> (ou strictement croissante et majorée) pendant la boucle. Elle est finie, donc la boucle s'arrête. Ex. euclide : b entier, strictement décroissant (b = a % b &lt; b), minoré par 0.</div>
+    <div class="box key"><h5>Correction : l'invariant</h5>Une propriété vraie avant la boucle, et conservée par chaque tour. À la sortie, invariant + condition d'arrêt donnent le résultat. Ex. g(n, b) : invariant n = x × b + y ; à la sortie y &lt; b, donc x est le quotient. ra(n) : s = (d + 1)², d'où d = ⌊√n⌋.</div>
+    <div class="box warn"><h5>Pièges</h5><code>while n != 0: n = n - 1</code> ne termine pas si n &lt; 0 (comparer avec <code>while n &gt; 0</code>) · un variant doit être entier · problème de l'arrêt : aucun programme ne peut décider si n'importe quel programme termine (indécidable).</div>`]
 ];
 function vCours(open) {
-  app.innerHTML = `<div><p class="eyebrow">Chapitres 1 à 4 du cours · DS 1</p><h1>Le cours utile</h1><p class="lede">Le cours de P. Rannou condensé en 9 fiches, plus une sur les exercices du DS de l'an dernier : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
+  // fiches des compétences de ce DS seulement (les fiches 10 à 14 sont pour le DS 2)
+  const FI = new Set(SK.map(k => k.fiche));
+  app.innerHTML = `<div><p class="eyebrow">${CCN === 2 ? 'Tout le cours · DS 2' : 'Chapitres 1 à 4 du cours · DS 1'}</p><h1>Le cours utile</h1><p class="lede">${CCN === 2 ? 'Le cours de P. Rannou condensé : les fiches 1 à 10 du DS 1, puis la récursivité, les graphes, les piles, files et parcours, Dijkstra, la terminaison et la correction (fiches 11 à 15).' : 'Le cours de P. Rannou condensé en 9 fiches, plus une sur les exercices du DS de l\'an dernier'} : définitions, syntaxe Python, méthodes et pièges. Chaque fiche dit à quel type de question elle sert.</p></div>
     ${E.lessonList()}<div id="learnHost" style="display:grid;gap:16px"></div>
-    ${FICHES.map(([t, tag, b], i) => `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>`).join('')}
-    <section class="card"><h2>Après le DS 1</h2><p class="sub">Récursivité (cas de base + appel sur un problème plus petit), graphes (matrice et listes d'adjacence), piles et files, parcours en profondeur et en largeur, graphes pondérés, preuves de programmes : ce sera pour le DS du 7/12 et l'oral de janvier.</p></section>`;
+    ${FICHES.map(([t, tag, b], i) => FI.has(i) ? `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}<span class="tag">${esc(tag)}</span></summary><div class="body">${b}</div></details>` : '').join('')}
+    ${CCN === 1 ? '<section class="card"><h2>Après le DS 1</h2><p class="sub">Récursivité (cas de base + appel sur un problème plus petit), graphes (matrice et listes d\'adjacence), piles et files, parcours en profondeur et en largeur, graphes pondérés, preuves de programmes : c\'est le programme du DS 2 (7/12), déjà prêt sur la page « DS 2 ».</p></section>' : ''}`;
   if (open != null) { const f = $('#fiche' + open); if (f) setTimeout(() => f.scrollIntoView({ behavior: 'smooth' }), 60); }
 }
 
@@ -1017,19 +1392,30 @@ const DUR = 5400;
 // format du DS de l'an dernier (souvenir d'un étudiant) ; EXAM_POLY = l'ancien sujet blanc au format des TD
 const EXAM_PLAN = [['Exercice 1 · QCM (points négatifs)', [['qcm', 2]], 6], ['Exercice 2 · Minimum / maximum', [['minmax', 1]], 3], ['Exercice 3 · Fusionner deux tableaux triés', [['fusion', 1]], 4], ['Exercice 4 · Suites', [['suite', 1]], 3], ['Exercice 5 · Dictionnaires', [['code3', 2]], 4]];
 const EXAM_POLY = [['Exercice 1 · Types et valeurs', [['types', 1]], 4], ['Exercice 2 · Que calcule ce programme ?', [['boucles', 2], ['trace', 2]], 4], ['Exercice 3 · Fonctions, listes, copies et matrices', [['fonc', 1], ['alias', 2], ['list', 1], ['mat', 1]], 4], ['Exercice 4 · Complexité et recherche dichotomique', [['cplx', 1], ['dicho', 0]], 2], ['Exercice 5 · Écrire des fonctions', [['code2', 1], ['code3', 1]], 6]];
-function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM && EXAM.fmt === 'poly' ? EXAM_POLY : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+// DS 2 : les chapitres 5 à 10 (pas d'annales ; exercices des slides et du poly)
+const EXAM_PLAN2 = [['Exercice 1 · Récursivité', [['rec', 1], ['reccode', 1]], 5], ['Exercice 2 · Graphes', [['graphe', 1], ['grcode', 0]], 5], ['Exercice 3 · Piles, files et parcours', [['pile', 1], ['parcours', 0]], 4],
+  ['Exercice 4 · Plus court chemin (Dijkstra)', [['dijkstra', 1]], 3], ['Exercice 5 · Terminaison et correction', [['preuve', 1]], 3]];
+// DS d'un sujet blanc : celui pour lequel il a été commencé (les sujets d'avant le 22/11 sont du DS 1)
+const examCC = () => EXAM ? (EXAM.cc || 1) : CCN;
+function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM && EXAM.fmt === 'poly' ? EXAM_POLY : examCC() === 2 ? EXAM_PLAN2 : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
   if (EXAM) return renderExam();
-  const H = ls.get(HK, []);
+  const H = ls.get(HK, []).filter(r => (r.cc || 1) === CCN);
+  if (CCN === 2) {
+    app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc du DS 2</h1><p class="lede">Les chapitres 5 à 10 : récursivité, lire puis écrire une fonction (5 pts) ; graphes, représentations et une fonction (5 pts) ; piles, files et parcours (4 pts) ; plus court chemin avec Dijkstra (3 pts) ; terminaison et correction (3 pts). Chaque fonction compte pour ¾ de sa question (au prorata des tests réussis), sa complexité pour le reste.</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button>${weakButton()}<span class="fine">Le DS est sur papier : écris d'abord tes fonctions et tes tableaux de Dijkstra à la main, puis recopie.</span></div></section>
+    <section class="card"><h2>Mes copies du DS 2</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+    return;
+  }
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Au format du DS de l'an dernier : QCM à points négatifs (6 pts, 8 questions, +1 / −0,5 / 0), minimum ou maximum (3 pts), fusion de tableaux triés (4 pts), suite (3 pts), dictionnaires un peu plus durs (4 pts). Chaque fonction compte pour ¾ de son exercice (au prorata des tests réussis), sa complexité pour le reste.</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button>${weakButton()}<button type="button" class="btn" data-act="examPoly">Format des TD (ancien sujet blanc)</button><span class="fine">Pour être au plus près du DS, écris d'abord tes fonctions sur papier, puis recopie-les.</span></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
   const exs = examExos(EXAM.seed);
-  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : EXAM.fmt === 'poly' ? 'Format des TD · ' : 'Format de l’an dernier · '}Sujet blanc d'algorithmique</p><h1>DS · 1 h 30</h1></div>`
+  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : EXAM.fmt === 'poly' ? 'Format des TD · ' : examCC() === 2 ? 'Chapitres 5 à 10 · ' : 'Format de l’an dernier · '}Sujet blanc d'algorithmique</p><h1>DS ${examCC()} · 1 h 30</h1></div>`
     + exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
       : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button><span class="fine pyload" id="pyNote"></span></div>`);
@@ -1056,7 +1442,7 @@ async function submitExam(auto) {
   }
   busy = false;
   EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
-  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord() }); ls.set(HK, H);
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)), cc: examCC(), ...examRecord() }); ls.set(HK, H);
   ls.set(EK, Object.assign({}, EXAM, { closed: true }));   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
   renderExam(); window.scrollTo(0, 0);
@@ -1079,7 +1465,7 @@ document.addEventListener('click', e => {
   else if (act === 'next') nextPath();
   else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
   else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
-  else if (act === 'exam' || act === 'examPoly') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false }; if (act === 'examPoly') EXAM.fmt = 'poly'; ls.set(EK, EXAM); renderExam(); }
+  else if (act === 'exam' || act === 'examPoly') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false, cc: act === 'examPoly' ? 1 : CCN }; if (act === 'examPoly') EXAM.fmt = 'poly'; ls.set(EK, EXAM); renderExam(); }
   else if (act === 'submit') submitExam(false);
   else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
 });

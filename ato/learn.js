@@ -58,6 +58,38 @@
     const tbl = (head, rows) => `<table class="t"><tr>${head.map(x => `<th>${x}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(x => `<td>${x}</td>`).join('')}</tr>`).join('')}</table>`;
     const mono = s => `<span style="font-family:ui-monospace,Menlo,Consolas,monospace">${s}</span>`;
 
+    // maille cubique en perspective cavalière : (ox, oy) coin avant bas gauche, s arête,
+    // atomes [x, y, z, couleur, rayon], traits [[x1, y1, z1], [x2, y2, z2], couleur]
+    function cube(ox, oy, s, atoms, segs = []) {
+      const dx = s * 0.45, dy = s * 0.32, P = (x, y, z) => [ox + x * s + z * dx, oy - y * s - z * dy];
+      const E = [[0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1], [1, 0, 0, 1, 1, 0], [1, 0, 0, 1, 0, 1], [0, 1, 0, 1, 1, 0], [0, 1, 0, 0, 1, 1], [0, 0, 1, 1, 0, 1], [0, 0, 1, 0, 1, 1], [1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 1, 1], [0, 1, 1, 1, 1, 1]];
+      const hid = e => (e[0] === 0 && e[1] === 0 && e[2] === 1) || (e[3] === 0 && e[4] === 0 && e[5] === 1);
+      const ln = (a, b, st) => { const [x1, y1] = P(...a), [x2, y2] = P(...b); return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" ${st}/>`; };
+      return E.map(e => ln(e.slice(0, 3), e.slice(3), `style="stroke:var(--ink-2)" stroke-width="1.2"${hid(e) ? ' stroke-dasharray="4 3"' : ''}`)).join('')
+        + segs.map(([a, b, col]) => ln(a, b, `stroke="${col}" stroke-width="3.5" stroke-linecap="round" opacity=".85"`)).join('')
+        + atoms.slice().sort((u, v) => v[2] - u[2]).map(([x, y, z, col, r]) => { const [cx, cy] = P(x, y, z); return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r || s * 0.085}" fill="${col}" stroke="#fff" stroke-width="1.2"/>`; }).join('');
+    }
+    const CORN = []; [0, 1].forEach(x => [0, 1].forEach(y => [0, 1].forEach(z => CORN.push([x, y, z]))));
+    const FACE = [[0.5, 0.5, 0], [0.5, 0.5, 1], [0.5, 0, 0.5], [0.5, 1, 0.5], [0, 0.5, 0.5], [1, 0.5, 0.5]];
+    const EDGE = [[0.5, 0, 0], [0.5, 1, 0], [0.5, 0, 1], [0.5, 1, 1], [0, 0.5, 0], [1, 0.5, 0], [0, 0.5, 1], [1, 0.5, 1], [0, 0, 0.5], [1, 0, 0.5], [0, 1, 0.5], [1, 1, 0.5]];
+    const BLUE = '#2563eb', RED = '#e11d48', ORA = '#f59e0b', GRN = '#16a34a', PUR = '#7c3aed';
+    const CUBES = `<svg class="lfig" viewBox="0 0 420 200" role="img" aria-label="Mailles cubique simple, cubique centrée et cubique à faces centrées, avec la ligne de tangence des atomes">
+      ${cube(14, 150, 80, CORN.map(p => [...p, BLUE]), [[[0, 0, 0], [1, 0, 0], ORA]])}
+      ${cube(152, 150, 80, [...CORN.map(p => [...p, BLUE]), [0.5, 0.5, 0.5, RED]], [[[0, 0, 0], [1, 1, 1], ORA]])}
+      ${cube(290, 150, 80, [...CORN.map(p => [...p, BLUE]), ...FACE.map(p => [...p, RED])], [[[0, 0, 0], [1, 1, 0], ORA]])}
+      <text x="70" y="180" text-anchor="middle" style="${INK};font-weight:700">CS : 1</text><text x="208" y="180" text-anchor="middle" style="${INK};font-weight:700">CC : 2</text><text x="346" y="180" text-anchor="middle" style="${INK};font-weight:700">CFC : 4</text>
+      <text x="210" y="197" text-anchor="middle" style="${INK};font-size:13px">atomes par maille · en orange, la ligne où les atomes se touchent</text></svg>`;
+    const SITES = `<svg class="lfig" viewBox="0 0 420 236" role="img" aria-label="Maille CFC avec un site octaédrique au centre et un site tétraédrique dans un petit cube">
+      ${cube(30, 206, 150, [...CORN.map(p => [...p, BLUE, 10]), ...FACE.map(p => [...p, BLUE, 10]), [0.5, 0.5, 0.5, GRN, 8], [0.25, 0.25, 0.25, PUR, 6]],
+        [[[0.5, 0.5, 0.5], [0.5, 0.5, 0], GRN], [[0.5, 0.5, 0.5], [0.5, 0.5, 1], GRN], [[0.5, 0.5, 0.5], [0.5, 0, 0.5], GRN], [[0.5, 0.5, 0.5], [0.5, 1, 0.5], GRN], [[0.5, 0.5, 0.5], [0, 0.5, 0.5], GRN], [[0.5, 0.5, 0.5], [1, 0.5, 0.5], GRN]])}
+      <circle cx="276" cy="50" r="8" fill="${GRN}"/><text x="290" y="55" style="${INK}">octaédrique</text><text x="290" y="74" style="${INK};font-size:13px">centre du cube</text><text x="290" y="91" style="${INK};font-size:13px">6 voisins</text>
+      <circle cx="276" cy="124" r="6" fill="${PUR}"/><text x="290" y="129" style="${INK}">tétraédrique</text><text x="290" y="148" style="${INK};font-size:13px">centre d'un petit</text><text x="290" y="165" style="${INK};font-size:13px">cube d'arête a/2</text><text x="290" y="182" style="${INK};font-size:13px">4 voisins</text></svg>`;
+    const NACL = `<svg class="lfig" viewBox="0 0 420 236" role="img" aria-label="Maille de NaCl : ions chlorure en CFC, ions sodium au centre et aux milieux des arêtes">
+      ${cube(30, 206, 150, [...CORN.map(p => [...p, GRN, 12]), ...FACE.map(p => [...p, GRN, 12]), ...EDGE.map(p => [...p, PUR, 7]), [0.5, 0.5, 0.5, PUR, 7]], [[[0, 0, 0], [1, 0, 0], ORA]])}
+      <circle cx="282" cy="70" r="12" fill="${GRN}"/><text x="300" y="75" style="${INK}">Cl⁻ : CFC</text>
+      <circle cx="282" cy="112" r="7" fill="${PUR}"/><text x="300" y="117" style="${INK}">Na⁺ : sites</text><text x="300" y="136" style="${INK}">octaédriques</text>
+      <line x1="270" y1="170" x2="296" y2="170" stroke="${ORA}" stroke-width="3.5"/><text x="302" y="175" style="${INK};font-size:13px">a = 2(r⁺ + r⁻)</text></svg>`;
+
     const L = {
       /* =================== I. Structure de l'atome =================== */
       noyau: { title: 'Ce qu\'il y a dans un atome', meth: "\\(Z\\) = protons (c'est l'élément), \\(N = A - Z\\) neutrons, électrons = \\(Z\\) − charge (un cation a <b>perdu</b> des électrons).", steps: [
@@ -445,6 +477,74 @@
           body: `<p>Dans une liaison, l'atome le plus électronégatif tire le doublet vers lui : il porte une charge partielle δ−, l'autre δ+. Chaque liaison a un petit moment dipolaire (une flèche).</p>
             <p>Pour la molécule entière, on <b>additionne les flèches</b>. Dans CO<sub>2</sub>, les deux liaisons C=O sont polarisées, mais elles tirent en sens opposés : la somme est nulle, CO<sub>2</sub> est <b>apolaire</b>. H<sub>2</sub>O est coudée : les deux flèches ne se compensent pas, elle est <b>polaire</b>. La géométrie (VSEPR) décide.</p>`,
           ask: { q: 'Pourquoi l\'eau bout-elle à 100 °C, bien plus haut que H<sub>2</sub>S (−60 °C) ?', items: [choice('réponse', [['h', 'liaisons hydrogène entre molécules d\'eau'], ['m', 'H₂O est plus lourde'], ['c', 'liaisons covalentes plus fortes dans H₂O']], 'h')], why: 'H lié à O (très électronégatif) est attiré par les doublets d\'un O voisin : ces liaisons hydrogène retiennent les molécules entre elles. H₂O est pourtant plus légère que H₂S.' } }
+      ] },
+
+      /* ---------- Cristaux (chap. IV et V de la partie 2, TD VII et VIII) ---------- */
+      maille: { title: 'Ranger des billes : les mailles des métaux', meth: 'compte les atomes (sommet 1/8, arête 1/4, face 1/2, centre 1), trouve la direction où ils se touchent (CS : arête, CC : grande diagonale, CFC : diagonale d\'une face), puis \\(C = Z\\cdot\\frac43\\pi r^3 / a^3\\).', steps: [
+        { h: 'Un métal, ce sont des billes empilées',
+          guess: { q: 'Un atome placé à un sommet du cube est partagé entre combien de mailles ?', items: [int('mailles', 8)] },
+          body: `<p>Le cours assimile les atomes d'un métal à des <b>sphères dures</b>, rangées en couches comme des oranges sur un étal. Le rangement se répète : on décrit le cristal par une petite boîte, la <b>maille</b>, qu'on empile dans les trois directions comme des briques.</p>
+            <p>Un atome posé à un sommet de la boîte est à cheval sur les 8 boîtes qui se touchent en ce point : il ne compte que pour 1/8 dans chacune. Sur une face, il est partagé entre 2 boîtes (1/2) ; sur une arête, entre 4 (1/4) ; au centre, il est entier.</p>${CUBES}`,
+          ask: { q: 'Combien d\'atomes appartiennent à une maille CFC (8 sommets et 6 centres de faces) ?', items: [int('atomes', 4)], why: '\\(8 \\times \\frac18 + 6 \\times \\frac12 = 1 + 3 = 4\\). Les 14 atomes dessinés ne sont pas tous à cette maille.' } },
+        { h: 'Où les billes se touchent',
+          body: `<p>Pour relier la taille de la boîte \\(a\\) au rayon \\(r\\) des atomes, on cherche la ligne sur laquelle ils sont <b>tangents</b> (traits orange ci-dessus) :</p>
+            <ul><li>CS : le long de l'arête, deux atomes : \\(a = 2r\\).</li><li>CC : l'atome du centre touche les sommets, sur la grande diagonale \\(a\\sqrt3\\) : \\(r + 2r + r = 4r\\), donc \\(a\\sqrt3 = 4r\\).</li><li>CFC : l'atome au centre d'une face touche les quatre sommets de cette face, sur la diagonale \\(a\\sqrt2\\) : \\(a\\sqrt2 = 4r\\).</li></ul>
+            <p>Le nombre de voisins tangents est la <b>coordinence</b> : 6 en CS, 8 en CC, 12 en CFC et en HC.</p>`,
+          ask: { q: 'Un métal cubique centré a \\(a = 3{,}00\\) Å. Rayon atomique ?', items: [num('r', 'Å', 3 * Math.sqrt(3) / 4)], why: '\\(r = a\\sqrt3/4 = 3{,}00 \\times 1{,}732 / 4 = 1{,}30\\) Å.' } },
+        { h: 'La compacité : la part de la boîte remplie',
+          body: `<p>Des billes laissent toujours des trous. La <b>compacité</b> est la fraction du volume de la maille occupée par les atomes : \\(C = \\dfrac{Z\\cdot\\frac43\\pi r^3}{a^3}\\). En remplaçant \\(r\\) par son expression en \\(a\\), elle ne dépend plus que du réseau : 0,52 (CS), 0,68 (CC), 0,74 (CFC et HC, le meilleur rangement possible, celui des oranges).</p>`,
+          ask: { q: 'Quelle maille laisse le plus de vide ?', items: [choice('réponse', [['cs', 'cubique simple'], ['cc', 'cubique centré'], ['cfc', 'cubique à faces centrées']], 'cs')], why: 'CS : 48 % de vide (compacité 0,52). CFC : 26 % seulement.' } }
+      ] },
+
+      rho: { title: 'Peser une maille', meth: '\\(\\rho = \\dfrac{Z\\,M}{N_A\\,a^3}\\) : la masse des \\(Z\\) atomes de la maille (\\(Z\\,M/N_A\\)) divisée par son volume \\(a^3\\), avec \\(a\\) en cm pour des g/cm³.', steps: [
+        { h: 'Une maille suffit',
+          guess: { q: 'Si on connaît la masse et le volume d\'une seule maille, connaît-on la masse volumique du métal ?', items: [choice('réponse', [['o', 'oui'], ['n', 'non, il faut un vrai morceau de métal']], 'o')] },
+          body: `<p>Le cristal n'est que la maille répétée : il a la même masse volumique qu'elle. Il suffit de peser une maille et de mesurer son volume.</p>
+            <p>Masse d'un atome : \\(M/N_A\\) (la masse d'une mole divisée par le nombre d'atomes dans une mole). Masse de la maille : \\(Z\\,M/N_A\\). Volume : \\(a^3\\). D'où \\(\\rho = \\dfrac{Z\\,M}{N_A\\,a^3}\\).</p>`,
+          ask: { q: 'Masse d\'un atome de cuivre (\\(M = 63{,}55\\) g/mol), en grammes ?', items: [num('masse d\'un atome (g)', '', 63.55 / 6.022e23)], why: '\\(63{,}55 / 6{,}022\\times10^{23} = 1{,}055\\times10^{-22}\\) g.' } },
+        { h: 'Le piège des unités',
+          body: `<p>On veut des g/cm³ : \\(a\\) doit être en <b>centimètres</b>. 1 Å = 10⁻¹⁰ m = 10⁻⁸ cm, donc 3,61 Å = 3,61·10⁻⁸ cm, et au cube : \\((3{,}61\\times10^{-8})^3 = 47{,}0\\times10^{-24}\\) cm³. Convertir <b>avant</b> d'élever au cube (sinon on oublie un facteur 10¹⁶).</p>`,
+          ask: { q: 'Calcul guidé : le cuivre est CFC (\\(Z = 4\\)), \\(a = 3{,}61\\) Å. Masse volumique ?', items: [num('ρ', 'g/cm³', 4 * 63.55 / (6.022e23 * (3.61e-8) ** 3))], why: '\\(\\rho = \\dfrac{4 \\times 63{,}55}{6{,}022\\times10^{23} \\times 4{,}70\\times10^{-23}} = 8{,}97\\) g/cm³ (valeur réelle : 8,96).' } }
+      ] },
+
+      sites: { title: 'Les trous entre les billes', meth: 'un atome de rayon \\(r\\) entre dans un réseau de rayon \\(R\\) sans le déformer si \\(r \\le 0{,}732R\\) (site cubique), \\(0{,}414R\\) (octaédrique), \\(0{,}225R\\) (tétraédrique) ; un CFC a 4 sites octaédriques et 8 tétraédriques par maille.', steps: [
+        { h: 'Même bien rangées, les billes laissent du vide',
+          guess: { q: 'En CFC (compacité 0,74), quelle part du volume est vide ?', items: [choice('réponse', [['10', '10 %'], ['26', '26 %'], ['50', '50 %']], '26')] },
+          body: `<p>Les vides entre les atomes forment des petites cages, les <b>sites interstitiels</b>. Un site <b>octaédrique</b> est entouré de 6 atomes (les sommets d'un octaèdre) ; un site <b>tétraédrique</b>, de 4. Plus la cage a d'atomes, plus le trou au milieu est grand.</p>${SITES}`,
+          ask: { q: 'Dans un CFC, quel site est le plus grand ?', items: [choice('réponse', [['o', 'octaédrique'], ['t', 'tétraédrique']], 'o')], why: 'Octaédrique : \\(r \\le 0{,}414R\\) ; tétraédrique : \\(r \\le 0{,}225R\\).' } },
+        { h: 'Calcul guidé : la taille du site octaédrique',
+          body: `<p>Le site au centre du cube CFC. Sur une ligne qui va du centre d'une face au centre de la face opposée (longueur \\(a\\)) : un atome A, l'atome inséré B, un atome A : \\(2R + 2r = a\\). Les A se touchent sur la diagonale d'une face : \\(a = 2\\sqrt2\\,R\\). Donc \\(2R + 2r = 2\\sqrt2\\,R\\), \\(r = (\\sqrt2 - 1)R = 0{,}414R\\).</p>`,
+          ask: { q: 'Palladium CFC, \\(R = 1{,}37\\) Å (TD VII) : rayon maximal d\'un atome dans un site octaédrique ? L\'azote (0,74 Å) y entre-t-il ?', items: [num('r_{max}', 'Å', (Math.SQRT2 - 1) * 1.37), choice('azote', [['o', 'oui'], ['n', 'non']], 'n')], why: '\\(0{,}414 \\times 1{,}37 = 0{,}567\\) Å < 0,74 Å : l\'azote déformerait la maille.' } },
+        { h: 'Compter les sites, écrire la formule',
+          body: `<p>CFC : un site octaédrique au centre du cube (1) et un au milieu de chaque arête (12 × 1/4 = 3) : <b>4</b>, autant que d'atomes. Un site tétraédrique au centre de chacun des 8 petits cubes d'arête \\(a/2\\) : <b>8</b>, deux fois plus que d'atomes.</p><p>Si des atomes X remplissent tous les sites octaédriques d'un CFC de M : 4 M pour 4 X, formule MX.</p>`,
+          ask: { q: 'Tous les sites tétraédriques d\'un CFC de M sont occupés par X. Formule ?', items: [choice('formule', [['1', 'MX'], ['2', 'MX₂'], ['3', 'M₂X']], '2')], why: '4 M et 8 X par maille : MX₂.' } }
+      ] },
+
+      ionf: { title: 'Donner et prendre des électrons', meth: 'chaque ion prend la configuration du gaz rare le plus proche (colonnes 1, 2, 13 → +1, +2, +3 ; 15, 16, 17 → −3, −2, −1) ; la formule rend le cristal neutre ; l\'énergie réticulaire croît avec \\(z^+ z^-\\) et quand la distance \\(d\\) diminue.', steps: [
+        { h: 'Pourquoi des ions',
+          guess: { q: 'Le sodium ((Ne) 3s¹) a plutôt tendance à :', items: [choice('réponse', [['p', 'perdre 1 électron'], ['g', 'gagner 7 électrons']], 'p')] },
+          body: `<p>Quand les électronégativités sont très différentes (Δχ &gt; 1,7), l'atome le plus électronégatif ne partage plus le doublet : il le <b>prend</b>. Na perd son électron 3s et devient Na<sup>+</sup> (configuration de Ne), Cl le gagne et devient Cl<sup>−</sup> (configuration de Ar).</p>
+            <p>Les ions s'attirent dans toutes les directions (force électrostatique, non dirigée) : chaque ion s'entoure d'ions de signe contraire, ce qui donne un cristal et non des molécules isolées.</p>`,
+          ask: { q: 'Charge de l\'ion formé par l\'aluminium (\\(Z = 13\\), (Ne) 3s² 3p¹) ?', items: [int('charge', 3)], why: 'Il perd ses 3 électrons de valence : Al³⁺, configuration de Ne.' } },
+        { h: 'La formule : autant de + que de −',
+          body: `<p>Le cristal est neutre. Avec Al<sup>3+</sup> et O<sup>2−</sup> : 2 Al donnent +6, 3 O donnent −6 : Al<sub>2</sub>O<sub>3</sub>. Astuce : la charge de l'un devient l'indice de l'autre, puis on simplifie (Mg<sup>2+</sup> et O<sup>2−</sup> → MgO, pas Mg<sub>2</sub>O<sub>2</sub>).</p>`,
+          ask: { q: 'Formule du composé formé par Mg²⁺ et N³⁻ ?', items: [choice('formule', [['a', 'MgN'], ['b', 'Mg₃N₂'], ['c', 'Mg₂N₃']], 'b')], why: '3 × (+2) + 2 × (−3) = 0 : Mg₃N₂.' } },
+        { h: 'Plus les charges sont grandes, plus le cristal tient',
+          body: `<p>La force entre deux ions vaut \\(\\dfrac{z^+ z^- e^2}{4\\pi\\varepsilon_0 d^2}\\) : elle grandit avec les charges et quand les ions sont proches. L'énergie à fournir pour séparer tous les ions d'une mole de cristal, l'<b>énergie réticulaire</b>, suit la même logique (Born-Landé) :</p>\\[E_r = \\dfrac{N_A\\,A\\,z^+ z^-\\,e^2}{4\\pi\\varepsilon_0\\,d}\\left(1 - \\dfrac1n\\right)\\]<p>CaO (charges 2 et 2, produit 4) et NaCl (1 et 1) ont la même structure et des distances voisines : l'énergie de CaO est environ 4 fois plus grande, il fond à 2973 K contre 1074 K pour NaCl.</p>`,
+          ask: { q: 'MgO ou NaF (même structure, distances voisines) : lequel fond le plus haut ?', items: [choice('réponse', [['m', 'MgO'], ['n', 'NaF']], 'm')], why: 'MgO : \\(z^+ z^- = 4\\), NaF : 1. MgO fond vers 3100 K, NaF vers 1270 K.' } }
+      ] },
+
+      ionc: { title: 'Ranger des ions de deux tailles', meth: 'les anions forment le réseau (CFC ou cubique simple), les cations remplissent des sites ; les ions de signes contraires se touchent : NaCl \\(a = 2(r^+ + r^-)\\), CsCl \\(a\\sqrt3/2 = r^+ + r^-\\), blende ZnS \\(a\\sqrt3/4 = r^+ + r^-\\).', steps: [
+        { h: 'Les gros font la charpente, les petits se glissent dans les trous',
+          guess: { q: 'Dans NaCl, quel ion est le plus gros ?', items: [choice('réponse', [['cl', 'Cl⁻'], ['na', 'Na⁺']], 'cl')] },
+          body: `<p>Un anion a gagné des électrons : il est gros. Un cation en a perdu : il est petit. Les anions forment donc le réseau, et les cations se logent dans ses <b>sites</b>. Dans NaCl, les Cl<sup>−</sup> forment un CFC et les Na<sup>+</sup> occupent tous les sites octaédriques (centre du cube et milieux des arêtes).</p>${NACL}`,
+          ask: { q: 'Combien de motifs NaCl par maille ?', items: [int('motifs', 4)], why: '4 Cl⁻ (CFC) et 4 sites octaédriques tous occupés : 4 Na⁺. Le rapport 1 pour 1 est bien celui de la formule.' } },
+        { h: 'Choisir le site avec r⁺/r⁻',
+          body: `<p>Un cation trop petit pour son site « flotterait » sans toucher ses voisins : ce n'est pas stable. Il occupe le plus grand site qu'il remplit encore, d'après \\(r^+/r^-\\) : de 0,225 à 0,414 → site <b>tétraédrique</b> (blende ZnS) ; de 0,414 à 0,732 → <b>octaédrique</b> (NaCl) ; au-delà de 0,732 → <b>cubique</b> (CsCl, anions en cubique simple, cation au centre).</p>`,
+          ask: { q: 'ZnS : \\(r^+ = 0{,}60\\) Å, \\(r^- = 1{,}84\\) Å. Rapport \\(r^+/r^-\\) et site du cation ?', items: [num('r^+/r^-', '', 0.60 / 1.84), choice('site', [['t', 'tétraédrique'], ['o', 'octaédrique'], ['c', 'cubique']], 't')], why: '0,326 est entre 0,225 et 0,414 : site tétraédrique. Les Zn²⁺ en occupent la moitié (4 sur 8), pour garder ZnS.' } },
+        { h: 'Calcul guidé : la maille de NaCl',
+          body: `<p>Sur l'arête du cube alternent Cl<sup>−</sup>, Na<sup>+</sup>, Cl<sup>−</sup> : \\(a = 2(r^+ + r^-)\\). Avec \\(r^+ = 1{,}02\\) Å et \\(r^- = 1{,}81\\) Å : \\(a = 5{,}66\\) Å. Une maille contient 4 motifs NaCl, \\(M = 58{,}44\\) g/mol.</p>`,
+          ask: { q: 'Masse volumique de NaCl ?', items: [num('ρ', 'g/cm³', 4 * 58.44 / (6.022e23 * (5.66e-8) ** 3), 0.03)], why: '\\(\\rho = \\dfrac{4 \\times 58{,}44}{6{,}022\\times10^{23} \\times (5{,}66\\times10^{-8})^3} = 2{,}14\\) g/cm³ (mesurée : 2,2).' } }
       ] }
     };
     /* ---------- Étapes ajoutées à la partie 2 (liaisons) : exercices guidés au format du CC ---------- */
@@ -468,6 +568,9 @@
           ask: { q: 'Géométries :', items: [choice('CO₂', [['l', 'linéaire'], ['c', 'coudée']], 'l'), choice('NH₃', [['t', 'triangle plan'], ['p', 'pyramide trigonale']], 'p'), choice('SO₂', [['l', 'linéaire'], ['c', 'coudée']], 'c')], why: 'AX₂ : linéaire (180°). AX₃E : pyramide. AX₂E : coudée (environ 119°), le doublet de S repousse les deux O. CO₂ et SO₂ n\'ont pas la même forme malgré une formule voisine.' } }
       ],
       hyb: [
+        { h: 'D\'où vient la liaison : orbitales liantes et antiliantes',
+          body: `<p>Chap. III du cours. Quand les O.A. de deux atomes se recouvrent, elles se combinent (C.L.O.A.) : 2 O.A. donnent 2 orbitales moléculaires. Si les deux ondes sont <b>en phase</b>, elles s'additionnent entre les noyaux : O.M. <b>liante</b>, plus basse en énergie que les O.A., qui colle les atomes. Si elles sont <b>en opposition de phase</b>, elles s'annulent entre les noyaux : O.M. <b>antiliante</b>, plus haute.</p><p>Recouvrement dans l'axe des noyaux : liaison σ ; recouvrement latéral de deux p parallèles : liaison π, qui n'existe que s'il y a déjà une σ.</p>`,
+          ask: { q: 'Une O.M. antiliante a une énergie :', items: [choice('réponse', [['h', 'plus haute que les O.A. de départ'], ['b', 'plus basse que les O.A. de départ'], ['e', 'égale']], 'h')], why: 'Interférence destructive entre les noyaux : l\'orbitale est moins stable que les O.A. séparées. La liante est plus basse.' } },
         { h: 'Exercice guidé : compter σ et π',
           body: `${guided}<p>Molécule d'acétylène H–C≡C–H.</p><ol><li>Chaque liaison simple : 1 σ.</li><li>La triple liaison : 1 σ + 2 π.</li><li>Chaque C est AX₂ : hybridation ?</li></ol>`,
           ask: { q: 'Résultats :', items: [int('liaisons σ', 3), int('liaisons π', 2), choice('hybridation de C', [['sp', 'sp'], ['sp2', 'sp²'], ['sp3', 'sp³']], 'sp')], why: '2 C–H + 1 σ de la triple liaison = 3 σ ; 2 π. AX₂ : sp, molécule linéaire.' } }

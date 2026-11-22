@@ -10,9 +10,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112103"></script>
+<script src="../subjects.js?v=2026112202"></script>
 <script src="../core.js?v=2026112102"></script>
-<script src="learn.js?v=2026102806"></script>
+<script src="learn.js?v=2026112201"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026102803">
 <style>
@@ -147,6 +147,9 @@ const UNITS = {
   'm⁻¹': { 'm-1': 1, 'm⁻¹': 1, 'cm-1': 100, 'cm⁻¹': 100 },
   'g/mol': { 'g/mol': 1, 'g.mol-1': 1, 'gmol-1': 1, g: 1 },
   '%': { '%': 1 },
+  'Å': { 'å': 1, a: 1, ang: 1, nm: 10, pm: 0.01, m: 1e10, cm: 1e8 },
+  'g/cm³': { 'g/cm3': 1, 'g/cm³': 1, 'g.cm-3': 1, 'gcm-3': 1, 'g/ml': 1, 'kg/m3': 1e-3, 'kg/m³': 1e-3, 'kg.m-3': 1e-3, 'kg/l': 1 },
+  'kJ/mol': { 'kj/mol': 1, 'kj.mol-1': 1, 'kjmol-1': 1, 'j/mol': 1e-3, 'j.mol-1': 1e-3 },
   'm/s': { 'm/s': 1, 'm.s-1': 1, 'ms-1': 1, 'km/s': 1e3 }
 };
 function parseNum(input, unit) {
@@ -290,11 +293,11 @@ GEN.iso = (d, g) => {
   const el = d === 1 ? g.pick(three) : g.pick(two), [Z, isos] = ISO[el];
   const Mel = isos.reduce((s, [, M, x]) => s + M * x / 100, 0);
   const table = `<table class="t"><tr><th>Isotope</th><th>Masse molaire (g/mol)</th>${d < 2 ? '<th>Abondance</th>' : ''}</tr>${isos.map(([A, M, x]) => `<tr><td>\\({}^{${A}}\\mathrm{${el}}\\)</td><td>${String(M).replace('.', ',')}</td>${d < 2 ? `<td>${String(x).replace('.', ',')} %</td>` : ''}</tr>`).join('')}</table>`;
-  if (d < 2) return { title: 'Masse molaire d\'un élément naturel', q: `Le ${nom(Z)} naturel est un mélange des isotopes suivants. Calculer sa masse molaire atomique.${table}`,
+  if (d < 2) return { title: 'Masse molaire d\'un élément naturel', q: `${Le(nom(Z))} naturel est un mélange des isotopes suivants. Calculer sa masse molaire atomique.${table}`,
     items: [{ type: 'num', label: 'M', unit: 'g/mol', val: Mel, tol: 0.002 }],
     corr: `<p>La masse molaire de l'élément est la moyenne des masses des isotopes pondérée par leurs abondances :</p>\\[M = \\sum_i x_i M_i = ${isos.map(([, M, x]) => `${String(x / 100).replace('.', '{,}')}\\times ${String(M).replace('.', '{,}')}`).join(' + ')} = ${T(Mel, 5)}\\ \\text{g/mol}\\]` };
   const [[A1, M1, x1], [A2, M2]] = isos, Mg = +Mel.toFixed(3), x = (Mg - M2) / (M1 - M2) * 100;
-  return { title: 'Abondances isotopiques', q: `La masse molaire atomique du ${nom(Z)} naturel vaut ${String(Mg).replace('.', ',')} g/mol. Il est formé des deux isotopes ci-dessous. Calculer leurs proportions.${table}`,
+  return { title: 'Abondances isotopiques', q: `La masse molaire atomique ${du(nom(Z))} naturel vaut ${String(Mg).replace('.', ',')} g/mol. Il est formé des deux isotopes ci-dessous. Calculer leurs proportions.${table}`,
     items: [{ type: 'num', label: `x(^{${A1}}\\mathrm{${el}})`, unit: '%', val: x, tol: 0.01 }, { type: 'num', label: `x(^{${A2}}\\mathrm{${el}})`, unit: '%', val: 100 - x, tol: 0.01 }],
     corr: `<p>Avec \\(x\\) la proportion de \\({}^{${A1}}\\mathrm{${el}}\\) et \\(1 - x\\) celle de \\({}^{${A2}}\\mathrm{${el}}\\) :</p>\\[M = x M_1 + (1-x) M_2 \\Rightarrow x = \\frac{M - M_2}{M_1 - M_2} = \\frac{${String(Mg).replace('.', '{,}')} - ${String(M2).replace('.', '{,}')}}{${String(M1).replace('.', '{,}')} - ${String(M2).replace('.', '{,}')}} = ${T(x / 100, 4)}\\]<p>Soit ${txt(x, 4)} % de \\({}^{${A1}}\\mathrm{${el}}\\) et ${txt(100 - x, 4)} % de \\({}^{${A2}}\\mathrm{${el}}\\).</p>` };
 };
@@ -471,7 +474,7 @@ GEN.prop = (d, g) => {
 };
 
 /* =====================================================================
-   PARTIE 2 · LIAISONS CHIMIQUES (CC du 16/12) : Lewis, charges formelles, VSEPR, hybridation, polarité
+   PARTIE 2 · LIAISONS CHIMIQUES (CC2) : Lewis, charges formelles, VSEPR, hybridation, polarité (cristaux plus bas)
    D'après les chapitres I à III de la partie 2 du cours et les TD IV à VI du poly.
    ===================================================================== */
 const ZOF = { H: 1, Be: 4, B: 5, C: 6, N: 7, O: 8, F: 9, Al: 13, P: 15, S: 16, Cl: 17, Br: 35, Xe: 54 };
@@ -614,6 +617,176 @@ GEN.polar = (d, g) => {
 };
 
 /* =====================================================================
+   PARTIE 2 (suite) · CRISTAUX (CC2) : liaison métallique et cristaux métalliques (chap. IV, Liaisons_Chap4,
+   sur Moodle depuis le 17/11, TD VII), liaison ionique et cristaux ioniques (chap. V, TD VIII).
+   Modèle du cours : sphères dures tangentes. Longueurs en Å, masses volumiques en g/cm³, N_A = 6,022·10²³.
+   ===================================================================== */
+const NA = 6.022e23, R2 = Math.SQRT2, R3 = Math.sqrt(3);
+const fr = (x, n = 3) => String(sig(x, n)).replace('.', ',');
+// élision : « le cuivre », « l'or », « du fer », « de l'azote »
+const VOY = /^[aeiouyéèh]/i, le = s => (VOY.test(s) ? "l'" : 'le ') + s, Le = s => (VOY.test(s) ? "L'" : 'Le ') + s, du = s => (VOY.test(s) ? "de l'" : 'du ') + s, de = s => (VOY.test(s) ? "d'" : 'de ') + s;
+// a = k·r (tangence) ; C : compacité
+const RES = {
+  CS: { nom: 'cubique simple', pos: 'un atome à chacun des 8 sommets du cube', Z: 1, zc: '8 × 1/8 = 1', co: 6, coT: '6 (deux voisins sur chaque axe)', k: 2, tex: 'a = 2r', tg: 'arete', C: Math.PI / 6 },
+  CC: { nom: 'cubique centré', pos: 'un atome à chaque sommet et un au centre du cube', Z: 2, zc: '8 × 1/8 + 1 = 2', co: 8, coT: '8 (l\'atome du centre touche les 8 sommets)', k: 4 / R3, tex: 'a\\sqrt{3} = 4r', tg: 'cube', C: Math.PI * R3 / 8 },
+  CFC: { nom: 'cubique à faces centrées', pos: 'un atome à chaque sommet et un au centre de chaque face', Z: 4, zc: '8 × 1/8 + 6 × 1/2 = 4', co: 12, coT: '12 (4 dans son plan, 4 au-dessus, 4 au-dessous)', k: 2 * R2, tex: 'a\\sqrt{2} = 4r', tg: 'face', C: Math.PI * R2 / 6 }
+};
+const TG = { arete: 'suivant l\'arête du cube', face: 'suivant la diagonale d\'une face', cube: 'suivant la grande diagonale du cube' };
+const TG_OPTS = Object.keys(TG).map(k => ({ v: k, t: TG[k] }));
+// métaux : [symbole, nom, réseau, a (Å), M (g/mol)]
+const MET = [['Po', 'polonium', 'CS', 3.35, 209.0], ['Li', 'lithium', 'CC', 3.50, 6.94], ['Na', 'sodium', 'CC', 4.29, 22.99], ['K', 'potassium', 'CC', 5.33, 39.10], ['Fe', 'fer α', 'CC', 2.86, 55.85],
+  ['Cr', 'chrome', 'CC', 2.88, 52.00], ['W', 'tungstène', 'CC', 3.16, 183.8], ['Cu', 'cuivre', 'CFC', 3.61, 63.55], ['Ag', 'argent', 'CFC', 4.09, 107.9], ['Au', 'or', 'CFC', 4.08, 197.0],
+  ['Al', 'aluminium', 'CFC', 4.05, 26.98], ['Ni', 'nickel', 'CFC', 3.52, 58.69], ['Pd', 'palladium', 'CFC', 3.88, 106.4], ['Pb', 'plomb', 'CFC', 4.95, 207.2]];
+const rhoOf = (Z, M, a) => Z * M / (NA * (a * 1e-8) ** 3);   // a en Å → g/cm³
+const rhoTex = (Z, M, a, v) => `\\rho = \\dfrac{Z\\,M}{N_A\\,a^3} = \\dfrac{${Z} \\times ${T(M, 4)}}{6{,}022\\times10^{23} \\times (${T(a, 4)}\\times10^{-8})^3} = ${T(v, 3)}\\ \\text{g/cm}^3`;
+const RHO_NOTE = '<p class="fine">Masse volumique = masse des atomes de la maille / volume de la maille : \\(\\rho = \\dfrac{Z\\,M}{N_A\\,a^3}\\), avec \\(a\\) en cm (1 Å = 10⁻⁸ cm) pour obtenir des g/cm³.</p>';
+const NA_DATA = '<p class="fine" style="margin-top:8px">Données : \\(N_A = 6{,}022\\times10^{23}\\) mol⁻¹ · 1 Å = 10⁻¹⁰ m = 10⁻⁸ cm.</p>';
+
+GEN.maille = (d, g) => {
+  if (d === 0) {
+    const t = g.pick(['CS', 'CC', 'CFC']), R = RES[t];
+    return { title: 'Maille cubique', q: `Maille ${R.nom} (${R.pos}), atomes assimilés à des sphères dures tangentes. Combien d'atomes appartiennent en propre à la maille ? Quelle est la coordinence d'un atome ? Suivant quelle direction les atomes se touchent-ils ?`,
+      items: [{ type: 'int', label: 'atomes par maille', val: R.Z }, { type: 'int', label: 'coordinence', val: R.co }, { type: 'choice', label: 'tangence', opts: TG_OPTS, ans: R.tg }],
+      corr: `<p>Un atome au sommet est partagé entre 8 mailles (il compte pour 1/8), au centre d'une face entre 2 (1/2), au milieu d'une arête entre 4 (1/4) ; au centre du cube, il compte 1. Ici : <b>${R.zc}</b> atome${R.Z > 1 ? 's' : ''} par maille.</p><p>Coordinence (nombre de voisins tangents) : <b>${R.coT}</b>. Les atomes se touchent <b>${TG[R.tg]}</b> : \\(${R.tex}\\).</p>
+        <table class="t"><tr><th></th><th>CS</th><th>CC</th><th>CFC</th></tr><tr><td>atomes / maille</td><td>1</td><td>2</td><td>4</td></tr><tr><td>coordinence</td><td>6</td><td>8</td><td>12</td></tr><tr><td>tangence</td><td>\\(a = 2r\\)</td><td>\\(a\\sqrt3 = 4r\\)</td><td>\\(a\\sqrt2 = 4r\\)</td></tr><tr><td>compacité</td><td>0,52</td><td>0,68</td><td>0,74</td></tr></table>` };
+  }
+  if (d === 1) {
+    const m = g.pick(MET.filter(x => x[2] !== 'CS')), R = RES[m[2]], a = m[3], r = a / R.k;
+    return { title: 'Rayon atomique et compacité', q: `${Le(m[1])} (${m[0]}) cristallise dans le système ${R.nom}, de paramètre de maille \\(a = ${T(a)}\\) Å. Les atomes sont des sphères tangentes. Calculer le rayon atomique \\(r\\), la distance entre deux plus proches voisins, puis la compacité de la structure (nombre entre 0 et 1).`,
+      items: [{ type: 'num', label: 'r', val: r, unit: 'Å', tol: 0.02 }, { type: 'num', label: 'distance entre plus proches voisins', val: 2 * r, unit: 'Å', tol: 0.02 }, { type: 'num', label: 'compacité', val: R.C, unit: '', tol: 0.02 }],
+      corr: `<p>En ${R.nom}, les atomes se touchent ${TG[R.tg]} : \\(${R.tex}\\), donc \\(r = ${T(a)} / ${T(R.k, 4)} = ${T(r)}\\) Å. Deux voisins tangents sont à \\(2r = ${T(2 * r)}\\) Å.</p>
+        <p>Compacité = volume des atomes / volume de la maille : \\(C = \\dfrac{Z \\cdot \\frac43\\pi r^3}{a^3} = \\dfrac{${R.Z} \\times \\frac43\\pi \\times ${T(r)}^3}{${T(a)}^3} = ${T(R.C)}\\).</p><p class="fine">La compacité ne dépend que du réseau (pas du métal) : 0,52 en CS, 0,68 en CC, 0,74 en CFC et en HC, les plus compacts (26 % de vide, qui forme les sites interstitiels).</p>` };
+  }
+  if (g.r() < 0.5) {
+    const m = g.pick([['magnésium', 'Mg'], ['zinc', 'Zn'], ['titane', 'Ti'], ['cobalt', 'Co']]);
+    return { title: 'Hexagonal compact', q: `${Le(m[0])} (${m[1]}) cristallise dans le système hexagonal compact (empilement ABAB… de plans compacts). Combien d'atomes compte la grande maille hexagonale (prisme droit à base hexagonale) ? Quelle est la coordinence ? Quel est le rapport \\(c/a\\) pour des sphères tangentes ? Quelle est la compacité ?`,
+      items: [{ type: 'int', label: 'atomes dans la grande maille', val: 6 }, { type: 'int', label: 'coordinence', val: 12 }, { type: 'num', label: 'c/a', val: 2 * Math.sqrt(2 / 3), unit: '', tol: 0.01 }, { type: 'num', label: 'compacité', val: Math.PI * R2 / 6, unit: '', tol: 0.02 }],
+      corr: `<p>Grande maille : 12 sommets partagés entre 6 prismes, 2 centres de bases partagés entre 2, 3 atomes à l'intérieur (plan B) : \\(12 \\times \\frac16 + 2 \\times \\frac12 + 3 = 6\\) atomes. La maille élémentaire (prisme à base losange) en est le tiers : <b>2</b> atomes.</p>
+        <p>Coordinence : 6 voisins dans le plan, 3 au-dessus, 3 au-dessous : <b>12</b>.</p><p>Un atome du plan B est posé sur 3 atomes du plan A : ils forment un tétraèdre régulier d'arête \\(a = 2r\\), de hauteur \\(a\\sqrt{2/3}\\). La maille va de A à A, donc \\(c = 2a\\sqrt{2/3}\\) : <b>\\(c/a = 1{,}633\\)</b>.</p><p>Compacité : la même qu'en CFC, <b>0,74</b>. HC (ABAB…) et CFC (ABCABC…) sont deux façons d'empiler les mêmes plans compacts.</p>` };
+  }
+  return { title: 'Compacités comparées', q: 'Pour des sphères dures tangentes, exprimer \\(r\\) en fonction de \\(a\\) dans les mailles cubique centrée et cubique à faces centrées, puis calculer leurs compacités. Laquelle est la plus compacte ?',
+    items: [{ type: 'num', label: 'compacité du CC', val: RES.CC.C, unit: '', tol: 0.01 }, { type: 'num', label: 'compacité du CFC', val: RES.CFC.C, unit: '', tol: 0.01 }, { type: 'choice', label: 'la plus compacte', opts: [{ v: 'CC', t: 'CC' }, { v: 'CFC', t: 'CFC' }], ans: 'CFC' }],
+    corr: `<p>CC : 2 atomes, tangents sur la grande diagonale, \\(a\\sqrt3 = 4r\\) : \\(C = \\dfrac{2 \\cdot \\frac43\\pi r^3}{a^3} = \\dfrac{\\pi\\sqrt3}{8} = 0{,}68\\).</p><p>CFC : 4 atomes, tangents sur la diagonale d'une face, \\(a\\sqrt2 = 4r\\) : \\(C = \\dfrac{4 \\cdot \\frac43\\pi r^3}{a^3} = \\dfrac{\\pi\\sqrt2}{6} = 0{,}74\\) : le <b>CFC</b> est plus compact.</p><p class="fine">CS : \\(a = 2r\\), \\(C = \\pi/6 = 0{,}52\\). La compacité maximale pour des sphères identiques est 0,74 (CFC et HC).</p>` };
+};
+
+// alliages de substitution : CFC d'atomes A, les atomes B remplacent ceux des sommets (TD VII ex. 4)
+const ALLOY = [{ A: 'Fe', B: 'Al', nA: 'fer', nB: 'aluminium', rA: 1.26, rB: 1.43, MA: 55.85, MB: 26.98 }, { A: 'Cu', B: 'Au', nA: 'cuivre', nB: 'or', rA: 1.28, rB: 1.44, MA: 63.55, MB: 197.0 }, { A: 'Ni', B: 'Al', nA: 'nickel', nB: 'aluminium', rA: 1.25, rB: 1.43, MA: 58.69, MB: 26.98 }];
+GEN.rho = (d, g) => {
+  if (d < 2) {
+    const m = g.pick(MET), R = RES[m[2]], M = m[4];
+    const a = d === 0 ? m[3] : R.k * sig(m[3] / R.k, 3), r = sig(m[3] / R.k, 3), rho = rhoOf(R.Z, M, a);
+    const items = d === 0 ? [{ type: 'num', label: 'ρ', val: rho, unit: 'g/cm³', tol: 0.02 }] : [{ type: 'num', label: 'a', val: a, unit: 'Å', tol: 0.02 }, { type: 'num', label: 'ρ', val: rho, unit: 'g/cm³', tol: 0.03 }];
+    return { title: 'Masse volumique d\'un métal', q: d === 0 ? `${Le(m[1])} (${m[0]}, \\(M = ${T(M, 4)}\\) g/mol) cristallise dans le système ${R.nom}, de paramètre \\(a = ${T(a)}\\) Å. Calculer sa masse volumique en g/cm³.` + NA_DATA
+      : `${Le(m[1])} (${m[0]}, \\(M = ${T(M, 4)}\\) g/mol) cristallise dans le système ${R.nom} ; son rayon atomique vaut \\(r = ${T(r)}\\) Å (sphères tangentes). Calculer le paramètre de maille \\(a\\), puis la masse volumique.` + NA_DATA, items,
+      corr: `${d === 1 ? `<p>Tangence ${TG[R.tg]} : \\(${R.tex}\\), donc \\(a = ${T(R.k, 4)} \\times ${T(r)} = ${T(a)}\\) Å.</p>` : ''}<p>${R.nom[0].toUpperCase() + R.nom.slice(1)} : \\(Z = ${R.zc.replace(/ /g, '\\,').replace(/×/g, '\\times')}\\) atome${R.Z > 1 ? 's' : ''} par maille.</p>\\[${rhoTex(R.Z, M, a, rho)}\\]${RHO_NOTE}` };
+  }
+  const v = g.r();
+  if (v < 0.34) {
+    const m = g.pick(MET), R = RES[m[2]], M = m[4], rho = sig(rhoOf(R.Z, M, m[3]), 3), a = Math.cbrt(R.Z * M / (NA * rho)) * 1e8, r = a / R.k;
+    return { title: 'Du paramètre de maille au rayon', q: `${Le(m[1])} (${m[0]}, \\(M = ${T(M, 4)}\\) g/mol) cristallise dans le système ${R.nom}. Sa masse volumique vaut \\(\\rho = ${T(rho)}\\) g/cm³. En déduire le paramètre de maille \\(a\\) et le rayon atomique \\(r\\) (sphères tangentes).` + NA_DATA,
+      items: [{ type: 'num', label: 'a', val: a, unit: 'Å', tol: 0.02 }, { type: 'num', label: 'r', val: r, unit: 'Å', tol: 0.02 }],
+      corr: `<p>\\(Z = ${R.Z}\\). De \\(\\rho = \\dfrac{Z M}{N_A a^3}\\) : \\(a^3 = \\dfrac{Z M}{N_A \\rho} = \\dfrac{${R.Z} \\times ${T(M, 4)}}{6{,}022\\times10^{23} \\times ${T(rho)}} = ${T((a * 1e-8) ** 3)}\\ \\text{cm}^3\\), soit \\(a = ${T(a * 1e-8)}\\) cm = <b>${T(a)} Å</b>.</p><p>Tangence ${TG[R.tg]} : \\(${R.tex}\\), donc \\(r = a / ${T(R.k, 4)} = \\) <b>${T(r)} Å</b>.</p>` };
+  }
+  if (v < 0.67) {
+    const x = g.pick(ALLOY), a = (2 * x.rA + 2 * x.rB) / R2, M = 3 * x.MA + x.MB, rho = rhoOf(1, M, a);
+    return { title: 'Alliage de substitution', q: `Un alliage ${x.nA}-${x.nB} dérive de la structure cubique à faces centrées ${du(x.nA)} : les atomes ${de(x.nB)} remplacent les atomes ${de(x.nA)} aux sommets du cube. On le note ${x.A}<sub>x</sub>${x.B}<sub>y</sub>. Rayons métalliques : ${x.A} ${fr(x.rA)} Å, ${x.B} ${fr(x.rB)} Å ; masses molaires : ${x.A} ${fr(x.MA, 4)} g/mol, ${x.B} ${fr(x.MB, 4)} g/mol. Donner x et y (atomes par maille), le paramètre de maille (atomes tangents sur la diagonale d'une face) et la masse volumique.` + NA_DATA,
+      items: [{ type: 'int', label: 'x (atomes de ' + x.A + ')', val: 3 }, { type: 'int', label: 'y (atomes de ' + x.B + ')', val: 1 }, { type: 'num', label: 'a', val: a, unit: 'Å', tol: 0.02 }, { type: 'num', label: 'ρ', val: rho, unit: 'g/cm³', tol: 0.03 }],
+      corr: `<p>Sommets : \\(8 \\times \\frac18 = 1\\) atome de ${x.B} ; centres des faces : \\(6 \\times \\frac12 = 3\\) atomes de ${x.A}. Formule <b>${x.A}<sub>3</sub>${x.B}</b> (x = 3, y = 1).</p><p>Sur la diagonale d'une face : un ${x.B} au sommet, un ${x.A} au centre de la face, un ${x.B} au sommet opposé : \\(a\\sqrt2 = 2r_{${x.B}} + 2r_{${x.A}}\\), \\(a = \\dfrac{2 \\times ${T(x.rB)} + 2 \\times ${T(x.rA)}}{\\sqrt2} = ${T(a)}\\) Å.</p><p>Masse de la maille : \\(\\dfrac{3 M_{${x.A}} + M_{${x.B}}}{N_A}\\) :</p>\\[\\rho = \\dfrac{3 \\times ${T(x.MA, 4)} + ${T(x.MB, 4)}}{6{,}022\\times10^{23} \\times (${T(a, 4)}\\times10^{-8})^3} = ${T(rho)}\\ \\text{g/cm}^3\\]` };
+  }
+  const k = g.pick([22, 18, 14]), w = k / 24, xa = (w / 197.0) / (w / 197.0 + (1 - w) / 63.55), M = xa * 197.0 + (1 - xa) * 63.55, rho = rhoOf(4, M, 4.08);
+  return { title: 'Or et carats (alliage Au-Cu)', q: `Un bijou en or ${k} carats contient ${k}/24 de sa masse en or ; le reste est du cuivre, qui remplace des atomes d'or dans la maille cubique à faces centrées de l'or (\\(a = 4{,}08\\) Å, supposé inchangé). \\(M\\)(Au) = 197,0 g/mol, \\(M\\)(Cu) = 63,55 g/mol. Calculer le pourcentage d'atomes d'or, puis la masse volumique de l'alliage.` + NA_DATA,
+    items: [{ type: 'num', label: 'atomes d\'or', val: xa * 100, unit: '%', tol: 0.02 }, { type: 'num', label: 'ρ', val: rho, unit: 'g/cm³', tol: 0.03 }],
+    corr: `<p>Pour 100 g d'alliage : \\(${T(100 * w)}\\) g d'or soit \\(${T(100 * w)}/197{,}0 = ${T(100 * w / 197)}\\) mol, et \\(${T(100 - 100 * w)}\\) g de cuivre soit \\(${T(100 * (1 - w) / 63.55)}\\) mol. Fraction d'atomes d'or : \\(x = ${T(xa)}\\), soit <b>${T(100 * xa)} %</b>.</p><p>Masse molaire moyenne d'un atome de la maille : \\(\\bar M = x\\,M_{Au} + (1 - x)\\,M_{Cu} = ${T(M, 4)}\\) g/mol, 4 atomes par maille :</p>\\[\\rho = \\dfrac{4 \\times ${T(M, 4)}}{6{,}022\\times10^{23} \\times (4{,}08\\times10^{-8})^3} = ${T(rho)}\\ \\text{g/cm}^3\\]<p class="fine">Or pur : 19,3 g/cm³. Si la masse volumique mesurée est plus faible que prévu, le bijou contient moins d'or qu'annoncé.</p>` };
+};
+
+// Sites interstitiels (chap. IV, IV.3.c) : r/R maximal = √3 − 1 (cubique), √2 − 1 (octaédrique), √(3/2) − 1 (tétraédrique)
+const SITE = { cub: { nom: 'cubique', q: R3 - 1, qt: '\\sqrt3 - 1' }, oct: { nom: 'octaédrique', q: R2 - 1, qt: '\\sqrt2 - 1' }, tet: { nom: 'tétraédrique', q: Math.sqrt(1.5) - 1, qt: '\\sqrt{3/2} - 1' } };
+const SITE_OPTS = [{ v: '0.225', t: '0,225' }, { v: '0.414', t: '0,414' }, { v: '0.732', t: '0,732' }];
+const NSITE = { CFC: { oct: 4, tet: 8, octT: 'centre du cube (1) + milieux des 12 arêtes (12 × 1/4 = 3) = 4', tetT: 'centres des 8 petits cubes d\'arête a/2 = 8' }, CC: { oct: 6, tet: 12, octT: 'centres des faces (6 × 1/2 = 3) + milieux des arêtes (12 × 1/4 = 3) = 6', tetT: '4 par face, partagés entre 2 mailles : 4 × 6 × 1/2 = 12' } };
+const HOST = [['Pd', 'palladium', 1.37], ['Ni', 'nickel', 1.25], ['Cu', 'cuivre', 1.28], ['Fe', 'fer γ', 1.29], ['Al', 'aluminium', 1.43], ['Ag', 'argent', 1.44], ['Au', 'or', 1.44]];
+const GUEST = [['H', 'hydrogène', 0.37], ['N', 'azote', 0.74], ['C', 'carbone', 0.77], ['B', 'bore', 0.88]];
+GEN.sites = (d, g) => {
+  if (d === 0) {
+    const t = g.pick(['CFC', 'CFC', 'CC']), S = NSITE[t];
+    const third = t === 'CFC' ? { type: 'choice', label: 'r/R maximal d\'un site octaédrique', opts: SITE_OPTS, ans: '0.414' }
+      : { type: 'choice', label: 'r/R maximal d\'un site cubique (au centre d\'un cube d\'atomes tangents)', opts: SITE_OPTS, ans: '0.732' };
+    return { title: 'Sites interstitiels', q: `Dans une maille ${RES[t].nom}, combien y a-t-il de sites octaédriques et de sites tétraédriques par maille ? Puis rapport maximal \\(r/R\\) entre un atome inséré (rayon \\(r\\)) et les atomes du réseau (rayon \\(R\\)).`,
+      items: [{ type: 'int', label: 'sites octaédriques', val: S.oct }, { type: 'int', label: 'sites tétraédriques', val: S.tet }, third],
+      corr: `<p>Sites octaédriques : ${S.octT}. Sites tétraédriques : ${S.tetT}.</p><p>Rapports limites (atome inséré tangent à ceux de la cage) : site cubique \\(r = (\\sqrt3 - 1)R = 0{,}732R\\) ; octaédrique \\(r = (\\sqrt2 - 1)R = 0{,}414R\\) ; tétraédrique \\(r = (\\sqrt{3/2} - 1)R = 0{,}225R\\). Plus la cage a d'atomes, plus le site est grand.</p>` };
+  }
+  if (d === 1) {
+    const h = g.pick(HOST), x = g.pick(GUEST), s = g.pick(['oct', 'oct', 'tet']), rmax = SITE[s].q * h[2], fits = x[2] <= rmax, fo = s === 'oct' ? `${h[0]}${x[0]}` : `${h[0]}${x[0]}<sub>2</sub>`;
+    const forms = [`${h[0]}${x[0]}`, `${h[0]}${x[0]}<sub>2</sub>`, `${h[0]}<sub>2</sub>${x[0]}`, `${h[0]}${x[0]}<sub>4</sub>`];
+    return { title: 'Peut-on insérer un atome ?', q: `${Le(h[1])} (${h[0]}, rayon \\(R = ${T(h[2])}\\) Å) cristallise en cubique à faces centrées. Calculer le rayon maximal d'un atome placé dans un site ${SITE[s].nom} sans déformer la maille. ${Le(x[1])} (rayon ${fr(x[2])} Å) peut-il s'y placer ? Quelle serait la formule du composé si tous les sites ${SITE[s].nom}s étaient occupés ?`,
+      items: [{ type: 'num', label: 'rayon maximal du site', val: rmax, unit: 'Å', tol: 0.02 }, { type: 'choice', label: x[0] + ' entre sans déformer la maille', opts: [{ v: 'o', t: 'oui' }, { v: 'n', t: 'non' }], ans: fits ? 'o' : 'n' }, { type: 'choice', label: 'formule (tous ces sites occupés)', opts: forms.map(f => ({ v: f, t: f })), ans: fo }],
+      corr: `<p>Site ${SITE[s].nom} : \\(r_{max} = (${SITE[s].qt})R = ${T(SITE[s].q, 3)} \\times ${T(h[2])} = ${T(rmax)}\\) Å. ${Le(x[1])} (${fr(x[2])} Å) ${fits ? '<b>peut</b> s\'y placer' : '<b>ne peut pas</b> s\'y placer sans écarter les atomes'} : ${fr(x[2])} ${fits ? '≤' : '>'} ${fr(rmax)}.</p><p>Par maille CFC : 4 atomes de ${h[0]}, ${s === 'oct' ? '4 sites octaédriques' : '8 sites tétraédriques'} : formule <b>${fo}</b>.</p>` };
+  }
+  const cases = [['tet', 0.5, 4, 'AB', 'la moitié des sites tétraédriques'], ['tet', 1, 8, 'AB<sub>2</sub>', 'tous les sites tétraédriques'], ['oct', 1, 4, 'AB', 'tous les sites octaédriques'], ['oct', 0.5, 2, 'A<sub>2</sub>B', 'la moitié des sites octaédriques'], ['both', 1, 12, 'AB<sub>3</sub>', 'tous les sites octaédriques et tétraédriques']];
+  const [s, , nB, fo, txtS] = g.pick(cases), st = s === 'both' ? 'oct' : s;
+  return { title: 'Sites occupés et formule', q: `Des atomes A forment un réseau cubique à faces centrées ; des atomes B plus petits occupent ${txtS}. Combien d'atomes B compte une maille ? Quelle est la formule ? Quel est le rapport \\(r/R\\) maximal d'un site ${SITE[st].nom} (à démontrer sur papier) ?`,
+    items: [{ type: 'int', label: 'atomes B par maille', val: nB }, { type: 'choice', label: 'formule', opts: ['AB', 'AB<sub>2</sub>', 'A<sub>2</sub>B', 'AB<sub>3</sub>', 'A<sub>4</sub>B'].map(f => ({ v: f, t: f })), ans: fo }, { type: 'num', label: 'r/R maximal', val: SITE[st].q, unit: '', tol: 0.01 }],
+    corr: `<p>Une maille CFC contient 4 atomes A, 4 sites octaédriques et 8 tétraédriques. B occupe ${txtS} : <b>${nB}</b> atomes B pour 4 A, formule <b>${fo}</b>.</p>${st === 'oct' ? `<p>Site octaédrique (centre du cube) : A et B se touchent sur l'arête, \\(2R + 2r = a\\) ; les A se touchent sur la diagonale d'une face, \\(4R = a\\sqrt2\\). D'où \\(2R + 2r = 2\\sqrt2\\,R\\), \\(r/R = \\sqrt2 - 1 = 0{,}414\\).</p>` : `<p>Site tétraédrique (centre d'un petit cube d'arête \\(a/2\\)) : A et B se touchent sur la demi-diagonale de ce petit cube, \\(R + r = \\frac{a}{2}\\cdot\\frac{\\sqrt3}{2}\\) ; les A sur la diagonale d'une face, \\(a = 2\\sqrt2\\,R\\). D'où \\(R + r = \\sqrt{3/2}\\,R\\), \\(r/R = 0{,}225\\).</p>`}<p class="fine">Exemples : blende ZnS (Zn<sup>2+</sup> dans la moitié des sites tétraédriques du CFC de S<sup>2−</sup>), NaCl (Na<sup>+</sup> dans tous les sites octaédriques du CFC de Cl<sup>−</sup>).</p>` };
+};
+
+// Composés ioniques (chap. V, TD VIII ex. 1 et 6) : ions du gaz rare le plus proche, électroneutralité, Born-Landé
+const CAT = { 3: 1, 11: 1, 19: 1, 12: 2, 20: 2, 56: 2, 13: 3 }, ANI = { 9: -1, 17: -1, 35: -1, 8: -2, 16: -2, 7: -3 };
+const GAZ = { 3: 'He', 11: 'Ne', 12: 'Ne', 13: 'Ne', 19: 'Ar', 20: 'Ar', 56: 'Xe', 9: 'Ne', 8: 'Ne', 7: 'Ne', 17: 'Ar', 16: 'Ar', 35: 'Kr' };
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+const ionForm = (c, a, x, y) => `${sym(c)}${x > 1 ? '<sub>' + x + '</sub>' : ''}${sym(a)}${y > 1 ? '<sub>' + y + '</sub>' : ''}`;
+const sgn = q => q > 0 ? '+' + q : '−' + -q;
+// type NaCl, A = 1,75, n = 9 : [formule, z, d (Å)]
+const BL = [['NaCl', 1, 2.81], ['KCl', 1, 3.14], ['LiF', 1, 2.01], ['NaF', 1, 2.31], ['CaO', 2, 2.40], ['MgO', 2, 2.10], ['CaS', 2, 2.84], ['BaO', 2, 2.76]];
+const blE = (z, dA) => 6.022e23 * 1.75 * z * z * (1.602e-19) ** 2 * 9e9 / (dA * 1e-10) * (1 - 1 / 9) / 1000;   // kJ/mol
+GEN.ionf = (d, g) => {
+  if (d < 2) {
+    const pairs = d === 0 ? [[3, 9], [11, 17], [11, 8], [12, 16], [20, 17], [19, 35], [12, 8], [20, 9]] : [[13, 8], [12, 7], [13, 9], [3, 7], [56, 17], [13, 16], [11, 16], [19, 8]];
+    const [c, a] = g.pick(pairs), qc = CAT[c], qa = ANI[a], m = gcd(qc, -qa), x = -qa / m, y = qc / m, fo = ionForm(c, a, x, y);
+    const forms = [...new Set([fo, ionForm(c, a, 1, 1), ionForm(c, a, y, x), ionForm(c, a, 1, 2), ionForm(c, a, 2, 1), ionForm(c, a, 2, 3), ionForm(c, a, 3, 2)])];
+    const items = [{ type: 'int', label: `charge de l'ion ${du(nom(c))}`, val: qc }, { type: 'int', label: `charge de l'ion ${du(nom(a))}`, val: qa }, { type: 'choice', label: 'formule du composé', opts: g.shuffle([fo, ...g.shuffle(forms.filter(f => f !== fo)).slice(0, 3)]).map(f => ({ v: f, t: f })), ans: fo }];
+    if (d === 1) items.push({ type: 'choice', label: `ion ${du(nom(c))} : configuration du gaz rare`, opts: ['He', 'Ne', 'Ar', 'Kr', 'Xe'].map(z => ({ v: z, t: z })), ans: GAZ[c] });
+    return { title: 'Formule d\'un composé ionique', q: `${Le(nom(c))} (\\(Z = ${c}\\)) et ${le(nom(a))} (\\(Z = ${a}\\)) forment un composé ionique. À partir des configurations électroniques, donner la charge (degré d'oxydation) de chaque ion, puis la formule du composé.`, items,
+      corr: `<p>\\(\\mathrm{${sym(c)}}\\) : \\(${confShortTex(conf(c))}\\) : il perd ses ${qc} électron${qc > 1 ? 's' : ''} de valence et prend la configuration de ${GAZ[c]} : <b>\\(\\mathrm{${sym(c)}}${chargeTex(qc)}\\)</b> (degré d'oxydation ${sgn(qc)}).</p><p>\\(\\mathrm{${sym(a)}}\\) : \\(${confShortTex(conf(a))}\\) : il gagne ${-qa} électron${qa < -1 ? 's' : ''} pour compléter son octet (configuration de ${GAZ[a]}) : <b>\\(\\mathrm{${sym(a)}}${chargeTex(qa)}\\)</b> (${sgn(qa)}).</p><p>Électroneutralité : ${x} × (${sgn(qc)}) + ${y} × (${sgn(qa)}) = 0, formule <b>${fo}</b>.</p>` };
+  }
+  const one = g.pick(BL.filter(b => b[1] === 1)), two = g.r() < 0.75 ? g.pick(BL.filter(b => b[1] === 2)) : g.pick(BL.filter(b => b[1] === 1 && b !== one));
+  const E1 = blE(one[1], one[2]), E2 = blE(two[1], two[2]), hi = E1 > E2 ? one[0] : two[0];
+  return { title: 'Énergie réticulaire (Born-Landé)', q: `${one[0]} et ${two[0]} ont la structure type NaCl. Distances cation–anion : ${fr(one[2])} Å et ${fr(two[2])} Å. Calculer leurs énergies réticulaires avec la relation de Born-Landé \\(E_r = \\dfrac{N_A\\,A\\,z^+ z^-\\,e^2}{4\\pi\\varepsilon_0\\,d}\\left(1 - \\dfrac1n\\right)\\), avec \\(A = 1{,}75\\) (constante de Madelung), \\(n = 9\\), \\(\\dfrac{1}{4\\pi\\varepsilon_0} = 9\\times10^{9}\\) SI, \\(e = 1{,}602\\times10^{-19}\\) C. Lequel fond à la plus haute température ?`,
+    items: [{ type: 'num', label: `E_r(\\mathrm{${one[0]}})`, val: E1, unit: 'kJ/mol', tol: 0.03, abs: true }, { type: 'num', label: `E_r(\\mathrm{${two[0]}})`, val: E2, unit: 'kJ/mol', tol: 0.03, abs: true }, { type: 'choice', label: 'température de fusion la plus haute', opts: [one[0], two[0]].map(f => ({ v: f, t: f })), ans: hi }],
+    corr: `<p>${one[0]} : \\(z^+ z^- = ${one[1] * one[1]}\\), \\(E_r = \\dfrac{6{,}022\\times10^{23} \\times 1{,}75 \\times ${one[1] * one[1]} \\times (1{,}602\\times10^{-19})^2 \\times 9\\times10^9}{${T(one[2])}\\times10^{-10}} \\times \\dfrac89 = ${T(E1 * 1000)}\\) J/mol, soit <b>${T(E1)} kJ/mol</b>.</p><p>${two[0]} : \\(z^+ z^- = ${two[1] * two[1]}\\), <b>${T(E2)} kJ/mol</b>.</p><p>L'énergie réticulaire mesure la cohésion du cristal : plus elle est grande, plus il faut d'énergie pour séparer les ions, plus la température de fusion est haute : <b>${hi}</b>.${one[1] !== two[1] ? ' Le produit des charges passe de 1 à 4 : c\'est lui qui compte le plus (CaO fond à 2973 K, NaCl à 1074 K).' : ' À charges égales, les ions les plus petits (distance d plus courte) donnent le cristal le plus cohésif.'}</p><p class="fine">Le cours peut écrire cette énergie avec un signe − (énergie libérée quand le cristal se forme) : les deux signes sont acceptés ici.</p>` };
+};
+
+// Cristaux ioniques (TD VIII) : anions en CFC (NaCl, blende ZnS) ou en cubique simple (CsCl), cations dans les sites
+const ITY = {
+  NaCl: { nom: 'type NaCl', an: 'CFC', site: 'oct', siteT: 'tous les sites octaédriques', Z: 4, co: 6, k: 2, tex: 'a = 2(r^+ + r^-)', tgT: 'cation et anion se touchent sur l\'arête du cube', dAA: 1 / R2, dAAt: '\\dfrac{a\\sqrt2}{2}', dCAt: '\\dfrac a2' },
+  ZnS: { nom: 'type blende (ZnS)', an: 'CFC', site: 'tet2', siteT: 'la moitié des sites tétraédriques', Z: 4, co: 4, k: 4 / R3, tex: '\\dfrac{a\\sqrt3}{4} = r^+ + r^-', tgT: 'cation et anion se touchent sur le quart de la grande diagonale', dAA: 1 / R2, dAAt: '\\dfrac{a\\sqrt2}{2}', dCAt: '\\dfrac{a\\sqrt3}{4}' },
+  CsCl: { nom: 'type CsCl', an: 'CS', site: 'cub', siteT: 'le site cubique (centre du cube)', Z: 1, co: 8, k: 2 / R3, tex: '\\dfrac{a\\sqrt3}{2} = r^+ + r^-', tgT: 'cation et anion se touchent sur la demi-diagonale du cube', dAA: 1, dAAt: 'a', dCAt: '\\dfrac{a\\sqrt3}{2}' }
+};
+const ISITE = { oct: 'tous les sites octaédriques', tet2: 'la moitié des sites tétraédriques', tet: 'tous les sites tétraédriques', cub: 'le site cubique (centre du cube)' };
+// [formule, type, cation, anion, r+ (Å), r− (Å), M+ , M−]
+const ION = [['NaCl', 'NaCl', 'Na<sup>+</sup>', 'Cl<sup>−</sup>', 1.02, 1.81, 22.99, 35.45], ['MgO', 'NaCl', 'Mg<sup>2+</sup>', 'O<sup>2−</sup>', 0.72, 1.40, 24.31, 16.00], ['CaO', 'NaCl', 'Ca<sup>2+</sup>', 'O<sup>2−</sup>', 1.00, 1.40, 40.08, 16.00],
+  ['CaS', 'NaCl', 'Ca<sup>2+</sup>', 'S<sup>2−</sup>', 1.00, 1.84, 40.08, 32.06], ['LiF', 'NaCl', 'Li<sup>+</sup>', 'F<sup>−</sup>', 0.76, 1.33, 6.94, 19.00], ['ZnS', 'ZnS', 'Zn<sup>2+</sup>', 'S<sup>2−</sup>', 0.60, 1.84, 65.38, 32.06],
+  ['CuI', 'ZnS', 'Cu<sup>+</sup>', 'I<sup>−</sup>', 0.60, 2.20, 63.55, 126.9], ['CuCl', 'ZnS', 'Cu<sup>+</sup>', 'Cl<sup>−</sup>', 0.60, 1.81, 63.55, 35.45], ['CsCl', 'CsCl', 'Cs<sup>+</sup>', 'Cl<sup>−</sup>', 1.67, 1.81, 132.9, 35.45], ['CsBr', 'CsCl', 'Cs<sup>+</sup>', 'Br<sup>−</sup>', 1.67, 1.96, 132.9, 79.90]];
+const siteOf = q => q < 0.414 ? 'tet' : q < 0.732 ? 'oct' : 'cub';
+const SITE_N = { tet: 'tétraédrique (coordinence 4)', oct: 'octaédrique (coordinence 6)', cub: 'cubique (coordinence 8)' };
+GEN.ionc = (d, g) => {
+  const x = g.pick(ION), S = ITY[x[1]], rp = x[4], rm = x[5];
+  if (d === 0) {
+    return { title: 'Structure d\'un cristal ionique', q: `${x[0]} cristallise dans la structure ${S.nom}. Quel réseau forment les anions ${x[3]} ? Quels sites occupent les cations ${x[2]} ? Combien d'unités ${x[0]} (motifs) par maille ? Quelle est la coordinence du cation ?`,
+      items: [{ type: 'choice', label: 'réseau des anions', opts: [{ v: 'CFC', t: 'cubique à faces centrées' }, { v: 'CS', t: 'cubique simple' }, { v: 'CC', t: 'cubique centré' }], ans: S.an }, { type: 'choice', label: 'sites des cations', opts: Object.keys(ISITE).map(k => ({ v: k, t: ISITE[k] })), ans: S.site }, { type: 'int', label: 'motifs par maille', val: S.Z }, { type: 'int', label: 'coordinence du cation', val: S.co }],
+      corr: `<p>Structure ${S.nom} : les anions forment un réseau <b>${S.an === 'CFC' ? 'cubique à faces centrées' : 'cubique simple'}</b>, les cations occupent <b>${S.siteT}</b>.</p><p>${S.an === 'CFC' ? `4 anions par maille (8 × 1/8 + 6 × 1/2) et ${S.site === 'oct' ? '4 sites octaédriques tous occupés (1 au centre + 12 × 1/4)' : 'la moitié des 8 sites tétraédriques, soit 4 cations'} : <b>4 motifs</b> ${x[0]} par maille.` : '1 anion par maille (8 × 1/8), 1 cation au centre : <b>1 motif</b> par maille.'} Coordinence du cation : <b>${S.co}</b> (${S.co === 6 ? 'octaèdre d\'anions' : S.co === 4 ? 'tétraèdre d\'anions' : 'cube d\'anions'}), la même pour l'anion.</p><p class="fine">NaCl : les cations forment eux aussi un CFC, décalé de a/2 ; CsCl n'est <b>pas</b> un cubique centré (le centre et les sommets portent des ions différents) : ce sont deux cubiques simples imbriqués.</p>` };
+  }
+  if (d === 1) {
+    const q = rp / rm, s = siteOf(q), a = S.k * (rp + rm);
+    return { title: 'Rayons ioniques et site occupé', q: `${x[0]} : rayons ioniques \\(r^+ = ${T(rp)}\\) Å (${x[2]}) et \\(r^- = ${T(rm)}\\) Å (${x[3]}). Calculer \\(r^+/r^-\\) et en déduire le type de site le plus probable pour le cation. ${x[0]} a la structure ${S.nom} : calculer le paramètre de maille \\(a\\) (ions tangents).`,
+      items: [{ type: 'num', label: 'r^+/r^-', val: q, unit: '', tol: 0.02 }, { type: 'choice', label: 'site du cation', opts: Object.keys(SITE_N).map(k => ({ v: k, t: SITE_N[k] })), ans: s }, { type: 'num', label: 'a', val: a, unit: 'Å', tol: 0.02 }],
+      corr: `<p>\\(r^+/r^- = ${T(rp)}/${T(rm)} = ${T(q)}\\). Un cation reste au contact de ses anions voisins si \\(r^+/r^-\\) dépasse la limite du site : de 0,225 à 0,414 → tétraédrique ; de 0,414 à 0,732 → octaédrique ; au-delà de 0,732 → cubique. Ici : site <b>${SITE_N[s]}</b>.</p><p>Structure ${S.nom} : ${S.tgT}, \\(${S.tex}\\), donc \\(a = ${T(S.k, 4)} \\times (${T(rp)} + ${T(rm)}) = ${T(a)}\\) Å.</p><p class="fine">Les anions, plus gros, ne se touchent pas : ce sont les ions de signes contraires qui sont tangents.</p>` };
+  }
+  const a = sig(S.k * (rp + rm), 3), rp2 = a / S.k - rm, M = x[6] + x[7], rho = rhoOf(S.Z, M, a);
+  return { title: 'Cristal ionique : rayon, distances, masse volumique', q: `${x[0]} cristallise dans la structure ${S.nom}, de paramètre \\(a = ${T(a)}\\) Å. Le rayon de l'anion ${x[3]} vaut \\(r^- = ${T(rm)}\\) Å. Calculer le rayon du cation, la plus courte distance anion–anion et la masse volumique. \\(M\\) : ${x[2].replace(/<[^>]+>|[+−\d]/g, '')} ${fr(x[6], 4)} g/mol, ${x[3].replace(/<[^>]+>|[+−\d]/g, '')} ${fr(x[7], 4)} g/mol.` + NA_DATA,
+    items: [{ type: 'num', label: 'r^+', val: rp2, unit: 'Å', tol: 0.03 }, { type: 'num', label: 'distance anion–anion', val: S.dAA * a, unit: 'Å', tol: 0.02 }, { type: 'num', label: 'ρ', val: rho, unit: 'g/cm³', tol: 0.03 }],
+    corr: `<p>Ions de signes contraires tangents : \\(${S.tex}\\), donc \\(r^+ = ${T(1 / S.k, 4)}\\,a - r^- = ${T(a / S.k)} - ${T(rm)} = ${T(rp2)}\\) Å. Plus courte distance cation–anion : \\(${S.dCAt} = ${T(a / S.k)}\\) Å.</p><p>Deux anions voisins : \\(${S.dAAt} = ${T(S.dAA * a)}\\) Å (${S.an === 'CFC' ? 'centre d\'une face et sommet' : 'deux sommets voisins'}).</p><p>${S.Z} motif${S.Z > 1 ? 's' : ''} ${x[0]} par maille, \\(M = ${T(M, 4)}\\) g/mol :</p>\\[${rhoTex(S.Z, M, a, rho)}\\]` };
+};
+
+/* =====================================================================
    VÉRIFICATION DES RÉPONSES
    ===================================================================== */
 function check(it, raw) {
@@ -625,6 +798,7 @@ function check(it, raw) {
   }
   if (it.type === 'num') {
     const p = parseNum(raw || '', it.unit); if (p.err !== undefined) return { st: p.err ? 'err' : 'empty', msg: p.err };
+    if (it.abs) p.v = Math.abs(p.v);   // énergie réticulaire : le signe dépend de la convention
     const tol = it.tol || 0.02, ok = Math.abs(p.v - it.val) <= tol * Math.abs(it.val) + 1e-12;
     if (!ok && Math.abs(p.v + it.val) <= tol * Math.abs(it.val)) return { st: 'bad', msg: 'au signe près : attention au signe.' };
     if (!ok && Math.abs(p.v / it.val) > 0 && Math.abs(Math.log10(Math.abs(p.v / it.val)) - Math.round(Math.log10(Math.abs(p.v / it.val)))) < 0.01 && Math.round(Math.log10(Math.abs(p.v / it.val)))) return { st: 'bad', msg: 'erreur de puissance de 10 : vérifie tes conversions d\'unités.' };
@@ -664,7 +838,7 @@ const valOf = (root, id) => { const r = $(`input[name="${id}"]:checked`, root); 
 /* =====================================================================
    COMPÉTENCES ET PROGRESSION (mêmes règles que le parcours d'élec)
    ===================================================================== */
-const CH = ['Structure de l\'atome', 'Spectres atomiques', 'Modèle quantique', 'Atomes polyélectroniques', 'Tableau périodique', 'Liaison covalente : modèle de Lewis', 'Géométrie : VSEPR et hybridation', 'Polarité des molécules'];
+const CH = ['Structure de l\'atome', 'Spectres atomiques', 'Modèle quantique', 'Atomes polyélectroniques', 'Tableau périodique', 'Liaison covalente : modèle de Lewis', 'Géométrie : VSEPR et hybridation', 'Polarité des molécules', 'Liaison métallique : cristaux métalliques', 'Liaison ionique : cristaux ioniques'];
 const SK_ALL = [
   { id: 'noyau', ch: 0, name: 'Composition des atomes et des ions', fiche: 0 },
   { id: 'iso', ch: 0, name: 'Isotopes et masse molaire', fiche: 0 },
@@ -683,7 +857,13 @@ const SK_ALL = [
   { id: 'cf', ch: 5, name: 'Charges formelles et mésomérie', fiche: 5 },
   { id: 'vsepr', ch: 6, name: 'Géométrie VSEPR (AXnEp)', fiche: 6 },
   { id: 'hyb', ch: 6, name: 'Hybridation sp, sp², sp³ et liaisons σ, π', fiche: 6 },
-  { id: 'polar', ch: 7, name: 'Polarité, moment dipolaire, interactions', fiche: 7 }
+  { id: 'polar', ch: 7, name: 'Polarité, moment dipolaire, interactions', fiche: 7 },
+  // chap. IV (Liaisons_Chap4, sur Moodle le 17/11) et chap. V du cours, TD VII et VIII
+  { id: 'maille', ch: 8, name: 'Mailles CS, CC, CFC, HC : atomes, coordinence, compacité', fiche: 8 },
+  { id: 'rho', ch: 8, name: "Masse volumique d'un métal ou d'un alliage", fiche: 8 },
+  { id: 'sites', ch: 8, name: 'Sites interstitiels (octaédriques, tétraédriques)', fiche: 8 },
+  { id: 'ionf', ch: 9, name: 'Composés ioniques : formule, énergie réticulaire', fiche: 9 },
+  { id: 'ionc', ch: 9, name: 'Cristaux ioniques : NaCl, CsCl, blende ZnS', fiche: 9 }
 ];
 const CCN = SiteSubjects.ccNum('ato'), SK = SiteSubjects.scope('ato', SK_ALL);
 // lien vers la même page pour l'autre CC (?cc=), tant que celui-ci n'est pas passé
@@ -749,14 +929,14 @@ function vHome() {
   const when = cc == null ? '' : new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Chimie · Atomistique · V. Bouquet</p><h1>Réussir le CC${num} d'atomistique</h1>
-    <p class="lede">${num === 1 ? `Le CC1 (1 h) porte sur la 1<sup>re</sup> partie du cours, <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique), plus <b>un peu de schémas de Lewis</b> (début de la 2<sup>e</sup> partie). Cette page ne montre que ce programme : la VSEPR, l'hybridation et la polarité sont pour le CC2.` : `Le CC2 (1 h 30) porte sur <b>tout le cours</b> : L'atome (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique) et <b>les liaisons chimiques</b> (Lewis, charges formelles, VSEPR, hybridation, polarité).`}</p>
+    <p class="lede">${num === 1 ? `Le CC1 (1 h) porte sur la 1<sup>re</sup> partie du cours, <b>L'atome</b> (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique), plus <b>un peu de schémas de Lewis</b> (début de la 2<sup>e</sup> partie). Cette page ne montre que ce programme : la VSEPR, l'hybridation, la polarité et les cristaux sont pour le CC2.` : `Le CC2 (1 h 30) porte sur <b>tout le cours</b> : L'atome (structure, spectres, modèle quantique, atomes polyélectroniques, tableau périodique) et <b>les liaisons chimiques</b> (Lewis, charges formelles, VSEPR, hybridation, polarité, puis cristaux métalliques et cristaux ioniques).`}</p>
     ${otherCC() ? `<p class="sub" style="margin-top:10px">${otherCC()}</p>` : ''}</div>
     <section class="card"><div class="count">${cc == null ? `<b>?</b><span>CC${num} d'atomistique : date à confirmer${N && N.before ? `, avant le CC${num + 1} du ${esc(dayMonth(N.before))}` : ''}. Révise quand même, tout reste disponible.</span>` : `<b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC${num} d'atomistique : ${esc(when)}</span>`}</div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées${num === 1 ? ' (programme du CC1)' : ''}. Dans l'ordre du cours, avec une progression qui s'adapte à tes résultats. Chaque compétence commence par une leçon « Comprendre » : l'idée physique, des questions sans calcul, puis un calcul guidé, avant les exercices.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
-      <section class="card"><h2>Sujet blanc (${num === 1 ? '1 h' : '1 h 30'})</h2><p class="sub">${num === 1 ? 'Même plan que le CC de 2021 (isotopes, spectre de He<sup>+</sup>, nombres quantiques, configurations et classification), plus un schéma de Lewis' : 'Tout le cours : isotopes, spectres, configurations et tableau périodique, Lewis et charges formelles, VSEPR et hybridation, polarité'}, noté sur 20, avec correction détaillée. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+      <section class="card"><h2>Sujet blanc (${num === 1 ? '1 h' : '1 h 30'})</h2><p class="sub">${num === 1 ? 'Même plan que le CC de 2021 (isotopes, spectre de He<sup>+</sup>, nombres quantiques, configurations et classification), plus un schéma de Lewis' : 'Tout le cours : spectres, configurations et tableau périodique, Lewis et charges formelles, VSEPR et hybridation, polarité, cristaux métalliques et ioniques'}, noté sur 20, avec correction détaillée. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
         <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
     </div>
     ${num === 1 ? `<section class="card"><h2>Ce que montre le CC de 2021</h2><p class="sub">CC du 16/11/2021 (dossier <code>ANNALES_CC</code>) : 1 h, aucun document, calculatrice autorisée pour les calculs numériques seulement ; données fournies (masses molaires, \\(e\\), \\(h\\), \\(c\\)).</p>
@@ -813,17 +993,31 @@ const FICHES = [
   ['VII. Géométrie : VSEPR et hybridation (partie 2)', `<p><b>VSEPR</b> (Gillespie) : autour de l'atome central A, les doublets liants et non liants se repoussent et s'écartent au maximum. On écrit <b>AX<sub>n</sub>E<sub>p</sub></b> : n atomes liés à A (une liaison multiple compte une fois), p doublets non liants (ou électron célibataire).</p>
     <table class="t"><tr><th>n + p</th><th>Figure de répulsion</th><th>Géométries</th></tr><tr><td>2</td><td>linéaire (180°)</td><td>AX<sub>2</sub> linéaire (CO<sub>2</sub>, HCN)</td></tr><tr><td>3</td><td>triangle (120°)</td><td>AX<sub>3</sub> triangulaire plane (BF<sub>3</sub>, CO<sub>3</sub><sup>2−</sup>) · AX<sub>2</sub>E coudée (SO<sub>2</sub>, O<sub>3</sub>)</td></tr><tr><td>4</td><td>tétraèdre (109°28′)</td><td>AX<sub>4</sub> tétraédrique (CH<sub>4</sub>) · AX<sub>3</sub>E pyramide à base triangulaire (NH<sub>3</sub>, 107°) · AX<sub>2</sub>E<sub>2</sub> coudée (H<sub>2</sub>O, 104,5°)</td></tr><tr><td>5</td><td>bipyramide à base triangulaire (90° et 120°)</td><td>AX<sub>5</sub> (PCl<sub>5</sub>) · AX<sub>4</sub>E balançoire (SF<sub>4</sub>) · AX<sub>3</sub>E<sub>2</sub> en T (ClF<sub>3</sub>) · AX<sub>2</sub>E<sub>3</sub> linéaire (XeF<sub>2</sub>)</td></tr><tr><td>6</td><td>octaèdre (90°)</td><td>AX<sub>6</sub> octaédrique (SF<sub>6</sub>) · AX<sub>5</sub>E pyramide à base carrée (BrF<sub>5</sub>) · AX<sub>4</sub>E<sub>2</sub> plan carré (XeF<sub>4</sub>)</td></tr></table>
     <div class="box warn"><h5>Pièges</h5>La <b>figure de répulsion</b> compte tous les doublets ; la <b>géométrie</b> ne décrit que les atomes (H<sub>2</sub>O : tétraèdre, mais molécule coudée) · un doublet non liant prend plus de place : il resserre les angles · sur la bipyramide, les doublets non liants vont en position équatoriale · une liaison double repousse plus qu'une simple (HCHO : H–C–H &lt; 120°).</div>
+    <h4>Orbitales moléculaires (chap. III)</h4><p>La liaison covalente vient du recouvrement de deux O.A. d'énergies voisines : \\(n\\) O.A. donnent \\(n\\) O.M. (C.L.O.A. : \\(\\psi = c_1\\psi_1 \\pm c_2\\psi_2\\)). O.A. en phase → O.M. <b>liante</b>, plus basse en énergie ; en opposition de phase → O.M. <b>antiliante</b>, plus haute. Au plus 2 électrons par O.M., remplies par énergie croissante. Recouvrement <b>axial</b> (s–s, s–p, p–p dans l'axe) → liaison <b>σ</b> ; <b>latéral</b> (p parallèles) → liaison <b>π</b>, qui n'existe que s'il y a déjà une σ.</p>
     <h4>Hybridation</h4><p>Les O.A. de valence de A se combinent en orbitales hybrides équivalentes, une par direction (n + p) : <b>sp</b> (2, 180°, il reste 2 orbitales p pures), <b>sp²</b> (3, 120°, 1 p pure), <b>sp³</b> (4, 109°28′). Les O.A. hybrides forment des liaisons <b>σ</b> (recouvrement axial) ; les p pures forment des liaisons <b>π</b> (recouvrement latéral).</p>
     <div class="box key"><h5>À savoir faire</h5>Liaison simple = 1 σ ; double = 1 σ + 1 π ; triple = 1 σ + 2 π. CH<sub>4</sub> : C sp³, 4 σ ; C<sub>2</sub>H<sub>4</sub> : C sp², 5 σ + 1 π, molécule plane (la π bloque la rotation) ; C<sub>2</sub>H<sub>2</sub> : C sp, 3 σ + 2 π, linéaire ; CH<sub>3</sub>CN : C du CH<sub>3</sub> sp³, C du CN sp.</div>`],
   ['VIII. Polarité des molécules (partie 2)', `<p>Dans une liaison entre atomes d'électronégativités différentes, le plus électronégatif attire les électrons : charges partielles δ− et δ+, <b>moment dipolaire</b> μ = q·d, orienté de δ− vers δ+ (convention des physiciens, celle du cours), avec q = δ·e (0 ≤ δ ≤ 1). Unité : C·m ou debye, 1 D = 3,33·10⁻³⁰ C·m.</p>
     <div class="box key"><h5>Caractère ionique partiel</h5>Si la liaison était totalement ionique : μ<sub>ionique</sub> = e·d. Caractère ionique = μ<sub>réel</sub> / μ<sub>ionique</sub> (en %), charge partielle δ = (caractère ionique) × e. HF : 1,83 D, 0,92 Å → environ 41 %.</div>
     <p>Le moment dipolaire de la molécule est la <b>somme vectorielle</b> des moments des liaisons : CO<sub>2</sub> (linéaire), BF<sub>3</sub> (plane), CCl<sub>4</sub> (tétraèdre) sont <b>apolaires</b> malgré des liaisons polarisées ; H<sub>2</sub>O (coudée), NH<sub>3</sub> (pyramidale), CHCl<sub>3</sub> sont <b>polaires</b>. HCl, polaire, se dissout bien dans l'eau ; Cl<sub>2</sub>, apolaire, très peu.</p>
-    <div class="box warn"><h5>Complément (pas dans les slides du cours)</h5>Entre molécules : forces de <b>Van der Waals</b> (Keesom entre dipôles permanents, Debye dipôle–dipôle induit, London entre molécules polarisables, d'autant plus fortes qu'il y a d'électrons) et <b>liaison hydrogène</b> (H lié à F, O ou N face à un doublet de F, O ou N), plus forte : températures d'ébullition élevées de H<sub>2</sub>O, HF, NH<sub>3</sub>.</div>`]
+    <div class="box warn"><h5>Complément (pas dans les slides du cours)</h5>Entre molécules : forces de <b>Van der Waals</b> (Keesom entre dipôles permanents, Debye dipôle–dipôle induit, London entre molécules polarisables, d'autant plus fortes qu'il y a d'électrons) et <b>liaison hydrogène</b> (H lié à F, O ou N face à un doublet de F, O ou N), plus forte : températures d'ébullition élevées de H<sub>2</sub>O, HF, NH<sub>3</sub>.</div>`],
+  ['IX. Liaison métallique : cristaux métalliques (partie 2, chap. IV)', `<p>Métaux : ductiles, malléables, bons conducteurs électriques et thermiques, réfléchissent la lumière. Modèle : des <b>sphères dures</b> de rayon \\(r\\) empilées en couches, baignées par un « gaz » d'<b>électrons libres</b> (1 ou plusieurs électrons de valence peu liés par atome), responsables de la conduction. Approche quantique : \\(N\\) atomes donnent \\(N\\) niveaux dans la <b>bande s</b> et \\(3N\\) dans la <b>bande p</b>, qui peuvent se chevaucher (théorie des bandes).</p>
+    <p>Un cristal = une <b>maille</b> (parallélépipède \\(a, b, c, \\alpha, \\beta, \\gamma\\)) répétée par translation : 7 systèmes cristallins, 14 réseaux de Bravais (P primitif, I centré, F faces centrées, C deux faces). <b>Coordinence</b> = nombre de voisins tangents. <b>Compacité</b> = volume des atomes / volume de la maille.</p>
+    <table class="t"><tr><th></th><th>CS</th><th>CC</th><th>CFC</th><th>HC</th></tr><tr><td>empilement</td><td>A1A1…</td><td>A1B1…</td><td>ABCABC…</td><td>ABAB…</td></tr><tr><td>atomes / maille</td><td>8 × 1/8 = 1</td><td>8 × 1/8 + 1 = 2</td><td>8 × 1/8 + 6 × 1/2 = 4</td><td>6 (grande maille), 2 (losange)</td></tr><tr><td>coordinence</td><td>6</td><td>8</td><td>12</td><td>12</td></tr><tr><td>tangence</td><td>arête : \\(a = 2r\\)</td><td>grande diagonale : \\(a\\sqrt3 = 4r\\)</td><td>diagonale d'une face : \\(a\\sqrt2 = 4r\\)</td><td>\\(a = 2r\\), \\(c/a = 2\\sqrt{2/3} = 1{,}633\\)</td></tr><tr><td>compacité</td><td>0,52</td><td>0,68</td><td>0,74</td><td>0,74</td></tr></table>
+    <div class="box key"><h5>À savoir faire</h5>Compter les atomes : sommet 1/8, arête 1/4, face 1/2, intérieur 1. Relier \\(a\\) et \\(r\\) par la direction de tangence. Compacité \\(C = \\dfrac{Z\\cdot\\frac43\\pi r^3}{a^3}\\). Masse volumique \\(\\rho = \\dfrac{Z\\,M}{N_A\\,a^3}\\) (\\(a\\) en cm pour des g/cm³ ; 1 Å = 10⁻⁸ cm). Ex. : Cu, CFC, \\(a = 3{,}61\\) Å → \\(r = 1{,}28\\) Å, \\(\\rho = 8{,}97\\) g/cm³.</div>
+    <h4>Sites interstitiels</h4><p>Les cavités entre les sphères peuvent accueillir un atome plus petit (rayon \\(r\\), réseau de rayon \\(R\\)) sans déformation si \\(r\\) ne dépasse pas : site <b>cubique</b> (8 voisins) \\(r = (\\sqrt3 - 1)R = 0{,}732R\\) ; <b>octaédrique</b> (6) \\(r = (\\sqrt2 - 1)R = 0{,}414R\\) ; <b>tétraédrique</b> (4) \\(r = (\\sqrt{3/2} - 1)R = 0{,}225R\\).</p>
+    <ul><li>CFC : 4 sites octaédriques (centre du cube + 12 milieux d'arêtes × 1/4) et 8 tétraédriques (centres des 8 petits cubes d'arête \\(a/2\\)).</li><li>CC : 6 sites octaédriques (centres des faces 6 × 1/2 + milieux des arêtes 12 × 1/4) et 12 tétraédriques (4 par face × 6 × 1/2).</li><li>Tous les sites octaédriques d'un CFC d'atomes M occupés par X : formule MX (4 + 4) ; tous les tétraédriques : MX<sub>2</sub>.</li></ul>
+    <div class="box warn"><h5>Pièges</h5>Ne pas confondre le nombre d'atomes <b>dessinés</b> (14 en CFC) et le nombre d'atomes <b>par maille</b> (4) · la tangence en CFC est sur la diagonale d'une face, pas sur l'arête · convertir \\(a\\) en cm <b>avant</b> de l'élever au cube · alliage de substitution (TD VII) : un atome remplace un autre sur sa position, la maille garde 4 positions (Fe<sub>3</sub>Al quand Al occupe les sommets).</div>`],
+  ['X. Liaison ionique : cristaux ioniques (partie 2, chap. V)', `<p>Δχ &gt; 1,7 : un atome cède des électrons à l'autre. Chaque ion prend la configuration du gaz rare le plus proche : colonnes 1, 2, 13 → cations +1, +2, +3 ; colonnes 15, 16, 17 → anions −3, −2, −1. Le cristal est <b>électriquement neutre</b> : Li et F → LiF ; Na et O → Na<sub>2</sub>O ; Mg et S → MgS ; Al et O → Al<sub>2</sub>O<sub>3</sub>.</p>
+    <p>Modèle : les ions sont des sphères dures ; les <b>anions</b>, plus gros, forment le réseau, les <b>cations</b> occupent ses sites. Ce sont les ions de <b>signes contraires</b> qui se touchent.</p>
+    <table class="t"><tr><th>Type</th><th>anions</th><th>cations</th><th>motifs / maille</th><th>coordinence</th><th>tangence</th></tr><tr><td>NaCl</td><td>CFC</td><td>tous les sites octaédriques</td><td>4</td><td>6 / 6</td><td>\\(a = 2(r^+ + r^-)\\)</td></tr><tr><td>CsCl</td><td>cubique simple</td><td>site cubique (centre)</td><td>1</td><td>8 / 8</td><td>\\(a\\sqrt3/2 = r^+ + r^-\\)</td></tr><tr><td>blende ZnS</td><td>CFC</td><td>la moitié des sites tétraédriques</td><td>4</td><td>4 / 4</td><td>\\(a\\sqrt3/4 = r^+ + r^-\\)</td></tr></table>
+    <div class="box key"><h5>À savoir faire</h5>Rapport \\(r^+/r^-\\) → site du cation : de 0,225 à 0,414 tétraédrique, de 0,414 à 0,732 octaédrique, au-delà cubique. Distances les plus courtes en NaCl : cation–anion \\(a/2\\), anion–anion et cation–cation \\(a\\sqrt2/2\\). Masse volumique \\(\\rho = \\dfrac{Z\\,M_{motif}}{N_A\\,a^3}\\) (NaCl : \\(Z = 4\\), \\(M = 58{,}44\\) g/mol). Compacité \\(C = \\dfrac{Z\\cdot\\frac43\\pi\\left(r^{+3} + r^{-3}\\right)}{a^3}\\).</div>
+    <h4>Énergie réticulaire (Born-Landé)</h4><p>\\(E_r = \\dfrac{N_A\\,A\\,z^+ z^-\\,e^2}{4\\pi\\varepsilon_0\\,d}\\left(1 - \\dfrac1n\\right)\\) : \\(A\\) constante de Madelung (1,75 pour NaCl), \\(n\\) facteur de Born, \\(d = r^+ + r^-\\). Elle croît avec les charges et quand \\(d\\) diminue : CaO (\\(z^+ z^- = 4\\)) fond à 2973 K, NaCl (1) à 1074 K (801 °C), à distances voisines.</p>
+    <div class="box warn"><h5>Pièges</h5>CsCl n'est <b>pas</b> un cubique centré : le centre et les sommets portent des ions différents (deux réseaux cubiques simples imbriqués) · AgCl, CaS ont la structure NaCl · le chapitre V n'est pas encore sur Moodle : cette fiche suit le TD VIII du poly.</div>`]
 ];
 function vCours(open) {
   // fiches des compétences de ce CC seulement
   const FI = new Set(SK.map(k => k.fiche));
-  app.innerHTML = `<div><p class="eyebrow">${CCN === 1 ? 'Programme du CC1 · L\'atome et schémas de Lewis' : 'Programme du CC2 · tout le cours'}</p><h1>Le cours utile</h1><p class="lede">${CCN === 1 ? 'Le cours de V. Bouquet condensé : les 5 chapitres de « L\'atome » (fiches I à V) et la fiche VI sur la liaison covalente (Lewis).' : 'Le cours de V. Bouquet condensé : les 5 chapitres de « L\'atome » (fiches I à V), puis la liaison covalente, la VSEPR, l\'hybridation et la polarité (fiches VI à VIII).'} Définitions, formules, méthodes et pièges.</p></div>
+  app.innerHTML = `<div><p class="eyebrow">${CCN === 1 ? 'Programme du CC1 · L\'atome et schémas de Lewis' : 'Programme du CC2 · tout le cours'}</p><h1>Le cours utile</h1><p class="lede">${CCN === 1 ? 'Le cours de V. Bouquet condensé : les 5 chapitres de « L\'atome » (fiches I à V) et la fiche VI sur la liaison covalente (Lewis).' : 'Le cours de V. Bouquet condensé : les 5 chapitres de « L\'atome » (fiches I à V), puis la liaison covalente, la VSEPR, l\'hybridation et la polarité (fiches VI à VIII), les cristaux métalliques et les cristaux ioniques (fiches IX et X).'} Définitions, formules, méthodes et pièges.</p></div>
     ${E.lessonList()}
     <div id="learnHost" style="display:grid;gap:16px"></div>
     ${FICHES.map(([t, b], i) => FI.has(i) ? `<details class="fiche" id="fiche${i}"${open === i ? ' open' : ''}><summary>${esc(t)}</summary><div class="body">${CCN === 1 ? b.replace(/<!--cc2-->[\s\S]*?<!--\/cc2-->/g, '') : b}</div></details>` : '').join('')}
@@ -838,8 +1032,10 @@ let EXAM = null;
 // + un peu de Lewis, au programme du CC1 2026 (E, 3 pts)
 const EXAM_PLAN1 = [['A · Isotopes', [['noyau', 1], ['iso', 0]], 3], ['B · Spectres atomiques (hydrogénoïde)', [['niv', 1], ['trans', 0]], 6], ['C · Nombres quantiques', [['nq', 2]], 3], ['D · Configuration électronique et classification', [['exc', 0], ['place', 1], ['prop', 2]], 5], ['E · Schéma de Lewis', [['lewis', 1]], 3]];
 // CC2 (1 h 30) : tout le cours, la 2e partie (liaisons) pesant la moitié
-const EXAM_PLAN2 = [['A · Isotopes', [['iso', 1]], 2], ['B · Spectre d\'un hydrogénoïde', [['niv', 1], ['trans', 1]], 4], ['C · Configurations et tableau périodique', [['conf', 1], ['place', 1], ['prop', 1]], 4],
-  ['D · Lewis et charges formelles', [['lewis', 1], ['cf', 1]], 4], ['E · Géométrie et hybridation', [['vsepr', 1], ['hyb', 1]], 4], ['F · Polarité', [['polar', 1]], 2]];
+// (22/11) + les cristaux (chap. IV et V, TD VII et VIII), au programme depuis le chapitre 4 mis sur Moodle le 17/11
+const EXAM_PLAN2 = [['A · Spectre d\'un hydrogénoïde', [['niv', 1], ['trans', 1]], 3], ['B · Configurations et tableau périodique', [['conf', 1], ['place', 1], ['prop', 1]], 3],
+  ['C · Lewis et charges formelles', [['lewis', 1], ['cf', 1]], 3], ['D · Géométrie et hybridation', [['vsepr', 1], ['hyb', 1]], 3], ['E · Polarité', [['polar', 1]], 1.5],
+  ['F · Cristaux métalliques', [['maille', 1], ['rho', 1], ['sites', 1]], 4], ['G · Cristaux ioniques', [['ionf', 1], ['ionc', 2]], 2.5]];
 // CC d'un sujet blanc : celui pour lequel il a été commencé (EXAM.cc), sinon celui de la page
 const examCC = () => (EXAM && EXAM.cc) || CCN;
 function examExos(seed) {
@@ -851,7 +1047,7 @@ function vBlanc() {
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = true; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · ${CCN === 2 ? '1 h 30' : '1 h'} · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">${CCN === 1 ? 'Programme du CC1 : toute la partie « L\'atome » et un peu de schémas de Lewis. Plan du CC de novembre 2021, plus Lewis : isotopes (3 pts), spectre d\'un ion hydrogénoïde comme He<sup>+</sup> (6 pts), nombres quantiques (3 pts), configurations électroniques et tableau périodique (5 pts), schéma de Lewis (3 pts). Au CC 2021, la calculatrice était autorisée pour les calculs numériques seulement.' : 'Programme du CC2 : tout le cours. Isotopes (2 pts), spectre d\'un hydrogénoïde (4 pts), configurations et tableau périodique (4 pts), Lewis et charges formelles (4 pts), VSEPR et hybridation (4 pts), polarité (2 pts).'}</p></div>
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · ${CCN === 2 ? '1 h 30' : '1 h'} · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">${CCN === 1 ? 'Programme du CC1 : toute la partie « L\'atome » et un peu de schémas de Lewis. Plan du CC de novembre 2021, plus Lewis : isotopes (3 pts), spectre d\'un ion hydrogénoïde comme He<sup>+</sup> (6 pts), nombres quantiques (3 pts), configurations électroniques et tableau périodique (5 pts), schéma de Lewis (3 pts). Au CC 2021, la calculatrice était autorisée pour les calculs numériques seulement.' : 'Programme du CC2 : tout le cours. Spectre d\'un hydrogénoïde (3 pts), configurations et tableau périodique (3 pts), Lewis et charges formelles (3 pts), VSEPR et hybridation (3 pts), polarité (1,5 pt), cristaux métalliques : maille, masse volumique, sites (4 pts), composés et cristaux ioniques (2,5 pts).'}</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (${CCN === 2 ? 90 : 60} min)</button>${weakButton()}<span class="fine">Prévois une feuille : les justifications se font sur papier, seuls les résultats sont saisis ici.</span></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
@@ -872,7 +1068,7 @@ function submitExam(auto) {
   const exs = examExos(EXAM.seed); let note = 0;
   exs.forEach(ex => { const its = [].concat(...ex.parts.map(p => p.items)); const ok = its.filter(it => tally(it, check(it, EXAM.ans[it.id] || '').st === 'ok' ? 1 : 0)).length; note += ex.pts * ok / its.length; });
   EXAM.done = true; EXAM.note = note; EXAM.running = false;
-  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(3600, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord() }); ls.set(HK, H);
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(examCC() === 2 ? 5400 : 3600, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord() }); ls.set(HK, H);
   ls.set(EK, Object.assign({}, EXAM, { closed: true }));   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
   renderExam(); window.scrollTo(0, 0);

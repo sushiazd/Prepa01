@@ -32,7 +32,7 @@
     { id: 'ms1', name: 'Maths S1', page: 'maths-s1/', ade: MATH, nth: 0, dates: MATH_CC, skills: 16 },
     { id: 'ma2', name: 'Analyse', page: 'maths-s1-analyse/', ade: MATH, nth: 1, later: true, dates: MATH_CC, skills: 14 },
     // CC1 « L'atome » (prévu le 20/10, reporté) le 25/11 ; CC2 (tout le cours) le 16/12, retiré d'ADE au 21/11
-    { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-11-25T12:15:00Z', '2026-12-16T08:45:00Z'], skills: 17,
+    { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-11-25T12:15:00Z', '2026-12-16T08:45:00Z'], skills: 22,
       cc1: ['noyau', 'iso', 'onde', 'niv', 'trans', 'serie', 'nq', 'conf', 'exc', 'case', 'place', 'prop', 'lewis'] },
     { id: 'elec', name: 'Élec CC1', page: 'elec/', ade: /ELECa/i, nth: 0, dates: ELEC_CC, skills: 21, bonus: ['thv'] },
     { id: 'el2', name: 'Élec CC2', page: 'elec2/', ade: /ELECa/i, nth: 1, later: true, dates: ELEC_CC, skills: 9 },
@@ -41,7 +41,8 @@
       cc1: ['num', 'addb', 'boole', 'canon', 'karn', 'mux'] },
     // DS 1 (23/10, puis 5/11, puis « semaine du 9/11 ») jamais passé et absent d'ADE au 17/11 : count 2 le place avant
     // le DS 2 du 7/12, « date à confirmer » ; l'oral sur machine les 6-7/01 (avec { oral: true })
-    { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), count: 2, dates: ['2026-12-07T12:15:00Z'], skills: 18 },
+    { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), count: 2, dates: ['2026-12-07T12:15:00Z'], skills: 26,
+      cc1: ['types', 'trace', 'boucles', 'fonc', 'code1', 'suite', 'cplx', 'dicho', 'list', 'alias', 'str', 'mat', 'minmax', 'code2', 'fusion', 'dict', 'code3', 'qcm'] },
     // CC1 de physique le 28/09 (avant le site) : la page prépare le CC2
     { id: 'phys', name: 'Méca du point', page: 'phys/', ade: word('PHYS'), nth: 1, dates: ['2026-09-28T11:15:00Z', '2026-12-02T08:45:00Z'], skills: 16 },
     { id: 'meca', name: 'Ingé méca', page: 'meca/', ade: word('MECA'), dates: ['2026-12-09T12:15:00Z'], skills: 11 }

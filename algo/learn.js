@@ -303,6 +303,82 @@
           ask: { q: "Qu'affiche <code>print('5' + str(2))</code> ?", items: [C('affichage', [['52', '52'], ['7', '7'], ['e', 'Erreur (TypeError)']], '52')], why: 'str(2) = \'2\' : deux chaînes, + les colle, \'52\' (affiché sans guillemets).' } }
       ] }
     });
+    /* ---------- DS 2 : chapitres 5 à 10 (récursivité, graphes, piles et files, parcours, Dijkstra, preuves) ---------- */
+    Object.assign(L, {
+      rec: { title: 'Une fonction qui s\'appelle elle-même', meth: 'déroule les appels jusqu\'au cas de base en notant chaque appel sur une ligne (f(3) → f(2) → f(1) → f(0)), puis remonte les résultats de bas en haut.', steps: [
+        { h: 'Résoudre un problème avec un plus petit',
+          guess: { q: `${pre('def f(n):\n    if n == 0:\n        return 0\n    return n + f(n - 1)')}Que vaut <code>f(3)</code> ?`, items: [C('valeur', [['3', '3'], ['6', '6'], ['e', 'Erreur : f ne peut pas s\'appeler elle-même']], '6')] },
+          body: `<p>Une fonction peut s'appeler elle-même : c'est la <b>récursivité</b>. Python met l'appel en cours de côté, calcule l'appel plus petit, puis revient. <code>f(3)</code> = 3 + <code>f(2)</code> = 3 + 2 + <code>f(1)</code> = 3 + 2 + 1 + <code>f(0)</code> = 3 + 2 + 1 + 0 = 6.</p>
+            <p>Comme des poupées russes : on ouvre jusqu'à la plus petite (le <b>cas de base</b>, <code>f(0) = 0</code>, qui répond sans appel), puis on referme dans l'autre sens.</p>`,
+          ask: { q: 'Combien d\'appels de f au total pour f(3) ?', items: [I('appels', 4)], why: 'f(3), f(2), f(1) et f(0) : 4 appels. Pour f(n) : n + 1 appels, donc O(n).' } },
+        { h: 'Sans cas de base, ça ne s\'arrête pas',
+          body: `<p>Si on enlève <code>if n == 0: return 0</code>, f(3) appelle f(2), f(1), f(0), f(−1), f(−2)… sans fin : Python s'arrête sur une <b>RecursionError</b>. Même chose si le pas saute le cas de base : avec <code>f(n − 2)</code> et n impair, on passe de 1 à −1 sans jamais toucher 0.</p>`,
+          ask: { q: 'Pour <code>def h(n): if n == 0: return 0 / return 1 + h(n − 2)</code>, que donne h(4) ?', items: [C('valeur', [['2', '2'], ['4', '4'], ['e', 'Erreur']], '2')], why: 'h(4) = 1 + h(2) = 1 + 1 + h(0) = 2. Mais h(3) ne s\'arrêterait jamais.' } }
+      ] },
+      reccode: { title: 'Écrire une fonction récursive', meth: 'écris d\'abord le cas de base (la réponse sans calcul), puis exprime la réponse pour n à partir de la réponse pour n − 1 (ou n // 10, t[1:]…) et fais confiance à l\'appel récursif.', steps: [
+        { h: 'Deux questions à se poser',
+          body: `<p>1. <b>Quel est le cas le plus simple</b>, dont je connais la réponse ? (n = 0, liste vide, un seul chiffre…) 2. <b>Si on me donnait la réponse pour un problème un peu plus petit, comment j'obtiendrais la mienne ?</b></p>${pre('def puissance(n, m):\n    if m == 0:                 # n⁰ = 1\n        return 1\n    return n * puissance(n, m - 1)   # nᵐ = n × nᵐ⁻¹')}
+            <p>Il ne faut pas « suivre » tous les appels en écrivant : on suppose que <code>puissance(n, m − 1)</code> marche (c'est la récurrence des maths).</p>`,
+          ask: { q: 'Pour somme_carres(n) = 0² + 1² + … + n², la relation récursive est :', items: [C('réponse', [['a', 'S(n) = n² + S(n − 1)'], ['b', 'S(n) = n × S(n − 1)'], ['c', 'S(n) = S(n − 1)²']], 'a')], why: 'S(n) = S(n − 1) + n², avec le cas de base S(0) = 0.' } },
+        { h: 'Prouver la terminaison',
+          body: `<p>Au DS on demande souvent : « Montrez la terminaison ». Réponse type : <i>à chaque appel, m diminue strictement de 1 ; m est un entier positif ou nul ; il atteint donc 0, le cas de base, après un nombre fini d'appels.</i> Pour nombre_de_chiffres(n) : n // 10 &lt; n tant que n ≥ 10.</p>`,
+          ask: { q: 'nombre_de_chiffres(n) appelle nombre_de_chiffres(n // 10) tant que n ≥ 10. Sa complexité :', items: [C('réponse', [['n', 'O(n)'], ['l', 'O(log n)'], ['1', 'O(1)']], 'l')], why: 'n est divisé par 10 à chaque appel : autant d\'appels que de chiffres, soit environ log₁₀(n).' } }
+      ] },
+      graphe: { title: 'Des points et des flèches', meth: 'matrice : M[i][j] = 1 s\'il y a un arc de i vers j ; listes : L[i] = voisins de i ; d⁺(u) = len(L[u]) ; un chemin suit le sens des flèches ; sa longueur est son nombre d\'arcs.', steps: [
+        { h: 'Un graphe, c\'est un réseau',
+          guess: { q: 'Graphe orienté avec les arcs (0, 1), (0, 3), (1, 4). Que vaut L[0] ?', items: [V('L[0]', [1, 3])] },
+          body: `<p>Un graphe modélise des liens : réseau routier, abonnements Twitter, labyrinthe. Les <b>sommets</b> sont les points, les <b>arcs</b> les flèches (orienté : « Alain suit Pierre » n'implique pas l'inverse) ; non orienté, les <b>arêtes</b> sont symétriques.</p>
+            <p>Deux façons de le ranger en Python : la <b>matrice</b> (un tableau n × n de 0 et de 1, rapide pour tester un arc, mais n² cases) ou la <b>liste de listes d'adjacence</b> (pour chaque sommet, la liste de ses voisins, compacte, idéale pour parcourir).</p>`,
+          ask: { q: 'Avec la matrice M, comment tester s\'il y a un arc de 2 vers 5 ?', items: [C('réponse', [['a', 'M[2][5] == 1'], ['b', 'M[5][2] == 1'], ['c', '5 in M[2]']], 'a')], why: 'Ligne = départ, colonne = arrivée. (Avec les listes : 5 in L[2].)' } },
+        { h: 'Degrés, chemins, cycles',
+          body: `<p><b>d⁺(u)</b> : nombre d'arcs qui partent de u (len(L[u])) ; <b>d⁻(u)</b> : nombre d'arcs qui arrivent. Un <b>chemin</b> [v₀, …, vₖ] suit les flèches, sa <b>longueur</b> est k (le nombre d'arcs). Un <b>cycle</b> revient à son départ. Non orienté et <b>connexe</b> : tout sommet est relié à tout autre.</p>`,
+          ask: { q: 'Longueur du chemin [3, 1, 5, 4] ?', items: [I('longueur', 3)], why: '4 sommets, 3 arcs : la longueur compte les arcs, pas les sommets.' } }
+      ] },
+      grcode: { title: 'Construire les représentations', meth: 'pour remplir L ou M, crée d\'abord la structure vide (n listes vides, ou n lignes de n zéros construites une par une), puis parcours les arcs (a, b) : L[a].append(b) ou M[a][b] = 1.', steps: [
+        { h: 'De la liste des arcs aux listes d\'adjacence',
+          body: `${pre('def G_vers_L(n, G):\n    L = []\n    for i in range(n):\n        L.append([])        # une liste vide par sommet\n    for (a, b) in G:\n        L[a].append(b)      # b est un voisin de a\n    return L')}<p>Pour un graphe non orienté, on ajoute aussi <code>L[b].append(a)</code>.</p>`,
+          ask: { q: 'Que renvoie G_vers_L(3, [(2, 0), (1, 2)]) ?', items: [V('résultat', [[], [2], [0]])], why: 'Arc (2, 0) : 0 dans L[2] ; arc (1, 2) : 2 dans L[1] ; L[0] reste vide.' } },
+        { h: 'Le piège de la matrice',
+          body: `<p><code>M = [[0] * n] * n</code> semble créer une matrice, mais les n lignes sont <b>la même liste</b> : <code>M[0][1] = 1</code> met un 1 dans toutes les lignes. Il faut créer chaque ligne séparément : <code>for i in range(n): M.append([0] * n)</code>.</p>`,
+          ask: { q: 'Complexité de la construction de la matrice d\'adjacence (n sommets) :', items: [C('réponse', [['n', 'O(n)'], ['n2', 'O(n²)'], ['m', 'O(m)']], 'n2')], why: 'La matrice a n × n cases à mettre à 0, même si le graphe a peu d\'arcs.' } }
+      ] },
+      pile: { title: 'Piles et files', meth: 'pile = dernier arrivé, premier sorti (depiler rend le dernier empilé) ; file = premier arrivé, premier servi (suivant rend le plus ancien) ; note le contenu après chaque ligne.', steps: [
+        { h: 'Assiettes et file d\'attente',
+          guess: { q: 'On empile 1, puis 2, puis 3, et on dépile une fois. Qu\'obtient-on ?', items: [C('réponse', [['1', '1'], ['3', '3']], '3')] },
+          body: `<p>Une <b>pile</b> se comporte comme une pile d'assiettes fragiles : on ne prend que celle du dessus, la dernière posée (LIFO). Une <b>file</b>, comme une file d'attente : le premier arrivé est servi le premier (FIFO).</p><p>On les utilise sans savoir comment elles sont codées, avec les primitives du cours : <code>empiler(s, p)</code>, <code>depiler(p)</code>, <code>sommet(p)</code>, <code>est_pile_vide(p)</code> ; <code>ajouter(s, f)</code>, <code>suivant(f)</code>, <code>est_file_vide(f)</code>.</p>`,
+          ask: { q: 'On ajoute 1, puis 2, puis 3 dans une file, et on appelle suivant une fois. Résultat ?', items: [C('réponse', [['1', '1'], ['3', '3']], '1')], why: 'La file rend le plus ancien : 1.' } },
+        { h: 'Avec une liste Python',
+          body: `<p>Pile : <code>append(s)</code> pour empiler, <code>pop()</code> pour dépiler (le sommet est le dernier élément), <code>p[-1]</code> pour le regarder. File, comme dans le cours : <code>insert(0, s)</code> pour ajouter au début et <code>pop()</code> pour sortir le plus ancien, à la fin ; <code>insert(0, …)</code> coûte O(n), le cours le signale.</p>`,
+          ask: { q: 'Faire passer 1, 2, 3 par une pile, puis les ressortir : dans quel ordre sortent-ils ?', items: [V('ordre', [3, 2, 1])], why: 'Une pile inverse l\'ordre (c\'est pourquoi elle sert à retourner une liste ou vérifier des parenthèses).' } }
+      ] },
+      parcours: { title: 'Explorer un graphe', meth: 'largeur : file, on sort un sommet et on ajoute tous ses voisins non vus ; profondeur : pile, on avance vers le premier voisin non vu du sommet de la pile, sinon on dépile ; un sommet est « vu » dès qu\'il entre.', steps: [
+        { h: 'En largeur : par cercles',
+          guess: { q: 'L = [[1, 2], [3], [3], []]. Parcours en largeur depuis 0 ?', items: [V('parcours', [0, 1, 2, 3])] },
+          body: `<p>Comme une onde dans l'eau : d'abord le départ, puis tous ses voisins (distance 1), puis leurs voisins (distance 2)… La <b>file</b> garde l'ordre d'arrivée. Conséquence : le parcours en largeur donne les <b>distances</b> (plus petit nombre d'arcs) et les plus courts chemins.</p>`,
+          ask: { q: 'Même graphe : distance de 0 à 3 ?', items: [I('distance', 2)], why: '0 → 1 → 3 : deux arcs.' } },
+        { h: 'En profondeur : on fonce, puis on revient',
+          body: `<p>Comme dans un labyrinthe, la main sur le mur : on avance tant qu'on peut (premier voisin non vu), et quand on est bloqué, on revient en arrière (on <b>dépile</b>). Avec L = [[1, 2], [3], [3], []] depuis 0 : 0, puis 1, puis 3 ; 3 est bloqué, on dépile ; 1 aussi ; de retour en 0, on va en 2 : [0, 1, 3, 2].</p><p>Si le sommet de la pile a un voisin <b>encore dans la pile</b>, on a trouvé un <b>cycle</b>.</p>`,
+          ask: { q: 'L = [[1, 2], [2], [0]]. Le parcours en profondeur depuis 0 détecte-t-il un cycle ?', items: [C('réponse', [['o', 'oui'], ['n', 'non']], 'o')], why: 'Pile 0, 1, 2 ; 2 a pour voisin 0, encore dans la pile : cycle 0 → 1 → 2 → 0.' } }
+      ] },
+      dijkstra: { title: 'Le chemin le moins cher', meth: 'dist(départ) = 0, les autres ∞ ; à chaque étape, prends le sommet non traité le plus proche, traite-le, et améliore ses voisins : dist(j) = min(dist(j), dist(i) + p(i, j)) ; pred(j) = i quand ça baisse.', steps: [
+        { h: 'Un GPS',
+          guess: { q: 'Arcs 0→1 (4), 0→2 (1), 2→1 (2). Distance minimale de 0 à 1 ?', items: [I('distance', 3)] },
+          body: `<p>Quand les arcs ont des poids (km, minutes, euros), le plus court chemin n'est plus celui qui a le moins d'arcs : 0 → 2 → 1 coûte 1 + 2 = 3, moins que l'arc direct 0 → 1 (4).</p><p>Dijkstra traite les sommets du plus proche au plus lointain, comme un parcours en largeur « généralisé ». Quand un sommet est traité, sa distance est définitive : aucun détour ne peut faire mieux, parce que les poids sont positifs.</p>`,
+          ask: { q: 'Après avoir traité 0 puis 2 dans cet exemple, que vaut dist(1) ?', items: [I('dist(1)', 3)], why: 'En traitant 0 : dist(1) = 4, dist(2) = 1. On traite 2 (le plus proche) : dist(2) + 2 = 3 < 4, donc dist(1) = 3 et pred(1) = 2.' } },
+        { h: 'Retrouver le chemin',
+          body: `<p>Le tableau pred garde, pour chaque sommet, d'où l'on vient sur le meilleur chemin. Pour aller de 0 à t : on part de t, on remonte pred(t), pred(pred(t))… jusqu'à 0, puis on retourne la liste. Si un poids est <b>négatif</b>, Dijkstra peut rendre une mauvaise réponse.</p>`,
+          ask: { q: 'pred = [/, 2, 0, 1]. Plus court chemin de 0 à 3 ?', items: [V('chemin', [0, 2, 1, 3])], why: 'pred(3) = 1, pred(1) = 2, pred(2) = 0 : on lit 3, 1, 2, 0 et on retourne : [0, 2, 1, 3].' } }
+      ] },
+      preuve: { title: 'Prouver qu\'un programme marche', meth: 'terminaison : une quantité entière strictement décroissante et minorée (le variant) ; correction : une propriété vraie avant la boucle et conservée à chaque tour (l\'invariant), qu\'on combine avec la condition de sortie.', steps: [
+        { h: 'Tester ne suffit pas',
+          guess: { q: `${pre('def algo1(n):\n    while n != 0:\n        n = n - 1')}algo1 termine-t-il pour tout entier n ?`, items: [C('réponse', [['o', 'oui'], ['n', 'non']], 'n')] },
+          body: `<p>Avec n = 5, la boucle s'arrête. Avec n = −1, n vaut −2, −3… et ne vaut jamais 0 : boucle infinie. <code>while n &gt; 0</code> réglerait le problème. On ne peut pas tester toutes les valeurs : il faut une <b>preuve</b>.</p><p><b>Variant</b> : une suite d'entiers strictement décroissante et minorée est forcément finie. Si une variable de la boucle a cette propriété, la boucle s'arrête. Ex. <code>while b &gt; 0: … b = a % b</code> : b décroît strictement (a % b &lt; b) et reste ≥ 0.</p>`,
+          ask: { q: 'Pour <code>while i &lt; n: i = i + 1</code>, la terminaison vient de ce que i est :', items: [C('réponse', [['a', 'strictement croissant et majoré par n'], ['b', 'strictement décroissant'], ['c', 'toujours positif']], 'a')], why: 'Croissant et majoré marche aussi (ou, ce qui revient au même, n − i décroît et reste positif).' } },
+        { h: 'L\'invariant : ce qui ne change pas',
+          body: `${pre('def f(n):\n    x = 0\n    y = n\n    while y > 0:\n        x = x + 3\n        y = y - 1\n    return x')}<p>Invariant : <b>x = 3(n − y)</b>. Vrai au départ (0 = 3 × 0). Si c'est vrai au début d'un tour, à la fin x a pris 3 et y a perdu 1 : toujours vrai. À la sortie, y = 0, donc x = 3n : la fonction renvoie bien 3n.</p>`,
+          ask: { q: 'Pour <code>while y &gt;= b: x = x + 1; y = y − b</code> (au départ x = 0, y = n), quel invariant ?', items: [C('réponse', [['a', 'n = x × b + y'], ['b', 'y = x × b'], ['c', 'x = n − y']], 'a')], why: 'Au départ n = 0 × b + n ; un tour ajoute b à x × b et retire b à y. À la sortie, y < b : x est le quotient, y le reste.' } }
+      ] }
+    });
     return L;
   };
 })();

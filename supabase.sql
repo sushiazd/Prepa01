@@ -358,7 +358,17 @@ begin
     'pdj', (select coalesce(jsonb_agg(jsonb_build_object('user_id', u.user_id,
         'n', (select count(*) from jsonb_object_keys(u.value->'p')),
         'last', (select max((x.value->>'at')::numeric) from jsonb_each(u.value->'p') x where jsonb_typeof(x.value) = 'object' and jsonb_typeof(x.value->'at') = 'number'))), '[]'::jsonb)
-      from public.user_data u where u.key = 'qcm.pdj' and jsonb_typeof(u.value->'p') = 'object')
+      from public.user_data u where u.key = 'qcm.pdj' and jsonb_typeof(u.value->'p') = 'object'),
+    -- dernière révision par compte, toutes matières : la plus récente date (ms) écrite dans les données de révision
+    -- (parcours, sujets blancs, leçons, épreuves, problème du jour). updated_at n'est pas fiable : une simple
+    -- ouverture de page ou une synchro réécrit les lignes sans qu'il y ait eu de révision.
+    'activity', (select coalesce(jsonb_agg(jsonb_build_object('user_id', a.user_id, 'last', a.last, 'src', a.src)), '[]'::jsonb) from (
+        select u.user_id, max(x.n) as last, (array_agg(split_part(u.key, '.', 1) order by x.n desc))[1] as src
+        from public.user_data u
+        cross join lateral (select (v #>> '{}')::numeric as n from jsonb_path_query(u.value, 'strict $.**') v where jsonb_typeof(v) = 'number') x
+        where (u.key like '%.path.v1' or u.key like '%.hist.v1' or u.key like '%.learn.v1' or u.key like '%.exam.v1' or u.key in ('qcm.pdj', 'qcm.session'))
+          and x.n between 1700000000000 and extract(epoch from now()) * 1000 + 3600000
+        group by u.user_id) a)
   );
 end
 $$;

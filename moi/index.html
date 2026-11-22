@@ -212,10 +212,22 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
     const D = SITE;
     const inGroups = uid => (D.memberships || []).filter(m => m.user_id === uid).map(m => (groups.find(g => g.id === m.group_id) || {}).name).filter(Boolean);
     const mail = {}; (D.emails || []).forEach(r => { mail[r.user_id] = r; });
+    const act = {}; (D.activity || []).forEach(r => { act[r.user_id] = r; });
     return (D.profiles || []).filter(p => !ids || ids.has(p.id)).map(p => ({ id: p.id, pseudo: p.pseudo, me: p.id === me.id, hidden: p.visible === false, created: Date.parse(p.created_at), groups: inGroups(p.id),
+      rev: act[p.id] && +act[p.id].last > 0 ? { at: +act[p.id].last, src: act[p.id].src } : null,
       email: mail[p.id] ? mail[p.id].email : null, lastSignIn: mail[p.id] && mail[p.id].last_sign_in_at ? Date.parse(mail[p.id].last_sign_in_at) : null,
       attempts: (D.attempts || []).filter(a => a.user_id === p.id).map(a => ({ at: Date.parse(a.created_at), kind: a.kind, defId: a.def_id, title: a.title, note: +a.note, used: a.used_s || 0, pauses: a.pauses || 0, n: a.n, results: a.results || [] })),
       controls: (D.controls || []).filter(c => c.user_id === p.id).map(c => ({ at: Date.parse(c.created_at), name: c.name, items: c.items || [] })) }));
+  }
+  // Dernière activité de révision, toutes matières : épreuve de maths, copie du prof importée, ou révision
+  // synchronisée (parcours, leçon, sujet blanc, problème du jour). Renvoie { at, where } ou null.
+  function lastRev(m) {
+    const subName = id => id === 'qcm' ? 'QCM maths' : ((window.SiteSubjects ? SiteSubjects.list : []).find(z => z.id === id) || {}).name || id;
+    const c = [];
+    m.attempts.forEach(a => c.push({ at: a.at, where: 'QCM maths' }));
+    m.controls.forEach(k => c.push({ at: k.at, where: 'copie du prof' }));
+    if (m.rev) c.push({ at: m.rev.at, where: subName(m.rev.src) });
+    return c.filter(x => x.at > 0).sort((a, b) => b.at - a.at)[0] || null;
   }
   function loadScope() {
     const box = document.getElementById('gstats'), D = SITE;
@@ -255,7 +267,7 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
   }
   // Tous les comptes (y compris ceux sans activité)
   function accountsHTML(members) {
-    const last = m => Math.max(0, ...m.attempts.map(a => a.at), ...m.controls.map(c => c.at));
+    const last = m => (lastRev(m) || { at: 0 }).at;
     const L = members.slice().sort((a, b) => last(b) - last(a) || a.pseudo.localeCompare(b.pseudo));
     // temps actif sur le site (secondes, mesuré par account.js à partir de la mise en place) ; en dessous, le temps
     // passé en épreuves de maths (chrono des copies), connu depuis le début
@@ -264,7 +276,7 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
     const timeCell = m => { const ex = m.attempts.reduce((t, a) => t + (a.used || 0), 0); return `<td><b>${fmtT(T[m.id])}</b>${ex > 0 ? `<br><span class="fine">dont épreuves de maths : ${fmtT(ex)}</span>` : ''}</td>`; };
     return `<section class="card"><h2>Comptes</h2><p class="sub">Tous les comptes${gid === 'all' ? ' du site' : ' du groupe'}, du plus récemment actif au moins actif. 🙈 = profil masqué aux autres membres (visible ici seulement). Temps sur le site : temps réellement actif (onglet ouvert et utilisé), compté depuis la mise en place de la mesure ; le temps d'avant n'est pas connu, sauf pour les épreuves de maths.</p>
       <div style="overflow-x:auto"><table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Groupes</th><th>Épreuves</th><th>Copies du prof</th><th>Dernière activité</th><th>Temps sur le site</th></tr></thead><tbody>
-      ${L.map(m => { const t = last(m); return `<tr><td><b>${nm(m)}</b>${m.hidden ? ' 🙈' : ''}${m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td>${m.created ? fmtD(m.created) : '—'}</td><td>${m.groups.length ? esc(m.groups.join(', ')) : '<span class="fine">aucun</span>'}</td><td>${m.attempts.length}</td><td>${m.controls.length}</td><td>${t ? fmtD(t) : '<span class="fine">jamais</span>'}</td>${timeCell(m)}</tr>`; }).join('')}
+      ${L.map(m => { const lr = lastRev(m), t = lr ? lr.at : 0; return `<tr><td><b>${nm(m)}</b>${m.hidden ? ' 🙈' : ''}${m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td>${m.created ? fmtD(m.created) : '—'}</td><td>${m.groups.length ? esc(m.groups.join(', ')) : '<span class="fine">aucun</span>'}</td><td>${m.attempts.length}</td><td>${m.controls.length}</td><td>${t ? `${fmtD(t)}<br><span class="fine">${esc(lr.where)}</span>` : '<span class="fine">jamais</span>'}</td>${timeCell(m)}</tr>`; }).join('')}
       </tbody></table></div></section>`;
   }
 
@@ -398,7 +410,7 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
     const s = personStats(m), rank = ALL.rank, ix = rank.findIndex(x => x.m.id === m.id), x = ix >= 0 ? rank[ix] : null;
     const tr = (SITE.time || []).find(r => r.user_id === m.id), pj = (SITE.pdj || []).find(r => r.user_id === m.id);
     const pct = v => s.n ? fmt(100 * v / s.n) + ' %' : '—';
-    const last = Math.max(0, ...m.attempts.map(a => a.at), ...m.controls.map(c => c.at));
+    const lr = lastRev(m);
     const row = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;
 
     // contrôles importés (copies du prof corrigées)
@@ -432,7 +444,7 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
 
     return `<div class="top"><div><h2>${esc(m.pseudo)}${m.me ? ' <span class="fine">(toi)</span>' : ''}${m.hidden ? ' 🙈' : ''}</h2>
         <p class="sub">${m.email ? `<b>${esc(m.email)}</b>` : '<span class="fine">e-mail inconnu</span>'}</p>
-        <p class="fine">Inscrit le ${m.created ? fmtDT(m.created) : '—'} · dernière connexion ${m.lastSignIn ? fmtDT(m.lastSignIn) : '—'} · dernière copie ${last ? fmtDT(last) : 'jamais'} · ${m.groups.length ? esc(m.groups.join(', ')) : 'aucun groupe'}</p></div>
+        <p class="fine">Inscrit le ${m.created ? fmtDT(m.created) : '—'} · dernière connexion ${m.lastSignIn ? fmtDT(m.lastSignIn) : '—'} · dernière révision ${lr ? `${fmtDT(lr.at)} (${esc(lr.where)})` : 'jamais'} ·${m.groups.length ? esc(m.groups.join(', ')) : 'aucun groupe'}</p></div>
         <button type="button" class="btn x" data-close>Fermer</button></div>
       <section><h3>En chiffres</h3><dl class="kv">
         ${row('Elo', x ? `<b>${fmt(x.elo)}</b> ${esc(x.title.abbr)} · ${ix + 1}<sup>${ix ? 'e' : 'er'}</sup> sur ${rank.length}${Math.abs(x.d7) > 0.5 ? ` · ${x.d7 > 0 ? '+' : ''}${fmt(x.d7)} en 7 jours` : ''}` : 'pas encore classé')}

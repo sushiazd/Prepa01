@@ -108,7 +108,7 @@ table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:l
    OUTILS
    ===================================================================== */
 // Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
-const E = SiteCore({ id: 'phys', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return DUR; },
+const E = SiteCore({ id: 'phys', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return durOf(); },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
@@ -477,6 +477,37 @@ GEN.qcmE = (d, g) => {
     corr: `<p>1) <b>Vrai</b> : c'est la définition de l'énergie potentielle (en une dimension, \\(F_x = -\\dfrac{dE_p}{dx}\\)).</p><p>2) Le poids à la surface vaut \\(P = \\dfrac{GMm}{R^2}\\). Avec \\(M' = \\dfrac{M}{${km}}\\) et \\(R' = \\dfrac{R}{${kr}}\\) : \\(P' = P\\times\\dfrac{${kr * kr}}{${km}} = ${Q(P2, 'N')}\\).</p><p>3) Le camion ${frein ? 'freine' : 'accélère'} : son accélération est dirigée vers l'${frein ? 'arrière' : 'avant'}. Dans son référentiel (non galiléen), la caisse subit la force d'inertie d'entraînement \\(-m\\vec a_e\\), dirigée vers l'<b>${frein ? 'avant' : 'arrière'}</b>, et rien ne la retient : elle glisse vers l'${frein ? 'avant (vers la cabine)' : 'arrière'}. Dans le référentiel de la route, elle garde simplement sa vitesse (principe d'inertie).</p>` };
 };
 
+/* QCM de cours du CC2 du 2/12 (mail de B. Bêche) : 5 questions « rapides » sur les chapitres II et III.
+   Chaque entrée : [question, bonne réponse, [mauvaises réponses], explication]. */
+const QCM_COURS = [
+  ['Dans un référentiel galiléen, un point matériel isolé (ou pseudo-isolé) est', 'au repos ou en mouvement rectiligne uniforme', ['forcément au repos', 'en mouvement circulaire uniforme'], 'C\'est le principe d\'inertie (1re loi de Newton) : il définit les référentiels galiléens.'],
+  ['Dans un référentiel galiléen, le principe fondamental de la dynamique s\'écrit', '\\(\\sum\\vec F = m\\vec a = \\dfrac{d\\vec p}{dt}\\)', ['\\(\\sum\\vec F = m\\vec v\\)', '\\(\\sum\\vec F = \\vec 0\\) dès que le point bouge'], 'La somme des forces est égale à la dérivée de la quantité de mouvement \\(\\vec p = m\\vec v\\), soit \\(m\\vec a\\) à masse constante.'],
+  ['Un bloc glisse sur un support : la norme de la force de frottement solide (dynamique) vaut', '\\(\\mu_d N\\), avec \\(N\\) la réaction normale', ['\\(\\mu_d\\,mg\\) dans tous les cas', 'une valeur proportionnelle à la vitesse'], 'Loi de Coulomb : \\(R_T = \\mu_d N\\) pendant le glissement. \\(N\\) ne vaut \\(mg\\) que sur un support horizontal (sur un plan incliné, \\(N = mg\\cos\\alpha\\)).'],
+  ['Un bloc reste immobile sur un plan incliné d\'angle \\(\\alpha\\). La force de frottement exercée par le plan vaut', '\\(mg\\sin\\alpha\\)', ['\\(\\mu_s\\,mg\\cos\\alpha\\)', '0, puisque le bloc ne bouge pas'], 'À l\'équilibre, le frottement compense la composante du poids le long de la pente : \\(R_T = mg\\sin\\alpha\\). \\(\\mu_s N\\) n\'est que sa valeur maximale.'],
+  ['Une bille tombe dans un fluide (frottement \\(\\vec f = -\\alpha\\vec v\\)). Quand elle atteint sa vitesse limite', 'son accélération est nulle', ['sa vitesse est nulle', 'la force de frottement est nulle'], 'À la vitesse limite, le frottement compense exactement le poids : la somme des forces est nulle, donc \\(\\vec a = \\vec 0\\) et \\(v = v_{lim} = mg/\\alpha\\).'],
+  ['Dans un référentiel en translation, d\'accélération \\(\\vec a_e\\) par rapport à un référentiel galiléen, on ajoute', 'la force d\'inertie d\'entraînement \\(-m\\vec a_e\\) seulement', ['\\(-m\\vec a_e\\) et la force de Coriolis', 'aucune force : il reste galiléen'], 'En translation, il n\'y a pas de rotation, donc pas de force de Coriolis. Un référentiel en translation n\'est galiléen que si \\(\\vec a_e = \\vec 0\\).'],
+  ['La force d\'inertie de Coriolis \\(-2m\\,\\vec\\Omega\\wedge\\vec v_r\\)', 'ne travaille jamais', ['a toujours un travail résistant', 'a toujours un travail moteur'], 'Elle est perpendiculaire à la vitesse relative \\(\\vec v_r\\) (vitesse dans le référentiel tournant) : sa puissance \\(\\vec f_{ic}\\cdot\\vec v_r\\) est nulle.'],
+  ['Lors d\'un choc entre deux particules formant un système isolé, ce qui se conserve toujours, c\'est', 'la quantité de mouvement totale', ['l\'énergie cinétique totale', 'la vitesse de chaque particule'], 'La quantité de mouvement totale se conserve pour tout choc. L\'énergie cinétique ne se conserve que si le choc est élastique.'],
+  ['Le travail de la réaction normale d\'un support fixe, au cours d\'un glissement, est', 'nul', ['toujours négatif', 'égal à \\(-N\\times\\ell\\), où \\(\\ell\\) est la distance parcourue'], 'La réaction normale est perpendiculaire au déplacement : \\(\\delta W = \\vec N\\cdot d\\vec\\ell = 0\\).'],
+  ['Le travail du poids entre A et B (axe Oz vers le haut) vaut', '\\(-mg(z_B - z_A)\\), quel que soit le chemin suivi', ['\\(mg\\) multiplié par la longueur du chemin', '\\(mg(z_B - z_A)\\), selon le chemin suivi'], 'Le poids est conservatif : son travail ne dépend que des altitudes de départ et d\'arrivée. Il est résistant quand on monte.'],
+  ['Le théorème de l\'énergie cinétique s\'écrit \\(\\Delta E_c = \\)', 'la somme des travaux de toutes les forces', ['la somme des travaux des seules forces conservatives', '0 dès qu\'il y a des frottements'], 'Entre deux instants, \\(\\Delta E_c = \\sum W(\\vec F)\\), en comptant toutes les forces (conservatives ou non).'],
+  ['L\'énergie mécanique \\(E_m = E_c + E_p\\) d\'un point se conserve si', 'les forces non conservatives ne travaillent pas', ['il n\'y a pas de poids', 'dans tous les cas'], '\\(\\Delta E_m = \\sum W(\\text{forces non conservatives})\\). Un frottement fait diminuer \\(E_m\\) ; une réaction normale, qui ne travaille pas, ne la change pas.'],
+  ['L\'énergie potentielle élastique d\'un ressort de raideur \\(k\\), allongé de \\(x\\), vaut', '\\(\\tfrac12 kx^2\\)', ['\\(kx\\)', '\\(-\\tfrac12 kx^2\\)'], 'La force de rappel \\(F_x = -kx\\) dérive de \\(E_p = \\tfrac12 kx^2\\) (à une constante près) : \\(F_x = -\\dfrac{dE_p}{dx}\\).'],
+  ['Une position d\'équilibre \\(x_e\\) est stable si', '\\(E_p\\) y est minimale (\\(\\dfrac{d^2E_p}{dx^2} > 0\\))', ['\\(E_p\\) y est maximale', '\\(\\dfrac{dE_p}{dx} \\neq 0\\) en \\(x_e\\)'], 'À l\'équilibre \\(\\dfrac{dE_p}{dx} = 0\\). Il est stable si c\'est un minimum de \\(E_p\\) (la force ramène vers \\(x_e\\)), instable si c\'est un maximum.'],
+  ['La puissance d\'une force \\(\\vec F\\) appliquée à un point de vitesse \\(\\vec v\\) vaut', '\\(\\vec F\\cdot\\vec v\\)', ['\\(\\vec F\\wedge\\vec v\\)', '\\(\\|\\vec F\\|\\times\\|\\vec v\\|\\) dans tous les cas'], '\\(P = \\dfrac{\\delta W}{dt} = \\vec F\\cdot\\vec v\\) (en watts). Elle est nulle si la force est perpendiculaire à la vitesse.'],
+  ['Sur un aller-retour, le travail d\'une force de frottement solide est', 'négatif', ['nul, car on revient au point de départ', 'positif'], 'Le frottement s\'oppose toujours au mouvement : son travail est négatif à l\'aller ET au retour. C\'est une force non conservative.'],
+  ['Avec un axe Oz vertical dirigé vers le haut, l\'énergie potentielle de pesanteur vaut', '\\(mgz + \\text{cte}\\)', ['\\(-mgz + \\text{cte}\\)', '\\(\\tfrac12 mgz^2\\)'], '\\(\\vec P = -mg\\,\\vec u_z = -\\overrightarrow{\\mathrm{grad}}\\,E_p\\) donne \\(E_p = mgz + \\text{cte}\\). Avec un axe dirigé vers le bas, le signe change.'],
+  ['Une force \\(\\vec F\\) est conservative si', 'son travail ne dépend pas du chemin suivi', ['son travail est toujours nul', 'sa norme est constante'], 'Une force conservative dérive d\'une énergie potentielle (\\(\\vec F = -\\overrightarrow{\\mathrm{grad}}\\,E_p\\)) : son travail vaut \\(-\\Delta E_p\\), indépendant du chemin.']
+];
+GEN.qcmC = (d, g) => {
+  const pool = QCM_COURS.slice(), qs = [];
+  for (let i = 0; i < 5; i++) qs.push(pool.splice(Math.floor(g.r() * pool.length), 1)[0]);
+  const shuf = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(g.r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  return { title: 'QCM de cours', q: '<p>Cinq questions rapides sur le cours des chapitres II (dynamique) et III (énergie). Choisir la bonne réponse.</p>',
+    items: qs.map(([lab, ok, bad], i) => Ch(`${i + 1}) ${lab}`, shuf([['ok', ok], ...bad.map((t, k) => ['b' + k, t])]), 'ok')),
+    corr: qs.map(([lab, ok, , ex], i) => `<p>${i + 1}) <b>${ok}</b>. ${ex}</p>`).join('') };
+};
+
 GEN.pot = (d, g) => {
   if (d === 0) {
     const k = g.pick([10, 20, 50, 100]), F = g.pick([1, 2, 5, 10]), xe = F / k;
@@ -706,13 +737,14 @@ function vHome() {
   const when = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(cc);
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Physique · Mécanique du point · B. Bêche</p><h1>Réussir le CC de mécanique</h1>
-    <p class="lede">Le CC du mercredi 2/12 dure 1 h 30, sans document ni calculatrice. D'après le prof, il porte <b>en majorité sur les chapitres II et III</b> : dynamique (PFD, frottements, référentiels non galiléens, chocs) et énergie (travail, théorème de l'énergie cinétique, énergie potentielle, stabilité). Il faut aussi connaître par cœur les expressions de la <b>vitesse et de l'accélération</b> (chapitre I : cartésiennes, polaires, cylindriques), et le prof a dit qu'il y aurait <b>peut-être un peu de chapitre IV</b> (oscillateur harmonique, amorti). Comme dans les sujets des années passées, le moment cinétique peut revenir dans une partie plus courte.</p></div>
+    <p class="lede">Le CC2 a lieu le mercredi 2/12 au matin, dans un amphi de l'ESIR. Il dure <b>1 h 15</b> (pas de tiers-temps), sans calculatrice ni téléphone, et les sacs restent à l'entrée de l'amphi. Il porte sur les <b>chapitres II et III</b> : dynamique (PFD, frottements, référentiels non galiléens, chocs) et énergie (travail, théorème de l'énergie cinétique, énergie potentielle, stabilité).</p>
+    <p class="lede">Le prof a annoncé le barème (mail du 18/11) : un <b>QCM de 5 questions de cours</b> (5 points), un <b>exercice</b> (5 points), puis un <b>problème de 7 questions très guidées</b> (15 points). Pour réviser, il conseille les deux TD sur les plans inclinés (travail de chaque force) et les TaC du cours des chapitres II et III.</p></div>
     <section class="card"><div class="count"><b>${days > 0 ? 'J−' + days : days === 0 ? 'Jour J' : 'Passé'}</b><span>CC de physique : ${esc(when)}</span></div></section>
     <div class="grid2">
       <section class="card"><h2>Le parcours</h2><p class="sub">${done}/${SK.length} compétences validées. Du tir parabolique jusqu'aux orbites, avec une progression qui s'adapte à tes résultats.</p>
         <div class="bar ${done / SK.length >= .75 ? '' : done / SK.length >= .35 ? 'mid' : 'low'}" style="margin-top:12px"><i style="width:${Math.round(100 * done / SK.length)}%"></i></div>
         <div class="row" style="margin-top:14px"><button type="button" class="btn btn-primary" data-tab="path">${P.n ? 'Continuer' : 'Commencer'}</button></div></section>
-      <section class="card"><h2>Sujet blanc (1 h 30)</h2><p class="sub">Tiré au hasard entre deux formats : celui des CC2 2022 et 2023 (problème de 12 points sur le plan incliné, référentiel non galiléen, chocs et oscillateur) et celui du CC2 2025-26 (QCM de 5 points, puis problème plan incliné + looping sur 15 points). ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
+      <section class="card"><h2>Sujet blanc (1 h 15)</h2><p class="sub">Au format annoncé par le prof : QCM de cours (5 points), un exercice (5 points), puis un problème sur le plan incliné (15 points), soit avec frottement et le travail de chaque force, soit suivi d'un looping. ${H.length ? `Dernière note : <b>${String(H[H.length - 1].note.toFixed(1)).replace('.', ',')}/20</b>.` : 'Pas encore tenté.'}</p>
         <div class="row" style="margin-top:14px"><button type="button" class="btn" data-tab="blanc">Faire un sujet blanc</button></div></section>
     </div>
     <section class="card"><h2>Ce que montrent les anciens CC2</h2><p class="sub">Sujets de janvier 2022 et de 2023 (dossier <code>ANNALES_CC</code>) : 1 h 30, 3 pages, parties indépendantes, <b>sans calculatrice</b>, donc tout se fait en <b>littéral</b>.</p>
@@ -727,7 +759,7 @@ function vHome() {
         <li><b>QCM « forces gravitationnelles et énergies » (5 points)</b> : \\(\\vec F = -\\overrightarrow{\\mathrm{grad}}\\,E_p\\) vrai ou faux ; poids sur une planète 27 fois moins massive et de rayon 3 fois plus petit (\\(P' = P/3\\)) ; caisse non attachée dans un camion qui freine (force d'inertie d'entraînement).</li>
         <li><b>Problème (15 points)</b> : plan incliné sans frottement puis <b>looping</b>. Théorème de l'énergie cinétique pour \\(v_B = \\sqrt{2gH}\\) ; \\(h = r(1 - \\cos\\theta)\\) ; \\(v_C\\) ; PFD projeté sur la normale pour démontrer \\(R = \\dfrac{m}{r}v_B^2 + 3mg\\cos\\theta - 2mg\\) ; vitesse minimale \\(2\\sqrt{gr}\\) pour atteindre S ; constat \\(R_S < 0\\) et angle de décollement \\(\\cos\\theta_I = -\\tfrac23\\).</li>
       </ul>
-      <p class="sub" style="margin-top:8px">Ces deux exercices sont dans le parcours (« Looping » et « QCM forces et énergies ») et dans le sujet blanc.</p>
+      <p class="sub" style="margin-top:8px">Ces deux exercices sont dans le parcours (« Looping » et « QCM forces et énergies »), et le looping est l'un des deux problèmes du sujet blanc.</p>
       <p class="sub" style="margin-top:10px">Beaucoup de questions commencent par « Énoncer », « Établir » ou « Démontrer » : il faut savoir réciter le PFD, le théorème de l'énergie cinétique et celui du moment cinétique, et refaire les démonstrations de l'onglet Cours. Ici, certains exercices demandent aussi une valeur numérique pour vérifier ton résultat ; au CC, garde la formule littérale.</p></section>`;
   mathIn(app);
 }
@@ -803,24 +835,31 @@ function vCours(open) {
 }
 
 /* ---------- Sujet blanc ---------- */
-const DUR = 5400;
-// Calqué sur les CC2 de 2022 et 2023 : un problème (plan incliné, travaux, énergie), un exercice en référentiel non galiléen, une partie plus courte
+// Sujets commencés avant le 24/11 : plan 0 ou 1 (anciens formats, 1 h 30). Nouveaux sujets : plan 2 ou 3 (format annoncé par B. Bêche, 1 h 15).
+function durOf() { return EXAM && EXAM.plan < 2 ? 5400 : 4500; }
 const EXAM_PLAN = [['Problème · Plan incliné, travaux et énergie', [['plan', 1], ['travail', 1], ['tec', 1], ['pot', 1]], 12], ['Exercice · Référentiel non galiléen', [['inert', 1]], 5], ['Exercice · Chocs et oscillateur', [['choc', 1], ['oh', 1]], 3]];
-// Format du CC2 2025-26 : QCM de 5 points puis problème plan incliné + looping sur 15 points
 const EXAM_PLAN_B = [['Exercice · QCM forces gravitationnelles et énergies', [['qcmE', 1]], 5], ['Problème · Plan incliné et looping', [['loop', 0], ['loop', 1], ['loop', 2]], 15]];
-function examExos(seed, plan) { const g = G(rng(seed)); return examPlan(plan === 1 ? EXAM_PLAN_B : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+// Format du CC2 du 2/12 (mail de B. Bêche, 18/11) : QCM de 5 questions de cours des chapitres II et III (5 pts),
+// un exercice (5 pts), puis un problème très guidé (15 pts). Noté sur 25, ramené sur 20.
+const EXO_CC2 = [['Référentiel non galiléen', 'inert', [0, 1, 2]], ['Chocs', 'choc', [1, 2]], ['Énergie potentielle et équilibre', 'pot', [0, 1]], ['Travail d\'une force', 'travail', [0, 2]], ['Énergie mécanique : pendule', 'tec', [2]], ['Frottement fluide', 'visq', [0, 1]]];
+const PB_CC2 = [['Problème · Plan incliné avec frottement : forces, travaux, énergie', [['plan', 2], ['travail', 1], ['tec', 1]]], ['Problème · Plan incliné puis looping', [['loop', 0], ['loop', 1], ['loop', 2]]]];
+function cc2Plan(seed, plan) {
+  const g = G(rng((seed ^ 0x5bd1e995) >>> 0)), [t, id, ds] = g.pick(EXO_CC2), pb = PB_CC2[plan - 2];
+  return [['Exercice 1 · QCM de cours (chapitres II et III)', [['qcmC', 0]], 5], ['Exercice 2 · ' + t, [[id, g.pick(ds)]], 5], [pb[0], pb[1], 15]];
+}
+function examExos(seed, plan) { const g = G(rng(seed)); return examPlan(plan === 1 ? EXAM_PLAN_B : plan >= 2 ? cc2Plan(seed, plan) : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
-  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Calqué sur les CC2 de 2022 et 2023 : un problème de 12 points (plan incliné avec frottement, travaux, théorème de l'énergie cinétique, énergie potentielle), un exercice de 5 points en référentiel non galiléen, et 3 points sur les chocs et l'oscillateur. Les formules littérales sont corrigées automatiquement.</p></div>
-    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button>${weakButton()}<span class="fine">Fais les démonstrations sur une feuille, puis reporte les résultats.</span></div></section>
+  app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 15 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Au format annoncé par le prof pour le CC2 du 2/12 : un QCM de 5 questions de cours des chapitres II et III (5 points), un exercice tiré au hasard dans ces chapitres (5 points), puis un problème guidé sur le plan incliné (15 points). Le total sur 25 est ramené sur 20. Les formules littérales sont corrigées automatiquement.</p></div>
+    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 15)</button>${weakButton()}<span class="fine">Fais les démonstrations sur une feuille, puis reporte les résultats.</span></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
   EXAM.exs = examExos(EXAM.seed, EXAM.plan);
-  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc de mécanique</p><h1>CC · 1 h 30</h1></div>`
+  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc de mécanique</p><h1>CC · ${durOf() === 5400 ? '1 h 30' : '1 h 15'}</h1></div>`
     + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
       : `<section class="card">${HELP}<div class="row" style="justify-content:center;margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div></section>`);
@@ -841,8 +880,9 @@ function submitExam(auto) {
     for (const it of its) { const r = check(it, EXAM.ans[it.id] || ''); fb[it.id] = fbHTML(r); got += tally(it, r.st === 'ok' ? 1 : 0); }
     note += ex.pts * got / its.length;
   }
+  note *= 20 / exs.reduce((t, ex) => t + ex.pts, 0);   // format du 2/12 : 25 points ramenés sur 20
   EXAM.done = true; EXAM.running = false; EXAM.note = note; EXAM.fb = fb;
-  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(DUR, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord() }); ls.set(HK, H);
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(durOf(), Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord() }); ls.set(HK, H);
   EXAM.closed = true; saveExam();   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
   renderExam(); window.scrollTo(0, 0);
@@ -865,7 +905,7 @@ document.addEventListener('click', e => {
   else if (act === 'next') nextPath();
   else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
   else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
-  else if (act === 'exam') { EXAM = { seed: newSeed(), plan: Math.random() < 0.5 ? 1 : 0, t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
+  else if (act === 'exam') { EXAM = { seed: newSeed(), plan: Math.random() < 0.6 ? 2 : 3, t0: Date.now(), ans: {}, running: true, done: false }; saveExam(); renderExam(); }
   else if (act === 'submit') submitExam(false);
   else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
 });

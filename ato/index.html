@@ -12,7 +12,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../subjects.js?v=2026112401"></script>
 <script src="../core.js?v=2026112402"></script>
-<script src="learn.js?v=2026112401"></script>
+<script src="learn.js?v=2026112402"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026102803">
 <style>
@@ -521,7 +521,49 @@ const MOL = [
 const OCT = { oct: 'règle de l\'octet respectée', lac: 'lacune électronique (moins de 8 électrons)', hyp: 'hypervalence (plus de 8 électrons)' };
 const optsOf = (all, ans, k, g) => g.shuffle([ans, ...g.shuffle(all.filter(x => x !== ans)).slice(0, k - 1)]).map(x => ({ v: x, t: x }));
 
+// Activation (cours Liaisons chap. I, diapo 9) : [atome, Z, fondamental, activé, célibataires avant, après, molécule]
+const ACTI = [
+  ['C', 6, '2s^2\\,2p^2', '2s^1\\,2p^3', 2, 4, 'CH<sub>4</sub>'],
+  ['B', 5, '2s^2\\,2p^1', '2s^1\\,2p^2', 1, 3, 'BF<sub>3</sub>'],
+  ['Be', 4, '2s^2', '2s^1\\,2p^1', 0, 2, 'BeCl<sub>2</sub>'],
+  ['P', 15, '3s^2\\,3p^3', '3s^1\\,3p^3\\,3d^1', 3, 5, 'PCl<sub>5</sub>']
+];
+// Acides et bases de Lewis (diapo 12) : [espèce, a acide / b base / n ni l'un ni l'autre, raison]
+const LAB = [
+  ['BF<sub>3</sub>', 'a', 'B n\'a que 6 électrons autour de lui : une case 2p vide (lacune), il peut capter un doublet.'],
+  ['AlCl<sub>3</sub>', 'a', 'Al n\'a que 6 électrons autour de lui : lacune électronique, il peut capter un doublet.'],
+  ['BeCl<sub>2</sub>', 'a', 'Be n\'a que 4 électrons autour de lui : deux cases vides, il peut capter un doublet.'],
+  ['H<sup>+</sup>', 'a', 'H<sup>+</sup> n\'a plus d\'électron : sa case 1s est vide, il capte un doublet (NH<sub>3</sub> + H<sup>+</sup> → NH<sub>4</sub><sup>+</sup>).'],
+  ['NH<sub>3</sub>', 'b', 'N porte un doublet non liant qu\'il peut céder.'],
+  ['H<sub>2</sub>O', 'b', 'O porte deux doublets non liants qu\'il peut céder (H<sub>2</sub>O + H<sup>+</sup> → H<sub>3</sub>O<sup>+</sup>).'],
+  ['OH<sup>−</sup>', 'b', 'O porte trois doublets non liants.'],
+  ['Cl<sup>−</sup>', 'b', 'Cl<sup>−</sup> a quatre doublets non liants (configuration de Ar).'],
+  ['CH<sub>4</sub>', 'n', 'C a ses 4 liaisons (octet complet, pas de case vide) et aucun doublet non liant.'],
+  ['NH<sub>4</sub><sup>+</sup>', 'n', 'N a 4 liaisons et plus de doublet non liant (il l\'a déjà donné à H<sup>+</sup>), et aucune case vide.']
+];
+const uniF = f => f.replace(/<sub>(\d)<\/sub>/g, (_, n) => '₀₁₂₃₄₅₆₇₈₉'[n]).replace(/<sup>\+<\/sup>/g, '⁺').replace(/<sup>−<\/sup>/g, '⁻');
+const LAB_OPTS = [{ v: 'a', t: 'acide de Lewis' }, { v: 'b', t: 'base de Lewis' }, { v: 'n', t: 'ni l\'un ni l\'autre' }];
+const lewisActi = (d, g) => {
+  const pool = d <= 1 ? ACTI.slice(0, 3) : ACTI, [A, Z, f0, f1, c0, c1, mol] = g.pick(pool);
+  return { title: 'Activation d\'un atome', q: `Dans ${mol}, l'atome ${A} (Z = ${Z}) forme ${c1} liaisons covalentes ordinaires. Donner le nombre d'électrons célibataires de sa couche de valence à l'état fondamental, puis à l'état activé qui explique ces ${c1} liaisons.`,
+    items: [{ type: 'int', label: 'célibataires (fondamental)', val: c0 }, { type: 'int', label: 'célibataires (activé)', val: c1 }],
+    corr: `<p>État fondamental : \\(${f0}\\), soit <b>${c0} électron${c0 > 1 ? 's' : ''} célibataire${c0 > 1 ? 's' : ''}</b> (règle de Hund dans les cases${A === 'P' ? ' 3p' : ' 2p'}) : ${A} ne pourrait former que ${c0} liaison${c0 > 1 ? 's' : ''}.</p><p>Un électron ${A === 'P' ? '3s passe dans une case 3d vide' : '2s passe dans une case 2p vide'} : état activé \\(${f1}\\), <b>${c1} célibataires</b>, donc ${c1} liaisons. C'est l'<b>activation</b> : elle coûte de l'énergie, largement compensée par la formation des liaisons.${A === 'P' ? ' Possible seulement à partir de la 3<sup>e</sup> période (cases d) : c\'est l\'hypervalence.' : ''}</p>` };
+};
+const lewisAB = (d, g) => {
+  const two = g.shuffle(LAB).slice(0, 2), rx = d >= 2 && g.r() < 0.5;
+  if (rx) {
+    const [b, a] = g.pick([['NH<sub>3</sub>', 'BF<sub>3</sub>', 'H<sub>3</sub>N–BF<sub>3</sub>'], ['NH<sub>3</sub>', 'H<sup>+</sup>', 'NH<sub>4</sub><sup>+</sup>'], ['H<sub>2</sub>O', 'H<sup>+</sup>', 'H<sub>3</sub>O<sup>+</sup>'], ['Cl<sup>−</sup>', 'AlCl<sub>3</sub>', 'AlCl<sub>4</sub><sup>−</sup>']]);
+    return { title: 'Réaction acide-base de Lewis', q: `On fait réagir ${b} sur ${a}. Qui donne le doublet, et quel type de liaison se forme ?`,
+      items: [{ type: 'choice', label: 'donneur du doublet', opts: g.shuffle([['b', b], ['a', a]]).map(([v, t]) => ({ v, t })), ans: 'b' }, { type: 'choice', label: 'liaison formée', opts: [{ v: 'c', t: 'liaison de coordination' }, { v: 'i', t: 'liaison ionique' }, { v: 'h', t: 'liaison hydrogène' }], ans: 'c' }],
+      corr: `<p>${b} a un <b>doublet non liant</b> : c'est la <b>base de Lewis</b> (donneur). ${a} a une <b>case vide</b> : c'est l'<b>acide de Lewis</b> (accepteur), qui reçoit le doublet. Une réaction acide-base de Lewis est un échange de doublet.</p><p>La liaison créée est une <b>liaison de coordination</b> : un seul des deux atomes a fourni les deux électrons. Une fois formée, elle est identique à une liaison covalente ordinaire (les 4 liaisons N–H de NH<sub>4</sub><sup>+</sup> sont les mêmes).</p>` };
+  }
+  return { title: 'Acide ou base de Lewis', q: `Pour chaque espèce, dire si c'est un acide de Lewis (capte un doublet), une base de Lewis (cède un doublet) ou ni l'un ni l'autre.` + zData(two.map(t => t[0]).join(' ')),
+    items: two.map(([f, ans]) => ({ type: 'choice', label: uniF(f), opts: LAB_OPTS, ans })),
+    corr: `<ul>${two.map(([f, ans, why]) => `<li>${f} : <b>${LAB_OPTS.find(o => o.v === ans).t}</b>. ${why}</li>`).join('')}</ul><p class="fine">Acide de Lewis = une lacune (case vide) ; base de Lewis = un doublet non liant.</p>` };
+};
+
 GEN.lewis = (d, g) => {
+  if (d >= 1) { const r = g.r(); if (r < 0.2) return lewisActi(d, g); if (r < 0.4) return lewisAB(d, g); }
   const pool = MOL.filter(m => !m.noLewis && (d === 0 ? m.lv === 0 : d === 1 ? m.lv <= 1 : m.lv === 2 || m.ve > 20));
   const m = g.pick(pool), oct = m.oct || 'oct', octOpts = Object.keys(OCT).map(k => ({ v: k, t: OCT[k] }));
   const items = d === 0 ? [{ type: 'int', label: 'électrons de valence (total)', val: m.ve }, { type: 'int', label: 'doublets (total)', val: m.ve / 2 }, { type: 'int', label: `doublets non liants de ${m.A}`, val: m.dnl }]
@@ -996,6 +1038,8 @@ const FICHES = [
   ['VI. Liaison covalente : modèle de Lewis (partie 2)', `<p>Une liaison de covalence = un <b>doublet d'électrons mis en commun</b> par deux atomes (recouvrement de deux O.A.), représenté par un tiret. Δχ ≤ 1,7 : covalente (à droite du tableau) ou métallique (à gauche) ; Δχ &gt; 1,7 : ionique (NaCl, CaO).</p>
     <h4>Construire un schéma de Lewis</h4><ol style="padding-left:22px;margin-top:10px"><li>Compter les électrons de valence de tous les atomes, <b>moins la charge</b> pour un cation, <b>plus la charge</b> pour un anion ; diviser par 2 : nombre de doublets.</li><li>Relier l'atome central aux autres par des liaisons simples.</li><li>Compléter les octets des atomes externes (H : un seul doublet, le duet), puis placer les doublets restants sur l'atome central.</li><li>Si l'atome central n'a pas son octet : transformer des doublets non liants voisins en liaisons multiples (CO<sub>2</sub> : O=C=O ; HCN : H–C≡N).</li></ol>
     <div class="box warn"><h5>Exceptions à l'octet</h5><b>Lacune électronique</b> : BF<sub>3</sub>, AlCl<sub>3</sub>, BeCl<sub>2</sub> (moins de 8 électrons autour de B, Al, Be) : acides de Lewis, BF<sub>3</sub> accepte le doublet de NH<sub>3</sub> (BF<sub>3</sub>NH<sub>3</sub>). <b>Hypervalence</b> : plus de 8 électrons pour les éléments de la 3<sup>e</sup> période et au-delà (PCl<sub>5</sub>, SF<sub>6</sub>, SF<sub>4</sub>, XeF<sub>2</sub>) ; <b>jamais</b> pour C, N, O, F (2<sup>e</sup> période).</div>
+    <h4>Activation d'un atome</h4><p>Le nombre de liaisons ordinaires qu'un atome forme = son nombre d'<b>électrons célibataires</b>. C à l'état fondamental : 2s<sup>2</sup> 2p<sup>2</sup>, 2 célibataires, il ne devrait faire que 2 liaisons. Or il en fait 4 (CH<sub>4</sub>) : un électron 2s passe dans la case 2p vide, <b>2s<sup>1</sup> 2p<sup>3</sup></b>, 4 célibataires. C'est l'<b>activation</b> : elle coûte de l'énergie, largement rendue par la formation des liaisons. Même idée : Be 2s<sup>1</sup> 2p<sup>1</sup> (2 liaisons, BeCl<sub>2</sub>), B 2s<sup>1</sup> 2p<sup>2</sup> (3 liaisons, BF<sub>3</sub>), et P 3s<sup>1</sup> 3p<sup>3</sup> 3d<sup>1</sup> (5 liaisons, PCl<sub>5</sub>, grâce aux cases 3d).</p>
+    <div class="box key"><h5>Acides et bases de Lewis, liaison de coordination</h5><b>Acide de Lewis</b> : possède une <b>lacune</b> (case vide), il peut <b>capter</b> un doublet : BF<sub>3</sub>, AlCl<sub>3</sub>, BeCl<sub>2</sub>, H<sup>+</sup>. <b>Base de Lewis</b> : possède un <b>doublet non liant</b>, elle peut le <b>céder</b> : NH<sub>3</sub>, H<sub>2</sub>O, OH<sup>−</sup>, Cl<sup>−</sup>. Une réaction acide-base de Lewis est un échange de doublet : la base (donneur) donne son doublet à l'acide (accepteur), qui le reçoit dans sa case vide. La liaison formée est une <b>liaison de coordination</b> (NH<sub>3</sub> + H<sup>+</sup> → NH<sub>4</sub><sup>+</sup> ; NH<sub>3</sub> + BF<sub>3</sub> → H<sub>3</sub>N–BF<sub>3</sub>) ; une fois formée, elle est identique à une liaison covalente ordinaire. CH<sub>4</sub> n'est ni l'un ni l'autre (ni case vide, ni doublet non liant).</div>
     <!--cc2--><div class="box key"><h5>Charge formelle</h5>CF = (électrons de valence de l'atome isolé) − (électrons non liants) − (nombre de liaisons). Ex. NH<sub>4</sub><sup>+</sup> : N = 5 − 0 − 4 = +1 ; CO : C = 4 − 2 − 3 = −1, O = 6 − 2 − 3 = +1. La somme des CF est la charge de l'édifice ; la meilleure structure a des CF petites, la charge négative sur l'atome le plus électronégatif.</div>
     <h4>Mésomérie</h4><p>Quand plusieurs schémas ne diffèrent que par la place des doublets (pas des atomes), ce sont des <b>formes mésomères</b> ; la molécule réelle est l'<b>hybride de résonance</b>. CO<sub>3</sub><sup>2−</sup>, NO<sub>3</sub><sup>−</sup>, SO<sub>3</sub> : 3 formes (liaisons C–O toutes identiques, charge répartie) ; SO<sub>2</sub>, NO<sub>2</sub><sup>−</sup>, O<sub>3</sub> : 2 formes. Les formes qui respectent l'octet pèsent le plus.</p><!--/cc2-->`],
   ['VII. Géométrie : VSEPR et hybridation (partie 2)', `<p><b>VSEPR</b> (Gillespie) : autour de l'atome central A, les doublets liants et non liants se repoussent et s'écartent au maximum. On écrit <b>AX<sub>n</sub>E<sub>p</sub></b> : n atomes liés à A (une liaison multiple compte une fois), p doublets non liants (ou électron célibataire).</p>

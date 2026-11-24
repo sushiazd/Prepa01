@@ -31,17 +31,17 @@
       dates: ['2026-09-18T13:00:00Z', '2026-09-28T14:45:00Z'] },
     { id: 'ms1', name: 'Maths S1', page: 'maths-s1/', ade: MATH, nth: 0, dates: MATH_CC, skills: 16 },
     { id: 'ma2', name: 'Analyse', page: 'maths-s1-analyse/', ade: MATH, nth: 1, later: true, dates: MATH_CC, skills: 14 },
-    // CC1 « L'atome » (prévu le 20/10, reporté) le 25/11 ; CC2 (tout le cours) le 16/12, retiré d'ADE au 21/11
-    { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-11-25T12:15:00Z', '2026-12-16T08:45:00Z'], skills: 22,
+    // CC1 « L'atome » (prévu le 20/10, reporté) le 25/11 ; CC2 (tout le cours) le 8/01 (ADE au 24/11, après la disparition du 16/12)
+    { id: 'ato', name: 'Atomistique', page: 'ato/', ade: word('ATO'), count: 2, dates: ['2026-11-25T12:15:00Z', '2027-01-08T13:45:00Z'], skills: 22,
       cc1: ['noyau', 'iso', 'onde', 'niv', 'trans', 'serie', 'nq', 'conf', 'exc', 'case', 'place', 'prop', 'lewis'] },
     { id: 'elec', name: 'Élec CC1', page: 'elec/', ade: /ELECa/i, nth: 0, dates: ELEC_CC, skills: 21, bonus: ['thv'] },
     { id: 'el2', name: 'Élec CC2', page: 'elec2/', ade: /ELECa/i, nth: 1, later: true, dates: ELEC_CC, skills: 9 },
     // Électronique numérique (CUPGE1-ELECn-S1) : CC1 (Séquence A) le 4/12, CC2 (Séquences A, B, C) le 12/01
-    { id: 'eln', name: 'Élec num.', page: 'elecn/', ade: /ELECn/i, dates: ['2026-12-04T08:45:00Z', '2027-01-12T08:45:00Z'], skills: 12,
+    { id: 'eln', name: 'Élec num.', page: 'elecn/', ade: /ELECn/i, dates: ['2026-12-04T08:45:00Z', '2027-01-12T14:00:00Z'], skills: 12,
       cc1: ['num', 'addb', 'boole', 'canon', 'karn', 'mux'] },
     // DS 1 (23/10, puis 5/11, puis « semaine du 9/11 ») jamais passé et absent d'ADE au 17/11 : count 2 le place avant
     // le DS 2 du 7/12, « date à confirmer » ; l'oral sur machine les 6-7/01 (avec { oral: true })
-    { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), count: 2, dates: ['2026-12-07T12:15:00Z'], skills: 26,
+    { id: 'algo', name: 'Algo', page: 'algo/', ade: word('ALGO'), count: 2, dates: ['2026-12-07T11:45:00Z'], skills: 26,
       cc1: ['types', 'trace', 'boucles', 'fonc', 'code1', 'suite', 'cplx', 'dicho', 'list', 'alias', 'str', 'mat', 'minmax', 'code2', 'fusion', 'dict', 'code3', 'qcm'] },
     // CC1 de physique le 28/09 (avant le site) : la page prépare le CC2
     { id: 'phys', name: 'Méca du point', page: 'phys/', ade: word('PHYS'), nth: 1, dates: ['2026-09-28T11:15:00Z', '2026-12-02T08:45:00Z'], skills: 16 },
@@ -54,10 +54,12 @@
 
   // Créneaux d'évaluation de la matière dans l'emploi du temps, du plus tôt au plus tard, sur toute l'année
   // (o.oral : garder aussi les oraux)
+  // créneau réservé au tiers-temps (« Tiers temps CC … »), mais pas un CC « (tiers-temps inclus) », qui est le vrai CC (ATO, 25/11)
+  const TIERS = t => /tiers[\s-]*temps/i.test(t) && !/inclus/i.test(t);
   function events(id, o = {}) {
     const s = byId[id], c = cache();
     if (!s || !c || !Array.isArray(c.evs)) return [];
-    return c.evs.filter(e => s.ade.test(e.t) && (s.qcm || CC.test(e.t)) && !/tiers|rattrapage/i.test(e.t) && (o.oral || !/oraux/i.test(e.t))
+    return c.evs.filter(e => s.ade.test(e.t) && (s.qcm || CC.test(e.t)) && !TIERS(e.t) && !/rattrapage/i.test(e.t) && (o.oral || !/oraux/i.test(e.t))
       && !s.ignoreTs.includes(e.s)).sort((a, b) => a.s - b.s);
   }
   // Tous les CC de la matière : l'emploi du temps s'il en a, sinon les dates de secours ; avec count, les CC

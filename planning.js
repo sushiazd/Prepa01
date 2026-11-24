@@ -52,7 +52,8 @@
     ALGO: 'Algorithmique', MECA: 'Mécanique', ANG: 'Anglais', ATO: 'Atomistique' };
   // page de révision d'un créneau : subjects.js (CC1 / CC2 d'une même matière départagés par la date)
   const linkOf = e => window.SiteSubjects ? SiteSubjects.pageOf(e) : null;
-  const isTiers = e => /tiers[\s-]*temps/i.test(e.t);
+  // créneau réservé au tiers-temps ; un CC « (tiers-temps inclus) » est le CC de tout le monde
+  const isTiers = e => /tiers[\s-]*temps/i.test(e.t) && !/inclus/i.test(e.t);
   const isRatt = e => /rattrapage/i.test(e.t);
   const isEval = e => /(?:^|[^A-Za-zÀ-ÿ])(CC|QCM|DS|EXAMEN|EXAM|PARTIEL|CONTR[ÔO]LE|INTERRO|TOEIC|TOIEC|ORAUX|ORAL|SOUTENANCE|[ÉE]VALUATION)(?![A-Za-zÀ-ÿ])/i.test(e.t);
   function subjOf(e) {

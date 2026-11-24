@@ -219,7 +219,7 @@
     profile = data || { id: uid, pseudo: (user.user_metadata && user.user_metadata.pseudo) || 'moi' };
     emit('change', user); readyFn();
     // sur les pages des matières aussi, l'emploi du temps (dates des CC) est relu en arrière-plan
-    if (!window.SitePlanning) load(ROOT + 'planning.js').catch(() => {});
+    if (!window.SitePlanning) load(ROOT + 'planning.js?v=2026112401').catch(() => {});
     await pull(true);
   }
 

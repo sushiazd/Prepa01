@@ -86,6 +86,48 @@
            listHost() → hôte de l'onglet Cours, onClose() → réaffiche l'onglet Cours }
      Progression <id>.learn.v1 : { compétence: { i: étape atteinte, done: date } }, synchronisée (account.js).
      ===================================================================== */
+  /* ---------- Journal d'activité : <id>.log.v1 ----------
+     Tout ce que l'élève fait sur une page de CC, dans l'ordre, pour que le bilan puisse dire ce qui a été
+     travaillé et quand (synchronisé sur le compte par account.js, fusion par identifiant). Un événement :
+     { id, t (ms), e, … } avec e =
+       open / show / hide        page ouverte, onglet revenu au premier plan, quitté (temps actif = show → hide)
+       tab   v                   onglet de la page (home, path, cours, exos, blanc)
+       go    k d s m             exercice affiché (compétence, niveau, graine, path|free) ; rv révision, pr test d'entrée
+       ex    k d s m r f h pk ms a   exercice fini : r part juste du premier coup, f score par question, h indices,
+                                 pk correction ouverte avant la fin, ms durée, a réponses tapées
+       why   k v                 origine de l'erreur donnée par l'élève (calc, meth, mix, idee)
+       hint  k n                 indice demandé
+       les   k a i ok n          leçon « Comprendre » : a = open | step | guess | noidea | check | done | skip,
+                                 i étape, ok/n questions justes sur le total
+       blanc s cc                sujet blanc commencé ; copie : s note dur cc (copie rendue)
+     L'exercice se reconstruit à l'identique avec build(k, d, s) de la page. */
+  window.SiteLog = (function () {
+    const MAX = 2500, cut = v => typeof v === 'string' && v.length > 300 ? v.slice(0, 300) + '…' : v;
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    function add(id, ev) {
+      if (!id) return;
+      const K = id + '.log.v1';
+      let L; try { L = JSON.parse(localStorage.getItem(K) || '[]'); } catch (e) { L = []; }
+      if (!Array.isArray(L)) L = [];
+      L.push(Object.assign({ id: uid(), t: Date.now() }, ev));
+      if (L.length > MAX) L.splice(0, L.length - MAX);
+      try { localStorage.setItem(K, JSON.stringify(L)); } catch (e) { return; }
+      if (window.SiteAccount) SiteAccount.touch(K);
+    }
+    // réponses tapées, raccourcies (le code d'algo peut être long)
+    const answers = A => { const o = {}; Object.keys(A || {}).forEach(k => { const v = A[k]; if (v !== '' && v != null) o[k.slice(k.lastIndexOf('-') + 1)] = cut(typeof v === 'string' ? v : JSON.stringify(v)); }); return o; };
+    // arrivée sur la page, puis premier plan / arrière-plan : de quoi compter le temps vraiment passé
+    function watch(id) {
+      let cc; try { cc = window.SiteSubjects && SiteSubjects.ccNum ? SiteSubjects.ccNum(id) : undefined; } catch (e) { /* ignore */ }
+      add(id, { e: 'open', cc, at: location.pathname.split('/').filter(Boolean).pop() });
+      let vis = true;
+      const on = v => { if (v === vis) return; vis = v; add(id, { e: v ? 'show' : 'hide' }); };
+      document.addEventListener('visibilitychange', () => on(document.visibilityState === 'visible'));
+      window.addEventListener('pagehide', () => on(false));
+    }
+    return { add, answers, watch };
+  })();
+
   window.SiteLessons = function (o) {
     const $ = (s, r = document) => r.querySelector(s);
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -119,6 +161,7 @@
     function open(host, k, back) {
       const S = lstate()[k] || {};
       LES = { id: k, i: S.done ? 0 : Math.min(S.i || 0, LEARN()[k].steps.length - 1), host, back, g: {}, checked: {}, ans: {} };
+      SiteLog.add(o.id, { e: 'les', k, a: 'open', i: LES.i, n: LEARN()[k].steps.length });
       render();
     }
     function render() {
@@ -146,6 +189,7 @@
         its.forEach(it => { LES.ans[it.id] = kit().valOf(LES.host, it.id); });
         if (a !== 'noidea' && its.some(it => kit().check(it, LES.ans[it.id]).st === 'empty')) { toast(part === 'guess' ? 'Propose une réponse (ou clique sur « Aucune idée »).' : 'Réponds à la question avant de vérifier.'); return; }
         if (a === 'noidea') its.forEach(it => { LES.ans[it.id] = ''; });
+        SiteLog.add(o.id, { e: 'les', k, a, i: LES.i, ok: its.filter(it => kit().check(it, LES.ans[it.id]).st === 'ok').length, n: its.length, ans: SiteLog.answers(LES.ans && Object.fromEntries(its.map(it => [it.id, LES.ans[it.id]]))) });
         if (part === 'ask') LES.checked[LES.i] = true; else LES.g[LES.i] = true;
         render();
         const tgt = $(part === 'ask' ? '.lask:not(.lguess) .lwhy' : '.lbody', LES.host);
@@ -156,11 +200,13 @@
       if (a === 'prev') LES.i = Math.max(0, LES.i - 1);
       else if (a === 'next' && LES.i < N - 1) LES.i++;
       else {
+        SiteLog.add(o.id, { e: 'les', k, a: a === 'end' ? 'skip' : 'done', i: LES.i });
         S[k] = { i: 0, done: Date.now() }; ls.set(LK, S);
         if (o.onDone) o.onDone(k);
         const back = LES.back; LES = null; back(); return;
       }
       if (!(S[k] || {}).done) { S[k] = { i: Math.max(LES.i, (S[k] || {}).i || 0) }; ls.set(LK, S); }
+      if (a === 'next') SiteLog.add(o.id, { e: 'les', k, a: 'step', i: LES.i });
       render();
       LES.host.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -205,8 +251,17 @@
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
     const ls = {
       get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-      set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
+      set(k, v) { if (k === cfg.id + '.exam.v1' || k === cfg.id + '.hist.v1') logExam(k, v); try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
     };
+    // sujet blanc commencé (nouvelle graine dans <id>.exam.v1) et copie rendue (nouvelle entrée de <id>.hist.v1)
+    function logExam(k, v) {
+      try {
+        const old = ls.get(k, null);
+        if (k.endsWith('.exam.v1')) { if (v && v.running && !v.closed && (!old || String(old.seed) !== String(v.seed))) SiteLog.add(cfg.id, { e: 'blanc', s: v.seed, cc: v.cc, cible: v.target ? true : undefined }); return; }
+        const seen = new Set((Array.isArray(old) ? old : []).map(r => String(r.id)));
+        (Array.isArray(v) ? v : []).filter(r => r && !seen.has(String(r.id))).forEach(r => SiteLog.add(cfg.id, { e: 'copie', s: r.id, note: r.note, dur: r.dur, cc: r.cc, sk: r.sk }));
+      } catch (e) { /* le journal ne doit jamais bloquer la page */ }
+    }
     let toastT = 0;
     function toast(t) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500); }
     // générateur pseudo-aléatoire à graine (un exercice se retrouve à l'identique)
@@ -265,6 +320,8 @@
       const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : probe ? 1 : levelOf(s), seed = R ? R.seed : newSeed();
       cfg.CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, probe, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), hint: R ? R.hint || 0 : 0, done: false };
       cfg.CUR.ex = build(k.id, d, seed);
+      cfg.CUR.t0 = R && R.t0 || Date.now();
+      if (!R) SiteLog.add(id, { e: 'go', k: k.id, d, s: seed, m: cfg.CUR.mode, rv: cfg.CUR.review || undefined, pr: probe || undefined });
       if (cfg.CUR.mode === 'path' && !R) saveCur(!!o.user);
       cfg.renderEx();
     }
@@ -272,7 +329,7 @@
       const CUR = cfg.CUR;
       if (!CUR || CUR.mode !== 'path') return;
       const P = pst();
-      P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, probe: CUR.probe || undefined, ans: CUR.ans, first: CUR.first, peek: CUR.peek, hint: CUR.hint || 0 };
+      P.cur = CUR.done ? null : { id: CUR.k.id, d: CUR.d, seed: CUR.seed, review: CUR.review, probe: CUR.probe || undefined, ans: CUR.ans, first: CUR.first, peek: CUR.peek, hint: CUR.hint || 0, t0: CUR.t0 };
       if (bump) P.curT = Date.now();
       ls.set(PK, P);
     }
@@ -280,6 +337,11 @@
     function finish(r) {
       const CUR = cfg.CUR;
       CUR.done = true;
+      try {
+        SiteLog.add(id, { e: 'ex', k: CUR.k.id, d: CUR.d, s: CUR.seed, m: CUR.mode, rv: CUR.review || undefined, pr: CUR.probe || undefined, r: Math.round(r * 100) / 100,
+          f: CUR.ex.items.map(it => it.id in CUR.first ? Math.round(Number(CUR.first[it.id]) * 100) / 100 : null), h: CUR.hint || undefined, pk: CUR.peek || undefined,
+          ms: CUR.t0 && Date.now() - CUR.t0 < 3 * 3600e3 ? Date.now() - CUR.t0 : undefined, a: SiteLog.answers(CUR.ans) });
+      } catch (e) { /* ignore */ }
       const host = $('#exHost');
       $('details.corr', host).open = true;
       if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); if (cfg.typeset) cfg.typeset(host); return; }
@@ -321,6 +383,7 @@
       const CUR = cfg.CUR, F = CUR && CUR.done && CUR.fin;
       if (!F || !PWHY[v]) return;
       F.why = F.why === v ? null : v;
+      SiteLog.add(id, { e: 'why', k: CUR.k.id, s: CUR.seed, v: F.why || '' });
       const P = pst(), s = skS(P, CUR.k.id);
       M.apply(s, F); s.ever = F.was || s.m >= VAL; s.ko = F.ko0 + (F.r < .5 && F.why !== 'calc' ? 1 : 0);
       s.why = F.why || undefined;
@@ -373,6 +436,7 @@
       if (!e.target.closest('[data-act="hint"]')) return;
       const CUR = cfg.CUR; if (!CUR || CUR.done) return;
       CUR.hint = Math.min(2, (CUR.hint || 0) + 1); saveCur();
+      SiteLog.add(id, { e: 'hint', k: CUR.k.id, s: CUR.seed, n: CUR.hint });
       const host = $('#exHost'), card = host && $('.ex', host);
       if (!card) return;
       $$('.hints, [data-act="hint"]', card).forEach(x => x.remove());
@@ -408,6 +472,7 @@
     const TABS = ['home', 'path', 'cours', 'exos', 'blanc'];
     function setTab(t) {
       if (cfg.EXAM && cfg.EXAM.running && t !== 'blanc') { toast('Un sujet blanc est en cours.'); t = 'blanc'; }
+      if (cfg.VIEW !== t) SiteLog.add(id, { e: 'tab', v: t });
       cfg.VIEW = t;
       $$('#tabs .tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
       (t === 'path' ? vPath : cfg.views[t])();
@@ -781,6 +846,7 @@
     // à appeler à la fin du script de la page : ouvre l'onglet de l'adresse (#path, #blanc…)
     function start() {
       if (window.SiteSubjects && SiteSubjects.get(id) && ![SiteSubjects.get(id).skills, (SiteSubjects.get(id).cc1 || []).length].includes(cfg.SK.length)) console.warn(`subjects.js : ${id} a ${cfg.SK.length} compétences, pas ${SiteSubjects.get(id).skills}`);
+      SiteLog.watch(id);
       const boot = () => { const h = location.hash.slice(1); setTab(TABS.includes(h) ? h : 'home'); };
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
     }

@@ -86,6 +86,13 @@
   SYNC['eln.path.v1'] = SYNC['elec.path.v1'];
   SYNC['eln.hist.v1'] = SYNC['elec.hist.v1'];
   ['elec', 'algo', 'phys', 'meca', 'ms1', 'ma2', 'el2', 'eln'].forEach(p => { SYNC[p + '.learn.v1'] = SYNC['ato.learn.v1']; });
+  // journal d'activité de chaque page (SiteLog, core.js) : union par identifiant, dans l'ordre, les 2 500 derniers
+  SYNC['elec.log.v1'] = (L, R) => {
+    const m = new Map();
+    [R, L].forEach(arr => (Array.isArray(arr) ? arr : []).forEach(e => { if (e && e.id) m.set(e.id, e); }));
+    return [...m.values()].sort((a, b) => (a.t || 0) - (b.t || 0)).slice(-2500);
+  };
+  ['ato', 'algo', 'phys', 'meca', 'ms1', 'ma2', 'el2', 'eln'].forEach(p => { SYNC[p + '.log.v1'] = SYNC['elec.log.v1']; });
   // temps passé sur le site : un total par appareil (dv), on garde le plus grand de chaque appareil
   // (additionner compterait deux fois les mêmes secondes) ; le total du compte = somme des appareils
   const TIME = 'site.time.v1', DEV = 'site.dev.v1';

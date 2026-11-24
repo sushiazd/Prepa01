@@ -12,7 +12,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../subjects.js?v=2026112401"></script>
 <script src="../core.js?v=2026112402"></script>
-<script src="learn.js?v=2026112201"></script>
+<script src="learn.js?v=2026112401"></script>
 <script defer src="../account.js" data-lazy></script>
 <link rel="stylesheet" href="../core.css?v=2026102803">
 <style>
@@ -253,6 +253,14 @@ const nucl = (A, Z, q = 0) => `{}^{${A}}_{${Z}}\\mathrm{${sym(Z)}}${chargeTex(q)
 
 /* ---------- Constantes du poly ---------- */
 const h = 6.6256e-34, c = 2.997925e8, eV = 1.602e-19, RH = 1.096775e7, me = 9.1091e-31, mn = 1.675e-27, Ei0 = 13.6;
+// Données rappelées sous chaque énoncé qui en a besoin (pas seulement en fin de cours)
+const CST = {
+  E0: '\\(E_n = -13{,}6/n^2\\) eV pour H', h: '\\(h = 6{,}626\\times10^{-34}\\) J·s', c: '\\(c = 3{,}00\\times10^{8}\\) m/s',
+  eV: '1 eV = \\(1{,}602\\times10^{-19}\\) J', e: '\\(e = 1{,}602\\times10^{-19}\\) C', RH: '\\(R_H = 1{,}097\\times10^{7}\\) m⁻¹',
+  me: '\\(m_e = 9{,}11\\times10^{-31}\\) kg', mn: '\\(m_n = 1{,}675\\times10^{-27}\\) kg', NA: '\\(N_A = 6{,}022\\times10^{23}\\) mol⁻¹',
+  A: '1 Å = 10⁻¹⁰ m = 10⁻⁸ cm', nm: '1 nm = 10⁻⁹ m', pm: '1 pm = 10⁻¹² m'
+};
+const DATA = (...ks) => `<p style="margin-top:10px;font-size:15px;color:var(--ink-2)"><b>Données :</b>${ks.map(k => CST[k]).join(' · ')}.</p>`;
 const SERIES = ['', 'Lyman', 'Balmer', 'Paschen', 'Brackett', 'Pfund'];
 const domain = nm => nm < 400 ? 'UV' : nm <= 750 ? 'visible' : 'IR';
 const HYDRO = { 1: 'H', 2: '\\mathrm{He}^{+}', 3: '\\mathrm{Li}^{2+}', 4: '\\mathrm{Be}^{3+}' };
@@ -305,12 +313,12 @@ GEN.iso = (d, g) => {
 GEN.niv = (d, g) => {
   if (d === 0) {
     const n = g.int(1, 5), E = -Ei0 / n ** 2;
-    return { title: 'Niveaux d\'énergie de l\'hydrogène', q: `Calculer l'énergie du niveau \\(n = ${n}\\) de l'atome d'hydrogène, puis l'énergie d'ionisation de l'atome à partir de ce niveau.`,
+    return { title: 'Niveaux d\'énergie de l\'hydrogène', q: `Calculer l'énergie du niveau \\(n = ${n}\\) de l'atome d'hydrogène, puis l'énergie d'ionisation de l'atome à partir de ce niveau.` + DATA('E0'),
       items: [{ type: 'num', label: `E_{${n}}`, unit: 'eV', val: E, tol: 0.01 }, { type: 'num', label: 'E_i', unit: 'eV', val: -E, tol: 0.01 }],
       corr: `<p>Modèle de Bohr : \\(E_n = -\\dfrac{13{,}6}{n^2}\\ \\text{eV}\\), donc \\(E_{${n}} = -\\dfrac{13{,}6}{${n * n}} = ${T(E)}\\ \\text{eV}\\).</p><p>Ioniser, c'est amener l'électron en \\(n = \\infty\\) (énergie 0) : \\(E_i = E_\\infty - E_{${n}} = ${T(-E)}\\ \\text{eV}\\).${n === 1 ? ' C\'est l\'énergie d\'ionisation de l\'atome H dans son état fondamental.' : ''}</p>` };
   }
   const Z = d === 1 ? g.pick([2, 3]) : g.pick([2, 3, 4]), n = d === 1 ? 1 : g.int(1, 3), E = -Ei0 * Z * Z / n ** 2;
-  return { title: 'Hydrogénoïdes', q: `On considère l'ion \\(${HYDRO[Z]}\\) (\\(Z = ${Z}\\)). Pourquoi peut-on lui appliquer le modèle de Bohr ? Calculer l'énergie du niveau \\(n = ${n}\\), puis l'énergie à fournir pour arracher l'électron depuis ce niveau.`,
+  return { title: 'Hydrogénoïdes', q: `On considère l'ion \\(${HYDRO[Z]}\\) (\\(Z = ${Z}\\)). Pourquoi peut-on lui appliquer le modèle de Bohr ? Calculer l'énergie du niveau \\(n = ${n}\\), puis l'énergie à fournir pour arracher l'électron depuis ce niveau.` + DATA('E0'),
     items: [{ type: 'num', label: `E_{${n}}`, unit: 'eV', val: E, tol: 0.01 }, { type: 'num', label: 'E_i', unit: 'eV', val: -E, tol: 0.01 }],
     corr: `<p>\\(${HYDRO[Z]}\\) n'a plus qu'<b>un seul électron</b> : c'est un hydrogénoïde, le modèle de Bohr s'applique avec la charge \\(Z\\) du noyau :</p>\\[E_n = -13{,}6\\,\\frac{Z^2}{n^2}\\ \\text{eV} \\Rightarrow E_{${n}} = -13{,}6\\times\\frac{${Z * Z}}{${n * n}} = ${T(E)}\\ \\text{eV}\\]<p>\\(E_i = 0 - E_{${n}} = ${T(-E)}\\ \\text{eV}\\). Les énergies sont \\(Z^2 = ${Z * Z}\\) fois plus grandes que pour H : le noyau, plus chargé, retient plus fort l'électron.</p>` };
 };
@@ -319,10 +327,10 @@ function transData(Z, n, p) { const dE = Ei0 * Z * Z * (1 / n ** 2 - 1 / p ** 2)
 GEN.trans = (d, g) => {
   const Z = d === 2 ? g.pick([2, 3]) : 1, n = g.int(1, 3), p = n + g.int(1, 3), { dE, lam, nu } = transData(Z, n, p);
   const who = Z === 1 ? 'l\'atome d\'hydrogène' : `l'ion hydrogénoïde \\(${HYDRO[Z]}\\)`;
-  if (d === 1) return { title: 'Absorption d\'un photon', q: `Dans ${who}, l'électron passe du niveau \\(n = ${n}\\) au niveau \\(p = ${p}\\). S'agit-il d'une absorption ou d'une émission ? Calculer l'énergie et la fréquence du photon.`,
+  if (d === 1) return { title: 'Absorption d\'un photon', q: `Dans ${who}, l'électron passe du niveau \\(n = ${n}\\) au niveau \\(p = ${p}\\). S'agit-il d'une absorption ou d'une émission ? Calculer l'énergie et la fréquence du photon.` + DATA('E0', 'h', 'eV'),
     items: [{ type: 'choice', label: 'phénomène', opts: [{ v: 'abs', t: 'absorption' }, { v: 'em', t: 'émission' }], ans: 'abs' }, { type: 'num', label: 'E_{photon}', unit: 'eV', val: dE, tol: 0.015 }, { type: 'num', label: '\\nu', unit: 'Hz', val: nu, tol: 0.02 }],
     corr: `<p>L'électron monte vers un niveau d'énergie supérieure : l'atome gagne de l'énergie, c'est une <b>absorption</b>.</p>\\[\\Delta E = E_{${p}} - E_{${n}} = 13{,}6${Z > 1 ? `\\times${Z * Z}` : ''}\\left(\\frac{1}{${n * n}} - \\frac{1}{${p * p}}\\right) = ${T(dE)}\\ \\text{eV}\\]\\[\\nu = \\frac{\\Delta E}{h} = \\frac{${T(dE)}\\times1{,}602\\times10^{-19}}{6{,}626\\times10^{-34}} = ${T(nu)}\\ \\text{Hz}\\]` };
-  return { title: 'Raie d\'émission', q: `Dans ${who}, l'électron redescend du niveau \\(p = ${p}\\) au niveau \\(n = ${n}\\). Calculer l'énergie du photon émis, sa longueur d'onde, et dire dans quel domaine il se trouve.`,
+  return { title: 'Raie d\'émission', q: `Dans ${who}, l'électron redescend du niveau \\(p = ${p}\\) au niveau \\(n = ${n}\\). Calculer l'énergie du photon émis, sa longueur d'onde, et dire dans quel domaine il se trouve.` + DATA('E0', 'h', 'c', 'eV', 'nm'),
     items: [{ type: 'num', label: '|\\Delta E|', unit: 'eV', val: dE, tol: 0.015 }, { type: 'num', label: '\\lambda', unit: 'nm', val: lam, tol: 0.015 }, { type: 'choice', label: 'domaine', opts: DOM_OPTS, ans: domain(lam) }],
     corr: `\\[|\\Delta E| = 13{,}6${Z > 1 ? `\\times${Z * Z}` : ''}\\left(\\frac{1}{${n * n}} - \\frac{1}{${p * p}}\\right) = ${T(dE)}\\ \\text{eV}\\]\\[\\lambda = \\frac{hc}{|\\Delta E|} = \\frac{6{,}626\\times10^{-34}\\times 3\\times10^{8}}{${T(dE)}\\times1{,}602\\times10^{-19}} = ${T(lam * 1e-9)}\\ \\text{m} = ${T(lam, 4)}\\ \\text{nm}\\]<p>${lam < 400 ? 'En dessous de 400 nm : ultraviolet.' : lam <= 750 ? 'Entre 400 et 750 nm : visible.' : 'Au-dessus de 750 nm : infrarouge.'}${Z === 1 ? ` C'est une raie de la série de ${SERIES[n]} (retour sur \\(n = ${n}\\)).` : ''}</p><p class="fine">Astuce : \\(\\lambda(\\text{nm}) \\approx 1240 / E(\\text{eV})\\).</p>` };
 };
@@ -330,13 +338,13 @@ GEN.trans = (d, g) => {
 GEN.serie = (d, g) => {
   if (d === 0) {
     const n = g.pick([1, 2, 2, 3]), p = n + g.int(1, 4), lam = 1 / (RH * (1 / n ** 2 - 1 / p ** 2)) * 1e9;
-    return { title: 'Identifier une raie', q: `Une raie de la série de ${SERIES[n]} de l'hydrogène a pour longueur d'onde \\(\\lambda = ${T(lam, 4)}\\ \\text{nm}\\). À quelle transition correspond-elle (niveau de départ \\(p\\)) ?`,
+    return { title: 'Identifier une raie', q: `Une raie de la série de ${SERIES[n]} de l'hydrogène a pour longueur d'onde \\(\\lambda = ${T(lam, 4)}\\ \\text{nm}\\). À quelle transition correspond-elle (niveau de départ \\(p\\)) ?` + DATA('RH', 'nm'),
       items: [{ type: 'int', label: 'p', val: p }, { type: 'int', label: 'n', val: n }],
       corr: `<p>Série de ${SERIES[n]} : retour sur \\(n = ${n}\\). Formule de Ritz :</p>\\[\\frac{1}{\\lambda} = R_H\\left(\\frac{1}{n^2} - \\frac{1}{p^2}\\right) \\Rightarrow \\frac{1}{p^2} = \\frac{1}{${n * n}} - \\frac{1}{R_H\\,\\lambda} = ${T(1 / n ** 2 - 1 / (RH * lam * 1e-9), 3)} \\Rightarrow p = ${p}\\]` };
   }
   if (d === 1) {
     const n = g.int(1, 4), lmax = 1 / (RH * (1 / n ** 2 - 1 / (n + 1) ** 2)) * 1e9, lmin = n * n / RH * 1e9;
-    return { title: 'Raies limites d\'une série', q: `Calculer les longueurs d'onde des raies limites de la série de ${SERIES[n]} de l'hydrogène : la plus grande (\\(p = n + 1\\)) et la plus petite (\\(p \\to \\infty\\)).`,
+    return { title: 'Raies limites d\'une série', q: `Calculer les longueurs d'onde des raies limites de la série de ${SERIES[n]} de l'hydrogène : la plus grande (\\(p = n + 1\\)) et la plus petite (\\(p \\to \\infty\\)).` + DATA('RH', 'nm'),
       items: [{ type: 'num', label: '\\lambda_{max}', unit: 'nm', val: lmax, tol: 0.01 }, { type: 'num', label: '\\lambda_{min}', unit: 'nm', val: lmin, tol: 0.01 }],
       corr: `<p>Série de ${SERIES[n]} : \\(n = ${n}\\).</p>\\[\\lambda_{max} : \\frac{1}{\\lambda} = R_H\\left(\\frac{1}{${n * n}} - \\frac{1}{${(n + 1) ** 2}}\\right) \\Rightarrow \\lambda_{max} = ${T(lmax, 4)}\\ \\text{nm}\\]\\[\\lambda_{min} : \\frac{1}{\\lambda} = \\frac{R_H}{${n * n}} \\Rightarrow \\lambda_{min} = \\frac{${n * n}}{R_H} = ${T(lmin, 4)}\\ \\text{nm}\\]<p class="fine">\\(p \\to \\infty\\) : la plus grande énergie possible, donc la plus petite longueur d'onde.</p>` };
   }
@@ -350,13 +358,13 @@ GEN.onde = (d, g) => {
   if (d < 2) {
     const lam = sig(d === 0 ? g.pick([121.6, 254, 300, 410.2, 434.1, 486.1, 532, 589, 656.3, 700, 850, 1282, 1875]) : g.pick([0.05, 2, 10, 0.4e3, 0.75e3, 1e6, 3e6]), 4), lm = lam * 1e-9;
     const nu = c / lm, E = h * nu / eV, sig_ = 1 / (lm * 100);
-    return { title: d === 0 ? 'Longueur d\'onde, fréquence, énergie' : 'Conversions dans le spectre', q: `Une radiation a pour longueur d'onde \\(\\lambda = ${T(lam, 4)}\\ \\text{nm}\\). Calculer sa fréquence, son nombre d'onde et l'énergie d'un photon.`,
+    return { title: d === 0 ? 'Longueur d\'onde, fréquence, énergie' : 'Conversions dans le spectre', q: `Une radiation a pour longueur d'onde \\(\\lambda = ${T(lam, 4)}\\ \\text{nm}\\). Calculer sa fréquence, son nombre d'onde et l'énergie d'un photon.` + DATA('h', 'c', 'eV', 'nm'),
       items: [{ type: 'num', label: '\\nu', unit: 'Hz', val: nu, tol: 0.015 }, { type: 'num', label: '\\bar\\nu = 1/\\lambda', unit: 'cm⁻¹', val: sig_, tol: 0.015 }, { type: 'num', label: 'E', unit: 'eV', val: E, tol: 0.015 }],
       corr: `\\[\\nu = \\frac{c}{\\lambda} = \\frac{3\\times10^{8}}{${T(lm)}} = ${T(nu)}\\ \\text{Hz}\\qquad \\bar\\nu = \\frac{1}{\\lambda} = \\frac{1}{${T(lm * 100)}\\ \\text{cm}} = ${T(sig_)}\\ \\text{cm}^{-1}\\]\\[E = h\\nu = 6{,}626\\times10^{-34}\\times${T(nu)} = ${T(h * nu)}\\ \\text{J} = ${T(E)}\\ \\text{eV}\\]<p class="fine">Pense à convertir les nm en m (\\(\\times10^{-9}\\)) et les J en eV (\\(\\div 1{,}602\\times10^{-19}\\)).</p>` };
   }
   const part = g.pick(['e', 'n']), m = part === 'e' ? me : mn, E = part === 'e' ? g.pick([1, 10, 54, 100, 150]) : g.pick([0.025, 0.039, 0.05, 1]);
   const v = Math.sqrt(2 * E * eV / m), lam = h / (m * v);
-  return { title: 'Onde de matière (De Broglie)', q: `${part === 'e' ? 'Un électron' : 'Un neutron'} a une énergie cinétique de \\(${T(E)}\\ \\text{eV}\\). Calculer sa vitesse, puis la longueur d'onde associée.`,
+  return { title: 'Onde de matière (De Broglie)', q: `${part === 'e' ? 'Un électron' : 'Un neutron'} a une énergie cinétique de \\(${T(E)}\\ \\text{eV}\\). Calculer sa vitesse, puis la longueur d'onde associée.` + DATA('h', 'eV', part === 'e' ? 'me' : 'mn', 'pm'),
     items: [{ type: 'num', label: 'v', unit: 'm/s', val: v, tol: 0.02 }, { type: 'num', label: '\\lambda', unit: 'pm', val: lam * 1e12, tol: 0.02 }],
     corr: `\\[E_c = \\tfrac12 m v^2 \\Rightarrow v = \\sqrt{\\frac{2E_c}{m}} = \\sqrt{\\frac{2\\times${T(E * eV)}}{${T(m)}}} = ${T(v)}\\ \\text{m/s}\\]\\[\\lambda = \\frac{h}{m v} = \\frac{6{,}626\\times10^{-34}}{${T(m)}\\times${T(v)}} = ${T(lam)}\\ \\text{m} = ${T(lam * 1e12)}\\ \\text{pm}\\]<p>Cette longueur d'onde est de l'ordre des distances entre atomes : l'aspect ondulatoire de la particule est observable (diffraction). Pour un objet macroscopique, \\(\\lambda\\) serait ridiculement petite.</p>` };
 };
@@ -640,7 +648,7 @@ const MET = [['Po', 'polonium', 'CS', 3.35, 209.0], ['Li', 'lithium', 'CC', 3.50
 const rhoOf = (Z, M, a) => Z * M / (NA * (a * 1e-8) ** 3);   // a en Å → g/cm³
 const rhoTex = (Z, M, a, v) => `\\rho = \\dfrac{Z\\,M}{N_A\\,a^3} = \\dfrac{${Z} \\times ${T(M, 4)}}{6{,}022\\times10^{23} \\times (${T(a, 4)}\\times10^{-8})^3} = ${T(v, 3)}\\ \\text{g/cm}^3`;
 const RHO_NOTE = '<p class="fine">Masse volumique = masse des atomes de la maille / volume de la maille : \\(\\rho = \\dfrac{Z\\,M}{N_A\\,a^3}\\), avec \\(a\\) en cm (1 Å = 10⁻⁸ cm) pour obtenir des g/cm³.</p>';
-const NA_DATA = '<p class="fine" style="margin-top:8px">Données : \\(N_A = 6{,}022\\times10^{23}\\) mol⁻¹ · 1 Å = 10⁻¹⁰ m = 10⁻⁸ cm.</p>';
+const NA_DATA = DATA('NA', 'A');
 
 GEN.maille = (d, g) => {
   if (d === 0) {
@@ -749,7 +757,7 @@ GEN.ionf = (d, g) => {
   }
   const one = g.pick(BL.filter(b => b[1] === 1)), two = g.r() < 0.75 ? g.pick(BL.filter(b => b[1] === 2)) : g.pick(BL.filter(b => b[1] === 1 && b !== one));
   const E1 = blE(one[1], one[2]), E2 = blE(two[1], two[2]), hi = E1 > E2 ? one[0] : two[0];
-  return { title: 'Énergie réticulaire (Born-Landé)', q: `${one[0]} et ${two[0]} ont la structure type NaCl. Distances cation–anion : ${fr(one[2])} Å et ${fr(two[2])} Å. Calculer leurs énergies réticulaires avec la relation de Born-Landé \\(E_r = \\dfrac{N_A\\,A\\,z^+ z^-\\,e^2}{4\\pi\\varepsilon_0\\,d}\\left(1 - \\dfrac1n\\right)\\), avec \\(A = 1{,}75\\) (constante de Madelung), \\(n = 9\\), \\(\\dfrac{1}{4\\pi\\varepsilon_0} = 9\\times10^{9}\\) SI, \\(e = 1{,}602\\times10^{-19}\\) C. Lequel fond à la plus haute température ?`,
+  return { title: 'Énergie réticulaire (Born-Landé)', q: `${one[0]} et ${two[0]} ont la structure type NaCl. Distances cation–anion : ${fr(one[2])} Å et ${fr(two[2])} Å. Calculer leurs énergies réticulaires avec la relation de Born-Landé \\(E_r = \\dfrac{N_A\\,A\\,z^+ z^-\\,e^2}{4\\pi\\varepsilon_0\\,d}\\left(1 - \\dfrac1n\\right)\\), avec \\(A = 1{,}75\\) (constante de Madelung), \\(n = 9\\), \\(\\dfrac{1}{4\\pi\\varepsilon_0} = 9\\times10^{9}\\) SI, \\(e = 1{,}602\\times10^{-19}\\) C, \\(N_A = 6{,}022\\times10^{23}\\) mol⁻¹, 1 Å = 10⁻¹⁰ m. Lequel fond à la plus haute température ?`,
     items: [{ type: 'num', label: `E_r(\\mathrm{${one[0]}})`, val: E1, unit: 'kJ/mol', tol: 0.03, abs: true }, { type: 'num', label: `E_r(\\mathrm{${two[0]}})`, val: E2, unit: 'kJ/mol', tol: 0.03, abs: true }, { type: 'choice', label: 'température de fusion la plus haute', opts: [one[0], two[0]].map(f => ({ v: f, t: f })), ans: hi }],
     corr: `<p>${one[0]} : \\(z^+ z^- = ${one[1] * one[1]}\\), \\(E_r = \\dfrac{6{,}022\\times10^{23} \\times 1{,}75 \\times ${one[1] * one[1]} \\times (1{,}602\\times10^{-19})^2 \\times 9\\times10^9}{${T(one[2])}\\times10^{-10}} \\times \\dfrac89 = ${T(E1 * 1000)}\\) J/mol, soit <b>${T(E1)} kJ/mol</b>.</p><p>${two[0]} : \\(z^+ z^- = ${two[1] * two[1]}\\), <b>${T(E2)} kJ/mol</b>.</p><p>L'énergie réticulaire mesure la cohésion du cristal : plus elle est grande, plus il faut d'énergie pour séparer les ions, plus la température de fusion est haute : <b>${hi}</b>.${one[1] !== two[1] ? ' Le produit des charges passe de 1 à 4 : c\'est lui qui compte le plus (CaO fond à 2973 K, NaCl à 1074 K).' : ' À charges égales, les ions les plus petits (distance d plus courte) donnent le cristal le plus cohésif.'}</p><p class="fine">Le cours peut écrire cette énergie avec un signe − (énergie libérée quand le cristal se forme) : les deux signes sont acceptés ici.</p>` };
 };

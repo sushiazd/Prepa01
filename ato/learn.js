@@ -15,6 +15,9 @@
     const num = (label, unit, val, tol = 0.02) => ({ type: 'num', label, unit, val, tol });
     const int = (label, val) => ({ type: 'int', label, val });
     const conf = (Z, label, o) => ({ type: 'conf', label, conf: o || H.conf(Z), Z });
+    // Constantes rappelées sous les questions de calcul (pas besoin d'ouvrir le cours à côté)
+    const CST = { h: '\\(h = 6{,}626\\times10^{-34}\\) J·s', c: '\\(c = 3{,}00\\times10^{8}\\) m/s', eV: '1 eV = \\(1{,}602\\times10^{-19}\\) J', RH: '\\(R_H = 1{,}097\\times10^{7}\\) m⁻¹' };
+    const D = (...ks) => `<span style="display:block;margin-top:8px;font-size:15px;color:var(--ink-2)"><b>Données :</b>${ks.map(k => CST[k]).join(' · ')}.</span>`;
 
     /* ---------- Figures (SVG, couleurs du thème ; 420 de large pour rester lisibles sur téléphone) ---------- */
     const INK = 'fill:var(--ink-2);font:15px var(--sans)';
@@ -171,13 +174,13 @@
           body: `<p>Un photon visible transporte environ \\(4\\times10^{-19}\\) J : le joule est une unité bien trop grosse à l'échelle de l'atome. On utilise l'<b>électronvolt</b> :</p>\\[1\\ \\text{eV} = 1{,}602\\times10^{-19}\\ \\text{J}\\]
             <ul><li>J → eV : on <b>divise</b> par \\(1{,}602\\times10^{-19}\\) ;</li><li>eV → J : on <b>multiplie</b> par \\(1{,}602\\times10^{-19}\\).</li></ul>
             <p>Toutes les énergies des atomes sont données en eV (par exemple 13,6 eV pour l'hydrogène). Un raccourci pour vérifier tes calculs, puisque \\(hc / e = 1{,}24\\times10^{-6}\\) m·eV :</p>\\[E\\,(\\text{eV}) \\approx \\frac{1240}{\\lambda\\,(\\text{nm})}\\]`,
-          ask: { q: 'Énergie d\'un photon de 620 nm, en eV ?', items: [num('E', 'eV', 2.001, 0.03)],
+          ask: { q: 'Énergie d\'un photon de 620 nm, en eV ?' + D('h', 'c', 'eV'), items: [num('E', 'eV', 2.001, 0.03)],
             why: '\\(1240 / 620 = 2{,}00\\) eV, soit \\(2{,}00 \\times 1{,}602\\times10^{-19} = 3{,}20\\times10^{-19}\\) J. Par la formule complète : \\(hc/\\lambda = \\dfrac{6{,}626\\times10^{-34}\\times3{,}00\\times10^{8}}{620\\times10^{-9}} = 3{,}21\\times10^{-19}\\) J.' } },
         { h: 'Calcul guidé : de λ à E, une étape à la fois',
           body: `<p>On prend une radiation verte de \\(\\lambda = 500\\) nm. La méthode est toujours la même, en 4 étapes :</p>
             <ol style="padding-left:22px;margin-top:10px"><li>convertir \\(\\lambda\\) en <b>mètres</b> ;</li><li>\\(\\nu = c / \\lambda\\) ;</li><li>\\(E = h\\nu\\), en joules ;</li><li>diviser par \\(1{,}602\\times10^{-19}\\) pour l'avoir en eV.</li></ol>
             <p>Fais chaque étape ci-dessous. Les puissances de 10 s'écrivent comme \\(5\\text{e-7}\\) ou \\(5\\times10^{-7}\\).</p>`,
-          ask: { q: 'Pour \\(\\lambda = 500\\) nm :', items: [num('\\lambda', 'm', 5e-7), num('\\nu', 'Hz', 6e14), num('E', 'J', 3.976e-19), num('E', 'eV', 2.482)],
+          ask: { q: 'Pour \\(\\lambda = 500\\) nm :' + D('h', 'c', 'eV'), items: [num('\\lambda', 'm', 5e-7), num('\\nu', 'Hz', 6e14), num('E', 'J', 3.976e-19), num('E', 'eV', 2.482)],
             why: '\\(\\lambda = 500\\times10^{-9} = 5{,}00\\times10^{-7}\\) m → \\(\\nu = \\dfrac{3{,}00\\times10^{8}}{5{,}00\\times10^{-7}} = 6{,}00\\times10^{14}\\) Hz → \\(E = 6{,}626\\times10^{-34}\\times6{,}00\\times10^{14} = 3{,}98\\times10^{-19}\\) J → \\(\\dfrac{3{,}98\\times10^{-19}}{1{,}602\\times10^{-19}} = 2{,}48\\) eV. Vérification : \\(1240/500 = 2{,}48\\). ✓' } },
         { h: 'Le nombre d\'onde : combien de λ dans un centimètre',
           body: `<p>Le <b>nombre d'onde</b> est \\(\\bar\\nu = 1/\\lambda\\), souvent donné en cm⁻¹ (ou en m⁻¹). Il est proportionnel à l'énergie (\\(E = hc\\,\\bar\\nu\\)), c'est pour ça que les spectroscopistes l'aiment. La formule de Ritz, que tu verras dans « Séries de raies », donne justement \\(1/\\lambda\\).</p>
@@ -189,7 +192,7 @@
             <p>Comme \\(h\\) est minuscule, cette onde n'est visible que pour des masses minuscules. Pour une balle de tennis de 58 g à 50 m/s, \\(\\lambda = \\dfrac{6{,}626\\times10^{-34}}{0{,}058\\times50} \\approx 2\\times10^{-34}\\) m : rien d'observable.</p>
             <p>Pour un électron dans un atome, c'est une autre histoire (calcule ci-dessous) : on ne peut plus le voir comme une petite bille sur une trajectoire. C'est la base du modèle quantique (chapitre III).</p>
             <div class="box warn"><h5>Pièges</h5>\\(m\\) en kg, \\(v\\) en m/s, \\(\\lambda\\) en m. Si on te donne l'énergie cinétique, d'abord \\(v = \\sqrt{2E_c/m}\\), avec \\(E_c\\) en <b>joules</b>.</div>`,
-          ask: { q: 'Longueur d\'onde d\'un électron (\\(m = 9{,}11\\times10^{-31}\\) kg) qui va à \\(v = 2{,}2\\times10^{6}\\) m/s, en pm (1 pm = \\(10^{-12}\\) m) ?', items: [num('\\lambda', 'pm', 330.6, 0.03)],
+          ask: { q: 'Longueur d\'onde d\'un électron (\\(m = 9{,}11\\times10^{-31}\\) kg) qui va à \\(v = 2{,}2\\times10^{6}\\) m/s, en pm (1 pm = \\(10^{-12}\\) m) ?' + D('h'), items: [num('\\lambda', 'pm', 330.6, 0.03)],
             why: '\\(\\lambda = \\dfrac{6{,}626\\times10^{-34}}{9{,}11\\times10^{-31}\\times2{,}2\\times10^{6}} = 3{,}31\\times10^{-10}\\) m = 331 pm. C\'est la taille d\'un atome : l\'électron « ondule » à l\'échelle de l\'atome, donc sa nature d\'onde ne peut pas être ignorée.' } }
       ] },
 
@@ -246,7 +249,7 @@
         { h: 'Calcul guidé : la raie rouge de l\'hydrogène',
           body: `<p>L'électron descend de \\(p = 3\\) à \\(n = 2\\). On calcule dans l'ordre :</p>
             <ol style="padding-left:22px;margin-top:10px"><li>\\(|\\Delta E|\\) en eV ;</li><li>\\(\\lambda = hc/|\\Delta E|\\), avec \\(\\Delta E\\) en <b>joules</b> (ou le raccourci \\(1240/\\Delta E\\) en eV, pour un résultat en nm) ;</li><li>le domaine.</li></ol>`,
-          ask: { q: 'Transition \\(3 \\to 2\\) dans H :', items: [num('|\\Delta E|', 'eV', 1.889, 0.015), num('\\lambda', 'nm', 656.9, 0.015), choice('domaine', [['UV', 'UV'], ['visible', 'visible'], ['IR', 'IR']], 'visible')],
+          ask: { q: 'Transition \\(3 \\to 2\\) dans H :' + D('h', 'c', 'eV'), items: [num('|\\Delta E|', 'eV', 1.889, 0.015), num('\\lambda', 'nm', 656.9, 0.015), choice('domaine', [['UV', 'UV'], ['visible', 'visible'], ['IR', 'IR']], 'visible')],
             why: '\\(|\\Delta E| = 13{,}6\\left(\\dfrac14 - \\dfrac19\\right) = 13{,}6\\times\\dfrac{5}{36} = 1{,}89\\) eV \\(= 3{,}03\\times10^{-19}\\) J, puis \\(\\lambda = \\dfrac{6{,}626\\times10^{-34}\\times3{,}00\\times10^{8}}{3{,}03\\times10^{-19}} = 6{,}57\\times10^{-7}\\) m = 657 nm. C\'est la raie rouge mesurée à 656 nm : la théorie retrouve la mesure, c\'est pour ça qu\'on a cru Bohr.' } },
         { h: 'Plus le saut est grand, plus λ est petite',
           body: `<p>Un grand saut donne un photon énergétique, donc une petite longueur d'onde. Les 4 raies visibles de l'hydrogène sont les retours sur \\(n = 2\\) :</p>
@@ -261,7 +264,7 @@
         { h: 'L\'enchaînement complet, comme au CC',
           body: `<p>La partie B du CC de 2021 (8 points sur 20) faisait exactement ça sur He<sup>+</sup>. La méthode :</p>
             <ol style="padding-left:22px;margin-top:10px"><li>justifier que c'est un hydrogénoïde (un seul électron) ;</li><li>\\(E_n = -13{,}6\\,Z^2/n^2\\) eV, puis \\(|\\Delta E|\\) en eV, puis en J ;</li><li>\\(\\lambda = hc/|\\Delta E|\\) en m, puis en nm ;</li><li>le domaine : moins de 400 nm, UV ; de 400 à 750 nm, visible ; plus de 750 nm, IR ;</li><li>\\(\\nu = c/\\lambda\\) (ou \\(|\\Delta E|/h\\)).</li></ol>`,
-          ask: { q: 'Pour He<sup>+</sup> (\\(Z = 2\\)), l\'électron descend de \\(n = 2\\) à \\(n = 1\\) :', items: [num('|\\Delta E|', 'eV', 40.8, 0.015), num('\\lambda', 'nm', 30.41, 0.02), choice('domaine', [['UV', 'UV'], ['visible', 'visible'], ['IR', 'IR']], 'UV'), num('\\nu', 'Hz', 9.865e15, 0.02)],
+          ask: { q: 'Pour He<sup>+</sup> (\\(Z = 2\\)), l\'électron descend de \\(n = 2\\) à \\(n = 1\\) :' + D('h', 'c', 'eV'), items: [num('|\\Delta E|', 'eV', 40.8, 0.015), num('\\lambda', 'nm', 30.41, 0.02), choice('domaine', [['UV', 'UV'], ['visible', 'visible'], ['IR', 'IR']], 'UV'), num('\\nu', 'Hz', 9.865e15, 0.02)],
             why: '\\(|\\Delta E| = 13{,}6\\times4\\times\\left(1 - \\dfrac14\\right) = 40{,}8\\) eV \\(= 6{,}54\\times10^{-18}\\) J ; \\(\\lambda = \\dfrac{1{,}988\\times10^{-25}}{6{,}54\\times10^{-18}} = 3{,}04\\times10^{-8}\\) m = 30,4 nm, dans l\'UV ; \\(\\nu = \\dfrac{3{,}00\\times10^{8}}{3{,}04\\times10^{-8}} = 9{,}87\\times10^{15}\\) Hz. Pour H, ce même saut donnerait 122 nm : \\(Z^2 = 4\\) fois plus.' } }
       ] },
 
@@ -276,13 +279,13 @@
           body: `<p>Avant Bohr, Ritz (1908) avait trouvé, à partir des mesures seulement :</p>\\[\\frac{1}{\\lambda} = R_H\\left(\\frac{1}{n^2} - \\frac{1}{p^2}\\right),\\qquad R_H = 1{,}097\\times10^{7}\\ \\text{m}^{-1}\\]
             <p>Ce n'est pas une nouvelle loi. On divise \\(|\\Delta E| = hc/\\lambda\\) par \\(hc\\) :</p>\\[\\frac{1}{\\lambda} = \\frac{|\\Delta E|}{hc} = \\frac{13{,}6\\ \\text{eV}}{hc}\\left(\\frac{1}{n^2} - \\frac{1}{p^2}\\right)\\quad\\text{donc}\\quad R_H = \\frac{13{,}6\\ \\text{eV}}{hc}\\]
             <p>Bohr (1913) a <b>expliqué</b> la formule de Ritz, et c'est ce qui a fait le succès de son modèle. En pratique, il y a deux chemins vers le même résultat : \\(\\Delta E\\) puis \\(\\lambda = hc/\\Delta E\\), ou Ritz directement (plus rapide si on demande seulement \\(\\lambda\\)). Pour un hydrogénoïde, on remplace \\(R_H\\) par \\(Z^2 R_H\\).</p>`,
-          ask: { q: 'Vérifie-le : calcule \\(\\dfrac{13{,}6\\ \\text{eV}}{hc}\\) en m⁻¹ (13,6 eV = \\(13{,}6\\times1{,}602\\times10^{-19}\\) J).', items: [num('R_H', 'm⁻¹', 1.096e7, 0.01)],
+          ask: { q: 'Vérifie-le : calcule \\(\\dfrac{13{,}6\\ \\text{eV}}{hc}\\) en m⁻¹ (13,6 eV = \\(13{,}6\\times1{,}602\\times10^{-19}\\) J).' + D('h', 'c'), items: [num('R_H', 'm⁻¹', 1.096e7, 0.01)],
             why: '\\(\\dfrac{13{,}6\\times1{,}602\\times10^{-19}}{6{,}626\\times10^{-34}\\times3{,}00\\times10^{8}} = \\dfrac{2{,}179\\times10^{-18}}{1{,}988\\times10^{-25}} = 1{,}096\\times10^{7}\\) m⁻¹ : c\'est bien la constante de Rydberg.' } },
         { h: 'Les raies limites d\'une série',
           body: `<p>Dans une série, \\(n\\) est fixé et \\(p\\) va de \\(n + 1\\) à l'infini :</p>
             <ul><li>le plus petit saut, \\(p = n + 1\\), donne la plus petite énergie, donc \\(\\lambda_{max}\\) ;</li><li>le plus grand saut, \\(p \\to \\infty\\) (donc \\(1/p^2 \\to 0\\)), donne \\(\\lambda_{min} = n^2 / R_H\\) : c'est la « limite de série ».</li></ul>
             <p>Pour Balmer : \\(\\lambda_{max}\\) correspond à \\(3 \\to 2\\), soit 656 nm ; \\(\\lambda_{min} = 4/R_H\\). Toutes les raies de Balmer sont entre les deux.</p>`,
-          ask: { q: 'Calcule :', items: [num('\\lambda_{min}\\ \\text{(Balmer)}', 'nm', 364.6, 0.01), num('\\lambda_{max}\\ \\text{(Lyman)}', 'nm', 121.5, 0.01)],
+          ask: { q: 'Calcule :' + D('RH'), items: [num('\\lambda_{min}\\ \\text{(Balmer)}', 'nm', 364.6, 0.01), num('\\lambda_{max}\\ \\text{(Lyman)}', 'nm', 121.5, 0.01)],
             why: 'Balmer : \\(\\lambda_{min} = \\dfrac{4}{1{,}097\\times10^{7}} = 3{,}65\\times10^{-7}\\) m = 365 nm. Lyman : \\(\\lambda_{max}\\) pour \\(2 \\to 1\\), \\(\\dfrac1\\lambda = R_H\\left(1 - \\dfrac14\\right)\\), donc \\(\\lambda = \\dfrac{1}{0{,}75\\times1{,}097\\times10^{7}} = 1{,}215\\times10^{-7}\\) m = 122 nm (UV).' } },
         { h: 'Combien de raies depuis un niveau excité ?',
           body: `<p>Depuis le niveau \\(p\\), l'électron peut redescendre directement ou par paliers. Chaque paire de niveaux entre 1 et \\(p\\) donne une raie, et il y a</p>\\[\\frac{p\\,(p - 1)}{2}\\ \\text{paires}\\]
@@ -293,7 +296,7 @@
           body: `<p>On connaît \\(\\lambda\\) et la série (donc \\(n\\)) : on isole \\(p\\) dans la formule de Ritz.</p>\\[\\frac{1}{p^2} = \\frac{1}{n^2} - \\frac{1}{R_H\\,\\lambda}\\]
             <p>Exemple, 486,1 nm dans Balmer : \\(\\dfrac{1}{R_H\\lambda} = \\dfrac{1}{1{,}097\\times10^{7}\\times4{,}861\\times10^{-7}} = 0{,}1875\\), donc \\(\\dfrac1{p^2} = 0{,}25 - 0{,}1875 = 0{,}0625\\) et \\(p = 4\\).</p>
             <p>Piège : \\(\\lambda\\) en mètres. Si \\(p\\) ne tombe pas sur un entier, c'est une erreur de calcul ou de série.</p>`,
-          ask: { q: 'Une raie de Balmer a pour longueur d\'onde 434,0 nm. Niveau de départ \\(p\\) ?', items: [int('p', 5)],
+          ask: { q: 'Une raie de Balmer a pour longueur d\'onde 434,0 nm. Niveau de départ \\(p\\) ?' + D('RH'), items: [int('p', 5)],
             why: '\\(\\dfrac{1}{R_H\\lambda} = \\dfrac{1}{1{,}097\\times10^{7}\\times4{,}340\\times10^{-7}} = 0{,}2100\\), donc \\(\\dfrac1{p^2} = 0{,}25 - 0{,}2100 = 0{,}0400\\) et \\(p^2 = 25\\), \\(p = 5\\).' } }
       ] },
 

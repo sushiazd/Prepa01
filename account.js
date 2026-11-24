@@ -8,6 +8,7 @@
            <script defer src="../account.js" data-lazy></script> → seulement si une session existe
    API : SiteAccount.on('change' | 'status' | 'data', f), .user, .profile, .status,
          .signIn(email, pw), .signUp(email, pw, pseudo), .signOut(), .touch(key), .syncNow()
+         .sendReset(email) (lien « mot de passe oublié »), .recovery, .setPassword(pw), .skipRecovery()
          .qrLogin(el) (QR de connexion), .qrInfo(id), .qrApprove(id) (validation depuis le téléphone)
    ===================================================================== */
 (function () {
@@ -17,6 +18,20 @@
   const lazy = script.hasAttribute('data-lazy');
   const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
   const META = 'site.sync.v1';          // { owner, t: {clé: modif. locale ms}, s: {clé: dernière synchro ms} }
+
+  /* ---------- Lien « mot de passe oublié » reçu par e-mail ----------
+     Le lien ouvre le site avec #access_token=…&type=recovery (ou ?code=… avec type=recovery). Seul l'accueil
+     sait afficher le choix du nouveau mot de passe : si le lien tombe sur une autre page (Site URL de Supabase
+     réglée sur maths/ par exemple), on renvoie tout de suite vers l'accueil avec le même lien. */
+  const RECOV = 'site.recovery.v1';
+  const fromMail = /type=recovery/.test(location.hash + location.search);
+  if (fromMail && location.href.split(/[?#]/)[0] !== ROOT && location.href.split(/[?#]/)[0] !== ROOT + 'index.html') {
+    location.replace(ROOT + location.search + location.hash);
+    return;
+  }
+  let recovery = false;
+  try { recovery = fromMail || sessionStorage.getItem(RECOV) === '1'; if (recovery) sessionStorage.setItem(RECOV, '1'); } catch (e) { recovery = fromMail; }
+  const endRecovery = () => { recovery = false; try { sessionStorage.removeItem(RECOV); } catch (e) { /* ignore */ } };
 
   /* ---------- Clés synchronisées et règles de fusion ---------- */
   const newestSkill = P => Math.max(0, ...Object.values((P && P.sk) || {}).map(s => s.last || 0));
@@ -131,6 +146,20 @@
       clearTimeout(pushT); pushT = setTimeout(push, 1200);
     },
     syncNow: () => pull(true),
+    // arrivé par le lien « mot de passe oublié » : l'accueil demande le nouveau mot de passe
+    get recovery() { return recovery && !!user; },
+    async sendReset(email) {
+      await boot(true);
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: ROOT });
+      if (error) throw error;
+    },
+    async setPassword(password) {
+      await boot(true);
+      const { error } = await sb.auth.updateUser({ password });
+      if (error) throw error;
+      endRecovery(); emit('change', user);
+    },
+    skipRecovery() { endRecovery(); emit('change', user); },
     async signIn(email, password) { await boot(true); const { error } = await sb.auth.signInWithPassword({ email, password }); if (error) throw error; },
     async signUp(email, password, pseudo) {
       await boot(true);
@@ -220,7 +249,7 @@
     if ((user && user.id) === uid && (uid || status !== 'off')) return;
     const seq = ++userSeq;
     user = session ? session.user : null; profile = null;
-    if (!user) { setStatus('off'); emit('change', null); readyFn(); return; }
+    if (!user) { endRecovery(); setStatus('off'); emit('change', null); readyFn(); return; }
     const { data } = await sb.from('profiles').select('id,pseudo,visible').eq('id', uid).maybeSingle();
     if (seq !== userSeq) return;
     profile = data || { id: uid, pseudo: (user.user_metadata && user.user_metadata.pseudo) || 'moi' };
@@ -245,7 +274,11 @@
       if (!window.supabase || !window.supabase.createClient) await load(SUPABASE_JS);
       sb = window.supabase.createClient(window.QCM_CONFIG.supabaseUrl, window.QCM_CONFIG.supabaseAnonKey);
       // jamais de requête attendue dans ce rappel (blocage possible de supabase-js) : on diffère
-      sb.auth.onAuthStateChange((ev, session) => setTimeout(() => setSession(session), 0));
+      sb.auth.onAuthStateChange((ev, session) => setTimeout(() => {
+        if (ev === 'PASSWORD_RECOVERY') { recovery = true; try { sessionStorage.setItem(RECOV, '1'); } catch (e) { /* ignore */ } }
+        if (ev === 'SIGNED_OUT') endRecovery();
+        setSession(session).then(() => { if (ev === 'PASSWORD_RECOVERY') emit('change', user); });
+      }, 0));
     })();
     booting.catch(e => { console.warn('Compte indisponible', e); readyFn(); });
     return booting;

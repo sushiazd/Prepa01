@@ -11,7 +11,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script src="../subjects.js?v=2026112401"></script>
-<script src="../core.js?v=2026112401"></script>
+<script src="../core.js?v=2026112402"></script>
 <script src="learn.js?v=2026103101"></script>
 <script defer src="../account.js" data-lazy></script>
 <style>
@@ -2543,7 +2543,7 @@ function renderPathMap() {
       const cls = val ? 'val' : due ? 'rev' : k === f ? 'cur' : open ? 'cur' : 'lock';
       return `<div class="psk ${cls}"><span class="ic">${val ? '✓' : due ? '!' : k === f ? '▶' : ''}</span><span class="nm">${esc(k.name)}<small>${esc(k.desc)}${s.last ? ` · ${pct} %${isVal(s) ? ' · ' + MS.when(s) : ''}` : ''}</small></span>
         <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>
-        ${open ? `<button type="button" class="btn btn-sm" data-pgo="${k.id}">${CUR && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
+        <button type="button" class="btn btn-sm" data-pgo="${k.id}">${CUR && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : open ? 'S\'entraîner' : 'Commencer'}</button></div>`;
     }).join('') + '</div>').join('') + '</div>'
     + (P.n ? '<div class="row" style="margin-top:20px"><span class="spacer"></span><button type="button" class="btn btn-ghost btn-sm" data-pact="reset">Recommencer le parcours à zéro</button></div>' : '');
 }

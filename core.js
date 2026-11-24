@@ -505,11 +505,12 @@
     function renderMap() {
       const el = $('#pathMap'); if (!el) return;
       const CUR = cfg.CUR, P = pst(), f = frontier(P);
-      // chapitres sans compétence (hors du CC préparé, voir SiteSubjects.scope) : pas affichés
+      // toutes les compétences s'ouvrent dans n'importe quel ordre (« Commencer » : leçon puis test d'entrée) ;
+      // celles pas encore atteintes restent pâles. Chapitres sans compétence (hors du CC préparé, voir SiteSubjects.scope) : pas affichés
       el.innerHTML = cfg.CH.map((c, ci) => cfg.SK.some(k => k.ch === ci) ? `<div class="pch"><h3>${ci + 1}. ${esc(c)}</h3>${cfg.SK.filter(k => k.ch === ci).map(k => {
         const s = skS(P, k.id), due = M.due(s), val = isVal(s) && !due, open = isVal(s) || k === f || s.n > 0, pct = Math.min(100, Math.round(eff(s)));
         return `<div class="psk ${val ? 'val' : due ? 'rev' : k === f ? 'cur' : open ? 'cur' : 'lock'}"><span class="ic">${val ? '✓' : due ? '!' : k === f ? '▶' : ''}</span><span class="nm">${esc(k.name)}${s.last ? `<small>${pct} %${isVal(s) ? ' · ' + M.when(s) : ''}</small>` : ''}</span>
-          <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div>${open ? `<button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : 'S\'entraîner'}</button>` : '<span class="fine">verrouillé</span>'}</div>`;
+          <div class="bar ${pct >= 100 ? '' : pct >= 40 ? 'mid' : 'low'}"><i style="width:${pct}%"></i></div><button type="button" class="btn" data-go="${k.id}">${CUR && CUR.mode === 'path' && !CUR.done && CUR.k === k ? 'Reprendre' : k === f ? 'Continuer' : open ? 'S\'entraîner' : 'Commencer'}</button></div>`;
       }).join('')}</div>` : '').join('');
     }
     function nextPath(o = {}) {

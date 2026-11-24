@@ -255,7 +255,7 @@ const nucl = (A, Z, q = 0) => `{}^{${A}}_{${Z}}\\mathrm{${sym(Z)}}${chargeTex(q)
 const h = 6.6256e-34, c = 2.997925e8, eV = 1.602e-19, RH = 1.096775e7, me = 9.1091e-31, mn = 1.675e-27, Ei0 = 13.6;
 // Données rappelées sous chaque énoncé qui en a besoin (pas seulement en fin de cours)
 const CST = {
-  E0: '\\(E_n = -13{,}6/n^2\\) eV pour H', h: '\\(h = 6{,}626\\times10^{-34}\\) J·s', c: '\\(c = 3{,}00\\times10^{8}\\) m/s',
+  h: '\\(h = 6{,}626\\times10^{-34}\\) J·s', c: '\\(c = 3{,}00\\times10^{8}\\) m/s',
   eV: '1 eV = \\(1{,}602\\times10^{-19}\\) J', e: '\\(e = 1{,}602\\times10^{-19}\\) C', RH: '\\(R_H = 1{,}097\\times10^{7}\\) m⁻¹',
   me: '\\(m_e = 9{,}11\\times10^{-31}\\) kg', mn: '\\(m_n = 1{,}675\\times10^{-27}\\) kg', NA: '\\(N_A = 6{,}022\\times10^{23}\\) mol⁻¹',
   A: '1 Å = 10⁻¹⁰ m = 10⁻⁸ cm', nm: '1 nm = 10⁻⁹ m', pm: '1 pm = 10⁻¹² m'
@@ -313,12 +313,12 @@ GEN.iso = (d, g) => {
 GEN.niv = (d, g) => {
   if (d === 0) {
     const n = g.int(1, 5), E = -Ei0 / n ** 2;
-    return { title: 'Niveaux d\'énergie de l\'hydrogène', q: `Calculer l'énergie du niveau \\(n = ${n}\\) de l'atome d'hydrogène, puis l'énergie d'ionisation de l'atome à partir de ce niveau.` + DATA('E0'),
+    return { title: 'Niveaux d\'énergie de l\'hydrogène', q: `Calculer l'énergie du niveau \\(n = ${n}\\) de l'atome d'hydrogène, puis l'énergie d'ionisation de l'atome à partir de ce niveau.`,
       items: [{ type: 'num', label: `E_{${n}}`, unit: 'eV', val: E, tol: 0.01 }, { type: 'num', label: 'E_i', unit: 'eV', val: -E, tol: 0.01 }],
       corr: `<p>Modèle de Bohr : \\(E_n = -\\dfrac{13{,}6}{n^2}\\ \\text{eV}\\), donc \\(E_{${n}} = -\\dfrac{13{,}6}{${n * n}} = ${T(E)}\\ \\text{eV}\\).</p><p>Ioniser, c'est amener l'électron en \\(n = \\infty\\) (énergie 0) : \\(E_i = E_\\infty - E_{${n}} = ${T(-E)}\\ \\text{eV}\\).${n === 1 ? ' C\'est l\'énergie d\'ionisation de l\'atome H dans son état fondamental.' : ''}</p>` };
   }
   const Z = d === 1 ? g.pick([2, 3]) : g.pick([2, 3, 4]), n = d === 1 ? 1 : g.int(1, 3), E = -Ei0 * Z * Z / n ** 2;
-  return { title: 'Hydrogénoïdes', q: `On considère l'ion \\(${HYDRO[Z]}\\) (\\(Z = ${Z}\\)). Pourquoi peut-on lui appliquer le modèle de Bohr ? Calculer l'énergie du niveau \\(n = ${n}\\), puis l'énergie à fournir pour arracher l'électron depuis ce niveau.` + DATA('E0'),
+  return { title: 'Hydrogénoïdes', q: `On considère l'ion \\(${HYDRO[Z]}\\) (\\(Z = ${Z}\\)). Pourquoi peut-on lui appliquer le modèle de Bohr ? Calculer l'énergie du niveau \\(n = ${n}\\), puis l'énergie à fournir pour arracher l'électron depuis ce niveau.`,
     items: [{ type: 'num', label: `E_{${n}}`, unit: 'eV', val: E, tol: 0.01 }, { type: 'num', label: 'E_i', unit: 'eV', val: -E, tol: 0.01 }],
     corr: `<p>\\(${HYDRO[Z]}\\) n'a plus qu'<b>un seul électron</b> : c'est un hydrogénoïde, le modèle de Bohr s'applique avec la charge \\(Z\\) du noyau :</p>\\[E_n = -13{,}6\\,\\frac{Z^2}{n^2}\\ \\text{eV} \\Rightarrow E_{${n}} = -13{,}6\\times\\frac{${Z * Z}}{${n * n}} = ${T(E)}\\ \\text{eV}\\]<p>\\(E_i = 0 - E_{${n}} = ${T(-E)}\\ \\text{eV}\\). Les énergies sont \\(Z^2 = ${Z * Z}\\) fois plus grandes que pour H : le noyau, plus chargé, retient plus fort l'électron.</p>` };
 };
@@ -327,10 +327,10 @@ function transData(Z, n, p) { const dE = Ei0 * Z * Z * (1 / n ** 2 - 1 / p ** 2)
 GEN.trans = (d, g) => {
   const Z = d === 2 ? g.pick([2, 3]) : 1, n = g.int(1, 3), p = n + g.int(1, 3), { dE, lam, nu } = transData(Z, n, p);
   const who = Z === 1 ? 'l\'atome d\'hydrogène' : `l'ion hydrogénoïde \\(${HYDRO[Z]}\\)`;
-  if (d === 1) return { title: 'Absorption d\'un photon', q: `Dans ${who}, l'électron passe du niveau \\(n = ${n}\\) au niveau \\(p = ${p}\\). S'agit-il d'une absorption ou d'une émission ? Calculer l'énergie et la fréquence du photon.` + DATA('E0', 'h', 'eV'),
+  if (d === 1) return { title: 'Absorption d\'un photon', q: `Dans ${who}, l'électron passe du niveau \\(n = ${n}\\) au niveau \\(p = ${p}\\). S'agit-il d'une absorption ou d'une émission ? Calculer l'énergie et la fréquence du photon.` + DATA('h', 'eV'),
     items: [{ type: 'choice', label: 'phénomène', opts: [{ v: 'abs', t: 'absorption' }, { v: 'em', t: 'émission' }], ans: 'abs' }, { type: 'num', label: 'E_{photon}', unit: 'eV', val: dE, tol: 0.015 }, { type: 'num', label: '\\nu', unit: 'Hz', val: nu, tol: 0.02 }],
     corr: `<p>L'électron monte vers un niveau d'énergie supérieure : l'atome gagne de l'énergie, c'est une <b>absorption</b>.</p>\\[\\Delta E = E_{${p}} - E_{${n}} = 13{,}6${Z > 1 ? `\\times${Z * Z}` : ''}\\left(\\frac{1}{${n * n}} - \\frac{1}{${p * p}}\\right) = ${T(dE)}\\ \\text{eV}\\]\\[\\nu = \\frac{\\Delta E}{h} = \\frac{${T(dE)}\\times1{,}602\\times10^{-19}}{6{,}626\\times10^{-34}} = ${T(nu)}\\ \\text{Hz}\\]` };
-  return { title: 'Raie d\'émission', q: `Dans ${who}, l'électron redescend du niveau \\(p = ${p}\\) au niveau \\(n = ${n}\\). Calculer l'énergie du photon émis, sa longueur d'onde, et dire dans quel domaine il se trouve.` + DATA('E0', 'h', 'c', 'eV', 'nm'),
+  return { title: 'Raie d\'émission', q: `Dans ${who}, l'électron redescend du niveau \\(p = ${p}\\) au niveau \\(n = ${n}\\). Calculer l'énergie du photon émis, sa longueur d'onde, et dire dans quel domaine il se trouve.` + DATA('h', 'c', 'eV', 'nm'),
     items: [{ type: 'num', label: '|\\Delta E|', unit: 'eV', val: dE, tol: 0.015 }, { type: 'num', label: '\\lambda', unit: 'nm', val: lam, tol: 0.015 }, { type: 'choice', label: 'domaine', opts: DOM_OPTS, ans: domain(lam) }],
     corr: `\\[|\\Delta E| = 13{,}6${Z > 1 ? `\\times${Z * Z}` : ''}\\left(\\frac{1}{${n * n}} - \\frac{1}{${p * p}}\\right) = ${T(dE)}\\ \\text{eV}\\]\\[\\lambda = \\frac{hc}{|\\Delta E|} = \\frac{6{,}626\\times10^{-34}\\times 3\\times10^{8}}{${T(dE)}\\times1{,}602\\times10^{-19}} = ${T(lam * 1e-9)}\\ \\text{m} = ${T(lam, 4)}\\ \\text{nm}\\]<p>${lam < 400 ? 'En dessous de 400 nm : ultraviolet.' : lam <= 750 ? 'Entre 400 et 750 nm : visible.' : 'Au-dessus de 750 nm : infrarouge.'}${Z === 1 ? ` C'est une raie de la série de ${SERIES[n]} (retour sur \\(n = ${n}\\)).` : ''}</p><p class="fine">Astuce : \\(\\lambda(\\text{nm}) \\approx 1240 / E(\\text{eV})\\).</p>` };
 };

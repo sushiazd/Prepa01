@@ -445,6 +445,9 @@ GEN.place = (d, g) => {
     corr: `<p>Configuration : \\(${confShortTex(o)}\\).</p><p>Période = plus grande valeur de \\(n\\) : <b>${per}</b>.</p><p>Colonne : ${P.bloc === 'p' ? `structure terminée par \\(ns^{${o[per + 's']}}\\,np^{${o[per + 'p']}}\\) → \\(${o[per + 's']} + ${o[per + 'p']} + 10 = ${P.col}\\)` : P.bloc === 'd' ? `structure terminée par \\((n-1)d^{${o[(per - 1) + 'd']}}\\,ns^{${o[per + 's']}}\\) → \\(${o[(per - 1) + 'd']} + ${o[per + 's']} = ${P.col}\\)` : `structure terminée par \\(ns^{${o[per + 's']}}\\) → colonne ${P.col}`}. Bloc <b>${P.bloc}</b>${d >= 1 ? `, famille : <b>${fam}</b>` : ''}. C'est le ${nom(Z)} (\\(\\mathrm{${sym(Z)}}\\)).</p>` };
 };
 GEN.prop = (d, g) => {
+  // Z donné comme au CC (₄₂Mo, ₅₃I) : la position se retrouve par la configuration, pas de tableau à connaître
+  const zs = Z => `${sym(Z)} (Z = ${Z})`;
+  const pos = Z => { const P = place(Z); return `${sym(Z)} (Z = ${Z}) : \\(${confShortTex(conf(Z))}\\), période ${P.per}, colonne ${P.col}`; };
   const mk = () => {
     const kind = g.pick(d === 0 ? ['EIp', 'EIc', 'Rp', 'Rc'] : d === 1 ? ['EIp', 'Rc', 'ENp', 'ENc', 'ion'] : ['anom', 'anom', 'ion', 'ENp', 'EIc']);
     const per = g.int(2, 4), base = [0, 0, 2, 10, 18][per];
@@ -454,17 +457,17 @@ GEN.prop = (d, g) => {
       const anomal = (x, y) => [x, y].sort((u, v) => u - v).join() === '2,13' || [x, y].sort((u, v) => u - v).join() === '15,16';
       let c1, c2; do { [c1, c2] = g.shuffle(mainCols).slice(0, 2); } while (Math.abs(c1 - c2) < 2 || (kind === 'EIp' && anomal(c1, c2)) || (kind === 'ENp' && EN[colZ(c1)] === EN[colZ(c2)]));
       const A = colZ(c1), B = colZ(c2), right = c1 > c2 ? A : B, left = c1 > c2 ? B : A;
-      if (kind === 'EIp') return [`Lequel a la plus grande énergie de 1<sup>re</sup> ionisation : ${sym(A)} ou ${sym(B)} ?`, [A, B], right, `dans une même période, E.I. augmente de gauche à droite (\\(Z^*\\) augmente, l'électron est plus retenu) : ${sym(right)}.`];
-      if (kind === 'ENp') return [`Lequel est le plus électronégatif : ${sym(A)} ou ${sym(B)} ?`, [A, B], right, `dans une période, \\(\\chi\\) augmente de gauche à droite : \\(\\chi(${sym(right)}) = ${String(EN[right]).replace('.', '{,}')}\\) contre \\(${String(EN[left]).replace('.', '{,}')}\\).`];
-      return [`Lequel a le plus grand rayon atomique : ${sym(A)} ou ${sym(B)} ?`, [A, B], left, `dans une période, le rayon diminue de gauche à droite (\\(Z^*\\) augmente, les O.A. se contractent) : ${sym(left)}.`];
+      if (kind === 'EIp') return [`Lequel a la plus grande énergie de 1<sup>re</sup> ionisation : ${zs(A)} ou ${zs(B)} ?`, [A, B], right, `dans une même période, E.I. augmente de gauche à droite (\\(Z^*\\) augmente, l'électron est plus retenu) : ${sym(right)}.`];
+      if (kind === 'ENp') return [`Lequel est le plus électronégatif : ${zs(A)} ou ${zs(B)} ?`, [A, B], right, `dans une période, \\(\\chi\\) augmente de gauche à droite : \\(\\chi(${sym(right)}) = ${String(EN[right]).replace('.', '{,}')}\\) contre \\(${String(EN[left]).replace('.', '{,}')}\\).`];
+      return [`Lequel a le plus grand rayon atomique : ${zs(A)} ou ${zs(B)} ?`, [A, B], left, `dans une période, le rayon diminue de gauche à droite (\\(Z^*\\) augmente, les O.A. se contractent) : ${sym(left)}.`];
     }
     if (kind === 'EIc' || kind === 'Rc' || kind === 'ENc') {
       const col = g.pick([1, 2, 16, 17]), fams = { 1: [3, 11, 19, 37, 55], 2: [4, 12, 20, 38, 56], 16: [8, 16, 34, 52], 17: [9, 17, 35, 53] }[col];
       let A, B; do { [A, B] = g.shuffle(fams).slice(0, 2); } while (kind === 'ENc' && EN[A] === EN[B]);
       const up = A < B ? A : B, down = A < B ? B : A;
-      if (kind === 'EIc') return [`Lequel a la plus grande énergie de 1<sup>re</sup> ionisation : ${sym(A)} ou ${sym(B)} ?`, [A, B], up, `dans une colonne, E.I. diminue quand \\(n\\) augmente (l'électron externe est plus loin du noyau) : ${sym(up)}.`];
-      if (kind === 'ENc') return [`Lequel est le plus électronégatif : ${sym(A)} ou ${sym(B)} ?`, [A, B], up, `dans une colonne, \\(\\chi\\) diminue vers le bas : ${sym(up)}.`];
-      return [`Lequel a le plus grand rayon atomique : ${sym(A)} ou ${sym(B)} ?`, [A, B], down, `dans une colonne, le rayon augmente quand \\(n\\) augmente (nouvelle couche) : ${sym(down)}.`];
+      if (kind === 'EIc') return [`Lequel a la plus grande énergie de 1<sup>re</sup> ionisation : ${zs(A)} ou ${zs(B)} ?`, [A, B], up, `dans une colonne, E.I. diminue quand \\(n\\) augmente (l'électron externe est plus loin du noyau) : ${sym(up)}.`];
+      if (kind === 'ENc') return [`Lequel est le plus électronégatif : ${zs(A)} ou ${zs(B)} ?`, [A, B], up, `dans une colonne, \\(\\chi\\) diminue vers le bas : ${sym(up)}.`];
+      return [`Lequel a le plus grand rayon atomique : ${zs(A)} ou ${zs(B)} ?`, [A, B], down, `dans une colonne, le rayon augmente quand \\(n\\) augmente (nouvelle couche) : ${sym(down)}.`];
     }
     if (kind === 'ion') {
       const [Z, q] = g.pick([[11, 1], [13, 3], [12, 2], [17, -1], [8, -2], [7, -3], [16, -2]]);
@@ -472,13 +475,13 @@ GEN.prop = (d, g) => {
       return [`Lequel est le plus gros : \\(${a}\\) ou \\(${b}\\) ?`, [['a', a], ['b', b]], q > 0 ? 'a' : 'b', q > 0 ? 'un cation est plus petit que l\'atome (moins d\'électrons, moins d\'écran, plus attirés).' : 'un anion est plus gros que l\'atome (plus d\'électrons, plus d\'écran et de répulsion).'];
     }
     const [A, B, why] = g.pick([[4, 5, 'Be (2s<sup>2</sup>, sous-couche pleine) est plus stable que B (2p<sup>1</sup>)'], [12, 13, 'Mg (3s<sup>2</sup> pleine) est plus stable que Al (3p<sup>1</sup>)'], [7, 8, 'N (2p<sup>3</sup>, demi-pleine) est plus stable que O (2p<sup>4</sup>)'], [15, 16, 'P (3p<sup>3</sup> demi-pleine) est plus stable que S (3p<sup>4</sup>)'], [30, 31, 'Zn (3d<sup>10</sup> 4s<sup>2</sup> pleines) est plus stable que Ga (4p<sup>1</sup>)']]);
-    return [`Lequel a la plus grande énergie de 1<sup>re</sup> ionisation : ${sym(A)} ou ${sym(B)} ?`, [A, B], A, `<b>anomalie</b> : ${why}, donc E.I.(${sym(A)}) > E.I.(${sym(B)}) alors que ${sym(B)} est plus à droite.`];
+    return [`Lequel a la plus grande énergie de 1<sup>re</sup> ionisation : ${zs(A)} ou ${zs(B)} ?`, [A, B], A, `<b>anomalie</b> : ${why}, donc E.I.(${sym(A)}) > E.I.(${sym(B)}) alors que ${sym(B)} est plus à droite.`];
   };
   const qs = [mk(), mk()];
   const opt = x => Array.isArray(x) ? { v: String(x[0]), t: `\\(${x[1]}\\)` } : { v: String(x), t: `${sym(x)}` };
   return { title: 'Évolution des propriétés', q: 'Répondre en justifiant (sur ta feuille) :',
     items: qs.map(([q, opts, ans], i) => ({ type: 'choice', label: `\\text{(${'ab'[i]})}`, pre: q, opts: opts.map(opt), ans: String(ans) })),
-    corr: `<ul>${qs.map(([, , , why], i) => `<li>(${'ab'[i]}) ${why}</li>`).join('')}</ul>` };
+    corr: `<ul>${qs.map(([, opts, , why], i) => `<li>(${'ab'[i]}) ${typeof opts[0] === 'number' ? `<span class="fine">${opts.map(pos).join(' ; ')}.</span><br>` : ''}${why}</li>`).join('')}</ul>` };
 };
 
 /* =====================================================================

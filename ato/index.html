@@ -50,6 +50,7 @@
 .prev,.fb{grid-column:2;font-size:14px;color:var(--ink-2);min-width:0;overflow-x:auto}
 .prev:empty,.fb:empty{display:none}
 .prev .err{color:var(--muted);font-style:italic}
+#app>*{min-width:0}
 .ch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--rule-strong);background:var(--sheet);cursor:pointer}
 .ch:has(input:checked){border-color:var(--pen);background:var(--pen-soft)}
 .expl{margin-top:8px;padding:14px 18px;border-radius:12px;background:var(--sheet-2);border:1px solid var(--rule);font:16px/1.65 var(--serif);overflow-x:auto}
@@ -143,6 +144,7 @@ const UNITS = {
   eV: { ev: 1, j: 1 / 1.602e-19 },
   J: { j: 1, ev: 1.602e-19 },
   Hz: { hz: 1, khz: 1e3, mhz: 1e6, ghz: 1e9, thz: 1e12, phz: 1e15, 's-1': 1 },
+  '%': { '%': 1 },
   'cm⁻¹': { 'cm-1': 1, 'cm⁻¹': 1, 'm-1': 0.01, 'm⁻¹': 0.01 },
   'm⁻¹': { 'm-1': 1, 'm⁻¹': 1, 'cm-1': 100, 'cm⁻¹': 100 },
   'g/mol': { 'g/mol': 1, 'g.mol-1': 1, 'gmol-1': 1, g: 1 },
@@ -843,6 +845,7 @@ GEN.ionc = (d, g) => {
    VÉRIFICATION DES RÉPONSES
    ===================================================================== */
 function check(it, raw) {
+  if (it.type === 'self') return { st: EXAM && EXAM.self && EXAM.self[it.id] ? 'ok' : 'bad' };   // rédaction cochée après avoir rendu (CC 2021)
   if (it.type === 'choice') return raw ? { st: raw === it.ans ? 'ok' : 'bad' } : { st: 'empty' };
   if (it.type === 'int') {
     const s = String(raw || '').trim().replace(/\s/g, '').replace('−', '-'); if (!s) return { st: 'empty' };
@@ -882,6 +885,11 @@ function itemHTML(it, id, val) {
   const isMath = /[\\^_{}]/.test(it.label) || /^[A-Za-z]$/.test(it.label);
   const lab = `<span class="it-lab">${isMath ? `\\(${it.label}\\)` : esc(it.label)}</span>`;
   const pre = it.pre ? `<div style="grid-column:1/-1;font:16px/1.5 var(--serif)">${it.pre}</div>` : '';
+  if (it.type === 'self') {   // question de rédaction : sur la feuille pendant l'épreuve, cochée au barème après
+    const p = `${String(it.pts).replace('.', ',')} pt`;
+    return EXAM && EXAM.done ? `<div class="it" data-id="${id}"><span class="it-lab">${esc(it.label)}</span><div class="it-in"><label class="ch" style="align-items:flex-start;white-space:normal;height:auto;max-width:100%"><input type="checkbox" data-self="${id}"${EXAM.self && EXAM.self[id] ? ' checked' : ''}><span>Ma copie contient : ${it.t} <span class="fine">(${p})</span></span></label></div></div>`
+      : `<div class="it" data-id="${id}"><span class="it-lab">${esc(it.label)}</span><div class="it-in"><span class="fine">Sur ta feuille (${p})</span></div></div>`;
+  }
   if (it.type === 'choice') return `${pre}<div class="it" data-id="${id}">${lab}<div class="it-in">${it.opts.map(o => `<label class="ch"><input type="radio" name="${id}" value="${esc(o.v)}"${val === o.v ? ' checked' : ''}><span>${o.t}</span></label>`).join('')}</div><div class="fb"></div></div>`;
   const ph = it.type === 'conf' ? 'ex : 1s2 2s2 2p6 ou (Ar) 3d5 4s1' : it.type === 'int' ? 'nombre entier' : 'ex : 4,86e-7';
   return `${pre}<div class="it" data-id="${id}">${lab}<div class="it-in"><input type="text" data-id="${id}" autocomplete="off" spellcheck="false" inputmode="${it.type === 'int' ? 'numeric' : 'text'}" placeholder="${ph}" value="${esc(val || '')}">${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div><div class="prev"></div><div class="fb"></div></div>`;
@@ -1093,7 +1101,112 @@ const EXAM_PLAN2 = [['A · Spectre d\'un hydrogénoïde', [['niv', 1], ['trans',
   ['F · Cristaux métalliques', [['maille', 1], ['rho', 1], ['sites', 1]], 4], ['G · Cristaux ioniques', [['ionf', 1], ['ionc', 2]], 2.5]];
 // CC d'un sujet blanc : celui pour lequel il a été commencé (EXAM.cc), sinon celui de la page
 const examCC = () => (EXAM && EXAM.cc) || CCN;
+
+/* ---------- Le vrai CC du 16/11/2021 (ANNALES_CC/S1/Ato) et ses variantes ----------
+   Même énoncé, même ordre, même barème (sur 25, ramené sur 20) ; la variante garde les questions et change
+   les valeurs. Les questions de rédaction (justifier, formule, définitions, cases quantiques) se font sur la
+   feuille : après avoir rendu, on coche ce que la copie contient (items 'self', points du barème). */
+// [Z, A1, M1, A2, M2, M de l'élément]
+const CC21_ISO = [[29, 63, 62.9298, 65, 64.9278, 63.546], [17, 35, 34.9689, 37, 36.9659, 35.453], [5, 10, 10.0129, 11, 11.0093, 10.811], [31, 69, 68.9256, 71, 70.9247, 69.723],
+  [35, 79, 78.9183, 81, 80.9163, 79.904], [47, 107, 106.9051, 109, 108.9048, 107.868], [37, 85, 84.9118, 87, 86.9092, 85.468]];
+// deux éléments de la même période, Z donné : [bloc d, bloc p, charge de l'ion le plus probable du second]
+const CC21_PAIR = [[42, 53, -1], [24, 35, -1], [29, 34, -2], [47, 52, -2], [26, 35, -1], [47, 53, -1], [24, 34, -2], [40, 53, -1]];
+const supT = n => String(n).split('').map(c => SUP[+c]).join('');
+function hundBoxes(sub, e) { const m = CAP[sub[1]] / 2, b = Array(m).fill(0); for (let i = 0; i < e; i++) b[i % m]++; return `${sub}${supT(e)} : ${b.map(x => '[' + (x === 2 ? '↑↓' : x ? '↑' : '&nbsp;&nbsp;') + ']').join('')}`; }
+function levelsSVG(lo, hi) {
+  const y = n => n ? 22 + 190 / (n * n) : 22, L = [1, 2, 3, 4, 5].map(n => `<line x1="40" x2="170" y1="${y(n)}" y2="${y(n)}" stroke="currentColor"/><text x="178" y="${y(n) + 4}" font-size="11" fill="currentColor">n = ${n}</text>`).join('');
+  return `<svg viewBox="0 0 240 225" width="240" style="display:block;margin:8px 0" role="img" aria-label="Transition du niveau ${hi} au niveau ${lo}"><line x1="22" y1="220" x2="22" y2="8" stroke="currentColor"/><path d="M18 14 L22 4 L26 14 Z" fill="currentColor"/><text x="8" y="12" font-size="12" fill="currentColor">E</text>
+    <line x1="40" x2="170" y1="${y(0)}" y2="${y(0)}" stroke="currentColor" stroke-dasharray="4 3"/><text x="178" y="${y(0) - 2}" font-size="11" fill="currentColor">n → ∞</text>${L}
+    <line x1="105" x2="105" y1="${y(hi)}" y2="${y(lo) - 7}" stroke="currentColor" stroke-width="1.6"/><path d="M100 ${y(lo) - 8} L105 ${y(lo)} L110 ${y(lo) - 8} Z" fill="currentColor"/></svg>`;
+}
+function cc21Exos(seed, exact) {
+  const g = G(rng(seed));
+  const [Zc, A1, M1, A2, M2, M] = exact ? CC21_ISO[0] : g.pick(CC21_ISO);
+  const Zh = exact ? 2 : g.pick([2, 2, 3]), lo = exact ? 2 : g.pick([1, 2, 2, 3]), hi = exact ? 4 : lo + g.int(1, lo === 1 ? 3 : 2);
+  let qn; if (exact) qn = [3, 2, 1, '1/2']; else { const n = g.int(2, 4), l = g.int(1, n - 1); qn = [n, l, g.int(-l, l), g.pick(['1/2', '−1/2'])]; }
+  const [X, Y, qY] = exact ? CC21_PAIR[0] : g.pick(CC21_PAIR);
+  let k = 0; const mk = (sk, o) => Object.assign(o, { id: `${sk}-c21x${seed}-${k++}` });
+  const s = sym(Zc), iso = (A) => `\\({}^{${A}}_{${Zc}}\\mathrm{${s}}\\)`;
+  // A · isotopes
+  const x1 = (M - M2) / (M1 - M2);
+  const A = { title: 'A · Isotopes', pts: 4, parts: [
+    { q: `${Le(nom(Zc))} naturel est constitué de deux isotopes : ${iso(A1)} et ${iso(A2)}.<br>a) Donner pour chaque isotope le nombre de protons, d'électrons et de neutrons.`,
+      items: [mk('noyau', { type: 'int', label: 'protons (chaque isotope)', val: Zc, pts: 0.5 }), mk('noyau', { type: 'int', label: 'électrons (chaque isotope)', val: Zc, pts: 0.5 }),
+        mk('noyau', { type: 'int', label: `neutrons de ${s} ${A1}`, val: A1 - Zc, pts: 0.5 }), mk('noyau', { type: 'int', label: `neutrons de ${s} ${A2}`, val: A2 - Zc, pts: 0.5 })],
+      corr: `<p>Des isotopes ont le même \\(Z\\) et des \\(A\\) différents. \\({}^{A}_{Z}\\mathrm{X}\\) neutre : \\(Z\\) protons, \\(Z\\) électrons, \\(N = A - Z\\) neutrons.</p><p>${iso(A1)} : ${Zc} protons, ${Zc} électrons, ${A1} − ${Zc} = <b>${A1 - Zc} neutrons</b>. ${iso(A2)} : ${Zc} protons, ${Zc} électrons, <b>${A2 - Zc} neutrons</b>.</p>` },
+    { q: 'b) Déterminer les abondances naturelles des deux isotopes.',
+      items: [mk('iso', { type: 'num', label: `abondance de ${s} ${A1}`, val: x1 * 100, unit: '%', tol: 0.01, pts: 1 }), mk('iso', { type: 'num', label: `abondance de ${s} ${A2}`, val: (1 - x1) * 100, unit: '%', tol: 0.02, pts: 0.5 }),
+        mk('iso', { type: 'self', label: 'mise en équation', t: 'M = x₁M₁ + x₂M₂ et x₁ + x₂ = 1, puis x₁ isolé', pts: 0.5 })],
+      corr: `\\[M = x_1 M_1 + x_2 M_2,\\quad x_1 + x_2 = 1 \\;\\Rightarrow\\; x_1 = \\frac{M - M_2}{M_1 - M_2} = \\frac{${T(M, 6)} - ${T(M2, 6)}}{${T(M1, 6)} - ${T(M2, 6)}} = ${T(x1, 4)}\\]<p>soit <b>${fr(x1 * 100, 4)} %</b> de ${iso(A1)} et <b>${fr(100 - x1 * 100, 4)} %</b> de ${iso(A2)}. Vérification : la masse molaire de l'élément est plus proche de ${T(x1 > 0.5 ? M1 : M2, 6)}, l'isotope majoritaire.</p>` }] };
+  // B · hydrogénoïde
+  const ionT = Zh === 2 ? '\\({}_{2}\\mathrm{He}^{+}\\)' : '\\({}_{3}\\mathrm{Li}^{2+}\\)', ionS = Zh === 2 ? 'He⁺' : 'Li²⁺', el = Zh === 2 ? 'de l\'hélium' : 'du lithium', ord = Zh === 2 ? 'deuxième' : 'troisième';
+  const E0 = 13.6 * Zh * Zh, dE = E0 * (1 / (lo * lo) - 1 / (hi * hi)), J = dE * 1.602e-19, h = 6.6256e-34, lam = h * 3e8 / J * 1e9, nu = J / h, dom = lam < 400 ? 'UV' : lam <= 800 ? 'visible' : 'IR';
+  const B = { title: 'B · Spectres atomiques', pts: 8, parts: [
+    { q: `L'ion ${ionT} est un ion hydrogénoïde.<br>a) Justifier cette affirmation.<br>b) Donner (en eV) la formule de l'énergie d'un niveau \\(n\\) de l'ion ${ionS}.<br>c) De quel(s) nombre(s) quantique(s) cette énergie est-elle fonction ?`,
+      items: [mk('niv', { type: 'self', label: 'a) justification', t: 'un seul électron autour d\'un noyau de charge +' + Zh + 'e', pts: 0.5 }), mk('niv', { type: 'self', label: 'b) formule', t: `E<sub>n</sub> = −13,6 Z²/n² = −${fr(E0, 3)}/n² (eV)`, pts: 1 }),
+        mk('niv', { type: 'choice', label: 'c) nombre(s) quantique(s)', opts: [{ v: 'n', t: '\\(n\\) seul' }, { v: 'nl', t: '\\(n\\) et \\(\\ell\\)' }, { v: 'nlm', t: '\\(n\\), \\(\\ell\\) et \\(m_\\ell\\)' }], ans: 'n', pts: 0.5 })],
+      corr: `<p>a) ${ionS} n'a plus qu'<b>un seul électron</b> (Z = ${Zh}, ${Zh - 1} électron${Zh > 2 ? 's' : ''} arraché${Zh > 2 ? 's' : ''}) : c'est un hydrogénoïde, le modèle de Bohr s'applique avec la charge \\(Z\\) du noyau.</p><p>b) \\(E_n = -13{,}6\\,\\dfrac{Z^2}{n^2} = -\\dfrac{${T(E0)}}{n^2}\\) eV.</p><p>c) Elle ne dépend que de <b>\\(n\\)</b>, le nombre quantique principal (comme pour H : pas de différence entre sous-couches dans un hydrogénoïde).</p>` },
+    { q: `d) Calculer l'énergie émise lors de la transition représentée sur le schéma, en eV puis en joules.${levelsSVG(lo, hi)}`,
+      items: [mk('trans', { type: 'num', label: '\\Delta E', val: dE, unit: 'eV', tol: 0.01, pts: 1 }), mk('trans', { type: 'num', label: '\\Delta E', val: J, unit: 'J', tol: 0.01, pts: 1 })],
+      corr: `<p>Émission du niveau \\(${hi}\\) vers le niveau \\(${lo}\\) :</p>\\[\\Delta E = E_{${hi}} - E_{${lo}} = ${T(E0)}\\left(\\frac{1}{${lo * lo}} - \\frac{1}{${hi * hi}}\\right) = ${T(dE, 4)}\\ \\text{eV} = ${T(dE, 4)}\\times 1{,}602\\times10^{-19} = ${T(J, 4)}\\ \\text{J}\\]` },
+    { q: 'e) Calculer la longueur d\'onde associée à cette transition (en nm).<br>f) À quel domaine spectral (UV, visible, IR) appartient cette radiation ?<br>g) Quelle est sa fréquence en Hz ?',
+      items: [mk('trans', { type: 'num', label: '\\lambda', val: lam, unit: 'nm', tol: 0.01, pts: 1.5 }), mk('trans', { type: 'choice', label: 'f) domaine', opts: ['UV', 'visible', 'IR'].map(v => ({ v, t: v })), ans: dom, pts: 0.5 }), mk('onde', { type: 'num', label: '\\nu', val: nu, unit: 'Hz', tol: 0.01, pts: 1 })],
+      corr: `\\[\\lambda = \\frac{hc}{\\Delta E} = \\frac{6{,}6256\\times10^{-34}\\times 3\\times10^{8}}{${T(J, 4)}} = ${T(lam * 1e-9, 4)}\\ \\text{m} = ${T(lam, 4)}\\ \\text{nm}\\]<p class="fine">ΔE en joules obligatoirement (h est en J·s). Raccourci pour vérifier : λ(nm) ≈ 1240 / ΔE(eV) = ${T(1240 / dE, 4)}.</p><p>f) ${T(lam, 4)} nm : <b>${dom}</b> (UV en dessous de 400 nm, visible de 400 à 800 nm, IR au-delà).</p>\\[\\nu = \\frac{c}{\\lambda} = \\frac{\\Delta E}{h} = \\frac{${T(J, 4)}}{6{,}6256\\times10^{-34}} = ${T(nu, 4)}\\ \\text{Hz}\\]` },
+    { q: `h) L'ion ${ionS} étant dans son état fondamental, calculer (en eV) son énergie de ${ord} ionisation.`,
+      items: [mk('niv', { type: 'num', label: 'E_i', val: E0, unit: 'eV', tol: 0.01, pts: 1 })],
+      corr: `<p>État fondamental : \\(n = 1\\). Ioniser, c'est envoyer l'électron en \\(n \\to \\infty\\) (\\(E_\\infty = 0\\)) :</p>\\[E_i = E_\\infty - E_1 = 0 - \\left(-${T(E0)}\\right) = ${T(E0)}\\ \\text{eV}\\]<p>C'est la ${ord} ionisation ${el} : les ${Zh - 1} premières ont déjà donné ${ionS}.</p>` }] };
+  // C · nombres quantiques
+  const [n, l, ml, ms] = qn, sub = `${n}${'spdf'[l]}`;
+  const C = { title: 'C · Nombres quantiques', pts: 3.5, parts: [
+    { q: 'a) Préciser les valeurs limites que peuvent prendre, par définition, les nombres quantiques \\(n\\), \\(\\ell\\), \\(m_\\ell\\) et les relations qui existent entre ces trois nombres.<br>b) Quels sont les nombres quantiques qui interviennent dans la définition d\'une sous-couche électronique ? d\'une orbitale atomique ?',
+      items: [mk('nq', { type: 'self', label: 'a) valeurs et relations', t: 'n entier ≥ 1 ; 0 ≤ ℓ ≤ n − 1 ; −ℓ ≤ m<sub>ℓ</sub> ≤ +ℓ (2ℓ + 1 valeurs)', pts: 1.5 }),
+        mk('nq', { type: 'choice', label: 'b) sous-couche', opts: [{ v: 'n', t: '\\(n\\)' }, { v: 'nl', t: '\\(n, \\ell\\)' }, { v: 'nlm', t: '\\(n, \\ell, m_\\ell\\)' }, { v: 'nlms', t: '\\(n, \\ell, m_\\ell, m_s\\)' }], ans: 'nl', pts: 0.5 }),
+        mk('nq', { type: 'choice', label: 'b) orbitale atomique', opts: [{ v: 'n', t: '\\(n\\)' }, { v: 'nl', t: '\\(n, \\ell\\)' }, { v: 'nlm', t: '\\(n, \\ell, m_\\ell\\)' }, { v: 'nlms', t: '\\(n, \\ell, m_\\ell, m_s\\)' }], ans: 'nlm', pts: 0.5 })],
+      corr: '<p>a) \\(n\\) entier, \\(n \\ge 1\\) (couche) ; \\(\\ell\\) entier, \\(0 \\le \\ell \\le n-1\\) (sous-couche s, p, d, f pour ℓ = 0, 1, 2, 3) ; \\(m_\\ell\\) entier, \\(-\\ell \\le m_\\ell \\le +\\ell\\), soit \\(2\\ell + 1\\) valeurs (orbitales). Le spin : \\(m_s = \\pm\\frac12\\).</p><p>b) Sous-couche : <b>\\((n, \\ell)\\)</b>. Orbitale atomique : <b>\\((n, \\ell, m_\\ell)\\)</b>. Il faut les 4 nombres pour définir un électron.</p>' },
+    { q: `Soit un électron noté (e) caractérisé par les 4 nombres quantiques suivants : \\(n = ${n}\\), \\(\\ell = ${l}\\), \\(m_\\ell = ${ml}\\), \\(m_s = ${ms.replace('−', '-')}\\).<br>c) Quelle sous-couche occupe l'électron (e) ?<br>d) Combien d'électrons peuvent occuper la même sous-couche électronique que l'électron (e) ?`,
+      items: [mk('nq', { type: 'choice', label: 'c) sous-couche', opts: Array.from({ length: Math.min(n, 4) }, (_, i) => `${n}${'spdf'[i]}`).map(v => ({ v, t: v })), ans: sub, pts: 0.5 }), mk('nq', { type: 'int', label: 'd) électrons', val: 2 * (2 * l + 1), pts: 0.5 })],
+      corr: `<p>c) \\(n = ${n}\\), \\(\\ell = ${l}\\) → lettre ${'spdf'[l]} : sous-couche <b>${sub}</b>.</p><p>d) ${sub} : \\(2\\ell + 1 = ${2 * l + 1}\\) orbitales (\\(m_\\ell\\) de \\(-${l}\\) à \\(+${l}\\)), 2 électrons chacune : <b>${2 * (2 * l + 1)} électrons</b>.</p>` }] };
+  // D · configurations et classification
+  const oX = conf(X), oY = conf(Y), pX = place(X), pY = place(Y), per = pX.per, sX = sym(X), sY = sym(Y);
+  const vX = [`${per - 1}d`, `${per}s`], vY = [`${per}s`, `${per}p`], gas = { 3: 'Ar', 4: 'Kr', 5: 'Xe' }[per];
+  const plT = (Z, o, P) => `\\(\\mathrm{${sym(Z)}}\\) : plus grand \\(n\\) = ${P.per} → période <b>${P.per}</b> ; ${P.bloc === 'd' ? `structure finale \\((n-1)d^{${o[(P.per - 1) + 'd']}}\\,ns^{${o[P.per + 's']}}\\) → colonne ${o[(P.per - 1) + 'd']} + ${o[P.per + 's']} = <b>${P.col}</b>` : `structure finale \\(ns^{${o[P.per + 's']}}\\,np^{${o[P.per + 'p']}}\\) → colonne ${o[P.per + 's']} + ${o[P.per + 'p']} + 10 = <b>${P.col}</b>`} ; dernière sous-couche en cours de remplissage : bloc <b>${P.bloc}</b>.`;
+  const blocOpts = ['s', 'p', 'd', 'f'].map(v => ({ v, t: v }));
+  const D = { title: 'D · Configuration électronique, classification périodique', pts: 9.5, parts: [
+    { q: `a) Écrire la configuration électronique <b>complète</b> (selon la nomenclature en vigueur, sans notation du type [gaz rare]) ${du(nom(X))} \\({}_{${X}}\\mathrm{${sX}}\\) et celle ${du(nom(Y))} \\({}_{${Y}}\\mathrm{${sY}}\\). Ces deux éléments sont considérés à l'état fondamental.`,
+      items: [mk('exc', Object.assign(confItem(X, oX), { pts: 1.5 })), mk('conf', Object.assign(confItem(Y, oY), { pts: 1.5 }))],
+      corr: confCorr(X, oX, isExc(X) ? ` <b>Exception</b> : le remplissage normal donnerait \\(${confShortTex(klech(X))}\\) ; une sous-couche d ${oX[(per - 1) + 'd'] === 5 ? 'à moitié remplie (d⁵)' : 'pleine (d¹⁰)'} est plus stable, un électron ${per}s passe en ${per - 1}d.` : '') + confCorr(Y, oY) + '<p class="fine">« Nomenclature en vigueur » : on écrit la configuration finale dans l\'ordre des \\(n\\) croissants (3d avant 4s), même si on remplit selon Klechkowski.</p>' },
+    { q: 'b) Indiquer, <b>en justifiant</b> votre réponse, la période, la colonne et le bloc (s, p, d) auxquels appartiennent ces éléments.',
+      items: [mk('place', { type: 'int', label: `période de ${sX}`, val: pX.per, pts: 0.25 }), mk('place', { type: 'int', label: `colonne de ${sX}`, val: pX.col, pts: 0.25 }), mk('place', { type: 'choice', label: `bloc de ${sX}`, opts: blocOpts, ans: pX.bloc, pts: 0.25 }),
+        mk('place', { type: 'int', label: `période de ${sY}`, val: pY.per, pts: 0.25 }), mk('place', { type: 'int', label: `colonne de ${sY}`, val: pY.col, pts: 0.25 }), mk('place', { type: 'choice', label: `bloc de ${sY}`, opts: blocOpts, ans: pY.bloc, pts: 0.25 }),
+        mk('place', { type: 'self', label: 'justification', t: 'période = n le plus grand ; colonne = électrons (n−1)d + ns, ou ns + np + 10 ; bloc = sous-couche en cours de remplissage', pts: 0.5 })],
+      corr: `<p>${plT(X, oX, pX)}</p><p>${plT(Y, oY, pY)}</p>` },
+    { q: 'c) Représenter à l\'aide des cases quantiques le remplissage électronique des <b>électrons de valence</b> pour ces 2 éléments.',
+      items: [mk('case', { type: 'self', label: `cases de ${sX}`, t: vX.map(v => hundBoxes(v, oX[v] || 0)).join(' ; ') + ' (règle de Hund : une flèche par case avant d\'apparier)', pts: 0.75 }), mk('case', { type: 'self', label: `cases de ${sY}`, t: vY.map(v => hundBoxes(v, oY[v] || 0)).join(' ; '), pts: 0.75 })],
+      corr: `<p>Électrons de valence : ceux de la couche \\(n = ${per}\\), plus la sous-couche \\(${per - 1}d\\) en cours de remplissage pour un élément de transition (les \\(${per - 1}d^{10}\\) pleines de ${sY} sont des électrons de cœur).</p><p>${sX} : ${vX.map(v => hundBoxes(v, oX[v] || 0)).join(' ; ')}, soit ${unpaired({ [vX[0]]: oX[vX[0]], [vX[1]]: oX[vX[1]] })} électrons célibataires.</p><p>${sY} : ${vY.map(v => hundBoxes(v, oY[v] || 0)).join(' ; ')}, soit ${unpaired({ [vY[0]]: oY[vY[0]], [vY[1]]: oY[vY[1]] })} électron${unpaired({ [vY[0]]: oY[vY[0]], [vY[1]]: oY[vY[1]] }) > 1 ? 's' : ''} célibataire${unpaired({ [vY[0]]: oY[vY[0]], [vY[1]]: oY[vY[1]] }) > 1 ? 's' : ''}.</p>` },
+    { q: `d) Quel est l'ion le plus probable formé par ${le(nom(Y))} ? <b>Justifier</b>.`,
+      items: [mk('prop', { type: 'choice', label: 'ion', opts: [1, 2, -1, -2, -3].map(q => ({ v: String(q), t: `\\(\\mathrm{${sY}}${chargeTex(q)}\\)` })), ans: String(qY), pts: 0.5 }),
+        mk('prop', { type: 'self', label: 'justification', t: `${sY} gagne ${-qY} électron${qY < -1 ? 's' : ''} pour obtenir ${per}s² ${per}p⁶, la configuration du gaz rare ${gas}`, pts: 0.5 })],
+      corr: `<p>${sY} : \\(\\dots ${per}s^{2}\\,${per}p^{${oY[per + 'p']}}\\). Il lui manque ${-qY} électron${qY < -1 ? 's' : ''} pour compléter sa couche (\\(${per}s^2\\,${per}p^6\\), configuration de ${gas}, très stable) : ion <b>\\(\\mathrm{${sY}}${chargeTex(qY)}\\)</b>.</p>` },
+    { q: 'e) Lequel de ces deux éléments a le plus grand rayon atomique ? <b>Justifier</b>.<br>f) Lequel de ces deux éléments a la plus grande énergie d\'ionisation ? <b>Justifier</b>.',
+      items: [mk('prop', { type: 'choice', label: 'e) plus grand rayon', opts: [X, Y].map(z => ({ v: String(z), t: sym(z) })), ans: String(X), pts: 0.5 }), mk('prop', { type: 'self', label: 'e) justification', t: 'même période ; de gauche à droite Z* augmente, les électrons sont plus attirés, le rayon diminue', pts: 0.5 }),
+        mk('prop', { type: 'choice', label: 'f) plus grande E.I.', opts: [X, Y].map(z => ({ v: String(z), t: sym(z) })), ans: String(Y), pts: 0.5 }), mk('prop', { type: 'self', label: 'f) justification', t: 'même période ; l\'E.I. augmente de gauche à droite (électron externe plus retenu)', pts: 0.5 })],
+      corr: `<p>${sX} (colonne ${pX.col}) et ${sY} (colonne ${pY.col}) sont dans la <b>même période</b> (${per}), ${sX} à gauche.</p><p>e) De gauche à droite, \\(Z^*\\) augmente : les électrons de valence sont plus attirés, le rayon diminue. <b>${sX}</b> a le plus grand rayon.</p><p>f) Pour la même raison, l'électron externe de ${sY} est plus retenu : <b>${sY}</b> a la plus grande énergie d'ionisation.</p>` }] };
+  const exs = [A, B, C, D];
+  exs.data = `Données : \\(M(${iso(A1).slice(2, -2)}) = ${T(M1, 6)}\\) g/mol · \\(M(${iso(A2).slice(2, -2)}) = ${T(M2, 6)}\\) g/mol · \\(M(\\mathrm{${s}}) = ${T(M, 5)}\\) g/mol · \\(e = 1{,}602\\times10^{-19}\\) C · \\(h = 6{,}6256\\times10^{-34}\\) J·s · \\(c = 3\\times10^{8}\\) m·s⁻¹`;
+  return exs;
+}
+const cc21Max = 25;
+function cc21Score(exs) {
+  let tot = 0; const per = exs.map(ex => { let s = 0; ex.parts.forEach(p => p.items.forEach(it => { if (check(it, EXAM.ans[it.id] || '').st === 'ok') s += it.pts; })); tot += s; return s; });
+  return { per, tot, note: tot * 20 / cc21Max };
+}
+const fmtPt = x => String(Math.round(x * 100) / 100).replace('.', ',');
+function cc21Paint(S) {
+  S.per.forEach((v, i) => { const el = $(`[data-pp="${i}"]`); if (el) el.textContent = fmtPt(v); });
+  const n = $('#cc21Note'), t = $('#cc21Tot'); if (n) n.textContent = String(S.note.toFixed(1)).replace('.', ','); if (t) t.textContent = fmtPt(S.tot);
+}
 function examExos(seed) {
+  if (EXAM && EXAM.kind === 'cc21') return cc21Exos(seed, EXAM.exact);
   const g = G(rng(seed));
   return examPlan(examCC() === 2 ? EXAM_PLAN2 : EXAM_PLAN1).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) }));
 }
@@ -1103,13 +1216,28 @@ function vBlanc() {
   if (EXAM) return renderExam();
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · ${CCN === 2 ? '1 h 30' : '1 h'} · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">${CCN === 1 ? 'Programme du CC1 : toute la partie « L\'atome » et un peu de schémas de Lewis. Plan du CC de novembre 2021, plus Lewis : isotopes (3 pts), spectre d\'un ion hydrogénoïde comme He<sup>+</sup> (6 pts), nombres quantiques (3 pts), configurations électroniques et tableau périodique (5 pts), schéma de Lewis (3 pts). Au CC 2021, la calculatrice était autorisée pour les calculs numériques seulement.' : 'Programme du CC2 : tout le cours. Spectre d\'un hydrogénoïde (3 pts), configurations et tableau périodique (3 pts), Lewis et charges formelles (3 pts), VSEPR et hybridation (3 pts), polarité (1,5 pt), cristaux métalliques : maille, masse volumique, sites (4 pts), composés et cristaux ioniques (2,5 pts).'}</p></div>
-    <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (${CCN === 2 ? 90 : 60} min)</button>${weakButton()}<span class="fine">Prévois une feuille : les justifications se font sur papier, seuls les résultats sont saisis ici.</span></div></section>
+    ${CCN === 1 ? `<section class="card"><h2>Le vrai CC : 16 novembre 2021</h2><p class="sub">Le seul CC d'atomistique connu, retapé question par question, avec le même barème (sur 25, ramené sur 20) : isotopes (4), spectre de He<sup>+</sup> (8), nombres quantiques (3,5), configurations de Mo et I et classification (9,5). Les calculs vont dans les cases. La rédaction (justifications, formule, définitions, cases quantiques) se fait sur ta feuille : après avoir rendu, tu coches ce que ta copie contient vraiment, et la note se calcule. La variante garde exactement les mêmes questions avec d'autres valeurs. Le CC 2026 ajoute un peu de Lewis : entraîne-toi aussi sur la partie E du sujet blanc ci-dessous.</p>
+      <div class="row" style="margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="cc21">Faire le CC 2021 (60 min)</button><button type="button" class="btn" data-act="cc21v">Variante (autres valeurs)</button></div></section>` : ''}
+    <section class="card"><h2>Sujet blanc ${CCN === 1 ? '(plan 2021 + Lewis)' : ''}</h2><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (${CCN === 2 ? 90 : 60} min)</button>${weakButton()}<span class="fine">Prévois une feuille : les justifications se font sur papier, seuls les résultats sont saisis ici.</span></div></section>
     <section class="card"><h2>En groupe</h2><p class="sub">Même sujet pour tout le groupe, départ lancé par le créateur, chrono commun sans pause, copie rendue toute seule à la fin, puis classement du groupe.</p><div id="grpBox"></div></section>
-    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+    <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${r.cc21 ? (r.cc21 === 'vrai' ? ' · CC 2021' : ' · CC 2021, variante') : ''}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
   renderGrp(); grpRefresh();
+}
+function renderCC21(exs) {
+  const S = EXAM.done ? cc21Score(exs) : null;
+  app.innerHTML = `<div><p class="eyebrow">CUPGE ESIR · contrôle continu d'atomistique · durée 60 minutes</p><h1>${EXAM.exact ? 'CC du 16 novembre 2021' : 'CC 2021 · variante'}</h1>
+      <p class="sub"><b>Aucun document autorisé. Calculatrices autorisées pour les calculs numériques seulement.</b> Barème sur 25 (ramené sur 20). Calculs dans les cases ; justifications, formules et cases quantiques sur ta feuille.</p><p class="fine">${exs.data}</p></div>`
+    + exs.map((ex, i) => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${S ? `<span data-pp="${i}">${fmtPt(S.per[i])}</span>/` : ''}${String(ex.pts).replace('.', ',')} pts)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
+    + (S ? `<section class="card"><div class="row"><span class="score" id="cc21Note">${String(S.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20 · <span id="cc21Tot">${fmtPt(S.tot)}</span>/25 au barème</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div>
+        <p class="sub" style="margin-top:8px">Les calculs sont notés automatiquement. Pour la rédaction, coche dans chaque partie ce que ta copie contient <b>vraiment</b> : la note se met à jour. Sois aussi sévère qu'un correcteur : une réponse sans justification ne rapporte pas les points de justification.</p></section>`
+      : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div>`);
+  typeset(app);
+  if (EXAM.done) exs.forEach(ex => ex.parts.forEach(p => p.items.forEach(it => { if (it.type !== 'self') showFb(app, it); })));
+  startTick();
 }
 function renderExam() {
   const exs = examExos(EXAM.seed);
+  if (EXAM.kind === 'cc21') return renderCC21(exs);
   app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}${EXAM.gtest ? esc(EXAM.gtitle || 'Sujet blanc en groupe') + ' · chrono commun, sans pause' : 'Sujet blanc d\'atomistique'}</p><h1>CC${examCC()} · ${examCC() === 2 ? '1 h 30' : '1 h'}</h1></div>`
     + exs.map((ex, i) => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
@@ -1125,9 +1253,10 @@ function submitExam(auto) {
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
   const exs = examExos(EXAM.seed); let note = 0;
-  exs.forEach(ex => { const its = [].concat(...ex.parts.map(p => p.items)); const ok = its.filter(it => tally(it, check(it, EXAM.ans[it.id] || '').st === 'ok' ? 1 : 0)).length; note += ex.pts * ok / its.length; });
+  if (EXAM.kind === 'cc21') { EXAM.self = EXAM.self || {}; note = cc21Score(exs).note; }
+  else exs.forEach(ex => { const its = [].concat(...ex.parts.map(p => p.items)); const ok = its.filter(it => tally(it, check(it, EXAM.ans[it.id] || '').st === 'ok' ? 1 : 0)).length; note += ex.pts * ok / its.length; });
   EXAM.done = true; EXAM.note = note; EXAM.running = false;
-  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(examCC() === 2 ? 5400 : 3600, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord() }); ls.set(HK, H);
+  const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(examCC() === 2 ? 5400 : 3600, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord(), cc21: EXAM.kind === 'cc21' ? (EXAM.exact ? 'vrai' : 'variante') : undefined }); ls.set(HK, H);
   ls.set(EK, Object.assign({}, EXAM, { closed: true }));   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
   if (EXAM.gtest) grpSubmit(EXAM, exs);
@@ -1304,6 +1433,7 @@ document.addEventListener('click', e => {
   else if (act === 'skip') { const P = pst(); P.cur = null; P.curT = Date.now(); ls.set(PK, P); CUR = null; nextPath({ fresh: true, user: true }); }
   else if (act === 'again') startEx(skById(FREE.id), { d: FREE.d, mode: 'free' });
   else if (act === 'exam') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false, cc: CCN }; ls.set(EK, EXAM); renderExam(); }
+  else if (act === 'cc21' || act === 'cc21v') { EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, self: {}, running: true, done: false, cc: 1, kind: 'cc21', exact: act === 'cc21' }; ls.set(EK, EXAM); renderExam(); window.scrollTo(0, 0); }
   else if (act === 'submit') submitExam(false);
   else if (act === 'examNew') { EXAM = null; vBlanc(); $('#clock').hidden = true; }
 });
@@ -1323,6 +1453,15 @@ document.addEventListener('input', e => {
   }
 });
 let saveT = 0;
+// CC 2021 rendu : rédaction cochée au barème, la note de la copie suit
+document.addEventListener('change', e => {
+  const c = e.target.closest('input[data-self]'); if (!c || !EXAM || !EXAM.done || EXAM.kind !== 'cc21') return;
+  EXAM.self = EXAM.self || {}; EXAM.self[c.dataset.self] = c.checked;
+  const S = cc21Score(examExos(EXAM.seed)); EXAM.note = S.note;
+  const H = ls.get(HK, []), r = H.find(x => x.id === String(EXAM.seed)); if (r) { r.note = S.note; ls.set(HK, H); }
+  ls.set(EK, Object.assign({}, EXAM, { closed: true }));
+  cc21Paint(S);
+});
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter' || !e.target.matches('input[type=text]')) return;
   if (e.target.matches('#exHost input') && !e.target.closest('.learn')) { e.preventDefault(); checkCur(); }
@@ -1333,7 +1472,7 @@ document.addEventListener('keydown', e => {
 /* ---------- Synchronisation (progression venue d'un autre appareil) ---------- */
 // Sujet blanc modifié sur un autre appareil (account.js) : mêmes réponses ici, ou sujet rendu ou remplacé là-bas
 
-window.__ATO = { GEN, build, check, parseConf, parseNum, conf, klech, place, unpaired, ionConf, SK };   // tests
+window.__ATO = { GEN, build, check, cc21Exos, cc21Score, parseConf, parseNum, conf, klech, place, unpaired, ionConf, SK };   // tests
 E.start();
 })();
 </script>

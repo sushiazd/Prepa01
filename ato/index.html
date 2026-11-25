@@ -303,7 +303,7 @@ GEN.iso = (d, g) => {
   const table = `<table class="t"><tr><th>Isotope</th><th>Masse molaire (g/mol)</th>${d < 2 ? '<th>Abondance</th>' : ''}</tr>${isos.map(([A, M, x]) => `<tr><td>\\({}^{${A}}\\mathrm{${el}}\\)</td><td>${String(M).replace('.', ',')}</td>${d < 2 ? `<td>${String(x).replace('.', ',')} %</td>` : ''}</tr>`).join('')}</table>`;
   if (d < 2) return { title: 'Masse molaire d\'un élément naturel', q: `${Le(nom(Z))} naturel est un mélange des isotopes suivants. Calculer sa masse molaire atomique.${table}`,
     items: [{ type: 'num', label: 'M', unit: 'g/mol', val: Mel, tol: 0.002 }],
-    corr: `<p>La masse molaire de l'élément est la moyenne des masses des isotopes pondérée par leurs abondances :</p>\\[M = \\sum_i x_i M_i = ${isos.map(([, M, x]) => `${String(x / 100).replace('.', '{,}')}\\times ${String(M).replace('.', '{,}')}`).join(' + ')} = ${T(Mel, 5)}\\ \\text{g/mol}\\]` };
+    corr: `<p>La masse molaire de l'élément est la moyenne des masses des isotopes pondérée par leurs abondances :</p>\\[M = \\sum_i x_i M_i = ${isos.map(([, M, x]) => `${String(+(x / 100).toFixed(6)).replace('.', '{,}')}\\times ${String(M).replace('.', '{,}')}`).join(' + ')} = ${T(Mel, 5)}\\ \\text{g/mol}\\]` };
   const [[A1, M1, x1], [A2, M2]] = isos, Mg = +Mel.toFixed(3), x = (Mg - M2) / (M1 - M2) * 100;
   return { title: 'Abondances isotopiques', q: `La masse molaire atomique ${du(nom(Z))} naturel vaut ${String(Mg).replace('.', ',')} g/mol. Il est formé des deux isotopes ci-dessous. Calculer leurs proportions.${table}`,
     items: [{ type: 'num', label: `x(^{${A1}}\\mathrm{${el}})`, unit: '%', val: x, tol: 0.01 }, { type: 'num', label: `x(^{${A2}}\\mathrm{${el}})`, unit: '%', val: 100 - x, tol: 0.01 }],

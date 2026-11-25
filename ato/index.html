@@ -1101,17 +1101,21 @@ function vBlanc() {
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · ${CCN === 2 ? '1 h 30' : '1 h'} · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">${CCN === 1 ? 'Programme du CC1 : toute la partie « L\'atome » et un peu de schémas de Lewis. Plan du CC de novembre 2021, plus Lewis : isotopes (3 pts), spectre d\'un ion hydrogénoïde comme He<sup>+</sup> (6 pts), nombres quantiques (3 pts), configurations électroniques et tableau périodique (5 pts), schéma de Lewis (3 pts). Au CC 2021, la calculatrice était autorisée pour les calculs numériques seulement.' : 'Programme du CC2 : tout le cours. Spectre d\'un hydrogénoïde (3 pts), configurations et tableau périodique (3 pts), Lewis et charges formelles (3 pts), VSEPR et hybridation (3 pts), polarité (1,5 pt), cristaux métalliques : maille, masse volumique, sites (4 pts), composés et cristaux ioniques (2,5 pts).'}</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (${CCN === 2 ? 90 : 60} min)</button>${weakButton()}<span class="fine">Prévois une feuille : les justifications se font sur papier, seuls les résultats sont saisis ici.</span></div></section>
+    <section class="card"><h2>En groupe</h2><p class="sub">Même sujet pour tout le groupe, départ lancé par le créateur, chrono commun sans pause, copie rendue toute seule à la fin, puis classement du groupe.</p><div id="grpBox"></div></section>
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
+  renderGrp(); grpRefresh();
 }
 function renderExam() {
   const exs = examExos(EXAM.seed);
-  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'atomistique</p><h1>CC${examCC()} · ${examCC() === 2 ? '1 h 30' : '1 h'}</h1></div>`
+  app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}${EXAM.gtest ? esc(EXAM.gtitle || 'Sujet blanc en groupe') + ' · chrono commun, sans pause' : 'Sujet blanc d\'atomistique'}</p><h1>CC${examCC()} · ${examCC() === 2 ? '1 h 30' : '1 h'}</h1></div>`
     + exs.map((ex, i) => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
     + (EXAM.done ? `<section class="card"><div class="row"><span class="score">${String(EXAM.note.toFixed(1)).replace('.', ',')}</span><span class="sub">/ 20</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div></section>`
+        + (EXAM.gtest ? '<section class="card"><h2>Résultats du groupe</h2><div id="grpBox"></div></section>' : '')
       : `<div class="row" style="justify-content:center"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div>`);
   typeset(app);
   if (EXAM.done) exs.forEach(ex => ex.parts.forEach(p => p.items.forEach(it => showFb(app, it))));
   if (EXAM.done) hideCorr();   // corrigés des parties ratées masqués
+  if (EXAM.done && EXAM.gtest) { GRP.open = EXAM.gtest; renderGrp(); grpRefresh(); }
   startTick();
 }
 function submitExam(auto) {
@@ -1123,8 +1127,161 @@ function submitExam(auto) {
   const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(examCC() === 2 ? 5400 : 3600, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord() }); ls.set(HK, H);
   ls.set(EK, Object.assign({}, EXAM, { closed: true }));   // gardé « rendu » : les autres appareils le retirent
   if (auto) toast('Temps écoulé : copie rendue.');
+  if (EXAM.gtest) grpSubmit(EXAM, exs);
   renderExam(); window.scrollTo(0, 0);
 }
+
+/* =====================================================================
+   SUJET BLANC EN GROUPE (même principe que l'élec, sans photos : tout est noté automatiquement)
+   Un membre crée le sujet (group_tests, subject 'ato', def { seed, cc }) : même tirage pour tous. Le créateur
+   ou le propriétaire du groupe lance le départ (starts_at) : chrono commun, rendu automatique à la fin.
+   Ceux qui ont cliqué « Je participe » démarrent tout seuls (polling 5 s sur l'onglet Sujet blanc).
+   Copies dans elec_copies (test_id, ans, res = points par partie, auto_pts = note sur 20, dur).
+   ===================================================================== */
+const GRP = { groups: [], tests: [], mine: {}, res: {}, pseudo: {}, open: null, pollT: 0, busy: false, loaded: false };
+const GJ = 'ato.grp.joined.v1', GPQ = 'ato.grp.pending.v1';
+GRP.joined = new Set(ls.get(GJ, []));
+const gAcc = () => { const A = window.SiteAccount; return A && A.client && A.user ? { sb: A.client, uid: A.user.id } : null; };
+const gWin = t => { const s = t.starts_at ? Date.parse(t.starts_at) : null; return { start: s, end: s ? s + t.duration_s * 1000 : null }; };
+const gState = (t, now = Date.now()) => { const w = gWin(t); if (!w.start) return now - Date.parse(t.created_at) < 3 * 3600e3 ? 'lobby' : 'dead'; return now < w.end ? 'run' : 'over'; };
+const gMgr = t => { const a = gAcc(), g = GRP.groups.find(x => x.id === t.group_id); return !!a && (t.created_by === a.uid || !!(g && g.created_by === a.uid)); };
+const gWho = id => esc(GRP.pseudo[id] || '?');
+const fmtN = x => String((+x || 0).toFixed(1)).replace('.', ',');
+const gClock = s => { s = Math.max(0, Math.round(s)); return `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')}`; };
+function gSaveJoined() { ls.set(GJ, [...GRP.joined].slice(-30)); }
+
+async function grpLoad() {
+  const a = gAcc(); if (!a || GRP.busy) return;
+  GRP.busy = true;
+  try {
+    const P = ls.get(GPQ, []);
+    if (P.length) { const left = []; for (const c of P) { const { error } = await a.sb.from('elec_copies').insert(c); if (error && !/duplicate/i.test(error.message)) left.push(c); } ls.set(GPQ, left); }
+    const { data: ms } = await a.sb.from('memberships').select('group_id').eq('user_id', a.uid);
+    const gids = (ms || []).map(m => m.group_id);
+    if (!gids.length) { GRP.groups = []; GRP.tests = []; GRP.loaded = true; return; }
+    const since = new Date(Date.now() - 14 * 864e5).toISOString();
+    const [gs, ts, cs, mb] = await Promise.all([
+      a.sb.from('groups').select('id,name,created_by').in('id', gids),
+      a.sb.from('group_tests').select('id,group_id,title,created_by,created_at,starts_at,duration_s,def').in('group_id', gids).eq('subject', 'ato').gte('created_at', since).order('created_at', { ascending: false }).limit(15),
+      a.sb.from('elec_copies').select('id,test_id,user_id,auto_pts,res,dur').eq('user_id', a.uid),
+      a.sb.from('memberships').select('user_id').in('group_id', gids)]);
+    GRP.groups = gs.data || []; GRP.tests = (ts.data || []).filter(t => t.def && t.def.seed);
+    GRP.mine = {}; (cs.data || []).forEach(c => { GRP.mine[c.test_id] = c; });
+    const ids = [...new Set((mb.data || []).map(m => m.user_id))];
+    if (ids.length) { const { data: ps } = await a.sb.from('profiles').select('id,pseudo').in('id', ids); (ps || []).forEach(p => { GRP.pseudo[p.id] = p.pseudo; }); }
+    GRP.loaded = true;
+  } catch (e) { console.warn('Groupe indisponible', e); } finally { GRP.busy = false; }
+}
+function grpPoll() {
+  clearTimeout(GRP.pollT);
+  if (VIEW !== 'blanc' || document.hidden) return;
+  const live = GRP.tests.some(t => ['lobby', 'run'].includes(gState(t)));
+  GRP.pollT = setTimeout(grpRefresh, live ? 5000 : 30000);
+}
+async function grpRefresh() {
+  await grpLoad();
+  if (GRP.open) await grpFetchRes(GRP.open);
+  grpAutoJoin(); renderGrp(); grpPoll();
+}
+function grpAutoJoin() {
+  if (EXAM && !EXAM.done) return;
+  const t = GRP.tests.find(t => GRP.joined.has(t.id) && gState(t) === 'run' && !GRP.mine[t.id] && Date.now() - gWin(t).start < 10 * 60e3 && !(EXAM && EXAM.gtest === t.id));
+  if (t) { toast('C\'est parti : le sujet de groupe commence !'); grpJoin(t.id); }
+}
+function renderGrp() {
+  const box = $('#grpBox'); if (!box) return;
+  const a = gAcc();
+  if (!a) { box.innerHTML = `<p class="sub">Connecte-toi sur <a href="../#compte">l'accueil du site</a> pour faire un sujet blanc avec ton groupe.</p>`; return; }
+  if (!GRP.loaded) { box.innerHTML = '<p class="fine">Chargement de tes groupes…</p>'; return; }
+  if (!GRP.groups.length) { box.innerHTML = `<p class="sub">Tu n'es dans aucun groupe. Crée ou rejoins-en un dans l'onglet <a href="../maths/#groupe">Groupe du QCM maths</a> : ce sont les mêmes groupes ici.</p>`; return; }
+  const sel = GRP.groups.length > 1 ? `<select id="grpSel" aria-label="Groupe">${GRP.groups.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('')}</select>` : `<span class="sub">Groupe <b>${esc(GRP.groups[0].name)}</b></span>`;
+  const rows = GRP.tests.filter(t => gState(t) !== 'dead').map(grpRow).join('');
+  box.innerHTML = `<div class="row">${sel}<span class="sp"></span><button type="button" class="btn btn-primary" data-gact="create">Créer un sujet de groupe (CC${CCN})</button></div>
+    ${rows || '<p class="fine" style="margin-top:12px">Aucun sujet de groupe pour l\'instant.</p>'}`;
+}
+function grpRow(t) {
+  const st = gState(t), w = gWin(t), mine = GRP.mine[t.id], mgr = gMgr(t), g = GRP.groups.find(x => x.id === t.group_id);
+  let info = '', btns = '';
+  if (st === 'lobby') {
+    const j = GRP.joined.has(t.id);
+    info = `Salle d'attente · créé par ${gWho(t.created_by)}. ${j ? 'Tu participes : l\'épreuve s\'ouvrira toute seule au départ, garde cette page ouverte.' : 'Clique sur « Je participe » pour être prêt au départ.'}`;
+    btns = `<button type="button" class="btn" data-gact="part" data-tid="${t.id}" aria-pressed="${j}">${j ? '✓ Je participe' : 'Je participe'}</button>`
+      + (mgr ? `<button type="button" class="btn btn-primary" data-gact="start" data-tid="${t.id}">Démarrer maintenant</button><button type="button" class="btn" data-gact="del" data-tid="${t.id}">Supprimer</button>` : '');
+  } else if (st === 'run') {
+    const left = gClock((w.end - Date.now()) / 1000);
+    if (mine) info = `Copie rendue : <b>${fmtN(mine.auto_pts)}/20</b>. Les résultats du groupe s'affichent à la fin du chrono (encore ${left}).`;
+    else { info = `En cours · il reste ${left}.`; btns = `<button type="button" class="btn btn-primary" data-gact="join" data-tid="${t.id}">Rejoindre</button>`; }
+  } else {
+    info = mine ? `Terminé · ta note : <b>${fmtN(mine.auto_pts)}/20</b>.` : 'Terminé.';
+    btns = `<button type="button" class="btn" data-gact="results" data-tid="${t.id}" aria-pressed="${GRP.open === t.id}">Résultats du groupe</button>`;
+  }
+  const res = GRP.open === t.id && GRP.res[t.id] ? grpTable(t, GRP.res[t.id]) : '';
+  return `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line, #ddd)"><div class="row"><b>${esc(t.title)}</b><span class="sp"></span><span class="fine">${esc(g ? g.name : '')} · ${new Date(t.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>
+    <p class="sub" style="margin:6px 0">${info}</p>${btns ? `<div class="row">${btns}</div>` : ''}${res}</div>`;
+}
+function grpTable(t, cs) {
+  const PL = (EXAM_PLAN1 && (t.def.cc === 2 ? EXAM_PLAN2 : EXAM_PLAN1)) || [];
+  const rows = cs.slice().sort((x, y) => (+y.auto_pts || 0) - (+x.auto_pts || 0));
+  return `<div style="overflow-x:auto;margin-top:12px"><table class="hist"><tr><th>#</th><th>Pseudo</th>${PL.map(p => `<th>${esc(p[0].split(' ·')[0])} <span class="fine">/${String(p[2]).replace('.', ',')}</span></th>`).join('')}<th>Note</th><th>Durée</th></tr>${rows.map((c, i) =>
+    `<tr><td>${i + 1}</td><td>${gWho(c.user_id)}</td>${PL.map((p, pi) => `<td>${c.res && c.res[pi] != null ? fmtN(c.res[pi]) : '—'}</td>`).join('')}<td><b>${fmtN(c.auto_pts)}/20</b></td><td>${c.dur ? Math.round(c.dur / 60) + ' min' : '—'}</td></tr>`).join('')}</table></div>`;
+}
+async function grpFetchRes(tid) {
+  const a = gAcc(); if (!a) return;
+  const { data, error } = await a.sb.from('elec_copies').select('id,user_id,auto_pts,res,dur').eq('test_id', tid);
+  if (!error) GRP.res[tid] = data || [];
+}
+async function grpCreate() {
+  const a = gAcc(); if (!a || !GRP.groups.length) return;
+  const gid = ($('#grpSel') && $('#grpSel').value) || GRP.groups[0].id;
+  const n = GRP.tests.filter(t => t.group_id === gid).length + 1;
+  const { data, error } = await a.sb.from('group_tests').insert({ group_id: gid, title: `Sujet blanc d'ATO (CC${CCN}) en groupe n° ${n}`, qids: [], duration_s: CCN === 2 ? 5400 : 3600, subject: 'ato', def: { seed: newSeed(), cc: CCN }, created_by: a.uid }).select().single();
+  if (error) { toast('Création impossible : ' + error.message); return; }
+  GRP.joined.add(data.id); gSaveJoined(); GRP.tests.unshift(data); renderGrp(); grpPoll();
+  toast('Sujet créé. Préviens ton groupe, puis clique sur « Démarrer maintenant » quand tout le monde est prêt.');
+}
+async function grpStart(tid) {
+  const a = gAcc(); if (!a) return;
+  const { error } = await a.sb.from('group_tests').update({ starts_at: new Date().toISOString() }).eq('id', tid);
+  if (error) { toast('Départ impossible : ' + error.message); return; }
+  GRP.joined.add(tid); gSaveJoined(); await grpLoad(); grpJoin(tid);
+}
+async function grpDelete(tid) {
+  const a = gAcc(); if (!a || !confirm('Supprimer ce sujet de groupe pour tout le monde ?')) return;
+  const { error } = await a.sb.from('group_tests').delete().eq('id', tid);
+  if (error) { toast('Suppression impossible : ' + error.message); return; }
+  GRP.tests = GRP.tests.filter(t => t.id !== tid); renderGrp();
+}
+function grpJoin(tid) {
+  const t = GRP.tests.find(x => x.id === tid); if (!t) return;
+  if (GRP.mine[tid]) { toast('Tu as déjà rendu ta copie pour ce sujet.'); return; }
+  if (gState(t) !== 'run') { toast('Ce sujet n\'est pas en cours.'); return; }
+  if (EXAM && !EXAM.done && EXAM.gtest === tid) { renderExam(); return; }
+  if (EXAM && !EXAM.done && !confirm('Un autre sujet blanc est en cours : le remplacer ?')) return;
+  EXAM = { seed: t.def.seed, t0: gWin(t).start, ans: {}, running: true, done: false, cc: t.def.cc || 1, gtest: tid, gtitle: t.title };
+  ls.set(EK, EXAM); setTab('blanc'); renderExam(); window.scrollTo(0, 0);
+}
+async function grpSubmit(X, exs) {
+  const res = exs.map(ex => { const its = [].concat(...ex.parts.map(p => p.items)); return Math.round(ex.pts * its.filter(it => check(it, X.ans[it.id] || '').st === 'ok').length / its.length * 100) / 100; });
+  const row = { test_id: X.gtest, ans: X.ans, res, auto_pts: Math.round(X.note * 100) / 100, dur: Math.min(X.cc === 2 ? 5400 : 3600, Math.round((Date.now() - X.t0) / 1000)) };
+  const a = gAcc();
+  if (!a) { ls.set(GPQ, ls.get(GPQ, []).concat([row])); toast('Copie gardée sur cet appareil : connecte-toi pour l\'envoyer au groupe.'); return; }
+  const { error } = await a.sb.from('elec_copies').insert(row);
+  if (error && !/duplicate/i.test(error.message)) { ls.set(GPQ, ls.get(GPQ, []).concat([row])); toast('Envoi impossible pour l\'instant, nouvel essai plus tard : ' + error.message); }
+  else toast('Copie envoyée au groupe.');
+  await grpLoad(); renderGrp();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-gact]'); if (!b) return;
+  const a = b.dataset.gact, tid = b.dataset.tid;
+  if (a === 'create') grpCreate();
+  else if (a === 'start') grpStart(tid);
+  else if (a === 'del') grpDelete(tid);
+  else if (a === 'part') { if (GRP.joined.has(tid)) GRP.joined.delete(tid); else GRP.joined.add(tid); gSaveJoined(); renderGrp(); }
+  else if (a === 'join') grpJoin(tid);
+  else if (a === 'results') { if (GRP.open === tid) { GRP.open = null; renderGrp(); } else { GRP.open = tid; grpFetchRes(tid).then(renderGrp); } }
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden && VIEW === 'blanc') grpRefresh(); });
+(function grpWait(i) { const A = window.SiteAccount; if (A && A.on) { A.on('change', () => { if (VIEW === 'blanc') grpRefresh(); }); if (A.user && VIEW === 'blanc') grpRefresh(); } else if (i < 60) setTimeout(() => grpWait(i + 1), 500); })(0);
 
 /* =====================================================================
    ÉVÉNEMENTS

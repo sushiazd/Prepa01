@@ -10,11 +10,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112401"></script>
-<script src="../core.js?v=2026112402"></script>
+<script src="../subjects.js?v=2026112801"></script>
+<script src="../core.js?v=2026112802"></script>
 <script src="learn.js?v=2026102806"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026102803">
+<link rel="stylesheet" href="../core.css?v=2026112801">
 <style>
 :root{
   --accent:var(--phys); --accent-soft:var(--phys-soft);
@@ -118,7 +118,7 @@ table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:l
    OUTILS
    ===================================================================== */
 // Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
-const E = SiteCore({ id: 'el2', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return DUR; },
+const E = SiteCore({ get ANN() { return ANN; }, id: 'el2', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return DUR; },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
@@ -126,7 +126,7 @@ const E = SiteCore({ id: 'el2', get LEARN() { return LEARN; }, get lesson() { re
   exam: () => examExos(EXAM.seed, EXAM.plan),
   examItems: () => [].concat(...examExos(EXAM.seed, EXAM.plan).map(x => [].concat(...x.parts.map(q => q.items)))), check: (it, raw) => check(it, raw), valOf: (r, id) => valOf(r, id), fbHTML: r => fbHTML(r) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton, hideCorr, copyTag } = E;
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, annCard, annExos, annRender, annSubmit, weakButton, hideCorr, copyTag } = E;
 function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
 function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
 
@@ -595,7 +595,77 @@ function vCours(open) {
 /* ---------- Sujet blanc ---------- */
 const DUR = 3600;
 const EXAM_PLAN = [['Exercice 1 · Démonstration', [['demos', 0]], 4], ['Exercice 2 · Théorème de Thévenin', [['rth', 1], ['eth', 1], ['thev', 1]], 8], ['Exercice 3 · Circuit du premier ordre', [['bfhf', 1], ['edo', 1], ['reponse', 0]], 8]];
-function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+/* =====================================================================
+   VRAIS CC RETAPÉS (moteur annCard / annRender de core.js)
+   CC2 du 24/10/2025 (Moodle, CC2_2025-2026 - correction.pdf) : 60 min, sans document ni calculatrice. Barème du
+   sujet : 4 + 6 + 10 ; le détail par question est estimé. Les schémas viennent des générateurs de la page
+   (ladder avec un tirage fixé : E1 et 3R, branches 3R + E2 et 3R, puis R vers RL ; circFig LR).
+   pts = points, sk = compétence du parcours, Sf = ce qui se rédige sur la feuille (lab, puis sol après correction).
+   ===================================================================== */
+const Pt = (it, pts, sk) => Object.assign(it, { pts, sk });
+const Sf = (lab, sol, pts, sk) => ({ type: 'self', lab, sol, pts, sk });
+const ANN_LAD = ladder({ pick: a => (Array.isArray(a[0]) ? [3, [3, 3]] : a.includes(1) ? 1 : a[0]), shuffle: a => a.slice(), int: () => 0, r: () => 0.9 }, 1);
+const ANN = [{
+  id: 'cc2-2025', title: 'CC2 du 24 octobre 2025', sub: 'Démo, Thévenin, circuit RL', dur: 3600, help: HELP,
+  rules: 'Durée 60 min. Sans document, sans calculatrice. Formules dans les cases, démonstrations et schémas sur ta feuille. Barème du sujet : 4, 6 et 10 points ; le détail par question est estimé.',
+  exos: [
+    { title: 'Exercice 1 · Démonstration', parts: [{
+      q: '<p>Donner et démontrer la formule du pont diviseur de courant avec \\(N\\) résistances, à l\'aide d\'un schéma.</p>',
+      items: [
+        Pt(Ch('La formule (courant \\(I\\) qui arrive sur \\(N\\) résistances en parallèle)', [['g', '\\(I_k = \\dfrac{G_k}{G_1 + \\dots + G_N}\\,I\\), avec \\(G_i = \\dfrac{1}{R_i}\\)'], ['r', '\\(I_k = \\dfrac{R_k}{R_1 + \\dots + R_N}\\,I\\)'], ['inv', '\\(I_k = \\dfrac{R_1 + \\dots + R_N}{R_k}\\,I\\)']], 'g'), 1, 'demos'),
+        Sf('le schéma', '\\(N\\) résistances \\(R_1, \\dots, R_N\\) en parallèle sous la même tension \\(U\\), le courant total \\(I\\) arrive au nœud, \\(I_k\\) traverse \\(R_k\\).', 1, 'demos'),
+        Sf('la démonstration', 'Même tension \\(U\\) aux bornes de toutes les branches : \\(I_k = G_k U\\). Loi des nœuds : \\(I = \\sum I_i = U \\sum G_i\\), donc \\(U = \\dfrac{I}{\\sum G_i}\\) et \\(I_k = \\dfrac{G_k}{\\sum G_i}\\,I\\).', 2, 'demos')],
+      corr: '<p>On travaille avec les conductances : en parallèle, elles s\'additionnent. Le courant se partage au prorata des conductances (la plus petite résistance prend le plus de courant).</p>' }] },
+    { title: 'Exercice 2 · Générateur de Thévenin', parts: [
+      { title: 'Questions 1 et 2', q: ANN_LAD.fig + '<p>1. Redessiner le schéma avec un générateur de Thévenin \\((E_{TH}, R_{TH})\\) équivalent permettant de déterminer la tension \\(U_L\\) aux bornes de \\(R_L\\).</p><p>2. À partir de ce schéma, donner la tension \\(U_L\\) en fonction de \\(E_{TH}\\), \\(R_{TH}\\) et \\(R_L\\).</p>',
+        items: [
+          Sf('1. le schéma équivalent', 'Un générateur \\(E_{TH}\\) en série avec \\(R_{TH}\\), qui alimente \\(R_L\\) ; \\(U_L\\) aux bornes de \\(R_L\\).', 1, 'thev'),
+          Pt(Ch('2. \\(U_L =\\)', [['ok', '\\(\\dfrac{R_L}{R_{TH} + R_L}\\,E_{TH}\\)'], ['inv', '\\(\\dfrac{R_{TH}}{R_{TH} + R_L}\\,E_{TH}\\)'], ['eth', '\\(E_{TH}\\)']], 'ok'), 1, 'thev')],
+        corr: '<p>Pont diviseur de tension entre \\(R_{TH}\\) et \\(R_L\\) : \\(U_L = \\dfrac{R_L}{R_{TH} + R_L}\\,E_{TH}\\).</p>' },
+      { title: 'Question 3', q: '<p>Déterminer \\(R_{TH}\\) en simplifiant l\'expression au maximum et en expliquant.</p>',
+        items: [
+          Pt(Ex('R_{TH}', ['R'], v => 2 * v.R, 'R_{TH} = 2R'), 1, 'rth'),
+          Sf('l\'explication', 'On éteint les sources (une source de tension devient un fil). Vu de \\(R_L\\) : \\(R\\) en série avec \\(3R \\parallel 3R \\parallel 3R = R\\), donc \\(R_{TH} = 2R\\).', 0.5, 'rth')],
+        corr: '<p>Trois résistances égales \\(3R\\) en parallèle donnent \\(3R/3 = R\\), plus \\(R\\) en série : \\(R_{TH} = 2R\\).</p>' },
+      { title: 'Question 4', q: '<p>Déterminer \\(E_{TH}\\) en simplifiant l\'expression au maximum et en expliquant.</p>',
+        items: [
+          Pt(Ex('E_{TH}', ['E1', 'E2'], v => (v.E1 + v.E2) / 3, 'E_{TH} = \\dfrac{E_1 + E_2}{3}'), 1, 'eth'),
+          Sf('l\'explication', 'À vide (sans \\(R_L\\)), aucun courant dans \\(R\\) : \\(E_{TH} = V_A\\). Millman en A : \\(V_A = \\dfrac{\\frac{E_1}{3R} + \\frac{E_2}{3R} + \\frac{0}{3R}}{\\frac{1}{3R} + \\frac{1}{3R} + \\frac{1}{3R}} = \\dfrac{E_1 + E_2}{3}\\).', 0.5, 'eth')],
+        corr: '<p>Millman au nœud A, la branche sans source compte pour \\(0/(3R)\\) au numérateur mais bien pour \\(1/(3R)\\) au dénominateur.</p>' },
+      { title: 'Question 5', q: '<p>En déduire \\(U_L\\) en fonction de \\(E_1\\), \\(E_2\\), \\(R\\) et \\(R_L\\), et faire l\'application numérique pour \\(E_1 = 2\\ \\mathrm V\\), \\(E_2 = 4\\ \\mathrm V\\), \\(R_L = 2\\ \\mathrm{k\\Omega}\\) et \\(R = 1\\ \\mathrm{k\\Omega}\\).</p>',
+        items: [
+          Pt(Ex('U_L', ['E1', 'E2', 'R', 'RL'], v => v.RL / (2 * v.R + v.RL) * (v.E1 + v.E2) / 3, 'U_L = \\dfrac{R_L}{2R + R_L}\\cdot\\dfrac{E_1 + E_2}{3}'), 0.5, 'thev'),
+          Pt(Nn('U_L', 1, 'V'), 0.5, 'thev')],
+        corr: '<p>\\(U_L = \\dfrac{R_L}{2R + R_L}\\cdot\\dfrac{E_1 + E_2}{3} = \\dfrac{2}{4}\\cdot\\dfrac{6}{3} = 1\\ \\mathrm V\\).</p>' }] },
+    { title: 'Exercice 3 · Circuit RL', parts: [
+      { title: 'Questions 1 à 3', q: circFig('LR', true) + '<p>1. En utilisant l\'équivalence d\'une bobine, redessiner le schéma et déterminer rapidement \\(u(t)\\) en très basse fréquence, en expliquant.</p><p>2. Même question en très haute fréquence.</p><p>3. Déduire des deux réponses précédentes la fonction d\'un tel montage.</p>',
+        items: [
+          Pt(Ch('1. En très basse fréquence, \\(u(t) =\\)', [['e', '\\(e(t)\\)'], ['0', '\\(0\\)']], 'e'), 0.5, 'bfhf'),
+          Sf('1. le schéma et l\'explication', 'En basse fréquence, la bobine se comporte comme un fil : \\(u(t) = e(t)\\).', 0.5, 'bfhf'),
+          Pt(Ch('2. En très haute fréquence, \\(u(t) =\\)', [['e', '\\(e(t)\\)'], ['0', '\\(0\\)']], '0'), 0.5, 'bfhf'),
+          Sf('2. le schéma et l\'explication', 'En haute fréquence, la bobine se comporte comme un circuit ouvert : plus de courant, \\(u(t) = Ri = 0\\).', 0.5, 'bfhf'),
+          Pt(Ch('3. Le montage est un filtre', [['pb', 'passe-bas'], ['ph', 'passe-haut'], ['pbd', 'passe-bande']], 'pb'), 1, 'bfhf')],
+        corr: '<p>Il laisse passer les basses fréquences et coupe les hautes : c\'est un filtre passe-bas.</p>' },
+      { title: 'Questions 4 à 6', q: '<p>4. Donner la relation entre la tension \\(u_L(t)\\), le courant \\(i(t)\\) et \\(L\\) dans la bobine.</p><p>5. Démontrer que \\(i(t)\\) est solution d\'une équation différentielle de la forme \\(i(t) + \\tau\\dfrac{di(t)}{dt} = G\\,e(t)\\) et déterminer \\(G\\) et \\(\\tau\\) en fonction de \\(R\\) et \\(L\\).</p><p>6. Montrer que l\'équation différentielle du 1er ordre dont \\(u(t)\\) est solution s\'écrit \\(u(t) + \\tau\\dfrac{du(t)}{dt} = e(t)\\).</p>',
+        items: [
+          Pt(Ch('4. \\(u_L(t) =\\)', [['ok', '\\(L\\dfrac{di}{dt}\\)'], ['int', '\\(\\dfrac1L \\int i\\,dt\\)'], ['li', '\\(L\\,i(t)\\)']], 'ok'), 1, 'loi'),
+          Pt(Ex('G', ['R'], v => 1 / v.R, 'G = \\dfrac{1}{R}'), 0.5, 'edo'),
+          Pt(Ex('\\tau', ['L', 'R'], v => v.L / v.R, '\\tau = \\dfrac{L}{R}'), 0.5, 'edo'),
+          Sf('5. la démonstration', 'Loi des mailles : \\(e = L\\dfrac{di}{dt} + Ri\\). On divise par \\(R\\) : \\(i + \\dfrac{L}{R}\\dfrac{di}{dt} = \\dfrac{1}{R}e\\).', 0.5, 'edo'),
+          Sf('6. la démonstration', '\\(u = Ri\\), donc \\(i = u/R\\) : \\(\\dfrac uR + \\dfrac LR\\cdot\\dfrac1R\\dfrac{du}{dt} = \\dfrac eR\\), soit \\(u + \\tau\\dfrac{du}{dt} = e\\).', 1, 'edo')],
+        corr: '<p>\\(\\tau = L/R\\) est la constante de temps du circuit RL (en secondes).</p>' },
+      { title: 'Questions 7 à 9', q: '<p>Dans le cas de signaux sinusoïdaux, on peut montrer qu\'une solution de cette équation est</p>\\[u(t) = \\frac{E_0}{1 + (\\omega\\tau)^2}\\cos(\\omega t) + \\frac{E_0\\,\\omega\\tau}{1 + (\\omega\\tau)^2}\\sin(\\omega t)\\]<p>7. Vérifier que c\'est le cas pour \\(\\omega = \\dfrac1\\tau\\) et donner alors l\'expression simplifiée de la tension \\(e(t)\\) qu\'il faut mettre au générateur.</p><p>8. Comment appelle-t-on \\(\\omega\\) ? Quel est le lien entre \\(\\omega\\) et la fréquence \\(f\\) ?</p><p>9. Dans le cas de signaux non sinusoïdaux, calculer la tension \\(e(t)\\) qu\'il faut mettre au générateur pour avoir \\(u(t) = E_0\\left(1 - e^{-t/\\tau}\\right)\\).</p>',
+        items: [
+          Pt(Ex('e(t)', ['E0', 't', 'tau'], v => v.E0 * Math.cos(v.t / v.tau), 'e(t) = E_0\\cos\\left(\\dfrac{t}{\\tau}\\right)'), 1, 'sinus'),
+          Sf('7. la vérification', 'Avec \\(\\omega\\tau = 1\\) : \\(u = \\dfrac{E_0}{2}(\\cos\\omega t + \\sin\\omega t)\\), \\(\\tau\\dfrac{du}{dt} = \\dfrac{E_0}{2}(-\\sin\\omega t + \\cos\\omega t)\\) ; la somme vaut \\(E_0\\cos\\omega t\\).', 0.5, 'sinus'),
+          Pt(Ch('8. \\(\\omega\\) est', [['puls', 'la pulsation, \\(\\omega = 2\\pi f\\) (en rad/s)'], ['freq', 'la fréquence, \\(\\omega = f\\)'], ['per', 'la période, \\(\\omega = 1/f\\)']], 'puls'), 1, 'sinus'),
+          Pt(Ex('e(t)', ['E0', 't', 'tau'], v => v.E0, 'e(t) = E_0'), 0.5, 'reponse'),
+          Sf('9. le calcul', '\\(\\tau\\dfrac{du}{dt} = E_0 e^{-t/\\tau}\\), donc \\(u + \\tau\\dfrac{du}{dt} = E_0\\) : il faut un échelon de tension \\(e(t) = E_0\\).', 0.5, 'reponse')],
+        corr: '<p>9. C\'est la réponse du circuit à un échelon : \\(u\\) monte vers \\(E_0\\) avec la constante de temps \\(\\tau\\) (63 % au bout de \\(\\tau\\)).</p>' }] }
+  ]
+}];
+
+function examExos(seed) { if (EXAM && EXAM.ann) return annExos(EXAM.ann); const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
@@ -603,9 +673,11 @@ function vBlanc() {
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Le format des quatre dernières annales : une démonstration (4 pts), Thévenin avec deux sources (8 pts), un circuit RC ou RL (8 pts).</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h)</button>${weakButton()}<span class="fine">Sans calculatrice : rédige la démo et les schémas sur une feuille, puis reporte les résultats.</span></div></section>
+    ${annCard()}
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
+  if (EXAM.ann) return annRender();   // vrai CC retapé (core.js)
   EXAM.exs = examExos(EXAM.seed);
   app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'électronique</p><h1>CC2 · 1 h</h1></div>`
     + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div>${p.fig || ''}<div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
@@ -619,6 +691,7 @@ function renderExam() {
 }
 const saveExam = () => { const { exs, ...rest } = EXAM; ls.set(EK, rest); };
 function submitExam(auto) {
+  if (EXAM && EXAM.ann) return annSubmit(auto);
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
   stopTick();

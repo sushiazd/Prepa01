@@ -10,8 +10,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112401"></script>
-<script src="../core.js?v=2026112402"></script>
+<script src="../subjects.js?v=2026112801"></script>
+<script src="../core.js?v=2026112802"></script>
 <script src="learn.js?v=2026103101"></script>
 <script defer src="../account.js" data-lazy></script>
 <style>
@@ -685,8 +685,9 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const memStore = {};
+function lsRaw(k, d) { try { const v = localStorage.getItem(k); return v == null ? (k in memStore ? memStore[k] : d) : JSON.parse(v); } catch (e) { return k in memStore ? memStore[k] : d; } }
 const ls = {
-  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? (k in memStore ? memStore[k] : d) : JSON.parse(v); } catch (e) { return k in memStore ? memStore[k] : d; } },
+  get(k, d) { const x = lsRaw(k, d); return k === 'elec.hist.v1' && Array.isArray(x) && window.SiteSubjects ? x.filter(SiteSubjects.realCopy) : x; },   // copies vides : pas comptées
   set(k, v) { memStore[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stockage indisponible */ } if (window.SiteAccount) SiteAccount.touch(k); },
   del(k) { delete memStore[k]; try { localStorage.removeItem(k); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
 };
@@ -699,7 +700,7 @@ function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, 
 function mathIn(el) {
   if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false });
 }
-function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+function toast(msg, ms = 3200) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
 function fmtN(x, tex) {
   if (Math.abs(x) < 1e-12) x = 0;
   let s = String(+x.toPrecision(4));
@@ -1813,12 +1814,42 @@ function submitExam(auto) {
   if (EXAM.gtest) rec.gtest = EXAM.gtest;
   exs.forEach(ex => ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { if (it.type !== 'self') { const r = res[itemId(ex, bi, ii, 'ex')]; if (r.st !== 'empty' && ex.key !== 'ex1') addStat(ex.key, r.st === 'ok'); } })));
   rec.note = scoreRec(rec).total;   // note sur 20 gardée dans la copie (tableau de bord moi/)
+  // copie vide (rien de répondu, souvent la fin du chrono) : pas enregistrée
+  if (!Object.values(EXAM.ans || {}).some(v => v != null && String(v).trim() !== '')) {
+    closeExam(EXAM.id); EXAM = null; $('#topbar').classList.remove('warn', 'danger');
+    toast("Copie vide : elle n'est pas enregistrée."); renderBlanc(); return;
+  }
   const H = ls.get(K.hist, []); H.push(rec); ls.set(K.hist, H);
+  const sync = examToPath(exs, res);
   closeExam(EXAM.id); EXAM = null;
   $('#topbar').classList.remove('warn', 'danger');
   if (auto) toast('Temps écoulé : copie rendue automatiquement.');
+  else if (sync.val.length || sync.rev.length) toast([sync.val.length ? 'Parcours : validée' + (sync.val.length > 1 ? 's' : '') + ' grâce au sujet : ' + sync.val.join(', ') + '.' : '', sync.rev.length ? 'À revoir dans le parcours : ' + sync.rev.join(', ') + '.' : ''].filter(Boolean).join(' '), 9000);
   showResult(rec.id);
   if (rec.gtest) grpSubmit(rec);
+}
+/* Copie rendue → parcours : l'Ex 2 compte comme un exercice « Réseau en échelle (niveau CC) », l'Ex 3 comme
+   « Ex 3 complet (niveau CC) », l'Ex 4 comme « Ex 4 », au niveau 3. Réussi en entier, il peut valider la compétence ;
+   raté (moins de 3/4 des réponses) alors qu'elle était validée, elle revient tout de suite en révision. L'Ex 1
+   (démo, sur papier) n'est pas noté automatiquement : il ne compte pas. */
+const EXAM_SK = { ex2: 'lad2', ex3: 'x3b', ex4: 'x4' };
+function examToPath(exs, res) {
+  const P = pst(), now = Date.now(), out = { val: [], rev: [] };
+  exs.forEach(ex => {
+    const k = EXAM_SK[ex.key], K = k && skById(k); if (!K) return;
+    const ids = []; ex.blocks.forEach((b, bi) => b.items.forEach((it, ii) => { if (it.type !== 'self') ids.push(itemId(ex, bi, ii, 'ex')); }));
+    if (!ids.length) return;
+    const r = ids.filter(id => res[id] && res[id].st === 'ok').length / ids.length, s = skS(P, k), was = isVal(s);
+    const F = MS.before(s, r, was, now, MS.TOP);
+    s.n++; if (r === 1) { s.ok++; s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
+    // réussie en entier au niveau 3 (celui du CC) : validée d'office, comme un test d'entrée réussi
+    if (!was && r === 1 && F.d >= MS.TOP) { s.m = Math.max(s.m || 0, VAL); s.ever = true; s.S = 1; s.last = now; }
+    else MS.apply(s, F);
+    if (was && r < .75) { s.m = Math.min(s.m, MS.REV - 5); out.rev.push(K.name); }
+    else if (!was && isVal(s)) out.val.push(K.name);
+  });
+  ls.set(PK, P);
+  return out;
 }
 function scoreRec(rec) {
   const exs = buildAll(rec.def), per = {};
@@ -2237,9 +2268,9 @@ const skById = id => SK.find(k => k.id === id);
 function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; if (P.place === undefined) P.place = null; return P; }
 function skS(P, id) { return P.sk[id] || (P.sk[id] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false, S: 1 }); }
 const isVal = MS.isVal, eff = s => MS.eff(s);
-const levelOf = s => eff(s) < 40 ? 0 : eff(s) < 75 ? 1 : 2;
+const levelOf = s => MS.level(s);   // niveau 1, 2, 3 selon la maîtrise ; validation après un sans-faute au niveau 3
 /* Sprint avant le CC (les 10 derniers jours, SiteSubjects.sprint), mêmes règles que les autres matières (core.js) :
-   test d'entrée au niveau 2 pour une compétence jamais travaillée (sans faute = validée d'office), révisions
+   test d'entrée au niveau 3 pour une compétence jamais travaillée (sans faute = validée d'office), révisions
    espacées (une toutes les 3 nouvelles compétences) et sans les briques qu'un exercice complet à venir refera. */
 const sprint = () => SiteSubjects.sprint ? SiteSubjects.sprint('elec') : null;
 function frontier(P) { const sp = sprint() != null; return SK.find(k => !isVal(skS(P, k.id)) && !(sp && k.sprintSkip)) || SK.find(k => !isVal(skS(P, k.id))) || null; }
@@ -2310,7 +2341,7 @@ function startPathEx(k, o = {}) {
     host.scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
-  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : probe ? 1 : levelOf(s);
+  const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : probe ? MS.TOP : levelOf(s);
   const seed = R && R.seed != null ? R.seed : Math.floor(Math.random() * 4294967296);
   CUR = { k, d, seed, review: R ? !!R.review : !!o.review, place: R ? !!R.place : !!o.place, probe, done: false, ids: [], hint: R ? R.hint || 0 : 0,
     first: new Map(R ? Object.entries(R.first || {}) : []), peek: new Set(R ? R.peek || [] : []), ans: R ? Object.assign({}, R.ans) : {} };
@@ -2372,7 +2403,7 @@ function pathCheck(bi) {
 function pathFinish(r) {
   if (!CUR || CUR.done) return; CUR.done = true;
   const P = pst(), k = CUR.k, s = skS(P, k.id), was = isVal(s);
-  CUR.fin = MS.before(s, r, CUR.review);
+  CUR.fin = MS.before(s, r, CUR.review, undefined, CUR.place ? undefined : CUR.d);
   s.n++; if (r === 1) s.ok++;
   let title, msg = '', extra = '';
   if (CUR.place) {
@@ -2401,7 +2432,7 @@ function pathFinish(r) {
     const f = frontier(P);
     if (CUR.probe && r === 1) {
       title = 'Validée d\'office';
-      msg = 'Sans faute du premier coup au niveau 2 : pas besoin des 3 exercices habituels. ' + (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé.');
+      msg = 'Sans faute du premier coup au niveau 3, celui du CC : pas besoin des 3 exercices habituels. ' + (f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé.');
     } else if (CUR.probe) {
       title = 'Test d\'entrée raté';
       msg = 'Normal, c\'est fait pour ça : lis la correction. ' + (LS.has(k.id) ? 'La leçon « Comprendre » passe avant le prochain exercice, puis tu reprends au niveau 1.' : 'Relis la fiche du cours, puis tu reprends au niveau 1.');
@@ -2413,7 +2444,7 @@ function pathFinish(r) {
       msg = f ? `Prochaine étape : « ${f.name} »${f.ch !== k.ch ? ` (nouveau chapitre : ${PCH[f.ch]})` : ''}.` : 'Tout le parcours est validé.';
     } else if (r === 1) {
       title = 'Parfait';
-      msg = s.m + 35 >= VAL ? 'Encore une réussite parfaite et cette compétence est validée.' : 'Continue comme ça, la difficulté va monter.';
+      msg = levelOf(s) >= MS.TOP ? 'Encore une réussite parfaite, au niveau 3 cette fois, et cette compétence est validée.' : 'Continue comme ça, la difficulté va monter.';
     } else if (r >= .5) {
       title = 'Presque';
       msg = 'Ouvre la correction des réponses fausses et repère l\'étape qui coince. Tu restes sur cette compétence.';
@@ -2520,7 +2551,7 @@ function renderPathTop() {
       <ul>
         <li>Chaque exercice est noté sur la part de réponses justes <b>à la première vérification</b>.</li>
         <li>100 % juste : +25 % de maîtrise, et +35 % si l'exercice précédent était aussi parfait. Entre 50 et 99 % : +10 %. Moins de 50 % : −15 %.</li>
-        <li>À 75 %, la compétence est validée et la suivante se débloque : il faut <b>3 sans-faute</b>.</li>
+        <li>À 75 %, la compétence est validée et la suivante se débloque : il faut <b>3 sans-faute</b>, un par niveau, dont le dernier au <b>niveau 3</b> (celui du CC).</li>
         <li><b>La maîtrise baisse chaque jour sans pratique</b>, comme la mémoire. Au début elle tient environ 2 jours ; chaque révision réussie après une pause la fait tenir plus longtemps (une semaine, puis un mois…). Refaire dix fois le même exercice le même jour ne l'allonge presque pas.</li>
         <li>Dès qu'une compétence validée passe sous 60 %, elle revient en <b>révision</b> au niveau 3, en priorité celle qui a le plus baissé.</li>
         <li>La difficulté (niveaux 1 à 3) suit ta maîtrise et redescend quand tu rates. Après deux ratés, le parcours te conseille la fiche du cours.</li>

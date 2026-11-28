@@ -208,3 +208,9 @@ details.corr>summary{cursor:pointer;font:600 14px/1 var(--sans);color:var(--pen)
 .pwhy .btn{max-width:100%;height:auto;min-height:36px;white-space:normal;text-align:left}
 .pwhy .btn.on{color:var(--pen);background:var(--pen-soft);border-color:color-mix(in srgb,var(--pen) 35%,transparent)}
 .pwhy .sub{flex-basis:100%;margin:2px 0 0}
+/* Vrais CC retapés (core.js, annRender) : ce qui se rédige sur la feuille, puis la case à cocher après la correction */
+.ann-paper{margin:0;padding:10px 14px;border:1px dashed var(--rule-strong);border-radius:10px;font-size:15px;color:var(--ink-2)}
+.ann-self{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet-2);font-size:15px;cursor:pointer}
+.ann-self input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--pen)}
+.ann-self span:first-of-type{flex:1;min-width:0}
+.ann-self .fine{flex:none;white-space:nowrap}

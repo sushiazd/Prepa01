@@ -10,11 +10,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112401"></script>
-<script src="../core.js?v=2026112402"></script>
+<script src="../subjects.js?v=2026112801"></script>
+<script src="../core.js?v=2026112802"></script>
 <script src="learn.js?v=2026102806"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026102803">
+<link rel="stylesheet" href="../core.css?v=2026112801">
 <style>
 :root{
   --accent:var(--phys); --accent-soft:var(--phys-soft);
@@ -126,7 +126,7 @@ table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:l
    OUTILS
    ===================================================================== */
 // Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
-const E = SiteCore({ id: 'meca', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return DUR; },
+const E = SiteCore({ get ANN() { return ANN; }, id: 'meca', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return DUR; },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
@@ -134,7 +134,7 @@ const E = SiteCore({ id: 'meca', get LEARN() { return LEARN; }, get lesson() { r
   exam: () => examExos(EXAM.seed, EXAM.plan),
   examItems: () => [].concat(...examExos(EXAM.seed, EXAM.plan).map(x => [].concat(...x.parts.map(q => q.items)))), check: (it, raw) => check(it, raw), valOf: (r, id) => valOf(r, id), fbHTML: r => fbHTML(r) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton, hideCorr, copyTag } = E;
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, annCard, annExos, annRender, annSubmit, weakButton, hideCorr, copyTag } = E;
 function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
 function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
 
@@ -754,7 +754,70 @@ function vCours(open) {
 /* ---------- Sujet blanc ---------- */
 const DUR = 5400;
 const EXAM_PLAN = [['Exercice 1 · Vecteurs et moments', [['proj', 1], ['moment', 1]], 4], ['Exercice 2 · Tension dans des câbles', [['cables', 1]], 5], ['Exercice 3 · Liaisons et PFS', [['liaisons', 1], ['encastre', 1]], 5], ['Exercice 4 · Couple de levage et appuis', [['moteur', 1], ['appuis', 2]], 6]];
-function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+/* =====================================================================
+   VRAIS CC RETAPÉS (moteur annCard / annRender de core.js)
+   DS2 d'ingénierie mécanique (Moodle, 06 DS/correction.pdf) : 1 h, fiche des liaisons seule autorisée, calculatrice
+   autorisée. Barème du sujet : exercice 1 (7 + 4 × 1,5) et exercice 2 (7). pts = points, sk = compétence du parcours,
+   Sf = ce qui se rédige sur la feuille (lab pendant l'épreuve, sol = ce que la copie doit contenir).
+   ===================================================================== */
+const Pt = (it, pts, sk) => Object.assign(it, { pts, sk });
+const Sf = (lab, sol, pts, sk) => ({ type: 'self', lab, sol, pts, sk });
+const ANN_TXT = (x, y, t, o = '') => `<text x="${x}" y="${y}" fill="currentColor" stroke="none" ${o}>${t}</text>`;
+const ANN_FIG_CABLES = `<svg viewBox="0 0 360 200" role="img" aria-label="Poutre AB suspendue par deux câbles AC et BC" style="width:100%;max-width:400px;display:block;margin:10px auto;color:var(--ink)" fill="none" stroke="currentColor" stroke-width="1.6" font-family="var(--serif)" font-size="15">
+  <line x1="180" y1="10" x2="180" y2="50" stroke-width="3"/><circle cx="180" cy="56" r="6"/>
+  <line x1="60" y1="120" x2="180" y2="56"/><line x1="300" y1="120" x2="180" y2="56"/>
+  <rect x="55" y="120" width="250" height="12"/>
+  <line x1="60" y1="126" x2="300" y2="126" stroke-dasharray="5 4" stroke-width="1"/>
+  <line x1="180" y1="56" x2="180" y2="126" stroke-dasharray="3 3" stroke-width="1"/>
+  <line x1="180" y1="132" x2="180" y2="185"/><path d="M174 176 L180 188 L186 176"/>
+  <path d="M95 126 A 35 35 0 0 0 91 109" stroke-width="1.2"/>
+  ${ANN_TXT(40, 128, 'A')}${ANN_TXT(310, 128, 'B')}${ANN_TXT(190, 52, 'C')}${ANN_TXT(186, 118, 'G')}${ANN_TXT(190, 182, 'P', 'font-style="italic"')}${ANN_TXT(100, 116, 'θ')}${ANN_TXT(106, 78, 'F<tspan dy="4" font-size="11">A</tspan>', 'font-style="italic"')}${ANN_TXT(236, 78, 'F<tspan dy="4" font-size="11">B</tspan>', 'font-style="italic"')}${ANN_TXT(186, 96, 'h', 'font-style="italic"')}
+</svg>`;
+const ANN_FIG_BRAS = `<svg viewBox="0 0 360 170" role="img" aria-label="Bras articulé en O, points D, E, G et poids P" style="width:100%;max-width:400px;display:block;margin:10px auto;color:var(--ink)" fill="none" stroke="currentColor" stroke-width="1.6" font-family="var(--serif)" font-size="15">
+  <line x1="40" y1="100" x2="40" y2="150" stroke-width="3"/><circle cx="60" cy="125" r="9"/><circle cx="60" cy="125" r="2" fill="currentColor"/>
+  <line x1="60" y1="125" x2="170" y2="35"/><line x1="170" y1="35" x2="280" y2="35"/><line x1="280" y1="35" x2="280" y2="80"/>
+  <line x1="280" y1="80" x2="280" y2="140"/><path d="M274 131 L280 143 L286 131"/>
+  ${ANN_TXT(48, 108, 'O')}${ANN_TXT(162, 26, 'D')}${ANN_TXT(274, 26, 'E')}${ANN_TXT(288, 82, 'G')}${ANN_TXT(288, 140, 'P', 'font-style="italic"')}
+  <line x1="320" y1="140" x2="350" y2="140"/><path d="M342 135 L352 140 L342 145"/><line x1="320" y1="140" x2="320" y2="110"/><path d="M315 118 L320 108 L325 118"/>${ANN_TXT(352, 155, 'x')}${ANN_TXT(326, 108, 'y')}
+</svg>`;
+const ANN = [{
+  id: 'ds2-meca', title: 'Devoir surveillé 2 (corrigé de Moodle)', sub: 'Câbles et couple de levage', dur: 3600, help: HELP,
+  rules: 'Durée 1 h. Seul document autorisé : la fiche des liaisons mécaniques. Calculatrice autorisée. Formules dans les cases (variables de l\'énoncé), raisonnement sur ta feuille.',
+  exos: [
+    { title: 'Exercice 1 · Tension dans des câbles', parts: [
+      { title: 'Question 1 (7 pts)', q: '<p>Une poutre est soulevée par un système d\'accroches et de câbles comme sur le schéma. On cherche la tension dans les câbles en fonction des longueurs de la poutre et des câbles. On note \\(\\ell = AC = BC\\) la longueur des câbles, \\(L = AB\\) la longueur de la poutre et \\(h = CG\\). On note \\(\\theta\\) l\'angle entre \\(\\overrightarrow{AB}\\) et \\(\\overrightarrow{AC}\\).</p>' + ANN_FIG_CABLES + '<p>Soit \\(F_A\\) la norme de \\(\\vec F_A\\) et \\(P\\) celle de \\(\\vec P\\). Sachant que le système est à l\'équilibre, exprimez \\(F_A\\) en fonction de \\(\\theta\\) et \\(P\\).</p>',
+        items: [
+          Sf('les composantes de \\(\\vec F_A\\)', '\\(\\vec F_A = \\begin{pmatrix} F_A\\cos\\theta \\\\ F_A\\sin\\theta \\end{pmatrix}\\)', 1, 'proj'),
+          Sf('les composantes de \\(\\vec F_B\\)', '\\(\\vec F_B = \\begin{pmatrix} -F_B\\cos\\theta \\\\ F_B\\sin\\theta \\end{pmatrix}\\)', 1, 'proj'),
+          Sf('les composantes de \\(\\vec P\\)', '\\(\\vec P = \\begin{pmatrix} 0 \\\\ -P \\end{pmatrix}\\)', 1, 'proj'),
+          Sf('le théorème de la résultante statique', '\\(\\vec F_A + \\vec F_B + \\vec P = \\vec 0\\), soit \\(F_A\\cos\\theta - F_B\\cos\\theta = 0\\) et \\(F_A\\sin\\theta + F_B\\sin\\theta - P = 0\\).', 1, 'cables'),
+          Pt(Ex('F_A', ['P', 'theta'], v => v.P / (2 * Math.sin(v.theta)), 'F_A = \\dfrac{P}{2\\sin\\theta}'), 3, 'cables')],
+        corr: '<p>Première équation : \\(F_A = F_B\\). Seconde : \\(2F_A\\sin\\theta = P\\), donc \\(F_A = \\dfrac{P}{2\\sin\\theta}\\).</p>' },
+      { title: 'Question 2 (1,5 pt)', q: '<p>Exprimez \\(\\sin\\theta\\) en fonction de \\(h\\) et de \\(\\ell\\).</p>',
+        items: [Pt(Ex('\\sin\\theta', ['h', 'l'], v => v.h / v.l, '\\sin\\theta = \\dfrac{h}{\\ell}'), 1.5, 'cables')],
+        corr: '<p>Dans le triangle rectangle AGC (rectangle en G) : \\(\\sin\\theta = \\dfrac{CG}{AC} = \\dfrac{h}{\\ell}\\).</p>' },
+      { title: 'Question 3 (1,5 pt)', q: '<p>Exprimez la hauteur \\(h\\) en fonction de \\(\\ell\\) et de \\(L\\), en vous aidant du théorème de Pythagore.</p>',
+        items: [Pt(Ex('h', ['l', 'L'], v => Math.sqrt(v.l * v.l - v.L * v.L / 4), 'h = \\sqrt{\\ell^2 - \\dfrac{L^2}{4}}'), 1.5, 'cables')],
+        corr: '<p>\\(AG = L/2\\) : \\(\\left(\\dfrac L2\\right)^2 + h^2 = \\ell^2\\), donc \\(h = \\sqrt{\\ell^2 - \\dfrac{L^2}{4}}\\).</p>' },
+      { title: 'Question 4 (1,5 pt)', q: '<p>Exprimez la tension dans le câble \\(F_A\\) en fonction de \\(P\\), \\(\\ell\\) et \\(L\\).</p>',
+        items: [Pt(Ex('F_A', ['P', 'l', 'L'], v => v.P * v.l / (2 * Math.sqrt(v.l * v.l - v.L * v.L / 4)), 'F_A = \\dfrac{P\\ell}{2\\sqrt{\\ell^2 - L^2/4}} = \\dfrac{P}{\\sqrt{4 - (L/\\ell)^2}}'), 1.5, 'cables')],
+        corr: '<p>\\(F_A = \\dfrac{P}{2\\sin\\theta} = \\dfrac{P\\ell}{2h} = \\dfrac{P\\ell}{2\\sqrt{\\ell^2 - L^2/4}} = \\dfrac{P}{\\sqrt{4 - (L/\\ell)^2}}\\).</p>' },
+      { title: 'Question 5 (1,5 pt)', q: '<p>Application numérique : \\(P = 1000\\ \\mathrm N\\), \\(L = 2{,}0\\ \\mathrm m\\), \\(\\ell = 1{,}5\\ \\mathrm m\\).</p>',
+        items: [Pt(Nn('F_A', 1000 / Math.sqrt(4 - (2 / 1.5) ** 2), 'N'), 1.5, 'cables')],
+        corr: '<p>\\(F_A = \\dfrac{1000}{\\sqrt{4 - (2/1{,}5)^2}} = \\dfrac{1000}{\\sqrt{2{,}22}} \\approx 671\\ \\mathrm N\\).</p>' }] },
+    { title: 'Exercice 2 · Couple de levage', parts: [
+      { title: 'Question 1 (7 pts)', q: '<p>Un bras mécanique lève l\'ensemble {câble + poutre} dont le poids \\(\\vec P = -P\\vec y\\) s\'applique en G. La masse du bras est négligeable devant celle de la poutre. Le bras est en liaison pivot d\'axe \\((O, \\vec z)\\) avec le bâti en O. Un moteur exerce sur le bras un couple de levage de torseur</p>\\[\\{\\tau_{\\vec C}\\} = \\left\\{\\begin{matrix} 0 & 0 \\\\ 0 & 0 \\\\ 0 & C_\\ell \\end{matrix}\\right\\}_{O,\\mathcal B}\\]<p>avec \\(\\mathcal B = (\\vec x, \\vec y, \\vec z)\\). Les points sont repérés par \\(\\overrightarrow{OD} = 2a\\,\\vec x + 2a\\,\\vec y\\), \\(\\overrightarrow{DE} = 2a\\,\\vec x\\) et \\(\\overrightarrow{EG} = -a\\,\\vec y\\), avec \\(a\\) une longueur.</p>' + ANN_FIG_BRAS + '<p>Le système {bras + câble + masse} est à l\'équilibre, soumis à l\'action de la pivot, du couple de levage et du poids de la poutre. À l\'aide du principe fondamental de la statique, exprimez le couple de levage \\(C_\\ell\\) en fonction de \\(a\\) et de \\(P\\).</p>',
+        items: [
+          Sf('le torseur de la liaison pivot', '\\(\\{\\tau_{pivot}\\} = \\left\\{\\begin{matrix} X & L \\\\ Y & M \\\\ Z & 0 \\end{matrix}\\right\\}_{O,\\mathcal B}\\) (pas de moment autour de l\'axe \\(\\vec z\\) de la pivot)', 1, 'liaisons'),
+          Sf('le torseur du poids, en G', '\\(\\{\\tau_{\\vec P}\\} = \\left\\{\\begin{matrix} 0 & 0 \\\\ -P & 0 \\\\ 0 & 0 \\end{matrix}\\right\\}_{G,\\mathcal B}\\)', 1, 'transport'),
+          Sf('le transport du torseur du poids en O', '\\(\\overrightarrow{OG} = 4a\\,\\vec x + a\\,\\vec y\\) ; \\(\\vec M_O(\\vec P) = \\overrightarrow{OG} \\wedge \\vec P = -4aP\\,\\vec z\\).', 1, 'transport'),
+          Sf('le principe fondamental de la statique', '\\(\\{\\tau_{pivot}\\} + \\{\\tau_{\\vec C}\\} + \\{\\tau_{\\vec P}\\} = \\{0\\}\\) en O : \\(X = 0\\), \\(Y = P\\), \\(Z = 0\\), \\(L = M = 0\\), \\(C_\\ell - 4aP = 0\\).', 1, 'moteur'),
+          Pt(Ex('C_\\ell', ['a', 'P'], v => 4 * v.a * v.P, 'C_\\ell = 4aP'), 3, 'moteur')],
+        corr: '<p>\\(\\overrightarrow{OG} = \\overrightarrow{OD} + \\overrightarrow{DE} + \\overrightarrow{EG} = 4a\\,\\vec x + a\\,\\vec y\\). Le moment en O du poids vaut \\(\\begin{pmatrix} 4a \\\\ a \\\\ 0 \\end{pmatrix} \\wedge \\begin{pmatrix} 0 \\\\ -P \\\\ 0 \\end{pmatrix} = \\begin{pmatrix} 0 \\\\ 0 \\\\ -4aP \\end{pmatrix}\\). Équation des moments sur \\(\\vec z\\) : \\(C_\\ell = 4aP\\) (seul le bras de levier horizontal \\(4a\\) compte).</p>' }] }
+  ]
+}];
+
+function examExos(seed) { if (EXAM && EXAM.ann) return annExos(EXAM.ann); const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
@@ -762,9 +825,11 @@ function vBlanc() {
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">4 exercices dans le style du TD et du DS : vecteurs et moments (4 pts), tension dans des câbles (5 pts), liaisons et PFS (5 pts), couple de levage et basculement (6 pts). Les formules littérales sont corrigées automatiquement.</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button>${weakButton()}<span class="fine">Au CC, seule la fiche des liaisons est autorisée : garde l\'onglet Cours fermé.</span></div></section>
+    ${annCard()}
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
+  if (EXAM.ann) return annRender();   // vrai CC retapé (core.js)
   EXAM.exs = examExos(EXAM.seed);
   app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'ingénierie mécanique</p><h1>CC · 1 h 30</h1></div>`
     + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div>${p.fig || ''}<div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
@@ -778,6 +843,7 @@ function renderExam() {
 }
 const saveExam = () => { const { exs, ...rest } = EXAM; ls.set(EK, rest); };
 function submitExam(auto) {
+  if (EXAM && EXAM.ann) return annSubmit(auto);
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
   stopTick();

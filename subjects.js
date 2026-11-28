@@ -133,5 +133,14 @@
     const ahead = m.map(s => ({ s, ts: cc(s.id) })).filter(x => x.ts != null && x.ts >= ev.s).sort((a, b) => a.ts - b.ts);
     return (ahead.length ? ahead[0].s : m[m.length - 1]).page;
   }
-  window.SiteSubjects = { list: LIST, get: id => byId[id] || null, events, next, slot, cc, ccNum, scope, sprint, pageOf, ignored };
+  // Copie de sujet blanc qui compte (<id>.hist.v1) : pas une copie vide. Les nouvelles copies vides ont vide: true
+  // (et ne sont plus enregistrées) ; avant le 28/11, une copie à 0 sans aucune réponse gardée (a, ans, self) était
+  // une copie rendue vide, le plus souvent par la fin du chrono
+  const filled = v => v != null && (Array.isArray(v) ? v.length > 0 : typeof v === 'object' ? Object.keys(v).length > 0 : String(v).trim() !== '');
+  function realCopy(r) {
+    if (!r || r.vide) return false;
+    if (+r.note !== 0 || r.a > 0 || r.ann) return true;   // ann : vrai CC rédigé sur papier, gardé
+    return Object.values(r.ans || {}).some(filled) || Object.values(r.self || {}).some(Boolean);
+  }
+  window.SiteSubjects = { list: LIST, get: id => byId[id] || null, events, next, slot, cc, ccNum, scope, sprint, pageOf, ignored, realCopy };
 })();

@@ -23,16 +23,21 @@
      - maîtrise affichée = niveau × rétention, avec rétention = 1 / (1 + jours sans pratique / (9 S)) : elle baisse
        chaque jour sans pratique (courbe d'oubli, comme dans les logiciels de répétition espacée). Un exercice
        repart de cette maîtrise baissée, pas du niveau d'origine.
-     - compétence validée (la suivante se débloque) quand le niveau atteint 75, soit 3 sans-faute ; elle reste
-       validée, mais revient en révision dès que sa maîtrise passe sous 60 %.
+     - compétence validée (la suivante se débloque) quand le niveau atteint 75, soit 3 sans-faute, et seulement
+       après un sans-faute au niveau 3 (d = 2, le niveau du CC) : tant que ce n'est pas fait, le niveau plafonne à
+       74. Le niveau de l'exercice suit la maîtrise (level) : niveau 1 sous 20, niveau 2 sous 50, niveau 3 au-delà,
+       donc un parcours sans faute fait un exercice de chaque niveau (1, 2, 3). Elle reste validée, mais revient en
+       révision dès que sa maîtrise passe sous 60 %.
      ===================================================================== */
   window.SiteMastery = (function () {
-    const VAL = 75, REV = 60, DAY = 864e5;
+    const VAL = 75, REV = 60, DAY = 864e5, TOP = 2;
     const S0 = s => s.S || (s.ever ? 3 : 1);   // anciennes données : pas encore de mémoire enregistrée
     const ret = (s, now = Date.now()) => s.last ? 1 / (1 + Math.max(0, now - s.last) / DAY / (9 * S0(s))) : 1;
     const eff = (s, now) => Math.min(100, s.m || 0) * ret(s, now);
     const isVal = s => !!s.ever || (s.m || 0) >= VAL;
     const due = (s, now) => isVal(s) && eff(s, now) < REV;
+    // niveau de l'exercice (0, 1, 2 = niveaux 1, 2, 3) selon la maîtrise
+    const level = (s, now) => eff(s, now) < 20 ? 0 : eff(s, now) < 50 ? 1 : 2;   // marge pour l'oubli : 25 → niveau 2, 60 → niveau 3, même un jour après
     // jours avant que la maîtrise ne passe sous 80 % du niveau : rétention 0,8 au bout de 2,25 S jours
     const holds = s => 2.25 * S0(s);
     // plafond du niveau selon la mémoire : 80 % tant que la compétence n'a tenu qu'un jour, 100 % seulement quand
@@ -43,8 +48,9 @@
       if (F.why === 'calc' && r < 1) return 0;
       return F.review ? (r === 1 ? 20 : r >= .5 ? 5 : -20) : r === 1 ? (F.st0 >= 1 ? 35 : 25) : r >= .5 ? 10 : -15;
     }
-    // état avant l'exercice, pour pouvoir recalculer si l'élève annote ensuite l'origine de son erreur
-    const before = (s, r, review, now = Date.now()) => ({ r, review, m0: Math.min(100, s.m || 0), base: eff(s, now), S: S0(s), last: s.last || 0, ko0: s.ko || 0, st0: s.st || 0, was: isVal(s), why: null, now });
+    // état avant l'exercice, pour pouvoir recalculer si l'élève annote ensuite l'origine de son erreur ; d : niveau
+    // de l'exercice (sans d, ancienne règle : pas d'exigence de niveau 3)
+    const before = (s, r, review, now = Date.now(), d) => ({ r, review, d, m0: Math.min(100, s.m || 0), base: eff(s, now), S: S0(s), last: s.last || 0, ko0: s.ko || 0, st0: s.st || 0, was: isVal(s), why: null, now });
     function apply(s, F) {
       const gap = F.last ? (F.now - F.last) / DAY : 0, calc = F.why === 'calc' && F.r < 1;
       let S = F.S;
@@ -54,6 +60,8 @@
       else S = Math.max(0.5, F.S * 0.5);
       s.S = Math.round(S * 100) / 100;
       s.m = Math.max(0, Math.min(cap(s.S), F.base + gain(F)));
+      // pas encore validée : il faut un sans-faute au niveau 3 pour passer le seuil
+      if (!F.was && F.d != null && !(F.r === 1 && F.d >= TOP)) s.m = Math.min(s.m, VAL - 1);
       s.last = F.now;
       if (s.m >= VAL) s.ever = true;
     }
@@ -71,7 +79,7 @@
       const top = s.m >= cap(S0(s)) - 0.5 && cap(S0(s)) < 100 ? ` Plafond actuel ${pct(cap(S0(s)))} : pour aller plus haut, réussis-la à nouveau dans quelques jours.` : '';
       return `Maîtrise : ${pct(F.base)} → <b>${pct(s.m)}</b>${lost} · tient environ ${h < 1.5 ? '1 jour' : Math.round(h) + ' jours'} sans pratique, puis baisse.${top}`;
     }
-    return { VAL, REV, DAY, ret, eff, isVal, due, holds, cap, gain, before, apply, when, memText, S0 };
+    return { VAL, REV, DAY, TOP, ret, eff, isVal, due, level, holds, cap, gain, before, apply, when, memText, S0 };
   })();
 
   /* =====================================================================
@@ -249,9 +257,12 @@
     const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
     const app = $('#app');
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    // copies rendues (<id>.hist.v1) : les copies vides (rien de répondu, souvent rendues par la fin du chrono) ne
+    // comptent pas, ni dans « Mes copies », ni dans les notes, ni dans le sujet ciblé (SiteSubjects.realCopy)
+    const real = r => (window.SiteSubjects && SiteSubjects.realCopy ? SiteSubjects.realCopy(r) : true);
     const ls = {
-      get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-      set(k, v) { if (k === cfg.id + '.exam.v1' || k === cfg.id + '.hist.v1') logExam(k, v); try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
+      get(k, d) { try { const v = localStorage.getItem(k); const x = v == null ? d : JSON.parse(v); return k === cfg.id + '.hist.v1' && Array.isArray(x) ? x.filter(real) : x; } catch (e) { return d; } },
+      set(k, v) { if (k === cfg.id + '.hist.v1' && Array.isArray(v)) v = v.filter(real); if (k === cfg.id + '.exam.v1' || k === cfg.id + '.hist.v1') logExam(k, v); try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } if (window.SiteAccount) SiteAccount.touch(k); }
     };
     // sujet blanc commencé (nouvelle graine dans <id>.exam.v1) et copie rendue (nouvelle entrée de <id>.hist.v1)
     function logExam(k, v) {
@@ -263,7 +274,7 @@
       } catch (e) { /* le journal ne doit jamais bloquer la page */ }
     }
     let toastT = 0;
-    function toast(t) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500); }
+    function toast(t, ms = 3500) { let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, ms); }
     // générateur pseudo-aléatoire à graine (un exercice se retrouve à l'identique)
     function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
     const G = R => ({ int: (a, b) => a + Math.floor(R() * (b - a + 1)), pick: a => a[Math.floor(R() * a.length)], shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }, r: R });
@@ -277,9 +288,9 @@
     const skById = k => cfg.SK.find(x => x.id === k);
     function pst() { const P = ls.get(PK, null) || {}; P.sk = P.sk || {}; P.n = P.n || 0; P.since = P.since || 0; return P; }
     function skS(P, k) { return P.sk[k] || (P.sk[k] = { m: 0, n: 0, ok: 0, st: 0, ko: 0, last: 0, ever: false, S: 1 }); }
-    const isVal = M.isVal, eff = s => M.eff(s), levelOf = s => eff(s) < 40 ? 0 : eff(s) < 75 ? 1 : 2;
+    const isVal = M.isVal, eff = s => M.eff(s), levelOf = s => M.level(s);
     /* Sprint avant le CC (SiteSubjects.sprint : les 10 derniers jours). Le premier essai d'une compétence jamais
-       travaillée est un test d'entrée au niveau 2 : sans faute et sans indice, elle est validée d'office (pas besoin
+       travaillée est un test d'entrée au niveau 3 (celui du CC) : sans faute et sans indice, elle est validée d'office (pas besoin
        de 3 exercices pour ce qu'on sait déjà) ; raté, la leçon « Comprendre » passe avant l'exercice suivant. Les
        révisions s'espacent (une toutes les 3 nouvelles compétences au lieu d'une sur 2). Avec cfg.spread (chapitres
        indépendants), le parcours avance en largeur, chapitre le moins avancé d'abord : tout le programme est vu avant le CC. */
@@ -309,7 +320,7 @@
       let r = Math.random() * W.reduce((a, w) => a + w[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) return { k, review: true }; }
       return { k: W[0][0], review: true };
     }
-    function build(k, d, seed) { const ex = cfg.GEN[k](d, G(rng(seed))); ex.items.forEach((it, i) => { it.id = `${k}-${seed}-${i}`; }); return ex; }
+    function build(k, d, seed) { const ex = cfg.GEN[k](d, G(rng(seed))); ex.items.forEach((it, i) => { it.id = `${k}-${seed}-${i}`; it.lv = d; }); return ex; }   // it.lv : niveau, pour le sujet blanc
 
     /* ---------- Exercice affiché (parcours ou entraînement libre) ---------- */
     // cfg.CUR : { mode: 'path'|'free', k, d, seed, review, ex, ans, first: {}, done }
@@ -317,7 +328,7 @@
       const P = pst(), s = skS(P, k.id), R = o.resume || null;
       // test d'entrée du sprint : compétence jamais travaillée, tirée par le parcours
       const probe = R ? !!R.probe : (o.mode || 'path') === 'path' && !o.review && o.d == null && !s.n && !isVal(s) && sprint() != null;
-      const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : probe ? 1 : levelOf(s), seed = R ? R.seed : newSeed();
+      const d = R ? R.d : o.d != null ? o.d : o.review ? 2 : probe ? M.TOP : levelOf(s), seed = R ? R.seed : newSeed();
       cfg.CUR = { mode: o.mode || 'path', k, d, seed, review: R ? !!R.review : !!o.review, probe, ans: R ? Object.assign({}, R.ans) : {}, first: R ? Object.assign({}, R.first) : {}, peek: !!(R && R.peek), hint: R ? R.hint || 0 : 0, done: false };
       cfg.CUR.ex = build(k.id, d, seed);
       cfg.CUR.t0 = R && R.t0 || Date.now();
@@ -346,7 +357,7 @@
       $('details.corr', host).open = true;
       if (CUR.mode === 'free') { host.insertAdjacentHTML('beforeend', `<div class="card res"><div class="row"><span class="pill ${r === 1 ? 'ok' : r >= .5 ? 'part' : 'bad'}">${Math.round(r * 100)} % juste</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="again">Nouvel exercice</button></div></div>`); if (cfg.typeset) cfg.typeset(host); return; }
       const P = pst(), k = CUR.k, s = skS(P, k.id);
-      CUR.fin = M.before(s, r, CUR.review);
+      CUR.fin = M.before(s, r, CUR.review, undefined, CUR.d);
       s.n++; if (r === 1) s.ok++;
       if (r === 1) { s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
       // test d'entrée réussi : validée d'office, avec une mémoire neuve (elle revient en révision dans 2 jours environ)
@@ -365,9 +376,9 @@
       const CUR = cfg.CUR, F = CUR.fin, r = F.r, k = CUR.k, P = pst(), s = skS(P, k.id), now = isVal(s), f = frontier(P), L = LEARN()[k.id];
       const title = CUR.review ? (r === 1 ? 'Toujours acquis' : F.was && !now ? 'Un peu oublié' : 'À surveiller') : CUR.probe && r === 1 ? 'Validée d\'office' : !F.was && now ? 'Compétence validée !' : CUR.probe ? 'Test d\'entrée raté' : r === 1 ? 'Parfait' : r >= .5 ? 'Presque' : 'Pas encore';
       const next = f ? `Prochaine étape : « ${f.name} ».` : 'Tout le parcours est validé : passe au sujet blanc.';
-      const msg = CUR.probe && r === 1 ? 'Sans faute du premier coup au niveau 2 : pas besoin des 3 exercices habituels. ' + next
+      const msg = CUR.probe && r === 1 ? 'Sans faute du premier coup au niveau 3, celui du CC : pas besoin des 3 exercices habituels. ' + next
         : !F.was && now ? next : CUR.probe ? 'Normal, c\'est fait pour ça : lis la correction (ouverte ci-dessus). La leçon « Comprendre » passe avant le prochain exercice, puis tu reprends au niveau 1.'
-        : r === 1 ? (!now && s.m + 35 >= VAL ? 'Encore un sans-faute et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
+        : r === 1 ? (!now && levelOf(s) >= M.TOP ? 'Encore un sans-faute, au niveau 3 cette fois, et c\'est validé.' : 'Continue.') : 'Lis la correction (ouverte ci-dessus) : tu restes sur cette compétence.' + (s.ko >= 2 ? ' Le prochain exercice sera plus simple.' : '');
       const mem = M.memText(s, F);
       const tip = F.why === 'calc' ? 'Erreur de calcul : ta maîtrise ne baisse pas. Refais le calcul de la correction ligne à ligne pour voir où ça a dérapé.'
         : F.why === 'meth' ? 'Méthode pas trouvée.' + (L && L.meth ? ` Ce qu'il fallait reconnaître : ${L.meth}` : ' Relis la fiche du cours.')
@@ -490,10 +501,10 @@
         <p class="sub" style="margin-top:8px">${f ? `Prochaine étape : <b>${esc(f.name)}</b>` : 'Tout est validé : fais un sujet blanc.'}${(() => { const d = SK.filter(k => M.due(skS(P, k.id))).length; return d ? ` · <b>${d} compétence${d > 1 ? 's' : ''} à revoir</b> : ta maîtrise y a baissé depuis ta dernière séance.` : ''; })()}</p>
         ${sprintHTML(scope().filter(k => !isVal(skS(P, k.id))).length)}
         <details style="margin-top:8px"><summary class="fine" style="cursor:pointer">Comment marche la maîtrise ?</summary><ul class="fine" style="margin:8px 0 0;padding-left:18px;display:grid;gap:4px">
-          <li>Un sans-faute fait monter le niveau de 25 (35 si le précédent était aussi parfait), un exercice à moitié juste de 10, un raté le fait baisser de 15. La compétence est validée à 75 % : 3 sans-faute, et la suivante se débloque.</li>
+          <li>Un sans-faute fait monter le niveau de 25 (35 si le précédent était aussi parfait), un exercice à moitié juste de 10, un raté le fait baisser de 15. La compétence est validée à 75 % : 3 sans-faute, un à chaque niveau, dont le dernier au niveau 3 (celui du CC), et la suivante se débloque.</li>
           <li><b>La maîtrise baisse chaque jour sans pratique</b>, comme la mémoire. Au début, elle tient environ 2 jours ; chaque révision réussie après une pause la fait tenir plus longtemps (une semaine, puis un mois…). Refaire le même exercice dix fois le même jour ne l'allonge presque pas.</li>
           <li>Dès qu'une compétence validée passe sous 60 %, elle revient en révision dans le parcours, en priorité celle qui a le plus baissé.</li>
-          <li>Dans les 10 jours avant le CC (sprint), le premier exercice d'une compétence est un test d'entrée au niveau 2 : sans faute et sans indice, elle est validée d'office.</li></ul></details></section>`;
+          <li>Dans les 10 jours avant le CC (sprint), le premier exercice d'une compétence est un test d'entrée au niveau 3 : sans faute et sans indice, elle est validée d'office.</li></ul></details></section>`;
     }
     // bandeau du sprint : jours restants, rythme pour finir la veille, sujet blanc à J−2 (left : compétences à valider)
     function sprintHTML(left) {
@@ -530,7 +541,7 @@
     const stopTick = () => clearInterval(tick);
     // cfg.DUR en secondes ; cfg.clock 'ms' : 59:59, sinon 1:29:59
     function startTick() {
-      clearInterval(tick); const clk = $('#clock'), EXAM = cfg.EXAM, DUR = cfg.DUR;
+      clearInterval(tick); const clk = $('#clock'), EXAM = cfg.EXAM, DUR = (EXAM && EXAM.dur) || cfg.DUR;
       if (!EXAM || EXAM.done) { clk.hidden = true; return; }
       clk.hidden = false; aiBar();
       const two = n => String(n).padStart(2, '0');
@@ -563,14 +574,129 @@
        La page appelle examPlan(EXAM_PLAN) dans examExos, tally(it, score) pour chaque réponse corrigée,
        et ajoute examRecord() à la copie enregistrée (réussite par compétence, pour les prochains ciblages). */
     let TALLY = {};
-    const skOf = it => it.id.slice(0, it.id.lastIndexOf('-', it.id.lastIndexOf('-') - 1));   // id : compétence-graine-n°
-    function tally(it, sc) { const t = TALLY[skOf(it)] || (TALLY[skOf(it)] = [0, 0]); t[0] += sc; t[1]++; return sc; }
+    // compétence d'une réponse : it.sk (vrais CC retapés), sinon l'identifiant compétence-graine-n°
+    const skOf = it => it.sk || it.id.slice(0, it.id.lastIndexOf('-', it.id.lastIndexOf('-') - 1));
+    // TALLY[compétence] = [points, réponses, niveau le plus bas des exercices] ; sans niveau (vrai CC) : niveau 3
+    function tally(it, sc) { const t = TALLY[skOf(it)] || (TALLY[skOf(it)] = [0, 0, M.TOP]); t[0] += sc; t[1]++; t[2] = Math.min(t[2], it.lv != null ? it.lv : M.TOP); return sc; }
+    // réponses données dans la copie (une copie sans aucune réponse n'est pas enregistrée)
+    const filled = v => v != null && (Array.isArray(v) ? v.length > 0 : typeof v === 'object' ? Object.keys(v).length > 0 : String(v).trim() !== '');
+    const answered = () => Object.values((cfg.EXAM && cfg.EXAM.ans) || {}).filter(filled).length;
+    /* Copie rendue → parcours. Chaque compétence du sujet compte comme un exercice de son niveau : réussie en entier au niveau 3,
+       elle est validée (comme un test d'entrée réussi) ; ratée (moins de 3/4 des points) alors qu'elle était validée, elle revient tout de suite
+       en révision (maîtrise sous 60 %). Renvoie les noms des compétences validées et remises en révision. */
+    function examToPath(sk) {
+      const P = pst(), now = Date.now(), out = { val: [], rev: [] };
+      Object.keys(sk).forEach(k => {
+        const K = skById(k), [pts, n, lv] = sk[k]; if (!K || !n) return;
+        const s = skS(P, k), r = Math.max(0, Math.min(1, pts / n)), was = isVal(s);
+        const F = M.before(s, r, was, now, lv == null ? M.TOP : lv);
+        s.n++; if (r === 1) { s.ok++; s.st++; s.ko = 0; } else { s.st = 0; if (r < .5) s.ko++; }
+        // réussie en entier au niveau 3 (celui du CC) : validée d'office, comme un test d'entrée réussi
+        if (!was && r === 1 && F.d >= M.TOP) { s.m = Math.max(s.m || 0, VAL); s.ever = true; s.S = 1; s.last = now; }
+        else M.apply(s, F);
+        if (was && r < .75) { s.m = Math.min(s.m, M.REV - 5); out.rev.push(K.name); }
+        else if (!was && isVal(s)) out.val.push(K.name);
+      });
+      ls.set(PK, P);
+      return out;
+    }
     function examRecord() {
-      const sk = {}; Object.keys(TALLY).forEach(k => { sk[k] = [Math.round(TALLY[k][0] * 100) / 100, TALLY[k][1]]; });
+      const sk = {}; Object.keys(TALLY).forEach(k => { sk[k] = [Math.round(TALLY[k][0] * 100) / 100, TALLY[k][1], TALLY[k][2]]; });
       TALLY = {};
-      return cfg.EXAM && cfg.EXAM.target ? { sk, cible: true } : { sk };
+      const a = answered();
+      // copie d'un vrai CC qui se rédige sur papier : pas « vide » même sans case remplie
+      if (!a && !(cfg.EXAM && cfg.EXAM.ann && annPaper(cfg.EXAM.ann))) { toast("Copie vide : elle n'est pas enregistrée."); return { sk, vide: true }; }
+      const sync = examToPath(sk);
+      if (sync.val.length || sync.rev.length) toast([sync.val.length ? 'Parcours : validée' + (sync.val.length > 1 ? 's' : '') + ' grâce à ce sujet : ' + sync.val.join(', ') + '.' : '', sync.rev.length ? 'À revoir dans le parcours : ' + sync.rev.join(', ') + '.' : ''].filter(Boolean).join(' '), 9000);
+      return Object.assign(cfg.EXAM && cfg.EXAM.target ? { sk, cible: true } : { sk }, { a });
     }
     const examPlan = def => (cfg.EXAM && cfg.EXAM.target) || def;
+
+    /* ---------- Vrais CC retapés (annales) ----------
+       cfg.ANN = [{ id, title, sub, rules, help, dur (s), exos: [{ title, parts: [{ title?, q, items, corr }] }] }].
+       Chaque réponse porte pts (barème du vrai CC) et sk (compétence du parcours) ; type 'self' = point de rédaction,
+       coché après la correction (« ma copie contient vraiment … ») : lab = ce qu'il faut faire (pendant l'épreuve),
+       sol = ce que la copie doit contenir (après). Note = points obtenus / total × 20. Les réponses
+       dans les cases comptent dans le parcours comme des exercices de niveau 3 (examRecord → examToPath).
+       La page affiche annCard() dans l'onglet Sujet blanc et, quand cfg.EXAM.ann existe : examExos → annExos(),
+       renderExam → annRender(), submitExam → annSubmit(auto). Le chrono prend cfg.EXAM.dur. */
+    const ANN = () => cfg.ANN || [];
+    const annOf = aid => ANN().find(a => a.id === aid);
+    const fmt1 = x => String((Math.round(x * 10) / 10).toFixed(1)).replace('.', ',');   // fmtP : plus bas (correction IA)
+    function annExos(aid) {
+      const A = annOf(aid); if (!A) return [];
+      let n = 0;
+      return A.exos.map(ex => {
+        const parts = ex.parts.map(p => ({ title: p.title || '', q: p.q, corr: p.corr || '', items: p.items.map(it => Object.assign({}, it, { id: `ann-${aid}-${n++}` })) }));
+        return { title: ex.title, parts, pts: parts.reduce((t, p) => t + p.items.reduce((u, it) => u + (it.pts || 1), 0), 0) };
+      });
+    }
+    const annPaper = aid => annExos(aid).some(ex => ex.parts.some(p => p.items.some(it => it.type === 'self')));
+    function annScore(exs, E) {
+      let got = 0, tot = 0; const per = [], fb = {};
+      exs.forEach(ex => {
+        let g = 0;
+        ex.parts.forEach(p => p.items.forEach(it => {
+          const w = it.pts || 1; tot += w;
+          if (it.type === 'self') { if (E.self && E.self[it.id]) g += w; return; }
+          const r = cfg.check(it, E.ans[it.id] || ''); fb[it.id] = cfg.fbHTML ? cfg.fbHTML(r) : PILL[r.st]; if (r.st === 'ok') g += w;
+        }));
+        per.push(g); got += g;
+      });
+      return { got, tot, per, fb, note: tot ? 20 * got / tot : 0 };
+    }
+    function annRender() {
+      const E = cfg.EXAM, A = E && annOf(E.ann);
+      if (!A) { cfg.EXAM = null; cfg.views.blanc(); return; }
+      const exs = E.exs = annExos(E.ann), S = E.done ? annScore(exs, E) : null, K = cfg.lesson;
+      const item = it => it.type !== 'self' ? K.itemHTML(it, it.id, E.ans[it.id] || '')
+        : E.done ? `<label class="ann-self"><input type="checkbox" data-annself="${it.id}"${E.self && E.self[it.id] ? ' checked' : ''}><span>${it.sol || it.lab}</span><span class="fine">${fmtP(it.pts || 1)} pt</span></label>`
+        : `<p class="ann-paper"><span class="fine">Sur ta feuille :</span> ${it.lab} <span class="fine">(${fmtP(it.pts || 1)} pt)</span></p>`;
+      app.innerHTML = `<div><p class="eyebrow">Vrai CC retapé${A.sub ? ' · ' + esc(A.sub) : ''}</p><h1>${esc(A.title)}</h1>${A.rules ? `<p class="sub">${A.rules}</p>` : ''}</div>`
+        + exs.map((ex, i) => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${S ? `<span data-annper="${i}">${fmtP(S.per[i])}</span>/` : ''}${fmtP(ex.pts)} pt${ex.pts > 1 ? 's' : ''})</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px">${p.title ? `<h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3>` : ''}<div class="q">${p.q}</div><div class="items">${p.items.map(item).join('')}</div>${E.done && p.corr ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}</div></details>` : ''}</div>`).join('')}</section>`).join('')
+        + (E.done ? `<section class="card"><div class="row"><span class="score" id="annNote">${fmt1(S.note)}</span><span class="sub">/ 20 · <span id="annPts">${fmtP(S.got)}</span>/${fmtP(S.tot)} points au barème</span><span class="sp"></span><button type="button" class="btn btn-primary" data-act="examNew">Nouveau sujet</button></div>
+            ${annPaper(E.ann) ? `<p class="sub" style="margin-top:8px">Les réponses dans les cases sont notées automatiquement. Pour ce qui se rédige sur la feuille, coche ce que ta copie contient <b>vraiment</b> : la note se met à jour. Sois aussi sévère qu'un correcteur : une réponse sans justification ne rapporte pas les points de justification.</p>` : ''}</section>`
+          : `<section class="card">${A.help || ''}<div class="row" style="justify-content:center;margin-top:12px"><button type="button" class="btn btn-primary btn-lg" data-act="submit">Rendre la copie</button></div></section>`);
+      if (cfg.typeset) cfg.typeset(app);
+      if (S) Object.entries(S.fb).forEach(([iid, h]) => { const fb = $(`.it[data-id="${iid}"] .fb`, app); if (fb) fb.innerHTML = h; });
+      startTick();
+    }
+    function annSubmit(auto) {
+      const E = cfg.EXAM; if (!E || E.done || !E.ann) return;
+      if (!auto && !confirm('Rendre la copie ?')) return;
+      stopTick();
+      const exs = annExos(E.ann); E.self = {};
+      exs.forEach(ex => ex.parts.forEach(p => p.items.forEach(it => { if (it.type !== 'self') tally(it, cfg.check(it, E.ans[it.id] || '').st === 'ok' ? 1 : 0); })));
+      const S = annScore(exs, E);
+      E.done = true; E.running = false; E.note = S.note;
+      const rec = examRecord();
+      if (!rec.vide) { const H = ls.get(HK, []); H.push(Object.assign({ id: String(E.seed), ts: Date.now(), note: S.note, dur: Math.min(E.dur || cfg.DUR, Math.round((Date.now() - E.t0) / 1000)), ann: E.ann }, rec)); ls.set(HK, H); }
+      E.closed = true; const { exs: _x, ...rest } = E; ls.set(EK, rest);   // gardé « rendu » : les autres appareils le retirent
+      if (auto) toast('Temps écoulé : copie rendue.');
+      annRender(); window.scrollTo(0, 0);
+    }
+    document.addEventListener('change', e => {
+      const c = e.target.closest('[data-annself]'), E = cfg.EXAM; if (!c || !E || !E.done || !E.ann) return;
+      E.self = E.self || {}; E.self[c.dataset.annself] = c.checked;
+      const S = annScore(annExos(E.ann), E); E.note = S.note;
+      const nt = $('#annNote'), pt = $('#annPts'); if (nt) nt.textContent = fmt1(S.note); if (pt) pt.textContent = fmtP(S.got);
+      S.per.forEach((g, i) => { const el = $(`[data-annper="${i}"]`); if (el) el.textContent = fmtP(g); });
+      const H = ls.get(HK, []), r = H.find(x => String(x.id) === String(E.seed)); if (r) { r.note = S.note; r.self = Object.assign({}, E.self); ls.set(HK, H); }
+    });
+    function annCard() {
+      const L = ANN(); if (!L.length) return '';
+      const H = ls.get(HK, []);
+      return `<section class="card"><h2>Les vrais CC</h2><p class="sub">Les sujets des années précédentes, retapés tels quels, avec leur barème et leur durée. C'est le test le plus fiable : les sujets blancs générés sont plus faciles qu'un vrai CC.</p>
+        ${L.map(a => { const mine = H.filter(r => r.ann === a.id), best = mine.length ? Math.max(...mine.map(r => +r.note || 0)) : null;
+          return `<div class="row" style="padding:10px 0;border-top:1px solid var(--rule)"><div style="flex:1;min-width:220px"><b>${esc(a.title)}</b><br><span class="fine">${a.sub ? esc(a.sub) + ' · ' : ''}${Math.round((a.dur || cfg.DUR) / 60)} min${mine.length ? ` · fait ${mine.length} fois, meilleure note ${fmt1(best)}/20` : ''}</span></div><button type="button" class="btn btn-primary" data-annstart="${esc(a.id)}">Faire en conditions réelles</button></div>`; }).join('')}</section>`;
+    }
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-annstart]'); if (!b) return;
+      const A = annOf(b.dataset.annstart); if (!A) return;
+      if (cfg.EXAM && !cfg.EXAM.done && !confirm('Un sujet est en cours : le remplacer ?')) return;
+      cfg.EXAM = { seed: newSeed(), t0: Date.now(), ans: {}, running: true, done: false, ann: A.id, dur: A.dur || cfg.DUR };
+      ls.set(EK, cfg.EXAM); cfg.renderExam(); window.scrollTo(0, 0);
+    });
     // les compétences à retravailler, de la plus faible à la moins faible, parmi celles déjà travaillées ou
     // atteintes dans le parcours (pas les chapitres à venir, comme la partie 2 d'ato avant le CC de la partie 1)
     function weakSkills(n = 5) {
@@ -773,7 +899,7 @@
       if (app.firstElementChild) app.firstElementChild.insertAdjacentHTML('afterend', `<section class="card ai-sum"><div class="row"><span class="pill ai">Corrigé IA</span><b>${fmtP(cfg.EXAM.note)}/20</b><span class="fine">Note donnée par l'IA sur ta copie papier, avec le corrigé du site comme référence. Les réponses tapées à l'écran ne comptent pas.</span></div>${ai.general ? `<p class="sub" style="margin-top:8px">${esc(ai.general)}</p>` : ''}</section>`);
     }
     // étiquette d'une copie dans « Mes copies »
-    const copyTag = r => (r.cible ? ' · ciblé' : '') + (r.ai ? ` <span class="pill ai">Corrigé IA</span> <button type="button" class="linkbtn" data-aicopy="${esc(r.id)}">voir</button>` : '');
+    const copyTag = r => (r.ann ? ' · ' + esc((annOf(r.ann) || {}).title || 'vrai CC') : '') + (r.cible ? ' · ciblé' : '') + (r.ai ? ` <span class="pill ai">Corrigé IA</span> <button type="button" class="linkbtn" data-aicopy="${esc(r.id)}">voir</button>` : '');
     function aiReport(rid, btn) {
       const r = ls.get(HK, []).filter(x => String(x.id) === String(rid) && x.ai).pop(); if (!r) return;
       const old = $('#aiReport'); if (old) old.remove();
@@ -854,7 +980,7 @@
 
     return { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
       startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, examSynced, start,
-      tally, examRecord, examPlan, weakSkills, weakPlan, weakButton, hideCorr, copyTag, aiPrompt, aiParse,
+      tally, examRecord, examPlan, annCard, annExos, annRender, annSubmit, weakSkills, weakPlan, weakButton, hideCorr, copyTag, aiPrompt, aiParse,
       credit, decorateEx, lessonGate, learnBtn, lessonList, learned, lessonItem };
   };
 })();

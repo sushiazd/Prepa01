@@ -10,11 +10,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112401"></script>
-<script src="../core.js?v=2026112402"></script>
+<script src="../subjects.js?v=2026112801"></script>
+<script src="../core.js?v=2026112802"></script>
 <script src="learn.js?v=2026102806"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026102803">
+<link rel="stylesheet" href="../core.css?v=2026112801">
 <style>
 :root{
   --accent:var(--phys); --accent-soft:var(--phys-soft);
@@ -108,7 +108,7 @@ table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:l
    OUTILS
    ===================================================================== */
 // Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
-const E = SiteCore({ id: 'phys', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return durOf(); },
+const E = SiteCore({ get ANN() { return ANN; }, id: 'phys', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return durOf(); },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
@@ -116,7 +116,7 @@ const E = SiteCore({ id: 'phys', get LEARN() { return LEARN; }, get lesson() { r
   exam: () => examExos(EXAM.seed, EXAM.plan),
   examItems: () => [].concat(...examExos(EXAM.seed, EXAM.plan).map(x => [].concat(...x.parts.map(q => q.items)))), check: (it, raw) => check(it, raw), valOf: (r, id) => valOf(r, id), fbHTML: r => fbHTML(r) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton, hideCorr, copyTag } = E;
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, annCard, annExos, annRender, annSubmit, weakButton, hideCorr, copyTag } = E;
 function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
 function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
 
@@ -847,7 +847,98 @@ function cc2Plan(seed, plan) {
   const g = G(rng((seed ^ 0x5bd1e995) >>> 0)), [t, id, ds] = g.pick(EXO_CC2), pb = PB_CC2[plan - 2];
   return [['Exercice 1 · QCM de cours (chapitres II et III)', [['qcmC', 0]], 5], ['Exercice 2 · ' + t, [[id, g.pick(ds)]], 5], [pb[0], pb[1], 15]];
 }
-function examExos(seed, plan) { const g = G(rng(seed)); return examPlan(plan === 1 ? EXAM_PLAN_B : plan >= 2 ? cc2Plan(seed, plan) : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+/* =====================================================================
+   VRAIS CC RETAPÉS (moteur annCard / annRender de core.js)
+   CC2 2025-26 (1 h 15, B. Bêche) : photos du sujet dans DOSSIERS_L2 (exercice QCM sur 5 points, problème du looping
+   sur 15). Les sous-barèmes du problème sont estimés d'après une copie corrigée. pts = points, sk = compétence du
+   parcours, Sf = ce qui se rédige sur la feuille (lab pendant l'épreuve, sol = ce que la copie doit contenir).
+   ===================================================================== */
+const Pt = (it, pts, sk) => Object.assign(it, { pts, sk });
+const Sf = (lab, sol, pts, sk) => ({ type: 'self', lab, sol, pts, sk });
+// figure du sujet : plan incliné d'angle α depuis A (hauteur H), puis cercle de centre O et de rayon r ; C repéré par θ
+const ANN_LOOP_FIG = (() => {
+  const Bx = 300, By = 190, r = 70, Ox = Bx, Oy = By - r, th = 50 * Math.PI / 180, Cx = Ox + r * Math.sin(th), Cy = Oy + r * Math.cos(th);
+  return `<svg viewBox="0 0 420 215" role="img" aria-label="Plan incliné de A à B, puis piste circulaire de centre O et de rayon r" style="width:100%;max-width:460px;display:block;margin:10px auto;color:var(--ink)" fill="none" stroke="currentColor" stroke-width="1.6" font-family="var(--serif)" font-size="14">
+    <line x1="20" y1="${By}" x2="400" y2="${By}" stroke-width="1.2"/>
+    <line x1="40" y1="40" x2="${Bx}" y2="${By}"/>
+    <circle cx="${Ox}" cy="${Oy}" r="${r}"/>
+    <line x1="25" y1="40" x2="25" y2="${By}" stroke-dasharray="4 4" stroke-width="1"/><text x="10" y="${(40 + By) / 2}" fill="currentColor" stroke="none">H</text>
+    <circle cx="40" cy="40" r="4" fill="currentColor"/><text x="46" y="34" fill="currentColor" stroke="none">A (M, m)</text>
+    <text x="${Bx - 4}" y="${By + 18}" fill="currentColor" stroke="none">B</text>
+    <text x="${Ox - 5}" y="${Oy - r - 6}" fill="currentColor" stroke="none">S</text>
+    <circle cx="${Ox}" cy="${Oy}" r="2.5" fill="currentColor"/><text x="${Ox - 16}" y="${Oy + 4}" fill="currentColor" stroke="none">O</text>
+    <line x1="${Ox}" y1="${Oy}" x2="${Ox}" y2="${By}" stroke-dasharray="3 3" stroke-width="1"/>
+    <line x1="${Ox}" y1="${Oy}" x2="${Cx}" y2="${Cy}"/><text x="${(Ox + Cx) / 2 + 6}" y="${(Oy + Cy) / 2 - 2}" fill="currentColor" stroke="none">r</text>
+    <path d="M ${Ox} ${Oy + 22} A 22 22 0 0 0 ${Ox + 22 * Math.sin(th)} ${Oy + 22 * Math.cos(th)}" stroke-width="1.2"/><text x="${Ox + 5}" y="${Oy + 38}" fill="currentColor" stroke="none">θ</text>
+    <circle cx="${Cx}" cy="${Cy}" r="4" fill="currentColor"/><text x="${Cx + 8}" y="${Cy + 2}" fill="currentColor" stroke="none">C</text>
+    <line x1="${Cx + 30}" y1="${Cy}" x2="${Cx + 30}" y2="${By}" stroke-dasharray="3 3" stroke-width="1"/><text x="${Cx + 36}" y="${(Cy + By) / 2 + 5}" fill="currentColor" stroke="none">h</text>
+    <path d="M ${Bx - 46} ${By} A 46 46 0 0 1 ${Bx - 46 * Math.cos(Math.atan2(By - 40, Bx - 40))} ${By - 46 * Math.sin(Math.atan2(By - 40, Bx - 40))}" stroke-width="1.2"/><text x="${Bx - 70}" y="${By - 8}" fill="currentColor" stroke="none">α</text>
+    <line x1="395" y1="20" x2="395" y2="55" stroke-width="1.4"/><path d="M 390 47 L 395 57 L 400 47" stroke-width="1.4"/><text x="378" y="38" fill="currentColor" stroke="none">g</text>
+  </svg>`;
+})();
+const ANN = [{
+  id: 'cc2-2025', title: 'CC2 de 2025-26', sub: 'B. Bêche · QCM + problème du looping', dur: 4500, help: HELP,
+  rules: 'Durée 1 h 15. Documents et calculatrices interdits. Les parties sont indépendantes. Formules dans les cases (variables du sujet), justifications sur ta feuille. Les sous-barèmes du problème sont estimés.',
+  exos: [
+    { title: 'I · Exercice QCM : forces gravitationnelles et énergies', parts: [
+      { title: 'I.1', q: '<p>Mentionner votre réponse et, si besoin, expliciter votre raisonnement succinctement.</p><p>Pour les forces dites conservatives \\(\\vec F(\\vec r)\\) (ou les champs de forces à circulation conservative), l\'énergie potentielle (fonction scalaire \\(E_p\\) qui dépend des variables de position) peut être déduite par la relation \\(\\vec F(\\vec r) = -\\overrightarrow{\\mathrm{grad}}(E_p)\\).</p>',
+        items: [Pt(Ch('Réponse', [['v', 'a) vrai'], ['f', 'b) faux']], 'v'), 1, 'qcmE')],
+        corr: '<p>Vrai : une force conservative dérive d\'une énergie potentielle, \\(\\vec F = -\\overrightarrow{\\mathrm{grad}}\\,E_p\\) (par exemple le poids : \\(E_p = mgz\\), \\(\\vec P = -mg\\,\\vec u_z\\)).</p>' },
+      { title: 'I.2', q: '<p>Une personne présente un poids de 750 N sur Terre. Quel est son poids sur une autre planète de masse 27 fois plus petite et de rayon 3 fois plus petit par rapport à la Terre ? <i>(Aide : faire le lien entre le poids et la force gravitationnelle au sol, puis comparer celle-ci pour les deux planètes.)</i></p>',
+        items: [
+          Pt(Ch('Réponse', [['2250', 'a) 2250 N'], ['750', 'b) 750 N'], ['75', 'c) 75 N'], ['250', 'd) 250 N']], '250'), 1, 'qcmE'),
+          Sf('le raisonnement', 'Au sol, \\(P = \\dfrac{G M m}{R^2}\\). Avec \\(M\' = M/27\\) et \\(R\' = R/3\\) : \\(P\' = \\dfrac{G (M/27) m}{(R/3)^2} = \\dfrac{9}{27} P = \\dfrac{P}{3} = 250\\ \\mathrm N\\).', 1, 'qcmE')],
+        corr: '<p>Le poids varie comme \\(M/R^2\\) : \\(\\dfrac{1/27}{1/9} = \\dfrac13\\), donc \\(750 / 3 = 250\\ \\mathrm N\\) (réponse d).</p>' },
+      { title: 'I.3', q: '<p>Un camion transporte dans sa remorque une caisse de masse \\(m\\) qui n\'est pas attachée. On ne tiendra compte d\'aucun frottement (ni de l\'air, ni du plateau de la remorque avec la caisse). Le conducteur roule en ligne droite à vitesse constante. Soient \\(\\mathcal R\\) (considéré galiléen) et \\(\\mathcal R\'\\) les référentiels liés respectivement à la route et au conducteur assis dans la cabine. Sur la caisse s\'exercent le poids \\(\\vec P\\) et la réaction \\(\\vec R\\) du plateau.</p><p>Soudain, le conducteur freine. Les deux forces précédentes restent inchangées. Écrire de nouveau le principe fondamental de la dynamique <u>dans le référentiel \\(\\mathcal R\'\\)</u> ; que devez-vous ajouter et qu\'advient-il alors de la caisse dans \\(\\mathcal R\'\\) ? Expliquez.</p>',
+        items: [
+          Pt(Ch('Dans \\(\\mathcal R\'\\), pendant le freinage, la caisse', [['reste', 'reste immobile sur le plateau'], ['avant', 'glisse vers l\'avant, vers la cabine'], ['arriere', 'glisse vers l\'arrière']], 'avant'), 0.5, 'inert'),
+          Sf('le PFD dans \\(\\mathcal R\'\\) avec ce qu\'il faut ajouter', 'Pendant le freinage, \\(\\mathcal R\'\\) n\'est plus galiléen (accélération \\(\\vec a_e\\) opposée au mouvement). On ajoute la force d\'inertie d\'entraînement \\(\\vec F_{ie} = -m\\vec a_e\\), dirigée vers l\'avant : \\(\\vec P + \\vec R + \\vec F_{ie} = m\\vec a\'\\).', 1, 'inert'),
+          Sf('l\'explication', '\\(\\vec P\\) et \\(\\vec R\\) se compensent ; seule \\(\\vec F_{ie}\\) agit horizontalement : la caisse accélère vers l\'avant dans \\(\\mathcal R\'\\) et vient heurter la cabine. (Dans \\(\\mathcal R\\), elle continue simplement à vitesse constante, par inertie, pendant que le camion ralentit.)', 0.5, 'inert')],
+        corr: '<p>Avant le freinage, \\(\\mathcal R\'\\) est en translation rectiligne uniforme : il est galiléen et \\(\\vec P + \\vec R = \\vec 0\\). Pendant le freinage, il faut la pseudo-force \\(\\vec F_{ie} = -m\\vec a_e\\) : c\'est elle qui « pousse » la caisse vers la cabine.</p>' }] },
+    { title: 'II · Problème : théorème de l\'énergie cinétique, forces, PFD', parts: [
+      { title: 'II.1', q: '<p>Un corps assimilable à un point matériel M de masse \\(m\\) est abandonné <u>sans vitesse initiale</u> en A sur un plan incliné d\'un angle \\(\\alpha\\) avec l\'horizontale, à la hauteur \\(H\\) au-dessus de B. Il continue ensuite son mouvement sur la partie circulaire du parcours, de centre O et de rayon \\(r\\). On néglige <u>les frottements sur tout le parcours</u> et toute rotation du corps sur lui-même. La position C sur le cercle est repérée par l\'angle \\(\\theta\\) (\\(\\theta = 0\\) en B, point bas ; S est le sommet).</p>' + ANN_LOOP_FIG + '<p>En appliquant le théorème de l\'énergie cinétique, calculer l\'expression de la vitesse \\(v_B\\) du mobile M au point B.</p>',
+        items: [
+          Pt(Ex('v_B', ['g', 'H'], v => Math.sqrt(2 * v.g * v.H), 'v_B = \\sqrt{2gH}'), 1.5, 'tec'),
+          Sf('le théorème de l\'énergie cinétique entre A et B', 'Sans frottement, la réaction est perpendiculaire au déplacement et ne travaille pas ; seul le poids travaille : \\(W = mgH\\). TEC : \\(\\tfrac12 m v_B^2 - 0 = mgH\\).', 0.5, 'tec')],
+        corr: '<p>\\(\\tfrac12 m v_B^2 = mgH\\), donc \\(v_B = \\sqrt{2gH}\\) (indépendant de \\(\\alpha\\) et de \\(m\\)).</p>' },
+      { title: 'II.2', q: '<p>La partie circulaire du parcours a pour rayon \\(r\\). Exprimer \\(h\\) (hauteur de C au-dessus de B) en fonction de \\(r\\) et \\(\\theta\\).</p>',
+        items: [Pt(Ex('h', ['r', 'theta'], v => v.r * (1 - Math.cos(v.theta)), 'h = r(1 - \\cos\\theta)'), 1, 'loop')],
+        corr: '<p>O est à la hauteur \\(r\\) au-dessus de B et C est à \\(r\\cos\\theta\\) sous O : \\(h = r - r\\cos\\theta = r(1 - \\cos\\theta)\\).</p>' },
+      { title: 'II.3', q: '<p>Pour la suite, il n\'y a aucun choc au point B entre les deux parties, linéaire puis circulaire. Calculer l\'expression de la vitesse \\(v_C\\) du mobile au point C en fonction de \\(v_B\\) et \\(h\\).</p>',
+        items: [
+          Pt(Ex('v_C', ['vB', 'g', 'h'], v => Math.sqrt(v.vB * v.vB - 2 * v.g * v.h), 'v_C = \\sqrt{v_B^2 - 2gh}'), 2, 'tec'),
+          Sf('le théorème de l\'énergie cinétique entre B et C', 'Seul le poids travaille, en montant de \\(h\\) : \\(W = -mgh\\). TEC : \\(\\tfrac12 m v_C^2 - \\tfrac12 m v_B^2 = -mgh\\).', 1, 'tec')],
+        corr: '<p>\\(v_C^2 = v_B^2 - 2gh\\), donc \\(v_C = \\sqrt{v_B^2 - 2gh}\\).</p>' },
+      { title: 'II.4-1', q: '<p>Le but de la question II.4 est d\'appliquer le PFD pour déterminer l\'expression de la réaction \\(R\\) du support en fonction de \\(m\\), \\(r\\), \\(\\theta\\), \\(v_B\\) et \\(g\\).</p><p>Sur la partie circulaire, représenter et décrire les forces agissant sur le mobile au point C. Sans frottement, que peut-on dire de la force de réaction \\(\\vec R\\) tout le long du support circulaire ? Écrire le PFD sous forme vectorielle puis le projeter sur l\'axe normal \\(\\vec n\\) tourné vers le centre O du cercle.</p>',
+        items: [
+          Sf('le schéma et la description des forces en C', 'Le poids \\(m\\vec g\\), vertical vers le bas, et la réaction \\(\\vec R\\), normale au support. Sans frottement, \\(\\vec R\\) est toujours perpendiculaire au support, donc dirigée vers O : \\(\\vec R = R\\,\\vec n\\) (et elle ne travaille pas).', 1, 'loop'),
+          Pt(Ch('La projection de \\(m\\vec a = m\\vec g + \\vec R\\) sur \\(\\vec n\\) donne', [['ok', '\\(R - mg\\cos\\theta = m\\dfrac{v_C^2}{r}\\)'], ['plus', '\\(R + mg\\cos\\theta = m\\dfrac{v_C^2}{r}\\)'], ['sin', '\\(R - mg\\sin\\theta = m\\dfrac{v_C^2}{r}\\)'], ['zero', '\\(R - mg = 0\\)']], 'ok'), 1, 'loop')],
+        corr: '<p>Le poids fait l\'angle \\(\\theta\\) avec \\(-\\vec n\\) : sa projection sur \\(\\vec n\\) vaut \\(-mg\\cos\\theta\\). L\'accélération normale vaut \\(a_n = v_C^2 / r\\) (vers O).</p>' },
+      { title: 'II.4-2', q: '<p>On considère que la composante normale de l\'accélération vaut \\(a_n = \\dfrac{v_C^2}{r}\\). Avec les expressions de \\(v_C\\) et \\(h\\), démontrer que \\(R = \\dfrac{m}{r} v_B^2 + 3mg\\cos\\theta - 2mg\\). Cette relation \\(R(\\theta)\\) donne la réaction en tout point du cercle.</p>',
+        items: [
+          Pt(Ex('R', ['m', 'r', 'vB', 'g', 'theta'], v => v.m / v.r * v.vB * v.vB + 3 * v.m * v.g * Math.cos(v.theta) - 2 * v.m * v.g, 'R = \\dfrac{m}{r}v_B^2 + 3mg\\cos\\theta - 2mg'), 1, 'loop'),
+          Sf('la démonstration', '\\(R = m\\dfrac{v_C^2}{r} + mg\\cos\\theta\\) avec \\(v_C^2 = v_B^2 - 2gr(1 - \\cos\\theta)\\) : \\(R = \\dfrac{m}{r}v_B^2 - 2mg + 2mg\\cos\\theta + mg\\cos\\theta\\).', 1, 'loop')],
+        corr: '<p>\\(R = \\dfrac{m}{r}\\left(v_B^2 - 2gr + 2gr\\cos\\theta\\right) + mg\\cos\\theta = \\dfrac{m}{r}v_B^2 + 3mg\\cos\\theta - 2mg\\).</p>' },
+      { title: 'II.5', q: '<p>En appliquant le théorème de l\'énergie cinétique entre B et S, démontrer que pour que M puisse atteindre le sommet S, sa vitesse minimale en B, notée \\(v_{minB,1}\\), vaut \\(2\\sqrt{gr}\\).</p>',
+        items: [
+          Pt(Ex('v_{minB,1}', ['g', 'r'], v => 2 * Math.sqrt(v.g * v.r), 'v_{minB,1} = 2\\sqrt{gr}'), 1, 'loop'),
+          Sf('la démonstration', 'De B à S, \\(\\Delta z = 2r\\) : \\(\\tfrac12 m v_S^2 - \\tfrac12 m v_B^2 = -2mgr\\), donc \\(v_S^2 = v_B^2 - 4gr\\). Atteindre S demande \\(v_S^2 \\geq 0\\) : \\(v_B \\geq 2\\sqrt{gr}\\).', 1, 'tec')],
+        corr: '<p>\\(v_B^2 - 4gr \\geq 0 \\iff v_B \\geq 2\\sqrt{gr}\\).</p>' },
+      { title: 'II.6', q: '<p>On suppose que le mobile a justement la vitesse \\(v_{minB,1}\\) en B. En utilisant le résultat de II.4-2, déterminer les expressions de la réaction du support aux points B et S. Que constatez-vous ?</p>',
+        items: [
+          Pt(Ex('R_B', ['m', 'g'], v => 5 * v.m * v.g, 'R_B = 5mg'), 0.5, 'loop'),
+          Pt(Ex('R_S', ['m', 'g'], v => -v.m * v.g, 'R_S = -mg'), 0.5, 'loop'),
+          Sf('le constat', '\\(R_S = -mg < 0\\) est impossible : le support ne peut que pousser. Le mobile perd le contact avant S : \\(2\\sqrt{gr}\\) ne suffit pas (il faut \\(R_S \\geq 0\\), soit \\(v_B \\geq \\sqrt{5gr}\\)).', 1, 'loop')],
+        corr: '<p>Avec \\(v_B^2 = 4gr\\) : \\(R = mg(2 + 3\\cos\\theta)\\). En B (\\(\\theta = 0\\)) : \\(R_B = 5mg\\). En S (\\(\\theta = \\pi\\)) : \\(R_S = -mg\\).</p>' },
+      { title: 'II.7', q: '<p>En déduire la position d\'un point I du cercle (son angle \\(\\theta_I\\)) pour laquelle la norme de la réaction \\(R\\) du support s\'annule.</p>',
+        items: [
+          Pt(Nn('\\cos\\theta_I', -2 / 3, ''), 0.5, 'loop'),
+          Pt(Nn('\\theta_I', Math.acos(-2 / 3) * 180 / Math.PI, '°'), 0.5, 'loop')],
+        corr: '<p>\\(R = 0 \\iff 2 + 3\\cos\\theta_I = 0 \\iff \\cos\\theta_I = -\\dfrac23\\), soit \\(\\theta_I \\approx 131{,}8^\\circ\\) : le mobile décolle un peu au-dessus de l\'horizontale passant par O.</p>' }] }
+  ]
+}];
+
+function examExos(seed, plan) { if (EXAM && EXAM.ann) return annExos(EXAM.ann); const g = G(rng(seed)); return examPlan(plan === 1 ? EXAM_PLAN_B : plan >= 2 ? cc2Plan(seed, plan) : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
@@ -855,9 +946,11 @@ function vBlanc() {
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 15 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Au format annoncé par le prof pour le CC2 du 2/12 : un QCM de 5 questions de cours des chapitres II et III (5 points), un exercice tiré au hasard dans ces chapitres (5 points), puis un problème guidé sur le plan incliné (15 points). Le total sur 25 est ramené sur 20. Les formules littérales sont corrigées automatiquement.</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 15)</button>${weakButton()}<span class="fine">Fais les démonstrations sur une feuille, puis reporte les résultats.</span></div></section>
+    ${annCard()}
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
+  if (EXAM.ann) return annRender();   // vrai CC retapé (core.js)
   EXAM.exs = examExos(EXAM.seed, EXAM.plan);
   app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc de mécanique</p><h1>CC · ${durOf() === 5400 ? '1 h 30' : '1 h 15'}</h1></div>`
     + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
@@ -871,6 +964,7 @@ function renderExam() {
 }
 const saveExam = () => { const { exs, ...rest } = EXAM; ls.set(EK, rest); };
 function submitExam(auto) {
+  if (EXAM && EXAM.ann) return annSubmit(auto);
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
   stopTick();

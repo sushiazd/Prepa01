@@ -58,7 +58,9 @@
     'elec.hist.v1': (L, R, localWins) => {
       const m = new Map();
       (localWins ? [R, L] : [L, R]).forEach(arr => (Array.isArray(arr) ? arr : []).forEach(r => { if (r && r.id) m.set(r.id, r); }));
-      return [...m.values()].sort((a, b) => a.ts - b.ts);
+      // copies vides (rendues sans aucune réponse) retirées, ici et dans la base (subjects.js : realCopy)
+      const keep = window.SiteSubjects && SiteSubjects.realCopy ? SiteSubjects.realCopy : () => true;
+      return [...m.values()].filter(keep).sort((a, b) => a.ts - b.ts);
     },
     'elec.plan.v1': null,                // le plus récent gagne
     'elec.ccdate.v1': null,

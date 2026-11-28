@@ -10,11 +10,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112401"></script>
-<script src="../core.js?v=2026112402"></script>
+<script src="../subjects.js?v=2026112801"></script>
+<script src="../core.js?v=2026112802"></script>
 <script src="learn.js?v=2026102806"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026102803">
+<link rel="stylesheet" href="../core.css?v=2026112801">
 <style>
 :root{
   --accent:var(--phys); --accent-soft:var(--phys-soft);
@@ -109,7 +109,7 @@ table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:l
    ===================================================================== */
 // Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
 // spread : chapitres indépendants (copie de Karfoul, copie de Bauer), le sprint les fait avancer en largeur
-const E = SiteCore({ id: 'ms1', spread: true, get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return DUR; },
+const E = SiteCore({ get ANN() { return ANN; }, id: 'ms1', spread: true, get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return DUR; },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
@@ -117,7 +117,7 @@ const E = SiteCore({ id: 'ms1', spread: true, get LEARN() { return LEARN; }, get
   exam: () => examExos(EXAM.seed, EXAM.plan),
   examItems: () => [].concat(...examExos(EXAM.seed, EXAM.plan).map(x => [].concat(...x.parts.map(q => q.items)))), check: (it, raw) => check(it, raw), valOf: (r, id) => valOf(r, id), fbHTML: r => fbHTML(r) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton, hideCorr, copyTag } = E;
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, annCard, annExos, annRender, annSubmit, weakButton, hideCorr, copyTag } = E;
 function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
 function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
 
@@ -850,7 +850,88 @@ const EXAM_PLAN = [['Exercice 1 · Logique', [['conn', 1], ['quant', 1]], 5], ['
 // Format du CC1 2025-26 : 8 exercices courts sur deux copies
 const EXAM_PLAN_B = [['Exercice 1 · Formule logique', [['conn', 1]], 2], ['Exercice 2 · Quantificateurs et négation', [['quant', 1]], 2], ['Exercice 3 · Raisonnement', [['raison', 1]], 2], ['Exercice 4 · Dénombrement', [['arr', 1]], 3],
   ['Exercice 5 · Questions de cours', [['parties', 1], ['ordre', 1]], 3], ['Exercice 6 · Formule du crible', [['crible', 1]], 3], ['Exercice 7 · Bijection et cardinal', [['inj', 1]], 2], ['Exercice 8 · Relation d\'équivalence', [['classes', 1]], 3]];
-function examExos(seed, plan) { const g = G(rng(seed)); return examPlan(plan === 1 ? EXAM_PLAN_B : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+/* =====================================================================
+   VRAIS CC RETAPÉS (moteur annCard / annRender de core.js)
+   CC1 du 13/11/2025 : sujet complet (copie 1 : photo du sujet ; copie 2 : CC1_ensembles.pdf de Moodle). Le sujet ne
+   donne pas de barème : celui du sujet blanc au même format (EXAM_PLAN_B). pts = points, sk = compétence du parcours,
+   Sf = ce qui se rédige sur la feuille (lab pendant l'épreuve, sol = ce que la copie doit contenir, coché après).
+   ===================================================================== */
+const Pt = (it, pts, sk) => Object.assign(it, { pts, sk });
+const Sf = (lab, sol, pts, sk) => ({ type: 'self', lab, sol, pts, sk });
+const ANN = [{
+  id: 'cc1-2025', title: 'CC1 du 13 novembre 2025', sub: 'Karfoul et Bauer · 8 exercices sur deux copies', dur: 3600, help: HELP,
+  rules: 'Durée 1 h. Aucun document, pas de calculatrice. Exercices 1 à 4 sur une copie, 5 à 8 sur une autre. Le sujet ne donne pas de barème : celui-ci est estimé. Écris tes réponses dans les cases et rédige le reste sur une feuille, comme le jour du CC.',
+  exos: [
+    { title: 'Exercice 1 · Formule logique', parts: [{
+      q: '<p>Sans utiliser la table de vérité, que peut-on dire sur la formule suivante : est-elle satisfaisable ? falsifiable ? valide ? contradictoire ? (Justifier)</p>\\[((A \\wedge B) \\Rightarrow C) \\Rightarrow (A \\Rightarrow C)\\]',
+      items: [
+        Pt(Ch('La formule est', [['v', 'valide (vraie pour toutes les valeurs de A, B, C)'], ['c', 'contradictoire (fausse pour toutes les valeurs)'], ['sf', 'satisfaisable et falsifiable : ni valide, ni contradictoire']], 'sf'), 1, 'conn'),
+        Pt(Bt('\\text{valeurs de } (A, B, C) \\text{ qui la rendent fausse}', '100'), 0.5, 'conn'),
+        Sf('la justification, sans table de vérité', 'Une implication n\'est fausse que si sa prémisse est vraie et sa conclusion fausse. Conclusion \\(A \\Rightarrow C\\) fausse : \\(A\\) vrai et \\(C\\) faux. Prémisse \\((A \\wedge B) \\Rightarrow C\\) vraie avec \\(C\\) faux : \\(A \\wedge B\\) faux, donc \\(B\\) faux. Avec \\((1, 0, 0)\\) la formule est fausse (falsifiable) ; avec \\(C\\) vrai elle est vraie (satisfaisable).', 0.5, 'conn')],
+      corr: '<p>La formule n\'est fausse que pour \\(A = 1, B = 0, C = 0\\) : prémisse \\((0 \\Rightarrow 0) = 1\\), conclusion \\((1 \\Rightarrow 0) = 0\\). Elle est donc <b>falsifiable</b>, donc <b>pas valide</b>. Dès que \\(C\\) est vrai, \\(A \\Rightarrow C\\) est vrai et la formule aussi : elle est <b>satisfaisable</b>, donc <b>pas contradictoire</b>.</p>' }] },
+    { title: 'Exercice 2 · Quantificateurs et négation', parts: [{
+      q: '<p>Soit \\(f : \\mathbb R \\to \\mathbb R\\). Écrire, à l\'aide des quantificateurs, les énoncés suivants puis leur négation.</p><p>1. \\(f\\) ne s\'annule jamais.<br>2. \\(f\\) admet un maximum au point \\(a \\in \\mathbb R\\).</p>',
+      items: [
+        Sf('1. l\'énoncé avec quantificateurs', '\\(\\forall x \\in \\mathbb R,\\ f(x) \\neq 0\\)', 0.5, 'quant'),
+        Sf('1. sa négation', '\\(\\exists x \\in \\mathbb R,\\ f(x) = 0\\)', 0.5, 'quant'),
+        Sf('2. l\'énoncé avec quantificateurs', '\\(\\forall x \\in \\mathbb R,\\ f(x) \\leq f(a)\\)', 0.5, 'quant'),
+        Sf('2. sa négation', '\\(\\exists x \\in \\mathbb R,\\ f(x) > f(a)\\) (et pas \\(\\geq\\) : la négation de \\(\\leq\\) est \\(>\\))', 0.5, 'quant')],
+      corr: '<p>Pour nier : chaque \\(\\forall\\) devient \\(\\exists\\), chaque \\(\\exists\\) devient \\(\\forall\\), et on nie la propriété à la fin. \\(f(x) \\neq 0\\) devient \\(f(x) = 0\\) ; \\(f(x) \\leq f(a)\\) devient \\(f(x) > f(a)\\).</p>' }] },
+    { title: 'Exercice 3 · Raisonnement par l\'absurde', parts: [{
+      q: '<p>Montrer par l\'absurde la proposition \\(\\mathcal P\\) suivante \\((x \\in \\mathbb R,\\ y \\in \\mathbb R)\\) :</p>\\[\\mathcal P : xy \\neq 0 \\Rightarrow (x \\neq 0 \\text{ et } y \\neq 0)\\]',
+      items: [
+        Pt(Ch('La négation de « \\(x \\neq 0\\) et \\(y \\neq 0\\) » est', [['ou', '\\(x = 0\\) ou \\(y = 0\\)'], ['et', '\\(x = 0\\) et \\(y = 0\\)'], ['neq', '\\(x \\neq 0\\) ou \\(y \\neq 0\\)']], 'ou'), 0.5, 'raison'),
+        Sf('l\'hypothèse de l\'absurde', 'On suppose \\(xy \\neq 0\\) et la négation de la conclusion : \\(x = 0\\) ou \\(y = 0\\). (Supposer « \\(x = 0\\) et \\(y = 0\\) » est faux : c\'est la mauvaise négation.)', 0.75, 'raison'),
+        Sf('la contradiction et la conclusion', 'Si \\(x = 0\\), alors \\(xy = 0 \\cdot y = 0\\) ; si \\(y = 0\\), \\(xy = 0\\) aussi. Dans les deux cas \\(xy = 0\\), ce qui contredit \\(xy \\neq 0\\). L\'hypothèse est absurde : \\(\\mathcal P\\) est vraie.', 0.75, 'raison')],
+      corr: '<p>Par l\'absurde : on suppose la prémisse vraie et la conclusion fausse, et on aboutit à une contradiction. Les deux cas \\(x = 0\\) et \\(y = 0\\) se traitent séparément (« ou »).</p>' }] },
+    { title: 'Exercice 4 · Dénombrement', parts: [{
+      q: '<p>Une compagnie aérienne souhaite offrir à ses 19 fidèles clients 4 billets d\'avion vers des destinations touristiques. Déterminer le nombre de façons de distribuer ces billets si :</p><p>1. les billets sont numérotés et chaque client ne peut recevoir qu\'un seul billet ;<br>2. les billets sont numérotés et chaque client peut recevoir plusieurs billets.</p>',
+      items: [
+        Pt(Nn('\\text{1. un billet au plus par client}', 19 * 18 * 17 * 16), 1.5, 'arr'),
+        Pt(Nn('\\text{2. plusieurs billets possibles}', 19 ** 4), 1.5, 'arr')],
+      corr: '<p>1. Billets numérotés (l\'ordre compte), sans répétition de client : arrangements \\(A_{19}^{4} = 19 \\times 18 \\times 17 \\times 16 = 93\\,024\\). Pour chaque billet, on choisit son client parmi ceux qui n\'en ont pas encore.</p><p>2. Avec répétition : chaque billet a 19 destinataires possibles, \\(19^4 = 130\\,321\\) (le nombre d\'applications de l\'ensemble des 4 billets vers l\'ensemble des 19 clients).</p>' }] },
+    { title: 'Exercice 5 · Questions de cours (sans justification)', parts: [{
+      q: '<p>1. Soit \\(E = \\{a, b, c, d, e\\}\\). Quel est le cardinal de \\(\\mathcal P(E)\\) ?<br>2. Décider pour chacun des ensembles \\(\\mathbb Z\\), \\(\\mathbb Q\\), \\(\\mathbb R\\) s\'il a le même cardinal que \\(\\mathbb N\\).<br>3. Soient \\(A = \\{1, 2, 3\\}\\) et \\(B = \\{a, b, c, d, e\\}\\). Quel est le nombre de fonctions \\(f : A \\to B\\) ? Le nombre d\'injections de \\(A\\) dans \\(B\\) ?<br>4. Soit \\(A = [1, 5[\\). Déterminer (s\'ils existent) le minimum, le maximum, la borne inférieure et la borne supérieure de \\(A\\).</p>',
+      items: [
+        Pt(Nn('\\text{card}\\,\\mathcal P(E)', 32), 0.5, 'parties'),
+        Pt(Bt('\\text{même cardinal que } \\mathbb N \\text{ : } (\\mathbb Z, \\mathbb Q, \\mathbb R) \\text{, 1 = oui}', '110'), 0.5, 'inj'),
+        Pt(Nn('\\text{fonctions } A \\to B', 125), 0.5, 'arr'),
+        Pt(Nn('\\text{injections } A \\to B', 60), 0.5, 'arr'),
+        Pt(Nn('\\min A', 1), 0.25, 'ordre'),
+        Pt(Ch('\\(\\max A\\)', [['5', 'vaut 5'], ['no', 'n\'existe pas'], ['4', 'vaut 4']], 'no'), 0.25, 'ordre'),
+        Pt(Nn('\\inf A', 1), 0.25, 'ordre'),
+        Pt(Nn('\\sup A', 5), 0.25, 'ordre')],
+      corr: '<p>1. \\(\\text{card}\\,\\mathcal P(E) = 2^5 = 32\\).</p><p>2. \\(\\mathbb Z\\) et \\(\\mathbb Q\\) sont dénombrables (même cardinal que \\(\\mathbb N\\)) ; \\(\\mathbb R\\) ne l\'est pas (argument diagonal de Cantor).</p><p>3. Fonctions : \\(5^3 = 125\\). Injections : \\(A_5^3 = 5 \\times 4 \\times 3 = 60\\).</p><p>4. \\(\\min A = \\inf A = 1\\) (1 est dans \\(A\\)) ; \\(\\sup A = 5\\), mais 5 n\'est pas dans \\(A\\) : pas de maximum.</p>' }] },
+    { title: 'Exercice 6 · Formule du crible', parts: [{
+      q: '<p>Les étudiants d\'un groupe de TD de 29 personnes ont le choix entre deux modules A et B. Ils doivent choisir au moins un module, mais peuvent aussi prendre les deux. 18 ont pris le module A (avec ou sans le module B) et 12 ont pris les modules A et B.</p><p>1. Combien ont pris le module B (avec ou sans A) ? Justifier en utilisant la formule du crible, qu\'il faut énoncer.<br>2. Combien ont pris uniquement le module A ? uniquement le module B ? Justifier.<br>3. Donner un diagramme de Venn où A et B sont deux cercles qui s\'intersectent, avec le nombre d\'étudiants dans chaque zone \\(A \\setminus B\\), \\(B \\setminus A\\), \\(A \\cap B\\), et vérifier les effectifs de \\(A\\), \\(B\\) et \\(A \\cup B\\).</p>',
+      items: [
+        Pt(Nn('\\text{card}\\,B', 23), 1, 'crible'),
+        Sf('1. la formule du crible énoncée', '\\(\\text{card}(A \\cup B) = \\text{card}\\,A + \\text{card}\\,B - \\text{card}(A \\cap B)\\), avec \\(\\text{card}(A \\cup B) = 29\\) (chacun a au moins un module) : \\(29 = 18 + \\text{card}\\,B - 12\\).', 0.5, 'crible'),
+        Pt(Nn('\\text{uniquement A}', 6), 0.5, 'crible'),
+        Pt(Nn('\\text{uniquement B}', 11), 0.5, 'crible'),
+        Sf('3. le diagramme de Venn et la vérification', 'Zones : \\(A \\setminus B = 6\\), \\(A \\cap B = 12\\), \\(B \\setminus A = 11\\). Vérification : \\(6 + 12 = 18\\) dans \\(A\\), \\(12 + 11 = 23\\) dans \\(B\\), \\(6 + 12 + 11 = 29\\) en tout.', 0.5, 'ops')],
+      corr: '<p>1. \\(\\text{card}\\,B = 29 - 18 + 12 = 23\\).</p><p>2. Uniquement A : \\(\\text{card}(A \\setminus B) = 18 - 12 = 6\\). Uniquement B : \\(23 - 12 = 11\\).</p><p>Piège : « au moins un module » est ce qui donne \\(\\text{card}(A \\cup B) = 29\\).</p>' }] },
+    { title: 'Exercice 7 · Bijection et cardinal', parts: [{
+      q: '<p>Soit \\(E = \\{0, 2, 4, 6, \\dots\\} = \\{2k \\mid k \\in \\mathbb N\\}\\). Montrer qu\'il existe une fonction \\(f : \\mathbb N \\to E\\) qui est injective et surjective. Que peut-on en déduire sur le cardinal de \\(\\mathbb N\\) et de \\(E\\) ? Justifier.</p>',
+      items: [
+        Pt(Ch('Une bijection \\(f : \\mathbb N \\to E\\)', [['2n', '\\(f(n) = 2n\\)'], ['n+2', '\\(f(n) = n + 2\\)'], ['n2', '\\(f(n) = n^2\\)'], ['n/2', '\\(f(n) = n / 2\\)']], '2n'), 0.5, 'inj'),
+        Sf('l\'injectivité', 'Si \\(f(n) = f(m)\\), alors \\(2n = 2m\\), donc \\(n = m\\) : \\(f\\) est injective.', 0.5, 'inj'),
+        Sf('la surjectivité', 'Tout \\(y \\in E\\) s\'écrit \\(y = 2k\\) avec \\(k \\in \\mathbb N\\), et \\(y = f(k)\\) : \\(f\\) est surjective.', 0.5, 'inj'),
+        Sf('la conclusion sur les cardinaux', '\\(f\\) est une bijection, donc \\(\\mathbb N\\) et \\(E\\) ont le même cardinal : \\(E\\) est dénombrable, alors que \\(E \\subsetneq \\mathbb N\\) (ce qui est impossible pour des ensembles finis).', 0.5, 'inj')],
+      corr: '<p>\\(f(n) = 2n\\) est bien à valeurs dans \\(E\\), injective et surjective. Deux ensembles en bijection ont le même cardinal : \\(\\mathbb N\\) et l\'ensemble des nombres pairs sont « aussi grands » l\'un que l\'autre.</p>' }] },
+    { title: 'Exercice 8 · Relation d\'équivalence', parts: [{
+      q: '<p>Soit \\(\\mathcal P\\) le plan d\'origine \\(O\\). Pour \\(\\theta \\in \\mathbb R\\), on note \\(r_\\theta\\) la rotation de \\(\\mathcal P\\) de centre \\(O\\) et d\'angle \\(\\theta\\). On définit la relation suivante sur les points de \\(\\mathcal P\\) : si \\(N, M\\) sont des points de \\(\\mathcal P\\),</p>\\[N \\,\\mathcal R\\, M \\iff \\exists \\theta \\in \\mathbb R,\\ M = r_\\theta(N)\\]<p>(\\(M\\) est l\'image de \\(N\\) par une rotation).</p><p>1. Montrer que \\(\\mathcal R\\) est une relation d\'équivalence sur \\(\\mathcal P\\).<br>2. Soit \\(N \\in \\mathcal P\\). Décrire géométriquement la classe d\'équivalence \\(C(N)\\) de \\(N\\). Justifier.</p>',
+      items: [
+        Sf('la réflexivité', '\\(N = r_0(N)\\) (rotation d\'angle 0) : \\(N \\,\\mathcal R\\, N\\).', 0.5, 'rel'),
+        Sf('la symétrie', 'Si \\(M = r_\\theta(N)\\), alors \\(N = r_{-\\theta}(M)\\) : \\(M \\,\\mathcal R\\, N\\).', 0.5, 'rel'),
+        Sf('la transitivité', 'Si \\(M = r_\\theta(N)\\) et \\(P = r_{\\theta\'}(M)\\), alors \\(P = r_{\\theta\'} \\circ r_\\theta (N) = r_{\\theta + \\theta\'}(N)\\) : \\(N \\,\\mathcal R\\, P\\).', 0.5, 'rel'),
+        Pt(Ch('La classe \\(C(N)\\) est', [['cercle', 'le cercle de centre \\(O\\) passant par \\(N\\) (réduit à \\(\\{O\\}\\) si \\(N = O\\))'], ['disque', 'le disque de centre \\(O\\) de rayon \\(ON\\)'], ['droite', 'la droite \\((ON)\\)'], ['point', 'le point \\(N\\) seul']], 'cercle'), 1, 'classes'),
+        Sf('la justification de la classe', 'Une rotation de centre \\(O\\) conserve la distance à \\(O\\) : \\(OM = ON\\). Réciproquement, tout point \\(M\\) avec \\(OM = ON\\) s\'obtient par la rotation d\'angle \\((\\overrightarrow{ON}, \\overrightarrow{OM})\\). Donc \\(C(N) = \\{M : OM = ON\\}\\).', 0.5, 'classes')],
+      corr: '<p>Les trois propriétés viennent de ce que les rotations de centre \\(O\\) forment un groupe : \\(r_0 = \\text{id}\\), \\(r_\\theta^{-1} = r_{-\\theta}\\), \\(r_{\\theta\'} \\circ r_\\theta = r_{\\theta + \\theta\'}\\). Les classes sont les cercles de centre \\(O\\) (et le point \\(O\\)) : ils forment une partition du plan.</p>' }] }
+  ]
+}];
+
+function examExos(seed, plan) { if (EXAM && EXAM.ann) return annExos(EXAM.ann); const g = G(rng(seed)); return examPlan(plan === 1 ? EXAM_PLAN_B : EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
@@ -858,9 +939,11 @@ function vBlanc() {
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">Tiré au hasard entre deux formats : 4 exercices dans le style des TD (logique 5 pts, ensembles 4 pts, applications et relations 6 pts, dénombrement 5 pts), ou 8 exercices courts comme au CC1 du 13/11/2025 (logique, quantificateurs, raisonnement, dénombrement, questions de cours, crible, bijection, relation d'équivalence).</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button>${weakButton()}<span class="fine">Sans calculatrice, comme au CC : fais les calculs sur une feuille.</span></div></section>
+    ${annCard()}
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
+  if (EXAM.ann) return annRender();   // vrai CC retapé (core.js)
   EXAM.exs = examExos(EXAM.seed, EXAM.plan);
   app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc de maths</p><h1>CC · 1 h 30</h1></div>`
     + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
@@ -874,6 +957,7 @@ function renderExam() {
 }
 const saveExam = () => { const { exs, ...rest } = EXAM; ls.set(EK, rest); };
 function submitExam(auto) {
+  if (EXAM && EXAM.ann) return annSubmit(auto);
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
   stopTick();

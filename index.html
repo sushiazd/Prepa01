@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
-<script src="subjects.js?v=2026112401"></script>
+<script src="subjects.js?v=2026112801"></script>
 <script defer src="account.js"></script>
 <script defer src="planning.js?v=2026112401"></script>
 <style>
@@ -402,7 +402,7 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
     const last = att[att.length - 1];
     document.getElementById('mathsMeta').innerHTML = `${att.length} épreuve${att.length > 1 ? 's' : ''} · dernière : <b>${fmt(last.note || 0)}/20</b>`;
   }
-  const hist = get('elec.hist.v1', []), st = get('elec.stats.v1', null), d = get('elec.ccdate.v1', '');
+  const hist = get('elec.hist.v1', []).filter(SiteSubjects.realCopy), st = get('elec.stats.v1', null), d = get('elec.ccdate.v1', '');
   const parts = [];
   if (hist.length) parts.push(`${hist.length} sujet${hist.length > 1 ? 's' : ''} blanc${hist.length > 1 ? 's' : ''} fait${hist.length > 1 ? 's' : ''}`);
   else if (st) { const n = ['ex2', 'ex3', 'ex4'].reduce((s, k) => s + ((st[k] && st[k].n) || 0), 0); if (n) parts.push(`${n} réponse${n > 1 ? 's' : ''} en entraînement`); }
@@ -410,7 +410,7 @@ h1{font:600 clamp(32px,5vw,48px)/1.05 var(--serif);letter-spacing:-.02em}
   // pages à parcours : compétences validées (nombre total dans subjects.js ; liste cc1 sur la case du CC1) et dernier
   // sujet blanc, sur la case du prochain CC de la page seulement (pas en double quand une page a deux cases)
   SiteSubjects.list.filter(s => s.skills && s.id !== 'elec').forEach(s => {   // l'élec a son propre résumé (ci-dessus)
-    const p = get(s.id + '.path.v1', null), sk = (p && p.sk) || {}, H = get(s.id + '.hist.v1', []), nx = SiteSubjects.next(s.id);
+    const p = get(s.id + '.path.v1', null), sk = (p && p.sk) || {}, H = get(s.id + '.hist.v1', []).filter(SiteSubjects.realCopy), nx = SiteSubjects.next(s.id);
     const ok = k => sk[k] && (sk[k].ever || sk[k].m >= 75);
     document.querySelectorAll(`#vRev a.tool[data-s="${s.id}"] .meta`).forEach(el => {
       const cn = +el.closest('.tool').dataset.n || 0, list = cn === 1 && s.cc1;

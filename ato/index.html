@@ -10,11 +10,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112401"></script>
-<script src="../core.js?v=2026112402"></script>
+<script src="../subjects.js?v=2026112801"></script>
+<script src="../core.js?v=2026112802"></script>
 <script src="learn.js?v=2026112402"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026102803">
+<link rel="stylesheet" href="../core.css?v=2026112801">
 <style>
 :root{
   --accent:var(--chem); --accent-soft:var(--chem-soft);
@@ -1253,7 +1253,8 @@ function submitExam(auto) {
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
   const exs = examExos(EXAM.seed); let note = 0;
-  if (EXAM.kind === 'cc21') { EXAM.self = EXAM.self || {}; note = cc21Score(exs).note; }
+  // vrai CC 2021 : les réponses dans les cases comptent aussi dans le parcours (compétence dans l'identifiant, niveau 3)
+  if (EXAM.kind === 'cc21') { EXAM.self = EXAM.self || {}; note = cc21Score(exs).note; exs.forEach(ex => ex.parts.forEach(p => p.items.forEach(it => { if (it.type !== 'self') tally(it, check(it, EXAM.ans[it.id] || '').st === 'ok' ? 1 : 0); }))); }
   else exs.forEach(ex => { const its = [].concat(...ex.parts.map(p => p.items)); const ok = its.filter(it => tally(it, check(it, EXAM.ans[it.id] || '').st === 'ok' ? 1 : 0)).length; note += ex.pts * ok / its.length; });
   EXAM.done = true; EXAM.note = note; EXAM.running = false;
   const H = ls.get(HK, []); H.push({ id: String(EXAM.seed), ts: Date.now(), note, dur: Math.min(examCC() === 2 ? 5400 : 3600, Math.round((Date.now() - EXAM.t0) / 1000)), ...examRecord(), cc21: EXAM.kind === 'cc21' ? (EXAM.exact ? 'vrai' : 'variante') : undefined }); ls.set(HK, H);

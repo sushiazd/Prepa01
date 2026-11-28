@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
 <script defer src="../account.js"></script>
 <script src="../maths/elo.js?v=2026102801"></script>
-<script src="../subjects.js?v=2026112401"></script>
+<script src="../subjects.js?v=2026112801"></script>
 <style>
 :root{
   color-scheme:light;
@@ -89,19 +89,8 @@ th{font:600 11.5px/1 var(--sans);letter-spacing:.07em;text-transform:uppercase;c
 td{padding:10px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
 tr:last-child td{border-bottom:0}
 .up{color:var(--good)} .down{color:var(--red)}
-.awards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.award{border:1px solid var(--rule);border-radius:14px;padding:14px 16px;background:var(--sheet-2);display:grid;gap:4px;align-content:start}
-.award .ic{font-size:26px;line-height:1}
-.award b{font:600 15px/1.3 var(--sans)}
-.award .who{font:600 19px/1.2 var(--serif)}
-.award .why{font-size:13.5px;color:var(--ink-2)}
-.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-.person{border:1px solid var(--rule);border-radius:16px;padding:16px 18px;background:var(--sheet-2);display:grid;gap:10px}
-.person h3{font:600 20px/1.2 var(--serif);display:flex;align-items:center;gap:8px}
-.person .elo{margin-left:auto;font:700 15px/1 var(--sans);color:var(--pen)}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
 .kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
-.bars{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--rule)}
 .chart{width:100%;height:auto;display:block}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13.5px}
 .legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
@@ -137,7 +126,7 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const TH = { polynomes: 'Polynômes', puiss_rad: 'Puissances & racines', ln_exp: 'ln & exp', eq_exp: 'Équations exp.', fractions: 'Fractions', developpement: 'Développement', equations: 'Équations & systèmes', domaine: 'Domaine', derivees: 'Dérivées', integrales: 'Intégrales', limites: 'Limites', inegalites: 'Inégalités ♣', equa_diff: 'Équa. diff.', geometrie: 'Géométrie', continuite: 'Continuité', suites: 'Suites', etude_fonction: 'Étude de fonction', binomiale: 'Loi binomiale', espace: 'Espace', trigo: 'Sinus & cosinus', recurrence: 'Récurrence' };
   const KIND1 = { targeted: 'contrôle ciblé', bank: 'sujet du prof', genexam: 'sujet inédit', newtypes: 'sujet nouveaux types', hardcore: 'Hardcore', group: 'contrôle de groupe', manual: 'saisie' };
-  const KIND = { targeted: 'contrôles ciblés', bank: 'sujets du prof', genexam: 'sujets inédits', newtypes: 'nouveaux types', hardcore: 'Hardcore', group: 'contrôles de groupe', manual: 'saisies' };
+
   const fmt = (x, d = 0) => (Math.round(x * 10 ** d) / 10 ** d).toLocaleString('fr-FR');
   const fmtT = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`; };
   const fmtD = t => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
@@ -163,7 +152,7 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
   async function start() {
     const { data: adm, error } = await sb.rpc('is_admin');
     if (error || !adm) { gate(`<p class="eyebrow">Page privée</p><h2>Accès réservé</h2><p class="sub">Cette page est réservée à l'administrateur du site.</p><p><a class="btn" href="../">Retour à l'accueil</a></p>`); return; }
-    app.innerHTML = `<header><p class="eyebrow">Page privée · administrateur</p><h1>Tableau de bord</h1><p class="lede">Les suggestions envoyées depuis l'accueil, et les stats de tous les comptes du site : Elo, trophées, fiches de chacun, et l'avancement dans les autres matières.</p></header>
+    app.innerHTML = `<header><p class="eyebrow">Page privée · administrateur</p><h1>Tableau de bord</h1><p class="lede">Les suggestions envoyées depuis l'accueil, et les stats de tous les comptes du site : Elo, avancement dans les autres matières et comptes.</p></header>
       <section class="card" id="fbCard"><p class="sub">Chargement des suggestions…</p></section>
       <section class="card"><div class="row"><h2>Stats</h2><span class="sp"></span><select id="gsel" aria-label="Portée"><option value="all">Tout le site</option></select></div><p class="fine" id="scopeInfo"></p></section>
       <div id="gstats" style="display:grid;gap:22px"><section class="card"><p class="sub">Chargement des stats…</p></section></div>`;
@@ -253,14 +242,15 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
     const rows = members.filter(m => subs.some(s => get(m, s, 'path') || get(m, s, 'hist')))
       .sort((a, b) => subs.reduce((t, s) => t + valid(b, s), 0) - subs.reduce((t, s) => t + valid(a, s), 0) || a.pseudo.localeCompare(b.pseudo));
     const cell = (m, s) => {
-      const p = get(m, s, 'path'), h = get(m, s, 'hist'), n = h ? h.n || 0 : 0;
+      // copies à 0 : rendues vides (fin du chrono, rien de répondu), pas comptées
+      const p = get(m, s, 'path'), h = get(m, s, 'hist'), notes = h && Array.isArray(h.notes) ? h.notes.filter(x => typeof x === 'number' && x !== 0) : [], n = notes.length;
       if (!p && !n) return '<td class="fine">—</td>';
-      const v = valid(m, s), notes = h && Array.isArray(h.notes) ? h.notes.filter(x => typeof x === 'number') : [];
+      const v = valid(m, s);
       const pct = s.skills ? Math.min(1, v / s.skills) : 0;
       return `<td style="background:color-mix(in srgb,var(--good) ${Math.round(pct * 30)}%,transparent)"><b>${v}${s.skills ? '/' + s.skills : ''}</b> <span class="fine">comp.</span><br><span class="fine">${n ? `${n} blanc${n > 1 ? 's' : ''}${notes.length ? ` · dern. ${nf(notes[notes.length - 1])} · max ${nf(Math.max(...notes))}` : ''}` : 'aucun blanc'}</span></td>`;
     };
     const tot = subs.filter(s => s.skills).reduce((t, s) => t + s.skills, 0);
-    return `<section class="card"><h2>Autres matières</h2><p class="sub">Compétences validées dans le parcours de chaque matière, nombre de sujets blancs rendus, dernière et meilleure note (sur 20). Données synchronisées par les comptes connectés ; une copie d'élec CC1 a sa note dès que son auteur rouvre la page d'élec.</p>
+    return `<section class="card"><h2>Autres matières</h2><p class="sub">Compétences validées dans le parcours de chaque matière, nombre de sujets blancs rendus, dernière et meilleure note (sur 20), sans les copies rendues vides. Données synchronisées par les comptes connectés ; une copie d'élec CC1 a sa note dès que son auteur rouvre la page d'élec.</p>
       ${rows.length ? `<div style="overflow-x:auto"><table><thead><tr><th>Joueur</th>${subs.map(s => `<th><a href="../${s.page}">${esc(s.name)}</a></th>`).join('')}<th>Total</th></tr></thead><tbody>
       ${rows.map(m => `<tr><td><b>${nm(m)}</b>${m.me ? ' <span class="fine">(toi)</span>' : ''}</td>${subs.map(s => cell(m, s)).join('')}<td><b>${subs.filter(s => s.skills).reduce((t, s) => t + valid(m, s), 0)}/${tot}</b></td></tr>`).join('')}
       </tbody></table></div>` : '<p class="sub">Personne n\'a encore de progression enregistrée dans les autres matières.</p>'}</section>`;
@@ -298,24 +288,6 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
       strong: thL[0], weak: thL.length > 1 ? thL[thL.length - 1] : null, th, favH: favH ? +favH[0] : null, night, best, kinds,
       avgNote: m.attempts.length ? m.attempts.reduce((s, a) => s + a.note, 0) / m.attempts.length : null };
   }
-  // Duels : pour chaque contrôle de groupe, chaque paire de participants (meilleure note de chacun)
-  function duels(members, tests) {
-    const W = {}; members.forEach(a => { W[a.id] = {}; members.forEach(b => { W[a.id][b.id] = 0; }); });
-    tests.forEach(t => {
-      const best = {}; members.forEach(m => m.attempts.filter(a => a.defId === 'g:' + t.id).forEach(a => { best[m.id] = Math.max(best[m.id] ?? -1, a.note); }));
-      const ps = Object.keys(best);
-      ps.forEach(a => ps.forEach(b => { if (a !== b && best[a] > best[b]) W[a][b]++; }));
-    });
-    return W;
-  }
-  const qName = (key, members) => {
-    if (key.startsWith('c:')) return `${TH[key.slice(2)] || key.slice(2)} (copies du prof)`;
-    if (key.startsWith('b:')) { const m = /^s(\d+)-(\d+)$/.exec(key.slice(2)); return m ? `Sujet ${m[1]}, question ${m[2]}` : key.slice(2); }
-    const tpl = key.slice(2).replace(/#\d+$/, '');
-    for (const m of members) for (const a of m.attempts) for (const r of a.results) { const k = eloKey(r.qid); if (k === key && r.theme) return `${TH[r.theme] || r.theme} · question type « ${tpl.replace(/_/g, ' ')} »`; }
-    return tpl;
-  };
-
   function eloChart(rank) {
     const W = 760, Hh = 260, pl = 46, pr = 14, pt = 14, pb = 28;
     const pts = [].concat(...rank.map(x => x.hist));
@@ -334,32 +306,10 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
   }
 
   function render(box, members, tests) {
-    const { rank, Q, QN, QS } = eloRank(members);
+    const { rank } = eloRank(members);
     if (!rank.length) { box.innerHTML = '<section class="card"><p class="sub">Pas encore de copies ici.</p></section>'; return; }
     const st = {}; members.forEach(m => { st[m.id] = personStats(m); });
-    const E = Object.fromEntries(rank.map((x, i) => [x.m.id, Object.assign({ pos: i + 1 }, x)]));
-    const D = duels(members, tests);
-    const act = members.filter(m => E[m.id]);
-    const pick = (score, ok = () => true, dir = -1) => { const L = act.filter(ok).map(m => [m, score(m)]).filter(([, v]) => v != null && isFinite(v)); if (!L.length) return null; L.sort((a, b) => dir * (a[1] - b[1])); return L[0]; };
-    const A = [];
-    const add = (ic, title, r, why) => { if (r) A.push(`<div class="award"><span class="ic">${ic}</span><b>${title}</b><span class="who">${nm(r[0])}</span><span class="why">${why(r[1], r[0])}</span></div>`); };
-    add('🐐', 'Le GOAT', pick(m => E[m.id].elo), v => `Elo ${fmt(v)} : numéro 1 ${gid === 'all' ? 'du site' : 'du groupe'}.`);
-    add('🎯', 'Le sniper', pick(m => st[m.id].ok / st[m.id].n, m => st[m.id].n >= 30), v => `${fmt(100 * v)} % de bonnes réponses.`);
-    add('⚡', 'L\'éclair', pick(m => st[m.id].avgT, m => st[m.id].timedN >= 15, 1), v => `${fmt(v)} s en moyenne par question.`);
-    add('🐢', 'Le diesel', pick(m => st[m.id].avgT, m => st[m.id].timedN >= 15), v => `${fmt(v)} s par question : il prend son temps.`);
-    add('🎲', 'Le kamikaze', pick(m => st[m.id].bad / st[m.id].n, m => st[m.id].n >= 15), v => `${fmt(100 * v)} % de réponses fausses (−0,5 à chaque fois).`);
-    add('🛡️', 'Le prudent', pick(m => st[m.id].blank / st[m.id].n, m => st[m.id].n >= 15), v => `Laisse vide ${fmt(100 * v)} % des questions.`);
-    add('🏋️', 'Le stakhanoviste', pick(m => st[m.id].used), v => `${fmtT(v)} d'entraînement chronométré.`);
-    add('🦉', 'Le noctambule', pick(m => st[m.id].night || null), v => `${v} copie${v > 1 ? 's' : ''} rendue${v > 1 ? 's' : ''} entre 22 h et 5 h.`);
-    add('🚀', 'La fusée', pick(m => E[m.id].d7 > 1 ? E[m.id].d7 : null), v => `+${fmt(v)} Elo en 7 jours.`);
-    add('📉', 'La chute libre', pick(m => E[m.id].d7 < -1 ? E[m.id].d7 : null, () => true, 1), v => `${fmt(v)} Elo en 7 jours.`);
-    add('⚔️', 'Le roi des duels', pick(m => { const w = Object.values(D[m.id]).reduce((s, x) => s + x, 0); return w || null; }), v => `${v} victoire${v > 1 ? 's' : ''} en tête-à-tête lors des contrôles de groupe.`);
-    add('💯', 'La plus belle copie', pick(m => st[m.id].best ? st[m.id].best.note : null), (v, m) => `${fmt(v, 2)}/20 sur « ${esc(st[m.id].best.title)} ».`);
-    // Questions et thèmes du groupe
-    const qs = Object.keys(QN).filter(k => QN[k] >= 3).map(k => [k, QS[k] / QN[k], QN[k]]).sort((a, b) => a[1] - b[1] || b[2] - a[2]);
-    const cursed = qs[0], hardest = Object.keys(Q).filter(k => QN[k] >= 2).sort((a, b) => Q[b] - Q[a])[0];
-    const gth = {}; act.forEach(m => [].concat(...m.attempts.map(a => a.results)).concat([].concat(...m.controls.map(c => c.items))).forEach(r => { if (!r || !TH[r.theme] || r.skip) return; const o = gth[r.theme] = gth[r.theme] || { n: 0, s: 0 }; o.n++; o.s += +r.pts / (+r.max || 1); }));
-    const gthL = Object.entries(gth).filter(([, o]) => o.n >= 5).map(([k, o]) => [k, o.s / o.n]).sort((a, b) => b[1] - a[1]);
+    const act = rank.map(x => x.m);
     const totQ = act.reduce((s, m) => s + st[m.id].n, 0), totT = act.reduce((s, m) => s + st[m.id].used, 0);
 
     box.innerHTML = `
@@ -367,39 +317,7 @@ dialog#fiche::backdrop{background:rgba(0,0,0,.5)}
         <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Pseudo</th><th>Elo</th><th>7 jours</th><th>Questions</th><th>Justes</th><th>Fausses</th><th>Vides</th></tr></thead><tbody>
         ${rank.map((x, i) => { const s = st[x.m.id]; return `<tr><td>${i === 0 ? '🐐' : i + 1}</td><td><b>${nm(x.m)}</b>${x.m.hidden ? ' 🙈' : ''}${x.m.me ? ' <span class="fine">(toi)</span>' : ''}</td><td><b>${fmt(x.elo)}</b> <span class="fine" title="${esc(x.title.name)}">${esc(x.title.abbr)}</span>${x.n < 50 ? ' <span class="fine">provisoire</span>' : ''}</td><td class="${x.d7 > 0.5 ? 'up' : x.d7 < -0.5 ? 'down' : ''}">${x.d7 > 0.5 ? '+' : ''}${fmt(x.d7)}</td><td>${s.n}</td><td>${fmt(100 * s.ok / s.n)} %</td><td>${fmt(100 * s.bad / s.n)} %</td><td>${fmt(100 * s.blank / s.n)} %</td></tr>`; }).join('')}
         </tbody></table></div>
-        ${eloChart(rank)}</section>
-
-      <section class="card"><h2>Trophées</h2><div class="awards">${A.join('')}</div></section>
-
-      <section class="card"><h2>${gid === 'all' ? 'Le site en chiffres' : 'Le groupe en chiffres'}</h2><div class="awards">
-        ${cursed ? `<div class="award"><span class="ic">💀</span><b>La question maudite</b><span class="why">${esc(qName(cursed[0], members))}</span><span class="why">${fmt(100 * cursed[1])} % de réussite sur ${cursed[2]} essais.</span></div>` : ''}
-        ${hardest ? `<div class="award"><span class="ic">🧗</span><b>La question la plus « cotée »</b><span class="why">${esc(qName(hardest, members))}</span><span class="why">Difficulté de la question : ${fmt(Q[hardest])}.</span></div>` : ''}
-        ${gthL.length ? `<div class="award"><span class="ic">💚</span><b>Thème chouchou</b><span class="who">${esc(TH[gthL[0][0]])}</span><span class="why">${fmt(gthL[0][1], 2)} point en moyenne par question.</span></div>
-        <div class="award"><span class="ic">🧨</span><b>Bête noire ${gid === 'all' ? 'du site' : 'du groupe'}</b><span class="who">${esc(TH[gthL[gthL.length - 1][0]])}</span><span class="why">${fmt(gthL[gthL.length - 1][1], 2)} point en moyenne par question.</span></div>` : ''}
-      </div></section>
-
-      ${(() => { const act = members.filter(m => m.attempts.some(a => a.kind === 'group')); return act.length >= 2 && tests.length ? `<section class="card"><h2>Duels en contrôle de groupe</h2><p class="sub">Nombre de fois où la ligne a battu la colonne (meilleure note de chacun sur un même contrôle de groupe).</p>
-        <div style="overflow-x:auto"><table><thead><tr><th></th>${act.map(m => `<th>${nm(m)}</th>`).join('')}</tr></thead><tbody>
-        ${act.map(a => `<tr><td><b>${nm(a)}</b></td>${act.map(b => `<td>${a.id === b.id ? '—' : D[a.id][b.id] > D[b.id][a.id] ? `<b class="up">${D[a.id][b.id]}</b>` : D[a.id][b.id]}</td>`).join('')}</tr>`).join('')}
-        </tbody></table></div></section>` : ''; })()}
-
-      <section class="card"><h2>Fiches</h2><div class="people">
-        ${rank.map(x => { const s = st[x.m.id], m = x.m;
-          const nem = act.filter(o => o.id !== m.id && D[o.id][m.id] > D[m.id][o.id]).sort((a, b) => (D[b.id][m.id] - D[m.id][b.id]) - (D[a.id][m.id] - D[m.id][a.id]))[0];
-          return `<article class="person"><h3>${E[m.id].pos === 1 ? '🐐 ' : ''}${nm(m)}<span class="elo">${fmt(x.elo)} ${esc(x.title.abbr)} · ${E[m.id].pos}<sup>${E[m.id].pos === 1 ? 'er' : 'e'}</sup></span></h3>
-            <div class="bars" title="Justes · vides · fausses"><span style="background:var(--good);width:${(100 * s.ok / s.n).toFixed(1)}%"></span><span style="background:var(--muted);width:${(100 * s.blank / s.n).toFixed(1)}%"></span><span style="background:var(--red);width:${(100 * s.bad / s.n).toFixed(1)}%"></span></div>
-            <dl class="kv">
-              <dt>Questions</dt><dd>${s.n} · ${fmt(100 * s.ok / s.n)} % justes · ${fmt(100 * s.bad / s.n)} % fausses</dd>
-              <dt>Copies</dt><dd>${s.copies} (${Object.entries(s.kinds).map(([k, v]) => `${v} ${(v > 1 ? KIND : KIND1)[k] || k}`).join(', ') || 'copies du prof'}${m.controls.length ? `, ${m.controls.length} copie${m.controls.length > 1 ? 's' : ''} du prof` : ''})</dd>
-              <dt>Moyenne</dt><dd>${s.avgNote != null ? fmt(s.avgNote, 2) + '/20 sur le site' : '—'}</dd>
-              <dt>Meilleure</dt><dd>${s.best ? `${fmt(s.best.note, 2)}/20 · ${esc(s.best.title)}` : '—'}</dd>
-              <dt>Rythme</dt><dd>${s.avgT != null ? fmt(s.avgT) + ' s / question' : '—'} · ${fmtT(s.used)} au total</dd>
-              <dt>Point fort</dt><dd>${s.strong ? esc(TH[s.strong[0]]) : '—'}</dd>
-              <dt>Point faible</dt><dd>${s.weak ? esc(TH[s.weak[0]]) : '—'}</dd>
-              <dt>Heure favorite</dt><dd>${s.favH != null ? s.favH + ' h' : '—'}${s.night ? ` · 🦉 ${s.night} copie${s.night > 1 ? 's' : ''} de nuit` : ''}</dd>
-              <dt>Némésis</dt><dd>${nem ? esc(nem.pseudo) : '—'}</dd>
-            </dl></article>`; }).join('')}
-      </div></section>`;
+        ${eloChart(rank)}</section>`;
   }
 
   /* ---------- Fiche détaillée d'un compte (clic sur un pseudo, n'importe où dans la page) ---------- */

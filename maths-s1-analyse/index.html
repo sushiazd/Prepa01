@@ -10,11 +10,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="../subjects.js?v=2026112401"></script>
-<script src="../core.js?v=2026112402"></script>
+<script src="../subjects.js?v=2026112801"></script>
+<script src="../core.js?v=2026112802"></script>
 <script src="learn.js?v=2026102806"></script>
 <script defer src="../account.js" data-lazy></script>
-<link rel="stylesheet" href="../core.css?v=2026102803">
+<link rel="stylesheet" href="../core.css?v=2026112801">
 <style>
 :root{
   --accent:var(--phys); --accent-soft:var(--phys-soft);
@@ -108,7 +108,7 @@ table.t td,table.t th{border:1px solid var(--rule);padding:6px 10px;text-align:l
    OUTILS
    ===================================================================== */
 // Moteur commun (core.js) : parcours, maîtrise, onglets, chrono et synchronisation du sujet blanc
-const E = SiteCore({ id: 'ma2', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return DUR; },
+const E = SiteCore({ get ANN() { return ANN; }, id: 'ma2', get LEARN() { return LEARN; }, get lesson() { return { itemHTML, check: check, valOf, fbHTML }; }, typeset: el => mathIn(el), get DUR() { return DUR; },
   get CH() { return CH; }, get SK() { return SK; }, get GEN() { return GEN; },
   get CUR() { return CUR; }, set CUR(v) { CUR = v; }, get EXAM() { return EXAM; }, set EXAM(v) { EXAM = v; }, get VIEW() { return VIEW; }, set VIEW(v) { VIEW = v; },
   views: { home: () => vHome(), cours: () => vCours(), exos: () => vExos(), blanc: () => vBlanc() },
@@ -116,7 +116,7 @@ const E = SiteCore({ id: 'ma2', get LEARN() { return LEARN; }, get lesson() { re
   exam: () => examExos(EXAM.seed, EXAM.plan),
   examItems: () => [].concat(...examExos(EXAM.seed, EXAM.plan).map(x => [].concat(...x.parts.map(q => q.items)))), check: (it, raw) => check(it, raw), valOf: (r, id) => valOf(r, id), fbHTML: r => fbHTML(r) });
 const { $, $$, app, esc, ls, toast, rng, G, newSeed, PILL, PK, HK, EK, VAL, MMAX, skById, pst, skS, isVal, levelOf, frontier, pickNext, build,
-  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, weakButton, hideCorr, copyTag } = E;
+  startEx, saveCur, finish, setTab, renderPathTop, renderMap, nextPath, vPath, startTick, stopTick, tally, examRecord, examPlan, annCard, annExos, annRender, annSubmit, weakButton, hideCorr, copyTag } = E;
 function tx(s, disp) { if (window.katex) { try { return katex.renderToString(s, { throwOnError: false, displayMode: !!disp }); } catch (e) { /* repli */ } } return '<code>' + esc(s) + '</code>'; }
 function mathIn(el) { if (el && window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], throwOnError: false }); }
 
@@ -744,7 +744,76 @@ function vCours(open) {
 /* ---------- Sujet blanc ---------- */
 const DUR = 5400;
 const EXAM_PLAN = [['Exercice 1 · Nombres complexes', [['cform', 0], ['cracines', 0]], 5], ['Exercice 2 · Dérivée et étude de fonction', [['deriv', 1], ['etude', 1]], 5], ['Exercice 3 · DL et limites', [['dltaylor', 0], ['dllim', 0]], 5], ['Exercice 4 · Intégrales', [['riemann', 0], ['integ', 1], ['elts', 0]], 5]];
-function examExos(seed) { const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
+/* =====================================================================
+   VRAIS CC RETAPÉS (moteur annCard / annRender de core.js)
+   Moodle, MATH-S1 / 11 Annales : le contrôle continu 2025-26 (dérivées, barème du corrigé : 13 + 7) et le
+   rattrapage 2025-26 (1 h, une feuille A4 autorisée ; barème non donné, estimé). pts = points, sk = compétence du
+   parcours, Sf = ce qui se rédige sur la feuille (lab pendant l'épreuve, sol = ce que la copie doit contenir).
+   ===================================================================== */
+const Pt = (it, pts, sk) => Object.assign(it, { pts, sk });
+const Sf = (lab, sol, pts, sk) => ({ type: 'self', lab, sol, pts, sk });
+const ANN_U = v => v.x * v.x * Math.log(v.x) * Math.cos(v.x), ANN_DU = v => 2 * v.x * Math.log(v.x) * Math.cos(v.x) + v.x * Math.cos(v.x) - v.x * v.x * Math.log(v.x) * Math.sin(v.x);
+const ANN_DG = v => (ANN_DU(v) * (1 + v.x * v.x) - 2 * v.x * ANN_U(v)) / (1 + v.x * v.x) ** 2, ANN_DH = v => Math.exp(Math.atan(v.x)) / (1 + v.x * v.x);
+const ANN = [{
+  id: 'cc-2025', title: 'Contrôle continu 2025-26 (dérivées)', sub: 'Barème du corrigé · 2 exercices', dur: 5400, help: HELP,
+  rules: 'Aucun document, calculatrice interdite. La durée n\'est pas indiquée sur le sujet : 1 h 30 comme le CC du 6/01. Formules dans les cases, justifications sur ta feuille.',
+  exos: [
+    { title: 'Exercice 1 · Calcul d\'une dérivée', parts: [
+      { title: 'Question 1 (2 points)', q: '<p>Soit la fonction \\(f\\) définie sur \\(]0, +\\infty[\\) par</p>\\[f(x) = \\frac{x^2\\ln(x)\\cos(x)}{1 + x^2} + \\exp(\\arctan(x)).\\]<p>Préciser le domaine de définition \\(D\\) de la dérivée de \\(f\\).</p>',
+        items: [
+          Pt(Ch('\\(D =\\)', [['pos', '\\(]0, +\\infty[\\)'], ['r', '\\(\\mathbb R\\)'], ['rs', '\\(\\mathbb R^*\\)'], ['ferme', '\\([0, +\\infty[\\)']], 'pos'), 1, 'deriv'),
+          Sf('la justification', '\\(\\ln\\) impose \\(x > 0\\) ; \\(\\cos\\), \\(\\exp\\) et \\(\\arctan\\) sont dérivables sur \\(\\mathbb R\\) ; le dénominateur \\(1 + x^2\\) ne s\'annule jamais. Donc \\(f\\) est dérivable sur \\(]0, +\\infty[\\).', 1, 'deriv')],
+        corr: '<p>\\(D = \\,]0, +\\infty[\\) : seul le \\(\\ln\\) pose une condition.</p>' },
+      { title: 'Question 2 (11 points)', q: '<p>Calculer la dérivée \\(f\'\\) de \\(f\\) pour tout \\(x \\in D\\). On pose \\(f = g + h\\) avec \\(g(x) = \\dfrac{u(x)}{v(x)}\\), \\(u(x) = x^2\\ln(x)\\cos(x)\\), \\(v(x) = 1 + x^2\\) et \\(h(x) = \\exp(\\arctan(x))\\).</p>',
+        items: [
+          Pt(Ex('u\'(x)', ['x'], ANN_DU, 'u\'(x) = 2x\\ln(x)\\cos(x) + x\\cos(x) - x^2\\ln(x)\\sin(x)'), 3, 'deriv'),
+          Pt(Ex('v\'(x)', ['x'], v => 2 * v.x, 'v\'(x) = 2x'), 1, 'deriv'),
+          Pt(Ex('g\'(x)', ['x'], ANN_DG, 'g\'(x) = \\dfrac{u\'(x)(1 + x^2) - 2x\\,u(x)}{(1 + x^2)^2}'), 2, 'deriv'),
+          Pt(Ex('h\'(x)', ['x'], ANN_DH, 'h\'(x) = \\dfrac{\\exp(\\arctan x)}{1 + x^2}'), 2, 'deriv'),
+          Sf('la somme', '\\(f\'(x) = g\'(x) + h\'(x)\\)', 1, 'deriv'),
+          Pt(Ex('f\'(x)', ['x'], v => ANN_DG(v) + ANN_DH(v), 'f\'(x) = \\dfrac{(2x\\ln x\\cos x + x\\cos x - x^2\\ln x\\sin x)(1 + x^2) - 2x^3\\ln x\\cos x}{(1 + x^2)^2} + \\dfrac{\\exp(\\arctan x)}{1 + x^2}'), 2, 'deriv')],
+        corr: '<p>\\(u\\) est un produit de trois fonctions : \\((abc)\' = a\'bc + ab\'c + abc\'\\), avec \\((\\ln x)\' = 1/x\\) qui donne \\(x^2 \\cdot \\frac1x \\cos x = x\\cos x\\). Quotient : \\(\\left(\\frac uv\\right)\' = \\frac{u\'v - uv\'}{v^2}\\). Composée : \\((e^{w})\' = w\'e^{w}\\) avec \\(w = \\arctan\\), \\(w\' = \\frac{1}{1 + x^2}\\).</p>' }] },
+    { title: 'Exercice 2 · Étude de fonction', parts: [
+      { title: 'Questions 1 à 4 (7 points)', q: '<p>Soit la fonction \\(f\\) définie sur \\(]0, +\\infty[\\) par \\(f(x) = x^2\\ln(x) - x^2\\).</p><p>1. Calculer la dérivée \\(f\'\\).<br>2. Étudier le signe de \\(f\'\\) sur \\(]0, +\\infty[\\).<br>3. Dresser le tableau de variations de \\(f\\).<br>4. En déduire le minimum de \\(f\\).</p>',
+        items: [
+          Pt(Ex('f\'(x)', ['x'], v => 2 * v.x * Math.log(v.x) - v.x, 'f\'(x) = 2x\\ln(x) - x = x(2\\ln x - 1)'), 2, 'deriv'),
+          Pt(K('f\'(x) = 0 \\text{ pour } x', Math.sqrt(Math.E), '\\sqrt e'), 1, 'etude'),
+          Pt(Ch('Signe de \\(f\'\\)', [['ok', 'négative sur \\(]0, \\sqrt e[\\), positive sur \\(]\\sqrt e, +\\infty[\\)'], ['inv', 'positive sur \\(]0, \\sqrt e[\\), négative après'], ['pos', 'toujours positive']], 'ok'), 1, 'etude'),
+          Pt(Ch('Variations de \\(f\\)', [['dc', 'décroissante sur \\(]0, \\sqrt e]\\), puis croissante'], ['cd', 'croissante, puis décroissante'], ['c', 'croissante sur \\(]0, +\\infty[\\)']], 'dc'), 1, 'etude'),
+          Pt(K('\\min f', -Math.E / 2, '-\\dfrac{e}{2}'), 1, 'etude'),
+          Sf('le minimum et où il est atteint', 'Minimum en \\(x = \\sqrt e\\) : \\(f(\\sqrt e) = e\\ln\\sqrt e - e = \\dfrac e2 - e = -\\dfrac e2\\).', 1, 'etude')],
+        corr: '<p>\\(f\'(x) = x(2\\ln x - 1)\\) avec \\(x > 0\\) : le signe est celui de \\(2\\ln x - 1\\), nul pour \\(\\ln x = \\frac12\\), soit \\(x = \\sqrt e\\). Minimum \\(-\\frac e2\\) atteint en \\(\\sqrt e\\).</p>' }] }
+  ]
+}, {
+  id: 'ratt-2025', title: 'Rattrapage 2025-26', sub: 'Intégrales et DL · 1 h', dur: 3600, help: HELP,
+  rules: 'Durée 1 h. Une feuille A4 recto-verso manuscrite autorisée, pas de calculatrice. Le barème n\'est pas donné : il est estimé. Valeurs exactes dans les cases (par exemple <code>pi/8 + ln(2)/2</code>).',
+  exos: [
+    { title: 'Exercice 1 · Intégrale', parts: [{
+      q: '<p>Soit la fonction \\(f\\) définie sur \\(\\left[0, \\dfrac\\pi4\\right]\\) par \\(f(\\theta) = \\dfrac{\\cos\\theta}{\\cos\\theta + \\sin\\theta}\\).</p><p>1. Expliquer pourquoi \\(f\\) est intégrable sur \\(\\left[0, \\dfrac\\pi4\\right]\\).<br>2. Calculer l\'intégrale de \\(f\\) sur \\(\\left[0, \\dfrac\\pi4\\right]\\). On pourra exprimer \\(\\cos\\theta\\) comme une combinaison linéaire de \\(\\cos\\theta + \\sin\\theta\\) et \\(\\cos\\theta - \\sin\\theta\\).</p>',
+      items: [
+        Sf('1. l\'intégrabilité', '\\(\\cos\\) et \\(\\sin\\) sont continues ; sur \\([0, \\pi/4]\\), \\(\\cos\\theta > 0\\) et \\(\\sin\\theta \\geq 0\\), donc le dénominateur ne s\'annule pas. \\(f\\) est continue sur le segment, donc intégrable au sens de Riemann.', 2, 'riemann'),
+        Sf('2. la décomposition', '\\(\\cos\\theta = \\tfrac12(\\cos\\theta + \\sin\\theta) + \\tfrac12(\\cos\\theta - \\sin\\theta)\\), donc \\(f(\\theta) = \\tfrac12 + \\tfrac12\\cdot\\dfrac{\\cos\\theta - \\sin\\theta}{\\cos\\theta + \\sin\\theta}\\), et le numérateur est la dérivée du dénominateur.', 2, 'integ'),
+        Pt(K('\\displaystyle\\int_0^{\\pi/4} f(\\theta)\\,d\\theta', Math.PI / 8 + Math.log(2) / 4, '\\dfrac{\\pi}{8} + \\dfrac{\\ln 2}{4}'), 3, 'integ')],
+      corr: '<p>\\(\\displaystyle\\int_0^{\\pi/4} \\frac{\\cos\\theta - \\sin\\theta}{\\cos\\theta + \\sin\\theta}\\,d\\theta = \\big[\\ln(\\cos\\theta + \\sin\\theta)\\big]_0^{\\pi/4} = \\ln\\sqrt2 = \\tfrac12\\ln 2\\). D\'où \\(\\displaystyle\\int_0^{\\pi/4} f = \\frac\\pi8 + \\frac12\\cdot\\frac12\\ln 2 = \\frac\\pi8 + \\frac{\\ln 2}{4}\\).</p><p class="fine">Le corrigé de Moodle écrit \\(\\frac\\pi8 + \\frac12\\ln 2\\) en oubliant le facteur \\(\\frac12\\) devant la seconde intégrale ; la bonne valeur est \\(\\frac\\pi8 + \\frac{\\ln2}{4} \\approx 0{,}566\\) (vérifiable numériquement).</p>' }] },
+    { title: 'Exercice 2 · Développement limité et suite', parts: [{
+      q: '<p>Soit la suite \\((U_n)\\) définie pour \\(n \\in \\mathbb N^*\\) par \\(U_n = n\\left(\\sqrt{1 + \\dfrac1n} - 1\\right)\\).</p><p>1. Calculer (démontrer) le développement limité d\'ordre 2 au voisinage de 0 de \\(g(x) = \\sqrt{1 + x}\\).<br>2. Calculer la limite de \\((U_n)\\) lorsque \\(n\\) tend vers \\(+\\infty\\).</p>',
+      items: [
+        Pt(Dl('\\sqrt{1 + x}', SER.pow(2, Fq(1, 2))), 2, 'dltaylor'),
+        Sf('1. la démonstration par la formule de Taylor', '\\(g(0) = 1\\), \\(g\'(x) = \\tfrac12(1 + x)^{-1/2}\\) donc \\(g\'(0) = \\tfrac12\\), \\(g\'\'(x) = -\\tfrac14(1 + x)^{-3/2}\\) donc \\(g\'\'(0) = -\\tfrac14\\) ; \\(g(x) = g(0) + g\'(0)x + \\dfrac{g\'\'(0)}{2}x^2 + x^2\\varepsilon(x)\\).', 2, 'dltaylor'),
+        Pt(K('\\lim U_n', 0.5, '\\dfrac12'), 1, 'dllim'),
+        Sf('2. le calcul de la limite', 'Avec \\(x = \\frac1n \\to 0\\) : \\(\\sqrt{1 + \\frac1n} - 1 = \\frac{1}{2n} - \\frac{1}{8n^2} + \\frac{1}{n^2}\\varepsilon\\left(\\frac1n\\right)\\), donc \\(U_n = \\frac12 - \\frac{1}{8n} + \\frac1n\\varepsilon\\left(\\frac1n\\right) \\to \\frac12\\).', 1, 'dllim')],
+      corr: '<p>\\(\\sqrt{1 + x} = 1 + \\dfrac x2 - \\dfrac{x^2}{8} + x^2\\varepsilon(x)\\). La forme indéterminée \\(\\infty \\times 0\\) se lève avec le DL en \\(x = 1/n\\).</p>' }] },
+    { title: 'Exercice 3 · Changement de variable', parts: [{
+      q: '<p>Soit la fonction \\(h\\) définie sur \\(\\mathbb R_+^*\\) par \\(h(x) = \\dfrac{\\ln(x)}{1 + x^2}\\).</p><p>1. Expliquer pourquoi \\(h\\) est intégrable sur \\(\\left[\\dfrac12, 2\\right]\\).<br>2. Calculer l\'intégrale de \\(h\\) sur \\(\\left[\\dfrac12, 2\\right]\\) (on pourra poser \\(x = \\dfrac1t\\)).</p>',
+      items: [
+        Sf('1. l\'intégrabilité', '\\(\\ln\\) est continue sur \\(\\mathbb R_+^*\\), \\(1 + x^2\\) est continue et strictement positive : \\(h\\) est continue sur le segment \\([\\tfrac12, 2]\\), donc intégrable au sens de Riemann.', 2, 'riemann'),
+        Sf('2. le changement de variable', '\\(x = \\frac1t\\), \\(dx = -\\frac{1}{t^2}dt\\), \\(\\ln x = -\\ln t\\), les bornes \\(\\frac12\\) et \\(2\\) s\'échangent ; \\(\\dfrac{1}{1 + 1/t^2} = \\dfrac{t^2}{1 + t^2}\\) et on retrouve \\(I = -I\\).', 3, 'integ'),
+        Pt(K('\\displaystyle\\int_{1/2}^{2} h(x)\\,dx', 0, '0'), 2, 'integ')],
+      corr: '<p>\\(I = \\displaystyle\\int_2^{1/2} \\frac{-\\ln t}{1 + 1/t^2}\\left(-\\frac{1}{t^2}\\right)dt = \\int_2^{1/2} \\frac{\\ln t}{1 + t^2}\\,dt = -I\\), donc \\(I = 0\\).</p>' }] }
+  ]
+}];
+
+function examExos(seed) { if (EXAM && EXAM.ann) return annExos(EXAM.ann); const g = G(rng(seed)); return examPlan(EXAM_PLAN).map(([title, parts, pts]) => ({ title, pts, parts: parts.map(([id, d]) => build(id, d, Math.floor(g.r() * 4294967296))) })); }
 function vBlanc() {
   const E = ls.get(EK, null);
   if (E && !E.closed && !EXAM) { EXAM = E; EXAM.running = !E.done; }
@@ -752,9 +821,11 @@ function vBlanc() {
   const H = ls.get(HK, []);
   app.innerHTML = `<div><p class="eyebrow">Conditions réelles · 1 h 30 · noté sur 20</p><h1>Sujet blanc</h1><p class="lede">4 exercices de 5 points dans le style des annales : complexes, dérivée et étude de fonction, DL et limites, intégrales. Valeurs exactes attendues (racines, π, e, ln).</p></div>
     <section class="card"><div class="row"><button type="button" class="btn btn-primary btn-lg" data-act="exam">Commencer (1 h 30)</button>${weakButton()}<span class="fine">Sans calculatrice, comme au CC : rédige sur une feuille, puis reporte les résultats.</span></div></section>
+    ${annCard()}
     <section class="card"><h2>Mes copies</h2>${H.length ? `<table class="hist"><tr><th>Date</th><th>Note</th><th>Durée</th></tr>${H.slice().reverse().map(r => `<tr><td>${new Date(r.ts).toLocaleDateString('fr-FR')}${copyTag(r)}</td><td><b>${String(r.note.toFixed(1)).replace('.', ',')}/20</b></td><td>${Math.round(r.dur / 60)} min</td></tr>`).join('')}</table>` : '<p class="sub">Aucune copie pour l\'instant.</p>'}</section>`;
 }
 function renderExam() {
+  if (EXAM.ann) return annRender();   // vrai CC retapé (core.js)
   EXAM.exs = examExos(EXAM.seed);
   app.innerHTML = `<div><p class="eyebrow">${EXAM.target ? 'Sujet ciblé (points faibles) · ' : ''}Sujet blanc d'analyse</p><h1>CC · 1 h 30</h1></div>`
     + EXAM.exs.map(ex => `<section class="card"><h2>${esc(ex.title)} <span class="fine">(${ex.pts} points)</span></h2>${ex.parts.map(p => `<div class="ex" style="margin-top:14px"><h3 style="font:600 17px/1.3 var(--serif)">${esc(p.title)}</h3><div class="q">${p.q}</div><div class="items">${p.items.map(it => itemHTML(it, it.id, EXAM.ans[it.id] || '')).join('')}</div>${EXAM.done ? `<details class="corr" open><summary>Correction</summary><div class="expl">${p.corr}${p.items.filter(it => it.type === 'expr').map(it => `<p>Formule attendue : \\(${it.sol}\\)</p>`).join('')}</div></details>` : ''}</div>`).join('')}</section>`).join('')
@@ -768,6 +839,7 @@ function renderExam() {
 }
 const saveExam = () => { const { exs, ...rest } = EXAM; ls.set(EK, rest); };
 function submitExam(auto) {
+  if (EXAM && EXAM.ann) return annSubmit(auto);
   if (!EXAM || EXAM.done) return;
   if (!auto && !confirm('Rendre la copie ?')) return;
   stopTick();
